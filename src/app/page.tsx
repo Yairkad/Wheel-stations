@@ -1260,7 +1260,7 @@ export default function WheelStationsPage() {
                     חפש ב-wheel-size.com ↗
                   </a>
                   <a
-                    href="http://wheelfitment.eu"
+                    href="https://www.wheelfitment.eu/car.html"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={styles.wheelSizeLink}
@@ -1370,7 +1370,7 @@ export default function WheelStationsPage() {
                         חפש ב-wheel-size.com ↗
                       </a>
                       <a
-                        href="http://wheelfitment.eu"
+                        href="https://www.wheelfitment.eu/car.html"
                         target="_blank"
                         rel="noopener noreferrer"
                         style={styles.wheelSizeLink}
