@@ -12,8 +12,8 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "השאלת גלגלים - ידידים",
-  description: "מערכת להשאלת גלגלים",
+  title: "תחנות השאלת גלגלים - ידידים",
+  description: "מערכת להשאלת גלגלים לחברי ידידים",
   manifest: "/manifest.json",
   themeColor: "#374151",
   appleWebApp: {
@@ -24,6 +24,20 @@ export const metadata: Metadata = {
   icons: {
     icon: "/logo.wheels.png",
     apple: "/logo.wheels.png",
+  },
+  openGraph: {
+    title: "תחנות השאלת גלגלים - ידידים",
+    description: "מערכת להשאלת גלגלים לחברי ידידים",
+    images: [
+      {
+        url: "/logo.wheels.png",
+        width: 512,
+        height: 512,
+        alt: "לוגו תחנות גלגלים ידידים",
+      },
+    ],
+    locale: "he_IL",
+    type: "website",
   },
 };
 
