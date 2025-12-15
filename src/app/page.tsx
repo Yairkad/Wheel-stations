@@ -867,9 +867,9 @@ export default function WheelStationsPage() {
         <div style={styles.footerInfo}>
           <p style={styles.footerText}>
             מערכת גלגלים ידידים •{' '}
-            <a href="https://aron-tziyud.vercel.app/feedback?source=wheels" style={styles.feedbackLink} target="_blank" rel="noopener noreferrer">
+            <Link href="/feedback" style={styles.feedbackLink}>
               דווח על בעיה או הצע שיפור
-            </a>
+            </Link>
           </p>
           <p style={styles.versionText}>גירסה {VERSION}</p>
         </div>
