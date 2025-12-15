@@ -1,7 +1,7 @@
 {
   "name": "תחנות השאלת גלגלים - ידידים",
   "short_name": "גלגלים",
-  "description": "מערכת להשאלת גלגלים",
+  "description": "מערכת לניהול ומעקב בתחנות השאלת גלגלים",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#374151",

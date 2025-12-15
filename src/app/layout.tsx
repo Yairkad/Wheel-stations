@@ -13,7 +13,7 @@ const rubik = Rubik({
 
 export const metadata: Metadata = {
   title: "תחנות השאלת גלגלים - ידידים",
-  description: "מערכת להשאלת גלגלים לחברי ידידים",
+  description: "מערכת לניהול ומעקב בתחנות השאלת גלגלים",
   manifest: "/manifest.json",
   themeColor: "#374151",
   appleWebApp: {
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "תחנות השאלת גלגלים - ידידים",
-    description: "מערכת להשאלת גלגלים לחברי ידידים",
+    description: "מערכת לניהול ומעקב בתחנות השאלת גלגלים",
     images: [
       {
         url: "/logo.wheels.png",
