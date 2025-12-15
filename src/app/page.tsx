@@ -355,39 +355,6 @@ export default function WheelStationsPage() {
           },
           wheel_fitment: wheelFitment
         })
-      } else {
-        // Try scraping from wheel-size.com
-        const scrapeResponse = await fetch('/api/vehicle-models/scrape', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            make: englishMake,
-            model: englishModel,
-            year: modelSearchYear
-          })
-        })
-
-        if (scrapeResponse.ok) {
-          const scrapeData = await scrapeResponse.json()
-          if (scrapeData.success && scrapeData.data) {
-            wheelFitment = {
-              pcd: `${scrapeData.data.bolt_count}×${scrapeData.data.bolt_spacing}`,
-              bolt_count: scrapeData.data.bolt_count,
-              bolt_spacing: scrapeData.data.bolt_spacing,
-              center_bore: scrapeData.data.center_bore
-            }
-            setVehicleResult({
-              vehicle: {
-                manufacturer: scrapeData.data.make,
-                model: scrapeData.data.model,
-                year: scrapeData.data.year,
-                color: '',
-                front_tire: scrapeData.data.tire_sizes?.[0] || ''
-              },
-              wheel_fitment: wheelFitment
-            })
-          }
-        }
       }
 
       // Search for matching wheels if we have fitment data

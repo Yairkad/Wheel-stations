@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ vehicles: data || [] })
+    return NextResponse.json({ models: data || [] })
 
   } catch (error: any) {
     console.error('API error:', error)
