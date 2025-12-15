@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/ToastProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const rubik = Rubik({
   subsets: ["hebrew", "latin"],
@@ -58,6 +59,7 @@ export default function RootLayout({
     <html lang="he" dir="rtl">
       <body className={`${rubik.className} antialiased`}>
         <ToastProvider />
+        <SpeedInsights />
         {children}
       </body>
     </html>
