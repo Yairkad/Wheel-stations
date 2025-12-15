@@ -899,7 +899,10 @@ export default function WheelStationsPage() {
         <Link href="/admin" style={styles.adminLink} className="wheels-admin-link">⚙️ ניהול</Link>
         <div style={styles.footerInfo}>
           <p style={styles.footerText}>
-            מערכת גלגלים ידידים
+            מערכת גלגלים ידידים •{' '}
+            <a href="https://aron-tziyud.vercel.app/feedback?source=wheels" style={styles.feedbackLink} target="_blank" rel="noopener noreferrer">
+              דווח על בעיה או הצע שיפור
+            </a>
           </p>
           <p style={styles.versionText}>גירסה {VERSION}</p>
         </div>
