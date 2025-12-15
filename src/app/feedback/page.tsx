@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
 
 type FeedbackType = 'bug' | 'suggestion' | 'other'
 
@@ -18,7 +19,6 @@ export default function FeedbackPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
 
   const [type, setType] = useState<FeedbackType>('bug')
   const [subject, setSubject] = useState('')
@@ -44,12 +44,12 @@ export default function FeedbackPage() {
 
     for (const file of Array.from(files)) {
       if (file.size > maxSize) {
-        setError(`הקובץ ${file.name} גדול מדי. מקסימום 25MB`)
+        toast.error(`הקובץ ${file.name} גדול מדי. מקסימום 25MB`)
         continue
       }
 
       if (!allowedTypes.includes(file.type)) {
-        setError(`סוג הקובץ ${file.name} לא נתמך`)
+        toast.error(`סוג הקובץ ${file.name} לא נתמך`)
         continue
       }
 
@@ -88,31 +88,30 @@ export default function FeedbackPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
 
     if (!subject.trim()) {
-      setError('נא להזין נושא')
+      toast.error('נא להזין נושא')
       return
     }
 
     if (!description.trim()) {
-      setError('נא להזין תיאור')
+      toast.error('נא להזין תיאור')
       return
     }
 
     if (description.trim().length < 10) {
-      setError('התיאור קצר מדי. נא לפרט יותר')
+      toast.error('התיאור קצר מדי. נא לפרט יותר')
       return
     }
 
     if (!senderEmail.trim()) {
-      setError('נא להזין כתובת מייל')
+      toast.error('נא להזין כתובת מייל')
       return
     }
 
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
     if (!emailRegex.test(senderEmail.trim())) {
-      setError('כתובת מייל לא תקינה')
+      toast.error('כתובת מייל לא תקינה')
       return
     }
 
@@ -138,11 +137,12 @@ export default function FeedbackPage() {
 
       if (response.ok && data.success) {
         setSuccess(true)
+        toast.success('הפידבק נשלח בהצלחה!')
       } else {
-        setError(data.error || 'שגיאה בשליחת הפידבק')
+        toast.error(data.error || 'שגיאה בשליחת הפידבק')
       }
     } catch {
-      setError('שגיאה בתקשורת עם השרת')
+      toast.error('שגיאה בתקשורת עם השרת')
     } finally {
       setSending(false)
     }
@@ -199,12 +199,6 @@ export default function FeedbackPage() {
               <span>✕</span>
             </Link>
           </div>
-
-          {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
-              <p className="text-red-600 text-center">{error}</p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Type Selection */}

@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   title: "תחנות השאלת גלגלים - ידידים",
   description: "מערכת לניהול ומעקב בתחנות השאלת גלגלים",
   manifest: "/manifest.json",
-  themeColor: "#374151",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -48,6 +47,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
+  themeColor: '#374151',
 };
 
 export default function RootLayout({
