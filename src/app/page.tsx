@@ -899,10 +899,7 @@ export default function WheelStationsPage() {
         <Link href="/admin" style={styles.adminLink} className="wheels-admin-link">⚙️ ניהול</Link>
         <div style={styles.footerInfo}>
           <p style={styles.footerText}>
-            מערכת גלגלים ידידים •{' '}
-            <Link href="/feedback?source=wheels" style={styles.feedbackLink}>
-              דווח על בעיה או הצע שיפור
-            </Link>
+            מערכת גלגלים ידידים
           </p>
           <p style={styles.versionText}>גירסה {VERSION}</p>
         </div>
