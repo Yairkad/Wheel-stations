@@ -353,8 +353,8 @@ function SignFormContent({ stationId }: { stationId: string }) {
         <div style={styles.infoBox}>
           <p>עמותת ידידים סיוע בדרכים סניף {station.name} מאפשרת לשאול גלגלים לפרק זמן מוגבל על מנת לעזור במקרים בהם אין פנצ'ריות פתוחות, ולא ניתן לבצע תיקון זמני.</p>
           <p style={{ marginTop: '10px' }}>אנו מבקשים להחזיר את הגלגל בהקדם האפשרי ועד 72 שעות ממועד ההשאלה, על מנת שנוכל להמשיך ולסייע לאנשים נוספים.</p>
-          <p style={{ marginTop: '10px' }}>ארגון ידידים פועל בהתנדבות מלאה, ותרומות עוזרות לארגון ברכישת ציוד - <a href="https://yedidim-il.org" target="_blank" rel="noopener noreferrer" style={styles.link}>ניתן לתרום כאן</a></p>
-          <p style={{ marginTop: '10px' }}>להצטרפות למעצמה - פנו להנהלת הסניף או <a href="https://yedidim-il.org" target="_blank" rel="noopener noreferrer" style={styles.link}>בקישור זה</a></p>
+          <p style={{ marginTop: '10px' }}>ארגון ידידים פועל בהתנדבות מלאה, ותרומות עוזרות לארגון ברכישת ציוד - <a href="https://yedidim-il.org/%d7%aa%d7%a8%d7%95%d7%9e%d7%95%d7%aa/" target="_blank" rel="noopener noreferrer" style={styles.link}>ניתן לתרום כאן</a></p>
+          <p style={{ marginTop: '10px' }}>להצטרפות למעצמה - פנו להנהלת הסניף או <a href="https://yedidim-il.org/%D7%94%D7%A6%D7%98%D7%A8%D7%A4%D7%95-%D7%90%D7%9C%D7%99%D7%A0%D7%95/" target="_blank" rel="noopener noreferrer" style={styles.link}>בקישור זה</a></p>
         </div>
 
         {/* Personal Details Section */}
@@ -664,13 +664,13 @@ function SignFormContent({ stationId }: { stationId: string }) {
           onScroll={handleTermsScroll}
         >
           <p><strong>תקנון השאלת גלגל:</strong></p>
-          <ol style={styles.termsList}>
+          <ul style={styles.termsList}>
             <li>הפונה מתחייב להחזיר את הגלגל בתוך <strong>72 שעות</strong>, ולהשאיר כפקדון {station.deposit_amount || 200} ש"ח באמצעי התשלום הזמין.</li>
             <li>הפונה יקבל חזרה את הפקדון בעת החזרת הגלגל. במידה והגלגל לא יוחזר בתוך 72 שעות, סכום הכסף יועבר כתרומה לידידים.</li>
             <li><strong>הפונה מבין שזהו תיקון חירום בלבד!</strong> והגלגל עשוי להיות במידה מעט שונה/לפגוע ביציבות הרכב ולכן מתחייב לא לנהוג במהירות מעל 80 קמ"ש וכן שלא תהיה לו שום תלונה על הסיוע שקיבל.</li>
             <li>במקרים חריגים ניתן להאריך את זמן ההשאלה עד 5 ימים, באישור מנהל התחנה או סג"מ התחנה.</li>
             <li>במקרים חריגים (באישור מנהל/סג"מ התחנה) ניתן להפקיד כערבון תעודה מזהה במקום פקדון כספי.</li>
-          </ol>
+          </ul>
           {!canAgreeTerms && (
             <p style={styles.scrollHint}>👇 גלול למטה כדי להמשיך</p>
           )}

@@ -436,6 +436,44 @@ export default function WheelStationsPage() {
     'קליאו': 'Clio', 'מגאן': 'Megane', 'סי 3': 'C3', 'סי 4': 'C4', '208': '208', '308': '308'
   }
 
+  // Model to Make mapping - which models belong to which make
+  const modelToMake: Record<string, string> = {
+    // Toyota
+    'Corolla': 'Toyota', 'Camry': 'Toyota', 'Yaris': 'Toyota', 'Auris': 'Toyota',
+    'RAV4': 'Toyota', 'Land Cruiser': 'Toyota', 'Hilux': 'Toyota', 'Prius': 'Toyota',
+    'Aygo': 'Toyota', 'C-HR': 'Toyota', 'Highlander': 'Toyota',
+    // Hyundai
+    'i10': 'Hyundai', 'i20': 'Hyundai', 'i30': 'Hyundai', 'i40': 'Hyundai',
+    'Tucson': 'Hyundai', 'Santa Fe': 'Hyundai', 'Kona': 'Hyundai', 'Ioniq': 'Hyundai',
+    'Elantra': 'Hyundai', 'Sonata': 'Hyundai', 'Accent': 'Hyundai',
+    // Kia
+    'Picanto': 'Kia', 'Rio': 'Kia', 'Ceed': 'Kia', 'Sportage': 'Kia',
+    'Sorento': 'Kia', 'Niro': 'Kia', 'Stonic': 'Kia', 'Soul': 'Kia',
+    // Mazda
+    'Mazda2': 'Mazda', 'Mazda3': 'Mazda', 'Mazda6': 'Mazda',
+    'CX-3': 'Mazda', 'CX-5': 'Mazda', 'CX-30': 'Mazda',
+    // Honda
+    'Civic': 'Honda', 'Accord': 'Honda', 'Jazz': 'Honda', 'CR-V': 'Honda', 'HR-V': 'Honda',
+    // Nissan
+    'Micra': 'Nissan', 'Juke': 'Nissan', 'Qashqai': 'Nissan', 'X-Trail': 'Nissan',
+    'Leaf': 'Nissan', 'Note': 'Nissan', 'Sentra': 'Nissan',
+    // Volkswagen
+    'Golf': 'Volkswagen', 'Polo': 'Volkswagen', 'Passat': 'Volkswagen', 'Tiguan': 'Volkswagen',
+    'T-Roc': 'Volkswagen', 'Up': 'Volkswagen', 'Arteon': 'Volkswagen', 'Touareg': 'Volkswagen',
+    // Skoda
+    'Fabia': 'Skoda', 'Octavia': 'Skoda', 'Superb': 'Skoda', 'Karoq': 'Skoda', 'Kodiaq': 'Skoda',
+    // Ford
+    'Focus': 'Ford', 'Fiesta': 'Ford',
+    // Opel
+    'Astra': 'Opel', 'Corsa': 'Opel',
+    // Renault
+    'Clio': 'Renault', 'Megane': 'Renault',
+    // Citroen
+    'C3': 'Citroen', 'C4': 'Citroen',
+    // Peugeot
+    '208': 'Peugeot', '308': 'Peugeot'
+  }
+
   // Fetch suggestions for model search (supports Hebrew and English)
   const fetchModelSearchMakeSuggestions = async (value: string) => {
     if (value.length < 2) {
@@ -497,7 +535,7 @@ export default function WheelStationsPage() {
       const suggestions: string[] = []
       const seen = new Set<string>()
 
-      data.vehicles?.forEach((v: any) => {
+      data.models?.forEach((v: any) => {
         if (v.model && !seen.has(v.model.toLowerCase())) {
           seen.add(v.model.toLowerCase())
           const hebrewName = Object.entries(hebrewToEnglishModels).find(([, eng]) => eng.toLowerCase() === v.model.toLowerCase())?.[0]
@@ -505,11 +543,15 @@ export default function WheelStationsPage() {
         }
       })
 
-      // Add common models that match
+      // Add common models that match - ONLY if they belong to the selected make
       Object.entries(hebrewToEnglishModels).forEach(([he, en]) => {
-        if ((he.includes(value) || en.toLowerCase().includes(value.toLowerCase())) && !seen.has(en.toLowerCase())) {
-          seen.add(en.toLowerCase())
-          suggestions.push(`${en} (${he})`)
+        // Check if this model belongs to the selected make
+        const modelMake = modelToMake[en]
+        if (modelMake && modelMake.toLowerCase() === englishMake.toLowerCase()) {
+          if ((he.includes(value) || en.toLowerCase().includes(value.toLowerCase())) && !seen.has(en.toLowerCase())) {
+            seen.add(en.toLowerCase())
+            suggestions.push(`${en} (${he})`)
+          }
         }
       })
 
@@ -917,33 +959,32 @@ export default function WheelStationsPage() {
               className="wheels-card"
               aria-label={`תחנת ${station.name} - ${station.availableWheels} גלגלים זמינים מתוך ${station.totalWheels}`}
             >
-              <h3 style={styles.cardTitle}>
-                🏙️ {station.name}
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                <h3 style={{...styles.cardTitle, margin: 0}}>
+                  {station.name}
+                </h3>
+                {station.district && (
+                  <div style={{
+                    display: 'inline-block',
+                    padding: '2px 6px',
+                    border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
+                    borderRadius: '4px',
+                    fontSize: '0.7rem',
+                    fontWeight: '600',
+                    color: getDistrictColor(station.district, districts),
+                    backgroundColor: `${getDistrictColor(station.district, districts)}15`,
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0
+                  }}>
+                    {getDistrictName(station.district, districts)}
+                  </div>
+                )}
+              </div>
               {station.address && (
                 <div style={styles.address}>📍 {station.address}</div>
               )}
-              {(station.cities?.name || station.district) && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', justifyContent: 'flex-start' }}>
-                  {station.cities?.name && (
-                    <div style={styles.cityName}>{station.cities.name}</div>
-                  )}
-                  {station.district && (
-                    <div style={{
-                      display: 'inline-block',
-                      padding: '2px 6px',
-                      border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
-                      borderRadius: '4px',
-                      fontSize: '0.7rem',
-                      fontWeight: '600',
-                      color: getDistrictColor(station.district, districts),
-                      backgroundColor: `${getDistrictColor(station.district, districts)}15`,
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {getDistrictName(station.district, districts)}
-                    </div>
-                  )}
-                </div>
+              {station.cities?.name && (
+                <div style={styles.cityName}>{station.cities.name}</div>
               )}
               <div style={styles.stats}>
                 <div style={styles.stat}>
@@ -1087,10 +1128,7 @@ export default function WheelStationsPage() {
                     {searchResults.map(result => (
                       <div key={result.station.id} style={styles.resultStationGroup}>
                         <div style={styles.resultStationHeader}>
-                          <div style={styles.resultStationName}>🏙️ {result.station.name}</div>
-                          {result.station.city && (
-                            <div style={styles.resultCityBadge}>{result.station.city}</div>
-                          )}
+                          <div style={styles.resultStationName}>{result.station.name}</div>
                         </div>
                         {result.station.address && (
                           <div style={styles.resultAddress}>📍 {result.station.address}</div>
@@ -1453,10 +1491,7 @@ export default function WheelStationsPage() {
                             {filteredResults.map(result => (
                               <div key={result.station.id} style={styles.resultStationGroup}>
                                 <div style={styles.resultStationHeader}>
-                                  <div style={styles.resultStationName}>🏙️ {result.station.name}</div>
-                                  {result.station.city && (
-                                    <div style={styles.resultCityBadge}>{result.station.city}</div>
-                                  )}
+                                  <div style={styles.resultStationName}>{result.station.name}</div>
                                 </div>
                                 <div style={styles.resultWheelsList}>
                                   {result.wheels.map(wheel => (
@@ -1861,6 +1896,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '20px',
     border: '3px solid #6b7280',
     animation: 'pulse 1.5s ease-in-out infinite',
+    display: 'block',
+    margin: '0 auto 20px',
   },
   title: {
     fontSize: '2.5rem',

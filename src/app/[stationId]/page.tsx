@@ -176,6 +176,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   // Options menu for wheel cards
   const [openOptionsMenu, setOpenOptionsMenu] = useState<string | null>(null)
 
+  // Manager hamburger menu
+  const [showManagerMenu, setShowManagerMenu] = useState(false)
+
   // Manual borrow modal
   const [showManualBorrowModal, setShowManualBorrowModal] = useState(false)
   const [manualBorrowWheel, setManualBorrowWheel] = useState<Wheel | null>(null)
@@ -300,7 +303,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (openOptionsMenu) setOpenOptionsMenu(null)
+        if (showManagerMenu) setShowManagerMenu(false)
+        else if (openOptionsMenu) setOpenOptionsMenu(null)
         else if (showManualBorrowModal) setShowManualBorrowModal(false)
         else if (showEditWheelModal) setShowEditWheelModal(false)
         else if (showAddWheelModal) setShowAddWheelModal(false)
@@ -316,16 +320,17 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog, openOptionsMenu, showManualBorrowModal])
+  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog, openOptionsMenu, showManualBorrowModal, showManagerMenu])
 
-  // Close options menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       if (openOptionsMenu) setOpenOptionsMenu(null)
+      if (showManagerMenu) setShowManagerMenu(false)
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [openOptionsMenu])
+  }, [openOptionsMenu, showManagerMenu])
 
   const fetchBorrows = async () => {
     setBorrowsLoading(true)
@@ -1362,89 +1367,167 @@ ${formUrl}`
           }
         }
       `}</style>
-      <header style={styles.header}>
-        <div style={styles.headerTop} className="station-header-top">
-          <Link href="/" style={styles.backBtn}>← חזרה</Link>
-          {isManager ? (
-            <div style={styles.managerActions} className="station-manager-actions">
-              <button style={styles.addBtn} className="station-manager-btn" onClick={() => setShowAddWheelModal(true)}>➕ <span className="btn-text">הוסף גלגל</span></button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept=".xlsx,.xls"
-                style={{ display: 'none' }}
-                onChange={handleExcelUpload}
-              />
-              <button
-                style={styles.excelBtn}
-                className="station-manager-btn"
-                onClick={() => setShowExcelModal(true)}
-              >
-                📊 <span className="btn-text">Excel</span>
-              </button>
-              <button style={styles.editContactsBtn} className="station-manager-btn" onClick={() => { setEditAddress(station.address || ''); setEditDepositAmount(String(station.deposit_amount || 200)); setEditPaymentMethods(station.payment_methods || { cash: true, id_deposit: true, license_deposit: true }); setNotificationEmails(station.notification_emails?.length ? [...station.notification_emails, ...Array(2 - station.notification_emails.length).fill('')].slice(0, 2) : ['', '']); setShowEditDetailsModal(true) }}>⚙️ <span className="btn-text">ערוך פרטים</span></button>
-              <button style={styles.logoutBtn} className="station-manager-btn" onClick={handleLogout}>🚪 <span className="btn-text">יציאה</span></button>
-            </div>
-          ) : (
-            <button style={styles.managerBtn} className="station-login-btn" onClick={() => setShowLoginModal(true)}>🔐 כניסת מנהל</button>
-          )}
-        </div>
-        <h1 style={styles.title} className="station-header-title">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <span>🏙️ {station.name}</span>
+      {/* Sticky Header Section */}
+      <div style={styles.stickyHeader} className="sticky-header">
+        <header style={styles.header}>
+          <div style={styles.headerTop} className="station-header-top">
+            <Link href="/" style={styles.backBtn}>← חזרה</Link>
+            {isManager ? (
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".xlsx,.xls"
+                  style={{ display: 'none' }}
+                  onChange={handleExcelUpload}
+                />
+                <button
+                  style={styles.hamburgerBtn}
+                  onClick={() => setShowManagerMenu(!showManagerMenu)}
+                >
+                  <span style={styles.hamburgerIcon}>☰</span>
+                  <span style={styles.managerName}>{currentManager?.full_name}</span>
+                </button>
+
+                {/* Manager dropdown menu */}
+                {showManagerMenu && (
+                  <div style={styles.managerDropdown} onClick={e => e.stopPropagation()}>
+                    {/* User info section */}
+                    <div style={styles.menuUserInfo}>
+                      <div style={styles.menuUserName}>{currentManager?.full_name}</div>
+                      <div style={styles.menuUserPhone}>{currentManager?.phone}</div>
+                      <div style={styles.menuUserRole}>{currentManager?.role === 'manager' ? 'מנהל תחנה' : currentManager?.role === 'deputy' ? 'סג"מ' : 'מתנדב'}</div>
+                    </div>
+
+                    {/* Station info section */}
+                    <div style={styles.menuStationInfo}>
+                      <div style={styles.menuStationName}>{station.name}</div>
+                      {station.address && <div style={styles.menuStationAddress}>📍 {station.address}</div>}
+                      {station.district && (
+                        <div style={{
+                          display: 'inline-block',
+                          marginTop: '6px',
+                          padding: '2px 8px',
+                          border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
+                          borderRadius: '4px',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: getDistrictColor(station.district, districts),
+                          backgroundColor: `${getDistrictColor(station.district, districts)}15`,
+                        }}>
+                          {getDistrictName(station.district, districts)}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Divider */}
+                    <div style={styles.menuDivider} />
+
+                    {/* Actions */}
+                    <button
+                      style={styles.menuItem}
+                      onClick={() => { setShowAddWheelModal(true); setShowManagerMenu(false) }}
+                    >
+                      ➕ הוסף גלגל
+                    </button>
+                    <button
+                      style={styles.menuItem}
+                      onClick={() => { setShowExcelModal(true); setShowManagerMenu(false) }}
+                    >
+                      📊 יבוא/יצוא Excel
+                    </button>
+                    <button
+                      style={styles.menuItem}
+                      onClick={() => {
+                        setEditAddress(station.address || '')
+                        setEditDepositAmount(String(station.deposit_amount || 200))
+                        setEditPaymentMethods(station.payment_methods || { cash: true, id_deposit: true, license_deposit: true })
+                        setNotificationEmails(station.notification_emails?.length ? [...station.notification_emails, ...Array(2 - station.notification_emails.length).fill('')].slice(0, 2) : ['', ''])
+                        setShowEditDetailsModal(true)
+                        setShowManagerMenu(false)
+                      }}
+                    >
+                      ⚙️ הגדרות תחנה
+                    </button>
+                    <button
+                      style={styles.menuItem}
+                      onClick={() => { setShowChangePasswordModal(true); setShowManagerMenu(false) }}
+                    >
+                      🔑 שינוי סיסמה
+                    </button>
+
+                    {/* Divider */}
+                    <div style={styles.menuDivider} />
+
+                    <button
+                      style={{ ...styles.menuItem, color: '#ef4444' }}
+                      onClick={() => { handleLogout(); setShowManagerMenu(false) }}
+                    >
+                      🚪 יציאה
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button style={styles.managerBtn} className="station-login-btn" onClick={() => setShowLoginModal(true)}>🔐 כניסת מנהל</button>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
+            <h1 style={{ ...styles.title, margin: 0, textAlign: 'right' }} className="station-header-title">
+              {station.name}
+            </h1>
             {station.district && (
               <div style={{
-                position: 'absolute',
-                left: '10px',
-                padding: '2px 8px',
+                padding: '3px 10px',
                 border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
-                borderRadius: '4px',
-                fontSize: '0.7rem',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
                 fontWeight: '600',
                 color: getDistrictColor(station.district, districts),
                 backgroundColor: `${getDistrictColor(station.district, districts)}15`,
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
               }}>
                 {getDistrictName(station.district, districts)}
               </div>
             )}
           </div>
-        </h1>
-        {station.address && <p style={styles.address}>📍 {station.address}</p>}
-        {isManager && <div style={styles.managerBadge}>🔓 מצב ניהול</div>}
-      </header>
+          {station.address && <p style={styles.address}>📍 {station.address}</p>}
+        </header>
 
-      {/* Stats */}
-      <div style={styles.stats} className="station-stats">
-        <div style={styles.stat} className="station-stat">
-          <div style={styles.statValue}>{station.totalWheels}</div>
-          <div style={styles.statLabel}>סה"כ גלגלים</div>
-        </div>
-        <div style={{...styles.stat, ...styles.statAvailable}} className="station-stat">
-          <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
-          <div style={styles.statLabel}>זמינים</div>
-        </div>
-        <div style={{...styles.stat, ...styles.statTaken}} className="station-stat">
-          <div style={{...styles.statValue, color: '#ef4444'}}>{station.totalWheels - station.availableWheels}</div>
-          <div style={styles.statLabel}>מושאלים</div>
-        </div>
+        {/* Tab Navigation - only show tracking tab for managers */}
+        {isManager && (
+          <div style={styles.tabNav}>
+            <button
+              style={{...styles.tabBtn, ...(activeTab === 'wheels' ? styles.tabBtnActive : {})}}
+              onClick={() => setActiveTab('wheels')}
+            >
+              🛞 מלאי גלגלים
+            </button>
+            <button
+              style={{...styles.tabBtn, ...(activeTab === 'tracking' ? styles.tabBtnActive : {})}}
+              onClick={() => setActiveTab('tracking')}
+            >
+              📊 מעקב השאלות
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Tab Navigation - only show tracking tab for managers */}
-      {isManager && (
-        <div style={styles.tabNav}>
-          <button
-            style={{...styles.tabBtn, ...(activeTab === 'wheels' ? styles.tabBtnActive : {})}}
-            onClick={() => setActiveTab('wheels')}
-          >
-            🛞 מלאי גלגלים
-          </button>
-          <button
-            style={{...styles.tabBtn, ...(activeTab === 'tracking' ? styles.tabBtnActive : {})}}
-            onClick={() => setActiveTab('tracking')}
-          >
-            📊 מעקב השאלות
-          </button>
+      {/* Stats - Only show on wheels tab */}
+      {activeTab === 'wheels' && (
+        <div style={styles.stats} className="station-stats">
+          <div style={styles.stat} className="station-stat">
+            <div style={styles.statValue}>{station.totalWheels}</div>
+            <div style={styles.statLabel}>סה"כ גלגלים</div>
+          </div>
+          <div style={{...styles.stat, ...styles.statAvailable}} className="station-stat">
+            <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
+            <div style={styles.statLabel}>זמינים</div>
+          </div>
+          <div style={{...styles.stat, ...styles.statTaken}} className="station-stat">
+            <div style={{...styles.statValue, color: '#ef4444'}}>{station.totalWheels - station.availableWheels}</div>
+            <div style={styles.statLabel}>מושאלים</div>
+          </div>
         </div>
       )}
 
@@ -3627,8 +3710,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
   },
+  stickyHeader: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
+    background: 'linear-gradient(135deg, #374151 0%, #4b5563 100%)',
+    marginLeft: '-20px',
+    marginRight: '-20px',
+    marginTop: '-20px',
+    padding: '20px 20px 0 20px',
+    marginBottom: '15px',
+  },
   header: {
-    marginBottom: '20px',
+    marginBottom: '10px',
   },
   headerTop: {
     display: 'flex',
@@ -3999,6 +4093,90 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
   },
   // Manager mode styles
+  hamburgerBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+    color: 'white',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '0.9rem',
+  },
+  hamburgerIcon: {
+    fontSize: '1.2rem',
+  },
+  managerName: {
+    maxWidth: '120px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  managerDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    marginTop: '8px',
+    background: '#1e293b',
+    borderRadius: '12px',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+    border: '1px solid #334155',
+    minWidth: '220px',
+    zIndex: 1000,
+    overflow: 'hidden',
+  },
+  menuUserInfo: {
+    padding: '14px 16px',
+    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+    color: 'white',
+  },
+  menuUserName: {
+    fontWeight: 'bold',
+    fontSize: '1rem',
+    marginBottom: '4px',
+  },
+  menuUserPhone: {
+    fontSize: '0.85rem',
+    opacity: 0.9,
+  },
+  menuUserRole: {
+    fontSize: '0.75rem',
+    opacity: 0.8,
+    marginTop: '4px',
+  },
+  menuStationInfo: {
+    padding: '12px 16px',
+    background: 'rgba(255,255,255,0.05)',
+    borderBottom: '1px solid #334155',
+  },
+  menuStationName: {
+    fontWeight: 'bold',
+    fontSize: '0.9rem',
+    color: '#f59e0b',
+    marginBottom: '4px',
+  },
+  menuStationAddress: {
+    fontSize: '0.8rem',
+    color: '#94a3b8',
+  },
+  menuDivider: {
+    height: '1px',
+    background: '#334155',
+  },
+  menuItem: {
+    display: 'block',
+    width: '100%',
+    padding: '12px 16px',
+    background: 'transparent',
+    border: 'none',
+    color: '#e2e8f0',
+    fontSize: '0.9rem',
+    textAlign: 'right',
+    cursor: 'pointer',
+  },
   managerActions: {
     display: 'flex',
     gap: '8px',
