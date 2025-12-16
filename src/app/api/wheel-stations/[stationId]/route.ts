@@ -69,6 +69,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         manager_password,
         deposit_amount,
         payment_methods,
+        notification_emails,
         cities (name),
         wheel_station_managers (
           id,
@@ -168,7 +169,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { name, address, city_id, district, is_active, managers, manager_password, manager_phone, current_password, deposit_amount, payment_methods } = body
+    const { name, address, city_id, district, is_active, managers, manager_password, manager_phone, current_password, deposit_amount, payment_methods, notification_emails } = body
 
     // Check if this is a station manager update (has manager_phone and current_password)
     if (manager_phone && current_password) {
@@ -177,12 +178,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: managerAuth.error }, { status: 401 })
       }
 
-      // Station managers can update address, deposit_amount, and payment_methods
+      // Station managers can update address, deposit_amount, payment_methods, and notification_emails
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const managerUpdate: { address?: string; deposit_amount?: number; payment_methods?: any } = {}
+      const managerUpdate: { address?: string; deposit_amount?: number; payment_methods?: any; notification_emails?: string[] } = {}
       if (address !== undefined) managerUpdate.address = address
       if (deposit_amount !== undefined) managerUpdate.deposit_amount = deposit_amount
       if (payment_methods !== undefined) managerUpdate.payment_methods = payment_methods
+      if (notification_emails !== undefined) managerUpdate.notification_emails = notification_emails
 
       if (Object.keys(managerUpdate).length > 0) {
         const { error: updateError } = await supabase

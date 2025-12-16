@@ -91,6 +91,7 @@ interface Station {
   availableWheels: number
   deposit_amount?: number
   payment_methods?: PaymentMethods
+  notification_emails?: string[]
 }
 
 interface WheelForm {
@@ -249,6 +250,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     id_deposit: true,
     license_deposit: true
   })
+
+  // Email notification settings
+  const [notificationEmails, setNotificationEmails] = useState<string[]>(['', ''])
 
   // Excel import/export
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -1237,7 +1241,7 @@ ${formUrl}`
               >
                 📊 <span className="btn-text">Excel</span>
               </button>
-              <button style={styles.editContactsBtn} className="station-manager-btn" onClick={() => { setEditAddress(station.address || ''); setEditDepositAmount(String(station.deposit_amount || 200)); setEditPaymentMethods(station.payment_methods || { cash: true, id_deposit: true, license_deposit: true }); setShowEditDetailsModal(true) }}>⚙️ <span className="btn-text">ערוך פרטים</span></button>
+              <button style={styles.editContactsBtn} className="station-manager-btn" onClick={() => { setEditAddress(station.address || ''); setEditDepositAmount(String(station.deposit_amount || 200)); setEditPaymentMethods(station.payment_methods || { cash: true, id_deposit: true, license_deposit: true }); setNotificationEmails(station.notification_emails?.length ? [...station.notification_emails, ...Array(2 - station.notification_emails.length).fill('')].slice(0, 2) : ['', '']); setShowEditDetailsModal(true) }}>⚙️ <span className="btn-text">ערוך פרטים</span></button>
               <button style={styles.logoutBtn} className="station-manager-btn" onClick={handleLogout}>🚪 <span className="btn-text">יציאה</span></button>
             </div>
           ) : (
@@ -2749,6 +2753,61 @@ ${formUrl}`
                 disabled={actionLoading}
               >
                 {actionLoading ? 'שומר...' : 'שמור הגדרות תשלום'}
+              </button>
+            </div>
+
+            {/* Section: Email Notifications */}
+            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📧 התראות מייל לטפסים חתומים</h4>
+              <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
+                עותק מכל טופס השאלה חתום יישלח לכתובות המייל הבאות (עד 2 כתובות)
+              </p>
+              {notificationEmails.map((email, index) => (
+                <div key={index} style={{marginBottom: '8px'}}>
+                  <input
+                    type="email"
+                    placeholder={`כתובת מייל ${index + 1}`}
+                    value={email}
+                    onChange={e => {
+                      const newEmails = [...notificationEmails]
+                      newEmails[index] = e.target.value
+                      setNotificationEmails(newEmails)
+                    }}
+                    style={{...styles.input, width: '100%'}}
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+              <button
+                style={{...styles.smallBtn, background: '#10b981', marginTop: '8px'}}
+                onClick={async () => {
+                  setActionLoading(true)
+                  try {
+                    const validEmails = notificationEmails.filter(e => e.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
+                    const response = await fetch(`/api/wheel-stations/${stationId}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        notification_emails: validEmails,
+                        manager_phone: currentManager?.phone,
+                        current_password: sessionPassword
+                      })
+                    })
+                    if (!response.ok) {
+                      const data = await response.json()
+                      throw new Error(data.error || 'Failed to update')
+                    }
+                    await fetchStation()
+                    toast.success('הגדרות המייל עודכנו!')
+                  } catch (err: unknown) {
+                    toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון')
+                  } finally {
+                    setActionLoading(false)
+                  }
+                }}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'שומר...' : 'שמור הגדרות מייל'}
               </button>
             </div>
 

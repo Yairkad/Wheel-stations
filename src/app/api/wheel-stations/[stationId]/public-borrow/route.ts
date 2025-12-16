@@ -126,6 +126,33 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Note: Wheel availability is NOT updated here
     // Manager must approve the request to mark wheel as borrowed
 
+    // Upload signed form if signature_data exists
+    let formViewUrl = null
+    if (signature_data) {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
+        const formResponse = await fetch(`${baseUrl}/api/signed-forms/upload`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            borrow_id: borrow.id,
+            station_id: stationId,
+            form_image: signature_data,
+            borrower_name,
+            wheel_number: wheel.wheel_number,
+            borrow_date: borrowDateTime.toISOString()
+          })
+        })
+        const formData = await formResponse.json()
+        if (formData.success) {
+          formViewUrl = formData.view_url
+        }
+      } catch (formError) {
+        // Don't fail the request if form upload fails
+        console.error('Error uploading signed form:', formError)
+      }
+    }
+
     // Send push notification to station managers
     try {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
@@ -152,7 +179,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         wheel_number: wheel.wheel_number,
         borrower_name,
         expected_return_date: expectedReturn.toISOString()
-      }
+      },
+      form_url: formViewUrl
     }, { status: 201 })
 
   } catch (error) {
