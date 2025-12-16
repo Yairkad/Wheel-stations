@@ -3627,8 +3627,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   card: {
     background: 'linear-gradient(145deg, #2d3748, #1a202c)',
     borderRadius: '12px',
-    overflow: 'hidden',
+    overflow: 'visible',
     border: '2px solid transparent',
+    position: 'relative',
   },
   cardTaken: {
     opacity: 0.85,
@@ -3642,6 +3643,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    borderRadius: '12px 12px 0 0',
+    overflow: 'hidden',
   },
   wheelImg: {
     width: '70px',
@@ -3980,7 +3983,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
     border: '1px solid #334155',
     minWidth: '180px',
-    zIndex: 100,
+    zIndex: 999,
     overflow: 'hidden',
   },
   optionItem: {
