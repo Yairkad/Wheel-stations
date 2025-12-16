@@ -276,6 +276,26 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [pushEnabled, setPushEnabled] = useState(false)
   const [enablingPush, setEnablingPush] = useState(false)
 
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showEditWheelModal) setShowEditWheelModal(false)
+        else if (showAddWheelModal) setShowAddWheelModal(false)
+        else if (showEditDetailsModal) setShowEditDetailsModal(false)
+        else if (showExcelModal) setShowExcelModal(false)
+        else if (showUnavailableModal) setShowUnavailableModal(false)
+        else if (showChangePasswordModal) setShowChangePasswordModal(false)
+        else if (showLoginModal) setShowLoginModal(false)
+        else if (showContactsModal) setShowContactsModal(false)
+        else if (showWhatsAppModal) setShowWhatsAppModal(false)
+        else if (showConfirmDialog) setShowConfirmDialog(false)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog])
+
   const fetchBorrows = async () => {
     setBorrowsLoading(true)
     try {

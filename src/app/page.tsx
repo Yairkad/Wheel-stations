@@ -151,6 +151,20 @@ export default function WheelStationsPage() {
     }
   }, [])
 
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showAddModelModal) setShowAddModelModal(false)
+        else if (showManagerLoginModal) setShowManagerLoginModal(false)
+        else if (showVehicleModal) closeVehicleModal()
+        else if (showSearchModal) closeSearchModal()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [showSearchModal, showVehicleModal, showManagerLoginModal, showAddModelModal])
+
   const fetchDistrictsData = async () => {
     try {
       const districtsData = await getDistricts()
@@ -679,13 +693,45 @@ export default function WheelStationsPage() {
   if (loading) {
     return (
       <div style={styles.container}>
-        <div style={styles.loading}>
+        <style>{`
+          @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+          .skeleton {
+            background: linear-gradient(90deg, #3d4a5c 25%, #4b5a6e 50%, #3d4a5c 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+          }
+        `}</style>
+        <header style={styles.header}>
           <img
             src="/logo.wheels.png"
             alt="טוען..."
             style={styles.loadingLogo}
           />
-          <p>טוען תחנות...</p>
+          <h1 style={styles.title}>תחנות השאלת גלגלים</h1>
+          <p style={styles.subtitle}>טוען תחנות...</p>
+        </header>
+        <div style={styles.grid}>
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} style={{...styles.card, cursor: 'default'}}>
+              <div className="skeleton" style={{ height: '24px', width: '70%', marginBottom: '15px' }}></div>
+              <div className="skeleton" style={{ height: '16px', width: '90%', marginBottom: '10px' }}></div>
+              <div className="skeleton" style={{ height: '14px', width: '50%', marginBottom: '20px' }}></div>
+              <div style={{ display: 'flex', justifyContent: 'space-around', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="skeleton" style={{ height: '32px', width: '50px', margin: '0 auto 8px' }}></div>
+                  <div className="skeleton" style={{ height: '12px', width: '60px' }}></div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div className="skeleton" style={{ height: '32px', width: '50px', margin: '0 auto 8px' }}></div>
+                  <div className="skeleton" style={{ height: '12px', width: '60px' }}></div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -730,6 +776,61 @@ export default function WheelStationsPage() {
         }
         .suggestion-item:last-child {
           border-bottom: none !important;
+        }
+        /* Focus states for accessibility */
+        .wheels-search-btn:focus {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+        .wheels-close-btn {
+          min-width: 44px;
+          min-height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          transition: all 0.2s;
+        }
+        .wheels-close-btn:hover {
+          background: rgba(255,255,255,0.1);
+        }
+        .wheels-close-btn:focus {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        }
+        .wheels-card:focus {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5);
+        }
+        .wheels-card:hover {
+          transform: translateY(-4px);
+          border-color: #f59e0b;
+        }
+        .wheels-input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .wheels-select:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .wheels-btn-loading {
+          pointer-events: none;
+          opacity: 0.7;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .wheels-spinner {
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          display: inline-block;
         }
         @media (max-width: 600px) {
           .wheels-search-btn {
@@ -813,6 +914,8 @@ export default function WheelStationsPage() {
               key={station.id}
               href={`/${station.id}`}
               style={styles.card}
+              className="wheels-card"
+              aria-label={`תחנת ${station.name} - ${station.availableWheels} גלגלים זמינים מתוך ${station.totalWheels}`}
             >
               <h3 style={styles.cardTitle}>
                 🏙️ {station.name}
@@ -881,7 +984,7 @@ export default function WheelStationsPage() {
           <div style={styles.modal} className="wheels-search-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle} className="wheels-modal-title">🔍 חיפוש גלגל</h3>
-              <button style={styles.closeBtn} onClick={closeSearchModal}>✕</button>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeSearchModal} aria-label="סגור חיפוש">✕</button>
             </div>
 
             {!searchResults ? (
@@ -961,7 +1064,7 @@ export default function WheelStationsPage() {
                   onClick={handleSearch}
                   disabled={searchLoading}
                 >
-                  {searchLoading ? 'מחפש...' : '🔍 חפש'}
+                  {searchLoading ? <><span className="wheels-spinner"></span> מחפש...</> : '🔍 חפש'}
                 </button>
               </>
             ) : (
@@ -1034,7 +1137,7 @@ export default function WheelStationsPage() {
           <div style={styles.vehicleModal} className="wheels-vehicle-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle} className="wheels-modal-title">🚗 חיפוש לפי רכב</h3>
-              <button style={styles.closeBtn} onClick={closeVehicleModal}>✕</button>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeVehicleModal} aria-label="סגור חיפוש רכב">✕</button>
             </div>
 
             {/* Beta warning */}
@@ -1444,7 +1547,7 @@ export default function WheelStationsPage() {
           <div style={styles.vehicleModal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>🔐 התחברות מנהל</h3>
-              <button style={styles.closeBtn} onClick={() => setShowManagerLoginModal(false)}>✕</button>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowManagerLoginModal(false)} aria-label="סגור התחברות">✕</button>
             </div>
 
             <div style={{ padding: '20px 0' }}>
@@ -1500,7 +1603,7 @@ export default function WheelStationsPage() {
           <div style={styles.addModelModal} className="wheels-add-model-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle} className="wheels-modal-title">➕ הוסף דגם רכב למאגר</h3>
-              <button style={styles.closeBtn} onClick={() => setShowAddModelModal(false)}>✕</button>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowAddModelModal(false)} aria-label="סגור הוספת דגם">✕</button>
             </div>
 
             <div style={styles.addModelForm}>

@@ -98,6 +98,21 @@ export default function WheelsAdminPage() {
     }
   }, [isAuthenticated])
 
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (editingStation) setEditingStation(null)
+        else if (showAddStation) setShowAddStation(false)
+        else if (editingDistrict) setEditingDistrict(null)
+        else if (showAddDistrict) setShowAddDistrict(false)
+        else if (showConfirmDialog) setShowConfirmDialog(false)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [editingStation, showAddStation, editingDistrict, showAddDistrict, showConfirmDialog])
+
   const handleLogin = () => {
     if (password === WHEELS_ADMIN_PASSWORD) {
       setIsAuthenticated(true)
