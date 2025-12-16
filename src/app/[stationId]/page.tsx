@@ -1452,7 +1452,7 @@ ${formUrl}`
             )}
 
             {/* Left side - Back button */}
-            <Link href="/" style={styles.backBtnStyled}>← חזרה לרשימה</Link>
+            <Link href="/" style={styles.backBtnStyled} title="חזרה לרשימה">→</Link>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
             <h1 style={{ ...styles.title, margin: 0, textAlign: 'right' }} className="station-header-title">
@@ -3718,13 +3718,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
   },
   backBtnStyled: {
-    background: 'rgba(255,255,255,0.1)',
+    background: 'rgba(255,255,255,0.15)',
     color: '#fff',
     textDecoration: 'none',
-    fontSize: '0.85rem',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    border: '1px solid rgba(255,255,255,0.2)',
+    fontSize: '1.1rem',
+    width: '38px',
+    height: '38px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '10px',
+    border: '1px solid rgba(255,255,255,0.25)',
     transition: 'all 0.2s',
   },
   managerBtn: {
@@ -4110,13 +4114,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   managerDropdown: {
     position: 'absolute',
     top: '100%',
-    left: 0,
+    right: 0,
     marginTop: '8px',
     background: '#1e293b',
     borderRadius: '12px',
     boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
     border: '1px solid #334155',
     minWidth: '220px',
+    maxWidth: 'calc(100vw - 40px)',
     zIndex: 1000,
     overflow: 'hidden',
   },
