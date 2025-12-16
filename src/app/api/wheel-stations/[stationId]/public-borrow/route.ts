@@ -35,6 +35,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       deposit_type,
       notes,
       signature_data,
+      form_image_data, // Full form image captured with html2canvas
       terms_accepted
     } = body
 
@@ -126,9 +127,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Note: Wheel availability is NOT updated here
     // Manager must approve the request to mark wheel as borrowed
 
-    // Upload signed form if signature_data exists
+    // Upload signed form if form_image_data exists (full form capture)
     let formViewUrl = null
-    if (signature_data) {
+    if (form_image_data) {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
         const formResponse = await fetch(`${baseUrl}/api/signed-forms/upload`, {
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           body: JSON.stringify({
             borrow_id: borrow.id,
             station_id: stationId,
-            form_image: signature_data,
+            form_image: form_image_data, // Full form image
             borrower_name,
             wheel_number: wheel.wheel_number,
             borrow_date: borrowDateTime.toISOString()

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, use, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import html2canvas from 'html2canvas'
 
 interface Wheel {
   id: string
@@ -66,6 +67,9 @@ function SignFormContent({ stationId }: { stationId: string }) {
   // Terms scroll tracking
   const termsRef = useRef<HTMLDivElement>(null)
   const [canAgreeTerms, setCanAgreeTerms] = useState(false)
+
+  // Form container ref for capturing
+  const formRef = useRef<HTMLDivElement>(null)
 
   // Signature canvas
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -199,6 +203,24 @@ function SignFormContent({ stationId }: { stationId: string }) {
     return canvas.toDataURL('image/png')
   }
 
+  const captureFormAsImage = async (): Promise<string | null> => {
+    if (!formRef.current) return null
+
+    try {
+      // Use html2canvas to capture the entire form
+      const canvas = await html2canvas(formRef.current, {
+        scale: 2, // Higher resolution
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      })
+      return canvas.toDataURL('image/png')
+    } catch (error) {
+      console.error('Error capturing form:', error)
+      return null
+    }
+  }
+
   const handleSubmit = async () => {
     // Validation - collect all errors
     const errors: string[] = []
@@ -229,6 +251,12 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
     setSubmitting(true)
     try {
+      // Capture the entire form as an image
+      const formImageData = await captureFormAsImage()
+      if (!formImageData) {
+        throw new Error('שגיאה בצילום הטופס')
+      }
+
       const response = await fetch(`/api/wheel-stations/${stationId}/public-borrow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -243,6 +271,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
           deposit_type: depositType,
           notes: notes,
           signature_data: signatureData,
+          form_image_data: formImageData, // Full form image
           terms_accepted: true
         })
       })
@@ -308,7 +337,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
+      <div ref={formRef} style={styles.card}>
         {/* Yedidim Logo */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           <img
