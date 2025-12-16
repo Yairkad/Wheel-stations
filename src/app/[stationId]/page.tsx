@@ -1452,7 +1452,7 @@ ${formUrl}`
             )}
 
             {/* Left side - Back button */}
-            <Link href="/" style={styles.backBtnStyled} title="חזרה לרשימה">→</Link>
+            <Link href="/" style={styles.backBtnStyled} title="חזרה לרשימה">↩️</Link>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
             <h1 style={{ ...styles.title, margin: 0, textAlign: 'right' }} className="station-header-title">
@@ -3718,7 +3718,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
   },
   backBtnStyled: {
-    background: 'rgba(255,255,255,0.15)',
+    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
     color: '#fff',
     textDecoration: 'none',
     fontSize: '1.1rem',
@@ -3728,7 +3728,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: '10px',
-    border: '1px solid rgba(255,255,255,0.25)',
+    border: 'none',
+    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
     transition: 'all 0.2s',
   },
   managerBtn: {
