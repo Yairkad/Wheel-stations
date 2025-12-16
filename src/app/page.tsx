@@ -1315,47 +1315,87 @@ export default function WheelStationsPage() {
                     </div>
 
                     {/* Search Results */}
-                    {vehicleSearchResults && vehicleSearchResults.length > 0 ? (
-                      <div style={styles.vehicleWheelResults}>
-                        <div style={styles.vehicleResultsHeader}>
-                          ✅ נמצאו {vehicleSearchResults.reduce((acc, r) => acc + r.availableCount, 0)} גלגלים עם PCD מתאים
-                        </div>
-                        <div style={styles.vehicleResultsNote}>
-                          הגלגלים מסודרים לפי גודל חישוק. לרכב שלך מתאים {extractRimSize(vehicleResult.vehicle.front_tire)}"
-                        </div>
-                        {vehicleSearchResults.map(result => (
-                          <div key={result.station.id} style={styles.resultStationGroup}>
-                            <div style={styles.resultStationHeader}>
-                              <div style={styles.resultStationName}>🏙️ {result.station.name}</div>
-                              {result.station.city && (
-                                <div style={styles.resultCityBadge}>{result.station.city}</div>
-                              )}
+                    {(() => {
+                      const vehicleRimSize = extractRimSize(vehicleResult.vehicle.front_tire)
+                      // Filter wheels: only exact size or one size smaller
+                      const filteredResults = vehicleSearchResults?.map(result => ({
+                        ...result,
+                        wheels: result.wheels.filter(w => {
+                          const wheelSize = parseInt(w.rim_size)
+                          return w.is_available && vehicleRimSize && (wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1)
+                        })
+                      })).filter(result => result.wheels.length > 0) || []
+
+                      const exactSizeWheels = filteredResults.flatMap(r => r.wheels.filter(w => parseInt(w.rim_size) === vehicleRimSize))
+                      const smallerSizeWheels = filteredResults.flatMap(r => r.wheels.filter(w => parseInt(w.rim_size) === (vehicleRimSize || 0) - 1))
+                      const hasExactSize = exactSizeWheels.length > 0
+                      const hasSmallerSize = smallerSizeWheels.length > 0
+
+                      if (filteredResults.length > 0) {
+                        return (
+                          <div style={styles.vehicleWheelResults}>
+                            <div style={styles.vehicleResultsHeader}>
+                              ✅ נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים
                             </div>
-                            <div style={styles.resultWheelsList}>
-                              {result.wheels.filter(w => w.is_available).map(wheel => (
-                                <Link
-                                  key={wheel.id}
-                                  href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
-                                  style={styles.resultWheelCard}
-                                  className="wheels-result-wheel-card"
-                                  onClick={closeVehicleModal}
-                                >
-                                  <div style={styles.resultWheelNumber}>#{wheel.wheel_number}</div>
-                                  <div style={styles.resultWheelSpecs}>
-                                    <span>{wheel.rim_size}"</span>
-                                    {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
-                                  </div>
-                                </Link>
-                              ))}
-                            </div>
+                            {hasExactSize && (
+                              <div style={styles.vehicleResultsNote}>
+                                לרכב שלך מתאים גודל {vehicleRimSize}"
+                              </div>
+                            )}
+                            {!hasExactSize && hasSmallerSize && (
+                              <div style={{...styles.vehicleResultsNote, background: '#fef3c7', color: '#92400e', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px'}}>
+                                ⚠️ לא נמצאו גלגלים בגודל {vehicleRimSize}" - מוצגים גלגלים בגודל {(vehicleRimSize || 0) - 1}" (מידה קטנה יותר)
+                              </div>
+                            )}
+                            {filteredResults.map(result => (
+                              <div key={result.station.id} style={styles.resultStationGroup}>
+                                <div style={styles.resultStationHeader}>
+                                  <div style={styles.resultStationName}>🏙️ {result.station.name}</div>
+                                  {result.station.city && (
+                                    <div style={styles.resultCityBadge}>{result.station.city}</div>
+                                  )}
+                                </div>
+                                <div style={styles.resultWheelsList}>
+                                  {result.wheels.map(wheel => (
+                                    <Link
+                                      key={wheel.id}
+                                      href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
+                                      style={{
+                                        ...styles.resultWheelCard,
+                                        ...(parseInt(wheel.rim_size) < (vehicleRimSize || 0) ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {})
+                                      }}
+                                      className="wheels-result-wheel-card"
+                                      onClick={closeVehicleModal}
+                                    >
+                                      <div style={styles.resultWheelNumber}>#{wheel.wheel_number}</div>
+                                      <div style={styles.resultWheelSpecs}>
+                                        <span>{wheel.rim_size}"</span>
+                                        {parseInt(wheel.rim_size) < (vehicleRimSize || 0) && <span style={{fontSize: '10px', color: '#b45309'}}>קטן יותר</span>}
+                                        {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
+                                      </div>
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    ) : vehicleSearchResults && vehicleSearchResults.length === 0 ? (
-                      <div style={styles.noVehicleResults}>
-                        😕 לא נמצאו גלגלים מתאימים במלאי
-                      </div>
-                    ) : null}
+                        )
+                      } else if (vehicleSearchResults && vehicleSearchResults.length === 0) {
+                        return (
+                          <div style={styles.noVehicleResults}>
+                            😕 לא נמצאו גלגלים מתאימים במלאי
+                          </div>
+                        )
+                      } else if (vehicleSearchResults && vehicleSearchResults.length > 0) {
+                        // Has results but all are larger sizes
+                        return (
+                          <div style={styles.noVehicleResults}>
+                            😕 לא נמצאו גלגלים בגודל {vehicleRimSize}" או קטן יותר במלאי
+                          </div>
+                        )
+                      }
+                      return null
+                    })()}
                   </div>
                 ) : (
                   <div style={styles.noFitmentCard}>
