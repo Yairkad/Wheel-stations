@@ -775,6 +775,63 @@ ${signFormUrl}
     }
   }
 
+  // Edit wheel
+  const handleEditWheel = async () => {
+    if (!selectedWheel) return
+
+    // Validate required fields
+    const errors: string[] = []
+    if (!wheelForm.wheel_number) errors.push('wheel_number')
+    if (!wheelForm.rim_size) errors.push('rim_size')
+    if (!wheelForm.bolt_spacing) errors.push('bolt_spacing')
+
+    if (errors.length > 0) {
+      setWheelFormErrors(errors)
+      return
+    }
+    setWheelFormErrors([])
+    setActionLoading(true)
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${selectedWheel.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wheel_number: wheelForm.wheel_number,
+          rim_size: wheelForm.rim_size,
+          bolt_count: parseInt(wheelForm.bolt_count),
+          bolt_spacing: parseFloat(wheelForm.bolt_spacing),
+          category: wheelForm.category || null,
+          is_donut: wheelForm.is_donut,
+          notes: wheelForm.notes || null,
+          manager_phone: currentManager?.phone,
+          manager_password: sessionPassword
+        })
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update')
+      }
+      await fetchStation()
+      setShowEditWheelModal(false)
+      setSelectedWheel(null)
+      setShowCustomCategory(false)
+      setWheelForm({
+        wheel_number: '',
+        rim_size: '',
+        bolt_count: '4',
+        bolt_spacing: '',
+        category: '',
+        is_donut: false,
+        notes: ''
+      })
+      toast.success('הגלגל עודכן בהצלחה!')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   // Delete wheel
   const handleDeleteWheel = async (wheel: Wheel) => {
     showConfirm({
@@ -2835,6 +2892,126 @@ ${formUrl}`
               <button style={styles.cancelBtn} onClick={() => setShowAddWheelModal(false)}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleAddWheel} disabled={actionLoading}>
                 {actionLoading ? 'שומר...' : 'הוסף'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Wheel Modal */}
+      {showEditWheelModal && (
+        <div style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>✏️ עריכת גלגל #{selectedWheel?.wheel_number}</h3>
+            <div style={styles.formRow}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>מספר גלגל *</label>
+                <input
+                  type="text"
+                  placeholder="A23, 15, וכו'"
+                  value={wheelForm.wheel_number}
+                  onChange={e => { setWheelForm({...wheelForm, wheel_number: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'wheel_number')) }}
+                  style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
+                />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>גודל ג'אנט *</label>
+                <input
+                  type="text"
+                  placeholder='14", 15", 16"'
+                  value={wheelForm.rim_size}
+                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'rim_size')) }}
+                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
+                />
+              </div>
+            </div>
+            <div style={styles.formRow}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>כמות ברגים</label>
+                <select
+                  value={wheelForm.bolt_count}
+                  onChange={e => setWheelForm({...wheelForm, bolt_count: e.target.value})}
+                  style={styles.input}
+                >
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                </select>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>מרווח ברגים *</label>
+                <input
+                  type="text"
+                  placeholder="100, 108, 114.3"
+                  value={wheelForm.bolt_spacing}
+                  onChange={e => { setWheelForm({...wheelForm, bolt_spacing: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing')) }}
+                  style={{...styles.input, ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})}}
+                />
+              </div>
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>קטגוריה</label>
+              {!showCustomCategory ? (
+                <select
+                  value={predefinedCategories.includes(wheelForm.category) ? wheelForm.category : ''}
+                  onChange={e => {
+                    if (e.target.value === '__custom__') {
+                      setShowCustomCategory(true)
+                      setWheelForm({...wheelForm, category: ''})
+                    } else {
+                      setWheelForm({...wheelForm, category: e.target.value})
+                    }
+                  }}
+                  style={styles.input}
+                >
+                  <option value="">ללא קטגוריה</option>
+                  {predefinedCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  <option value="__custom__">➕ קטגוריה אחרת...</option>
+                </select>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="הזן קטגוריה..."
+                    value={wheelForm.category}
+                    onChange={e => setWheelForm({...wheelForm, category: e.target.value})}
+                    style={{ ...styles.input, flex: 1 }}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setShowCustomCategory(false); setWheelForm({...wheelForm, category: ''}) }}
+                    style={{ ...styles.smallBtn, background: '#4a5568' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+            <div style={styles.checkboxGroup}>
+              <input
+                type="checkbox"
+                id="is_donut_edit"
+                checked={wheelForm.is_donut}
+                onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
+              />
+              <label htmlFor="is_donut_edit" style={styles.checkboxLabel}>גלגל דונאט (חילוף)</label>
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>הערות</label>
+              <input
+                type="text"
+                value={wheelForm.notes}
+                onChange={e => setWheelForm({...wheelForm, notes: e.target.value})}
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.modalButtons}>
+              <button style={styles.cancelBtn} onClick={() => { setShowEditWheelModal(false); setSelectedWheel(null) }}>ביטול</button>
+              <button style={styles.submitBtn} onClick={handleEditWheel} disabled={actionLoading}>
+                {actionLoading ? 'שומר...' : 'עדכן'}
               </button>
             </div>
           </div>
