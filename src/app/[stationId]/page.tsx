@@ -173,6 +173,22 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [whatsAppPhone, setWhatsAppPhone] = useState('')
   const [whatsAppWheel, setWhatsAppWheel] = useState<Wheel | null>(null)
 
+  // Options menu for wheel cards
+  const [openOptionsMenu, setOpenOptionsMenu] = useState<string | null>(null)
+
+  // Manual borrow modal
+  const [showManualBorrowModal, setShowManualBorrowModal] = useState(false)
+  const [manualBorrowWheel, setManualBorrowWheel] = useState<Wheel | null>(null)
+  const [manualBorrowForm, setManualBorrowForm] = useState({
+    borrower_name: '',
+    borrower_phone: '',
+    borrower_id_number: '',
+    borrower_address: '',
+    vehicle_model: '',
+    deposit_type: 'cash',
+    notes: ''
+  })
+
   // Predefined categories
   const predefinedCategories = ['מכוניות גרמניות', 'מכוניות צרפתיות', 'מכוניות יפניות וקוראניות']
 
@@ -284,7 +300,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (showEditWheelModal) setShowEditWheelModal(false)
+        if (openOptionsMenu) setOpenOptionsMenu(null)
+        else if (showManualBorrowModal) setShowManualBorrowModal(false)
+        else if (showEditWheelModal) setShowEditWheelModal(false)
         else if (showAddWheelModal) setShowAddWheelModal(false)
         else if (showEditDetailsModal) setShowEditDetailsModal(false)
         else if (showExcelModal) setShowExcelModal(false)
@@ -298,7 +316,16 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog])
+  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog, openOptionsMenu, showManualBorrowModal])
+
+  // Close options menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (openOptionsMenu) setOpenOptionsMenu(null)
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [openOptionsMenu])
 
   const fetchBorrows = async () => {
     setBorrowsLoading(true)
@@ -635,6 +662,63 @@ ${signFormUrl}
         }
       }
     })
+  }
+
+  // Manual borrow - submit form
+  const handleManualBorrow = async () => {
+    if (!manualBorrowWheel) return
+
+    // Validate
+    if (!manualBorrowForm.borrower_name.trim()) {
+      toast.error('נא להזין שם')
+      return
+    }
+    if (!manualBorrowForm.borrower_phone.trim()) {
+      toast.error('נא להזין טלפון')
+      return
+    }
+
+    setActionLoading(true)
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${manualBorrowWheel.id}/borrow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          borrower_name: manualBorrowForm.borrower_name,
+          borrower_phone: manualBorrowForm.borrower_phone,
+          borrower_id_number: manualBorrowForm.borrower_id_number || undefined,
+          borrower_address: manualBorrowForm.borrower_address || undefined,
+          vehicle_model: manualBorrowForm.vehicle_model || undefined,
+          deposit_type: manualBorrowForm.deposit_type,
+          notes: manualBorrowForm.notes || undefined,
+          manager_phone: currentManager?.phone,
+          manager_password: sessionPassword
+        })
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'שגיאה בהשאלה')
+      }
+
+      await fetchStation()
+      setShowManualBorrowModal(false)
+      setManualBorrowWheel(null)
+      setManualBorrowForm({
+        borrower_name: '',
+        borrower_phone: '',
+        borrower_id_number: '',
+        borrower_address: '',
+        vehicle_model: '',
+        deposit_type: 'cash',
+        notes: ''
+      })
+      toast.success('ההשאלה נרשמה בהצלחה!')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בהשאלה')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   // Add wheel
@@ -1933,18 +2017,10 @@ ${formUrl}`
                   </div>
                 )}
 
-                {/* Manager action buttons - only show return for borrowed wheels */}
+                {/* Manager action buttons with options menu */}
                 {isManager && (
                   <div style={styles.cardActions} className="station-card-actions">
-                    {wheel.is_available && !wheel.temporarily_unavailable && (
-                      <button
-                        style={styles.whatsappShareBtn}
-                        onClick={() => openWhatsAppModal(wheel)}
-                        title="שלח קישור לטופס בוואטסאפ"
-                      >
-                        💬
-                      </button>
-                    )}
+                    {/* Return button for borrowed wheels - always visible */}
                     {!wheel.is_available && (
                       <button
                         style={styles.returnBtn}
@@ -1954,22 +2030,8 @@ ${formUrl}`
                         📥 החזר
                       </button>
                     )}
-                    {wheel.is_available && !wheel.temporarily_unavailable && (
-                      <button
-                        style={{
-                          ...styles.deleteBtn,
-                          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                        }}
-                        onClick={() => {
-                          setSelectedWheelForUnavailable(wheel)
-                          setShowUnavailableModal(true)
-                        }}
-                        disabled={actionLoading}
-                        title="סמן כלא זמין זמנית"
-                      >
-                        ⚠️
-                      </button>
-                    )}
+
+                    {/* Return to available for temporarily unavailable */}
                     {wheel.temporarily_unavailable && (
                       <button
                         style={{
@@ -1978,18 +2040,104 @@ ${formUrl}`
                         }}
                         onClick={() => handleMarkAvailable(wheel)}
                         disabled={actionLoading}
-                        title="החזר לזמין"
                       >
                         ✅ החזר לזמין
                       </button>
                     )}
-                    <button
-                      style={styles.deleteBtn}
-                      onClick={() => handleDeleteWheel(wheel)}
-                      disabled={actionLoading}
-                    >
-                      🗑️
-                    </button>
+
+                    {/* Options button with dropdown */}
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        style={{
+                          ...styles.optionsBtn,
+                          background: openOptionsMenu === wheel.id ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'linear-gradient(135deg, #6b7280, #4b5563)',
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setOpenOptionsMenu(openOptionsMenu === wheel.id ? null : wheel.id)
+                        }}
+                      >
+                        ⚙️ אפשרויות
+                      </button>
+
+                      {/* Dropdown menu */}
+                      {openOptionsMenu === wheel.id && (
+                        <div style={styles.optionsDropdown} onClick={e => e.stopPropagation()}>
+                          {/* WhatsApp share - only for available wheels */}
+                          {wheel.is_available && !wheel.temporarily_unavailable && (
+                            <button
+                              style={styles.optionItem}
+                              onClick={() => {
+                                openWhatsAppModal(wheel)
+                                setOpenOptionsMenu(null)
+                              }}
+                            >
+                              💬 שלח קישור בוואטסאפ
+                            </button>
+                          )}
+
+                          {/* Manual borrow - only for available wheels */}
+                          {wheel.is_available && !wheel.temporarily_unavailable && (
+                            <button
+                              style={styles.optionItem}
+                              onClick={() => {
+                                setManualBorrowWheel(wheel)
+                                setShowManualBorrowModal(true)
+                                setOpenOptionsMenu(null)
+                              }}
+                            >
+                              ✍️ הזן השאלה ידנית
+                            </button>
+                          )}
+
+                          {/* Mark unavailable - only for available wheels */}
+                          {wheel.is_available && !wheel.temporarily_unavailable && (
+                            <button
+                              style={styles.optionItem}
+                              onClick={() => {
+                                setSelectedWheelForUnavailable(wheel)
+                                setShowUnavailableModal(true)
+                                setOpenOptionsMenu(null)
+                              }}
+                            >
+                              ⚠️ סמן כלא זמין
+                            </button>
+                          )}
+
+                          {/* Edit wheel */}
+                          <button
+                            style={styles.optionItem}
+                            onClick={() => {
+                              setSelectedWheel(wheel)
+                              setWheelForm({
+                                wheel_number: wheel.wheel_number,
+                                rim_size: wheel.rim_size,
+                                bolt_count: String(wheel.bolt_count),
+                                bolt_spacing: String(wheel.bolt_spacing),
+                                category: wheel.category || '',
+                                is_donut: wheel.is_donut,
+                                notes: wheel.notes || ''
+                              })
+                              setShowEditWheelModal(true)
+                              setOpenOptionsMenu(null)
+                            }}
+                          >
+                            ✏️ ערוך גלגל
+                          </button>
+
+                          {/* Delete wheel */}
+                          <button
+                            style={{ ...styles.optionItem, color: '#ef4444' }}
+                            onClick={() => {
+                              handleDeleteWheel(wheel)
+                              setOpenOptionsMenu(null)
+                            }}
+                          >
+                            🗑️ מחק גלגל
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -2151,6 +2299,156 @@ ${formUrl}`
             <button style={{...styles.cancelBtn, width: '100%', marginTop: '16px'}} onClick={() => setShowContactsModal(false)}>
               סגור
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Borrow Modal */}
+      {showManualBorrowModal && manualBorrowWheel && (
+        <div style={styles.modalOverlay} onClick={() => setShowManualBorrowModal(false)}>
+          <div style={{...styles.modal, maxWidth: '450px'}} onClick={e => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>✍️ הזנת השאלה ידנית</h3>
+            <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
+              רישום השאלה ללא טופס דיגיטלי (לשימוש כשהפונה לא יכול למלא טופס)
+            </p>
+
+            <div style={{
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '10px',
+              padding: '12px',
+              marginBottom: '16px',
+            }}>
+              <div style={{color: '#60a5fa', fontWeight: 'bold', marginBottom: '4px'}}>
+                גלגל #{manualBorrowWheel.wheel_number}
+              </div>
+              <div style={{color: '#a0aec0', fontSize: '0.85rem'}}>
+                {manualBorrowWheel.rim_size}" | {manualBorrowWheel.bolt_count}×{manualBorrowWheel.bolt_spacing}
+                {manualBorrowWheel.is_donut && ' | דונאט'}
+              </div>
+            </div>
+
+            <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  שם מלא *
+                </label>
+                <input
+                  type="text"
+                  value={manualBorrowForm.borrower_name}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, borrower_name: e.target.value})}
+                  placeholder="ישראל ישראלי"
+                  style={styles.input}
+                />
+              </div>
+
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  טלפון *
+                </label>
+                <input
+                  type="tel"
+                  value={manualBorrowForm.borrower_phone}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, borrower_phone: e.target.value})}
+                  placeholder="050-1234567"
+                  style={styles.input}
+                  dir="ltr"
+                />
+              </div>
+
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  תעודת זהות
+                </label>
+                <input
+                  type="text"
+                  value={manualBorrowForm.borrower_id_number}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, borrower_id_number: e.target.value})}
+                  placeholder="123456789"
+                  maxLength={9}
+                  style={styles.input}
+                  dir="ltr"
+                />
+              </div>
+
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  דגם רכב
+                </label>
+                <input
+                  type="text"
+                  value={manualBorrowForm.vehicle_model}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, vehicle_model: e.target.value})}
+                  placeholder="יונדאי i25"
+                  style={styles.input}
+                />
+              </div>
+
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  סוג פיקדון
+                </label>
+                <select
+                  value={manualBorrowForm.deposit_type}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, deposit_type: e.target.value})}
+                  style={styles.input}
+                >
+                  <option value="cash">מזומן</option>
+                  <option value="bit">ביט</option>
+                  <option value="paybox">פייבוקס</option>
+                  <option value="bank_transfer">העברה בנקאית</option>
+                  <option value="id">תעודת זהות</option>
+                  <option value="license">רישיון נהיגה</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  הערות
+                </label>
+                <textarea
+                  value={manualBorrowForm.notes}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, notes: e.target.value})}
+                  placeholder="הערות נוספות..."
+                  rows={2}
+                  style={{...styles.input, resize: 'vertical'}}
+                />
+              </div>
+            </div>
+
+            <div style={{display: 'flex', gap: '12px', marginTop: '20px'}}>
+              <button
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: '#4b5563',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+                onClick={() => setShowManualBorrowModal(false)}
+              >
+                ביטול
+              </button>
+              <button
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+                onClick={handleManualBorrow}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'שומר...' : '✅ רשום השאלה'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -3657,6 +3955,46 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '0.85rem',
+  },
+  optionsBtn: {
+    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+    color: 'white',
+    border: 'none',
+    padding: '8px 14px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  optionsDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    marginTop: '8px',
+    background: '#1e293b',
+    borderRadius: '12px',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+    border: '1px solid #334155',
+    minWidth: '180px',
+    zIndex: 100,
+    overflow: 'hidden',
+  },
+  optionItem: {
+    display: 'block',
+    width: '100%',
+    padding: '12px 16px',
+    background: 'transparent',
+    border: 'none',
+    color: '#e2e8f0',
+    fontSize: '0.9rem',
+    textAlign: 'right',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+    borderBottom: '1px solid #334155',
   },
   // Modal styles
   modalOverlay: {
