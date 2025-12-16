@@ -440,7 +440,7 @@ export default function WheelsAdminPage() {
           </div>
           {passwordError && <div style={styles.errorText}>{passwordError}</div>}
           <button style={styles.loginBtn} onClick={handleLogin}>כניסה</button>
-          <Link href="/wheels" style={styles.backLink}>← חזרה לרשימת התחנות</Link>
+          <Link href="/" style={styles.backLink}>← חזרה לרשימת התחנות</Link>
         </div>
       </div>
     )
@@ -492,7 +492,7 @@ export default function WheelsAdminPage() {
       `}</style>
       <header style={styles.header}>
         <div style={styles.headerTop} className="admin-header-top">
-          <Link href="/wheels" style={styles.backBtn} className="admin-btn">← <span className="admin-btn-text">חזרה</span></Link>
+          <Link href="/" style={styles.backBtn} className="admin-btn">← <span className="admin-btn-text">חזרה</span></Link>
           <button style={styles.logoutBtn} onClick={handleLogout} className="admin-btn">🚪 <span className="admin-btn-text">יציאה</span></button>
         </div>
         <h1 style={styles.title} className="admin-header-title">⚙️ ניהול תחנות גלגלים</h1>

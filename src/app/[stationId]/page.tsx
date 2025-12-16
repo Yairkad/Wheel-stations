@@ -1109,7 +1109,7 @@ ${formUrl}`
       <div style={styles.container}>
         <div style={styles.error}>
           <p>❌ {error || 'תחנה לא נמצאה'}</p>
-          <Link href="/wheels" style={styles.backLink}>← חזרה לרשימת התחנות</Link>
+          <Link href="/" style={styles.backLink}>← חזרה לרשימת התחנות</Link>
         </div>
       </div>
     )
@@ -1219,7 +1219,7 @@ ${formUrl}`
       `}</style>
       <header style={styles.header}>
         <div style={styles.headerTop} className="station-header-top">
-          <Link href="/wheels" style={styles.backBtn}>← חזרה</Link>
+          <Link href="/" style={styles.backBtn}>← חזרה</Link>
           {isManager ? (
             <div style={styles.managerActions} className="station-manager-actions">
               <button style={styles.addBtn} className="station-manager-btn" onClick={() => setShowAddWheelModal(true)}>➕ <span className="btn-text">הוסף גלגל</span></button>

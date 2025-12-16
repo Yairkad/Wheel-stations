@@ -276,7 +276,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
       <div style={styles.container}>
         <div style={styles.error}>
           <p>{error || 'תחנה לא נמצאה'}</p>
-          <Link href="/wheels" style={styles.backLink}>חזרה לרשימת התחנות</Link>
+          <Link href="/" style={styles.backLink}>חזרה לרשימת התחנות</Link>
         </div>
       </div>
     )

@@ -222,7 +222,7 @@ function SearchContent() {
                     : 'אין גלגלים זמינים כרגע'}
                 </p>
                 <Link
-                  href="/wheels"
+                  href="/"
                   className="inline-block mt-4 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
                 >
                   צפה בכל התחנות

@@ -100,7 +100,7 @@ export default function VehicleLookupPage() {
               חיפוש גלגל לפי מספר רישוי
             </h1>
             <Link
-              href="/wheels"
+              href="/"
               className="text-blue-600 hover:text-blue-800 text-sm"
             >
               חזרה לתחנות
