@@ -1371,7 +1371,7 @@ ${formUrl}`
       <div style={styles.stickyHeader} className="sticky-header">
         <header style={styles.header}>
           <div style={styles.headerTop} className="station-header-top">
-            <Link href="/" style={styles.backBtn}>← חזרה</Link>
+            {/* Right side - Hamburger menu for manager or login button */}
             {isManager ? (
               <div style={{ position: 'relative' }}>
                 <input
@@ -1396,28 +1396,7 @@ ${formUrl}`
                     <div style={styles.menuUserInfo}>
                       <div style={styles.menuUserName}>{currentManager?.full_name}</div>
                       <div style={styles.menuUserPhone}>{currentManager?.phone}</div>
-                      <div style={styles.menuUserRole}>{currentManager?.role === 'manager' ? 'מנהל תחנה' : currentManager?.role === 'deputy' ? 'סג"מ' : 'מתנדב'}</div>
-                    </div>
-
-                    {/* Station info section */}
-                    <div style={styles.menuStationInfo}>
-                      <div style={styles.menuStationName}>{station.name}</div>
-                      {station.address && <div style={styles.menuStationAddress}>📍 {station.address}</div>}
-                      {station.district && (
-                        <div style={{
-                          display: 'inline-block',
-                          marginTop: '6px',
-                          padding: '2px 8px',
-                          border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          color: getDistrictColor(station.district, districts),
-                          backgroundColor: `${getDistrictColor(station.district, districts)}15`,
-                        }}>
-                          {getDistrictName(station.district, districts)}
-                        </div>
-                      )}
+                      <div style={styles.menuStationNameSmall}>{station.name}</div>
                     </div>
 
                     {/* Divider */}
@@ -1471,6 +1450,9 @@ ${formUrl}`
             ) : (
               <button style={styles.managerBtn} className="station-login-btn" onClick={() => setShowLoginModal(true)}>🔐 כניסת מנהל</button>
             )}
+
+            {/* Left side - Back button */}
+            <Link href="/" style={styles.backBtnStyled}>← חזרה לרשימה</Link>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
             <h1 style={{ ...styles.title, margin: 0, textAlign: 'right' }} className="station-header-title">
@@ -2982,10 +2964,10 @@ ${formUrl}`
       )}
 
       {/* Edit Wheel Modal */}
-      {showEditWheelModal && (
+      {showEditWheelModal && selectedWheel && (
         <div style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>✏️ עריכת גלגל #{selectedWheel?.wheel_number}</h3>
+            <h3 style={styles.modalTitle}>✏️ עריכת גלגל #{selectedWheel.wheel_number}</h3>
             <div style={styles.formRow}>
               <div style={styles.formGroup}>
                 <label style={styles.label}>מספר גלגל *</label>
@@ -3033,8 +3015,8 @@ ${formUrl}`
               </div>
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>קטגוריה</label>
-              {!showCustomCategory ? (
+              <label style={styles.label}>קטגוריה {wheelForm.category && !predefinedCategories.includes(wheelForm.category) && <span style={{fontSize: '0.75rem', color: '#a0aec0'}}>({wheelForm.category})</span>}</label>
+              {!showCustomCategory && (!wheelForm.category || predefinedCategories.includes(wheelForm.category)) ? (
                 <select
                   value={predefinedCategories.includes(wheelForm.category) ? wheelForm.category : ''}
                   onChange={e => {
@@ -3735,6 +3717,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     textDecoration: 'none',
     fontSize: '0.9rem',
   },
+  backBtnStyled: {
+    background: 'rgba(255,255,255,0.1)',
+    color: '#fff',
+    textDecoration: 'none',
+    fontSize: '0.85rem',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    border: '1px solid rgba(255,255,255,0.2)',
+    transition: 'all 0.2s',
+  },
   managerBtn: {
     background: 'linear-gradient(135deg, #f59e0b, #d97706)',
     color: '#000',
@@ -4146,6 +4138,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.75rem',
     opacity: 0.8,
     marginTop: '4px',
+  },
+  menuStationNameSmall: {
+    fontSize: '0.8rem',
+    color: '#f59e0b',
+    marginTop: '6px',
   },
   menuStationInfo: {
     padding: '12px 16px',
