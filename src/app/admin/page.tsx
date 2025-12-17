@@ -683,17 +683,16 @@ export default function WheelsAdminPage() {
                       }}>
                         <div style={styles.districtStationsInner}>
                           <div style={styles.districtStationsHeader}>
-                            <span style={styles.districtStationsTitle}>תחנות במחוז {district.name}</span>
-                            <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-                              <button
-                                style={styles.btnAddStation}
-                                onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
-                              >
-                                + הוסף תחנה
-                              </button>
+                            <div style={{display: 'flex', gap: '6px', alignItems: 'center'}}>
                               <button style={styles.btnIconSmall} onClick={(e) => { e.stopPropagation(); openEditDistrictModal(district) }}>✏️</button>
                               <button style={styles.btnIconSmall} onClick={(e) => { e.stopPropagation(); handleDeleteDistrict(district) }} disabled={actionLoading}>🗑️</button>
                             </div>
+                            <button
+                              style={styles.btnAddStation}
+                              onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
+                            >
+                              + הוסף תחנה
+                            </button>
                           </div>
 
                           {districtStations.length === 0 ? (
