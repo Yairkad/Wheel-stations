@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 type GuideType = 'user' | 'manager';
 
-export default function GuidePage() {
+function GuideContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeGuide, setActiveGuide] = useState<GuideType>('user');
@@ -75,6 +75,18 @@ export default function GuidePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GuidePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600">טוען...</p>
+      </div>
+    }>
+      <GuideContent />
+    </Suspense>
   );
 }
 
