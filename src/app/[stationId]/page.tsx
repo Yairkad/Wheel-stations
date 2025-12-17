@@ -3451,42 +3451,52 @@ ${formUrl}`
               </button>
             </div>
 
-            {/* Section: Contacts */}
-            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>👥 אנשי קשר ({contacts.length}/4)</h4>
-              {contacts.map((contact, index) => (
-                <div key={index} style={{display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap'}} className="edit-details-contact-row">
-                  <input
-                    type="text"
-                    placeholder="שם מלא"
-                    value={contact.full_name}
-                    onChange={e => updateContact(index, 'full_name', e.target.value)}
-                    style={{...styles.input, flex: 1, minWidth: '120px'}}
-                  />
-                  <input
-                    type="tel"
-                    placeholder="טלפון"
-                    value={contact.phone}
-                    onChange={e => updateContact(index, 'phone', e.target.value)}
-                    style={{...styles.input, flex: 1, minWidth: '100px'}}
-                  />
-                  <button style={styles.removeBtn} onClick={() => removeContact(index)}>✕</button>
+            {/* Section: Contacts - Only for primary manager */}
+            {currentManager?.is_primary ? (
+              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>👥 אנשי קשר ({contacts.length}/4)</h4>
+                {contacts.map((contact, index) => (
+                  <div key={index} style={{display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap'}} className="edit-details-contact-row">
+                    <input
+                      type="text"
+                      placeholder="שם מלא"
+                      value={contact.full_name}
+                      onChange={e => updateContact(index, 'full_name', e.target.value)}
+                      style={{...styles.input, flex: 1, minWidth: '120px'}}
+                    />
+                    <input
+                      type="tel"
+                      placeholder="טלפון"
+                      value={contact.phone}
+                      onChange={e => updateContact(index, 'phone', e.target.value)}
+                      style={{...styles.input, flex: 1, minWidth: '100px'}}
+                    />
+                    <button style={styles.removeBtn} onClick={() => removeContact(index)}>✕</button>
+                  </div>
+                ))}
+                <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+                  <button style={{...styles.smallBtn, background: '#3b82f6'}} onClick={addContact} disabled={contacts.length >= 4}>
+                    ➕ הוסף איש קשר
+                  </button>
+                  <button style={{...styles.smallBtn, background: '#10b981'}} onClick={handleSaveContacts} disabled={actionLoading}>
+                    {actionLoading ? 'שומר...' : 'שמור אנשי קשר'}
+                  </button>
                 </div>
-              ))}
-              <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                <button style={{...styles.smallBtn, background: '#3b82f6'}} onClick={addContact} disabled={contacts.length >= 4}>
-                  ➕ הוסף איש קשר
-                </button>
-                <button style={{...styles.smallBtn, background: '#10b981'}} onClick={handleSaveContacts} disabled={actionLoading}>
-                  {actionLoading ? 'שומר...' : 'שמור אנשי קשר'}
-                </button>
               </div>
-            </div>
+            ) : (
+              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', opacity: 0.6}}>
+                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>👥 אנשי קשר</h4>
+                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
+                  🔒 רק מנהל ראשי יכול לערוך אנשי קשר
+                </p>
+              </div>
+            )}
 
-            {/* Section: Password */}
-            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>🔑 שינוי סיסמה</h4>
-              <p style={{fontSize: '0.85rem', color: '#a0aec0', margin: '0 0 12px'}}>הסיסמה משותפת לכל מנהלי התחנה</p>
+            {/* Section: Password - Only for primary manager */}
+            {currentManager?.is_primary ? (
+              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>🔑 שינוי סיסמה</h4>
+                <p style={{fontSize: '0.85rem', color: '#a0aec0', margin: '0 0 12px'}}>הסיסמה משותפת לכל מנהלי התחנה</p>
               <div style={styles.formGroup}>
                 <label style={styles.label}>סיסמה נוכחית</label>
                 <div style={{ position: 'relative' }}>
@@ -3580,6 +3590,14 @@ ${formUrl}`
                 {actionLoading ? 'שומר...' : 'שנה סיסמה'}
               </button>
             </div>
+            ) : (
+              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', opacity: 0.6}}>
+                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>🔑 שינוי סיסמה</h4>
+                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
+                  🔒 רק מנהל ראשי יכול לשנות סיסמה
+                </p>
+              </div>
+            )}
 
             <button style={{...styles.cancelBtn, width: '100%'}} onClick={() => setShowEditDetailsModal(false)}>סגור</button>
           </div>

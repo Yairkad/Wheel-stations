@@ -25,13 +25,13 @@ interface Manager {
 }
 
 // Helper to verify station manager access (by phone and password)
-async function verifyStationManager(stationId: string, phone: string, password: string): Promise<{ success: boolean; error?: string }> {
+async function verifyStationManager(stationId: string, phone: string, password: string): Promise<{ success: boolean; isPrimary?: boolean; error?: string }> {
   // Get station with password and managers
   const { data: station, error } = await supabase
     .from('wheel_stations')
     .select(`
       manager_password,
-      wheel_station_managers (phone)
+      wheel_station_managers (phone, is_primary)
     `)
     .eq('id', stationId)
     .single()
@@ -45,17 +45,17 @@ async function verifyStationManager(stationId: string, phone: string, password: 
     return { success: false, error: 'סיסמא שגויה' }
   }
 
-  // Check if phone is in managers list
+  // Check if phone is in managers list and if primary
   const cleanPhone = phone.replace(/\D/g, '')
-  const isManager = station.wheel_station_managers.some((m: { phone: string }) =>
+  const manager = station.wheel_station_managers.find((m: { phone: string; is_primary: boolean }) =>
     m.phone.replace(/\D/g, '') === cleanPhone
   )
 
-  if (!isManager) {
+  if (!manager) {
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
   }
 
-  return { success: true }
+  return { success: true, isPrimary: manager.is_primary }
 }
 
 // GET - Get managers for station
@@ -100,6 +100,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const auth = await verifyStationManager(stationId, manager_phone, manager_password)
     if (!auth.success) {
       return NextResponse.json({ error: auth.error }, { status: 403 })
+    }
+
+    // Only primary manager can update managers list
+    if (!auth.isPrimary) {
+      return NextResponse.json({ error: 'רק מנהל ראשי יכול לעדכן אנשי קשר' }, { status: 403 })
     }
 
     if (!managers || !Array.isArray(managers)) {

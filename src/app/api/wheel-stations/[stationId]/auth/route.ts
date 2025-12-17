@@ -37,7 +37,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           id,
           full_name,
           phone,
-          role
+          role,
+          is_primary
         )
       `)
       .eq('id', stationId)
@@ -79,7 +80,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         id: manager.id,
         full_name: manager.full_name,
         phone: manager.phone,
-        role: manager.role
+        role: manager.role,
+        is_primary: manager.is_primary || false
       },
       token
     })
@@ -110,7 +112,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .select(`
         id,
         manager_password,
-        wheel_station_managers (phone)
+        wheel_station_managers (phone, is_primary)
       `)
       .eq('id', stationId)
       .single()
@@ -119,14 +121,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Station not found' }, { status: 404 })
     }
 
-    // Verify phone is in managers list
+    // Verify phone is in managers list and check if primary
     const cleanPhone = phone.replace(/\D/g, '')
-    const isManager = station.wheel_station_managers.some((m: { phone: string }) =>
+    const manager = station.wheel_station_managers.find((m: { phone: string; is_primary: boolean }) =>
       m.phone.replace(/\D/g, '') === cleanPhone
     )
 
-    if (!isManager) {
+    if (!manager) {
       return NextResponse.json({ error: 'אינך מנהל תחנה מורשה' }, { status: 403 })
+    }
+
+    // Only primary manager can change password
+    if (!manager.is_primary) {
+      return NextResponse.json({ error: 'רק מנהל ראשי יכול לשנות סיסמה' }, { status: 403 })
     }
 
     // Verify current password
