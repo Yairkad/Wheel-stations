@@ -67,7 +67,6 @@ export default function WheelsAdminPage() {
   // Modals
   const [showAddStation, setShowAddStation] = useState(false)
   const [editingStation, setEditingStation] = useState<Station | null>(null)
-  const [addStationToDistrict, setAddStationToDistrict] = useState<string | null>(null)
 
   // Form
   const [stationForm, setStationForm] = useState({
@@ -285,7 +284,6 @@ export default function WheelsAdminPage() {
       }
       await fetchStations()
       setShowAddStation(false)
-      setAddStationToDistrict(null)
       resetForm()
       toast.success('התחנה נוצרה בהצלחה!')
     } catch (err: unknown) {
@@ -383,12 +381,8 @@ export default function WheelsAdminPage() {
     setEditingStation(station)
   }
 
-  const openAddStationModal = (districtCode?: string) => {
+  const openAddStationModal = () => {
     resetForm()
-    if (districtCode) {
-      setStationForm(prev => ({ ...prev, district: districtCode }))
-      setAddStationToDistrict(districtCode)
-    }
     setShowAddStation(true)
   }
 
@@ -431,6 +425,26 @@ export default function WheelsAdminPage() {
       station.wheel_station_managers?.some(m => m.full_name.toLowerCase().includes(query))
     )
   }
+
+  // Auto-expand district and station when searching
+  useEffect(() => {
+    if (searchQuery && stations.length > 0) {
+      const filtered = filterStations(stations)
+      if (filtered.length > 0) {
+        const firstMatch = filtered[0]
+        // Expand the district containing the first match
+        if (firstMatch.district) {
+          setExpandedDistrict(firstMatch.district)
+        }
+        // Expand the station itself
+        setExpandedStation(firstMatch.id)
+      }
+    } else if (!searchQuery) {
+      // Clear expanded state when search is cleared
+      setExpandedStation(null)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, stations])
 
   // Get stations for a district
   const getDistrictStations = (districtCode: string) => {
@@ -586,23 +600,31 @@ export default function WheelsAdminPage() {
       <div style={styles.statsRow} className="stats-row-responsive">
         <div style={styles.statCard} className="stat-card-responsive">
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive">🏢</div>
-          <div style={styles.statLabel}>סה״כ תחנות</div>
-          <div style={styles.statValue} className="stat-value-responsive">{stations.length}</div>
+          <div>
+            <div style={styles.statLabel}>תחנות</div>
+            <div style={styles.statValue} className="stat-value-responsive">{stations.length}</div>
+          </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive">🛞</div>
-          <div style={styles.statLabel}>סה״כ גלגלים</div>
-          <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{totalWheels}</div>
+          <div>
+            <div style={styles.statLabel}>גלגלים</div>
+            <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{totalWheels}</div>
+          </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}} className="stat-icon-responsive">✅</div>
-          <div style={styles.statLabel}>גלגלים זמינים</div>
-          <div style={{...styles.statValue, color: '#f59e0b'}} className="stat-value-responsive">{availableWheels}</div>
+          <div>
+            <div style={styles.statLabel}>זמינים</div>
+            <div style={{...styles.statValue, color: '#f59e0b'}} className="stat-value-responsive">{availableWheels}</div>
+          </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} className="stat-icon-responsive">👥</div>
-          <div style={styles.statLabel}>מנהלים</div>
-          <div style={{...styles.statValue, color: '#8b5cf6'}} className="stat-value-responsive">{totalManagers}</div>
+          <div>
+            <div style={styles.statLabel}>מנהלים</div>
+            <div style={{...styles.statValue, color: '#8b5cf6'}} className="stat-value-responsive">{totalManagers}</div>
+          </div>
         </div>
       </div>
 
@@ -687,24 +709,12 @@ export default function WheelsAdminPage() {
                               <button style={styles.btnIconSmall} onClick={(e) => { e.stopPropagation(); openEditDistrictModal(district) }}>✏️</button>
                               <button style={styles.btnIconSmall} onClick={(e) => { e.stopPropagation(); handleDeleteDistrict(district) }} disabled={actionLoading}>🗑️</button>
                             </div>
-                            <button
-                              style={styles.btnAddStation}
-                              onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
-                            >
-                              + הוסף תחנה
-                            </button>
                           </div>
 
                           {districtStations.length === 0 ? (
                             <div style={styles.emptyDistrict}>
                               <div style={styles.emptyDistrictIcon}>🏢</div>
                               <div style={styles.emptyDistrictText}>אין תחנות במחוז זה</div>
-                              <button
-                                style={styles.btnAddStation}
-                                onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
-                              >
-                                + הוסף תחנה ראשונה
-                              </button>
                             </div>
                           ) : (
                             districtStations.map(station => (
@@ -756,7 +766,7 @@ export default function WheelsAdminPage() {
 
       {/* Add/Edit Station Modal */}
       {(showAddStation || editingStation) && (
-        <div style={styles.modalOverlay} onClick={() => { setShowAddStation(false); setEditingStation(null); setAddStationToDistrict(null) }}>
+        <div style={styles.modalOverlay} onClick={() => { setShowAddStation(false); setEditingStation(null) }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>
@@ -858,7 +868,7 @@ export default function WheelsAdminPage() {
             </div>
 
             <div style={styles.modalFooter}>
-              <button style={styles.btnCancel} onClick={() => { setShowAddStation(false); setEditingStation(null); setAddStationToDistrict(null) }}>
+              <button style={styles.btnCancel} onClick={() => { setShowAddStation(false); setEditingStation(null) }}>
                 ביטול
               </button>
               <button
@@ -1086,7 +1096,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   header: {
     background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)',
     borderBottom: '1px solid #22c55e',
-    padding: '40px 30px 80px',
+    padding: '30px 30px 60px',
     position: 'relative',
   },
   headerContent: {
@@ -1193,8 +1203,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   statsRow: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '20px',
-    margin: '-50px auto 30px',
+    gap: '12px',
+    margin: '-40px auto 20px',
     position: 'relative',
     zIndex: 10,
     maxWidth: '1300px',
@@ -1203,30 +1213,34 @@ const styles: { [key: string]: React.CSSProperties } = {
   statCard: {
     background: 'linear-gradient(145deg, #1e293b 0%, #1a2234 100%)',
     border: '1px solid #334155',
-    borderRadius: '20px',
-    padding: '20px',
+    borderRadius: '14px',
+    padding: '12px 14px',
     position: 'relative',
     overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
   },
   statIcon: {
-    width: '45px',
-    height: '45px',
-    borderRadius: '12px',
+    width: '36px',
+    height: '36px',
+    borderRadius: '10px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '1.3rem',
-    marginBottom: '12px',
+    fontSize: '1rem',
+    flexShrink: 0,
   },
   statLabel: {
     color: '#64748b',
-    fontSize: '0.8rem',
-    marginBottom: '4px',
+    fontSize: '0.7rem',
+    marginBottom: '2px',
   },
   statValue: {
-    fontSize: '1.8rem',
+    fontSize: '1.3rem',
     fontWeight: 800,
     color: '#22c55e',
+    lineHeight: 1,
   },
 
   // Container
