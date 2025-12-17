@@ -1449,7 +1449,7 @@ ${formUrl}`
                     )}
 
                     <a
-                      href="/guide"
+                      href="/guide?tab=manager"
                       style={{ ...styles.menuItem, textDecoration: 'none' }}
                       onClick={() => setShowManagerMenu(false)}
                     >

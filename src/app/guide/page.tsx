@@ -1,13 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type GuideType = 'user' | 'manager';
 
 export default function GuidePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeGuide, setActiveGuide] = useState<GuideType>('user');
+
+  // Read tab from URL on mount
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'manager') {
+      setActiveGuide('manager');
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-gray-50">
