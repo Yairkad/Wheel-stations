@@ -34,6 +34,7 @@ interface Wheel {
     deposit_details?: string
     is_signed?: boolean
     signed_at?: string
+    form_id?: string
   }
 }
 
@@ -55,6 +56,7 @@ interface BorrowRecord {
   is_signed: boolean
   signed_at?: string
   created_at: string
+  form_id?: string
   wheels?: {
     wheel_number: string
     rim_size: string
@@ -1428,12 +1430,19 @@ ${formUrl}`
                     >
                       ⚙️ הגדרות תחנה
                     </button>
-                    <button
-                      style={styles.menuItem}
-                      onClick={() => { setShowChangePasswordModal(true); setShowManagerMenu(false) }}
-                    >
-                      🔑 שינוי סיסמה
-                    </button>
+                    {/* Push Notifications toggle */}
+                    {pushSupported && (
+                      <button
+                        style={{
+                          ...styles.menuItem,
+                          color: pushEnabled ? '#ef4444' : '#22c55e'
+                        }}
+                        onClick={() => { handleTogglePush(); setShowManagerMenu(false) }}
+                        disabled={enablingPush}
+                      >
+                        {enablingPush ? '⏳ מעדכן...' : pushEnabled ? '🔕 כבה התראות' : '🔔 הפעל התראות'}
+                      </button>
+                    )}
 
                     {/* Divider */}
                     <div style={styles.menuDivider} />
@@ -1668,6 +1677,16 @@ ${formUrl}`
                               🔙 החזר
                             </button>
                           )}
+                          {borrow.form_id && (
+                            <a
+                              href={`/forms/${borrow.form_id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={styles.viewFormBtn}
+                            >
+                              📄 צפה בטופס
+                            </a>
+                          )}
                         </td>
                       </tr>
                     )
@@ -1813,6 +1832,17 @@ ${formUrl}`
                               >
                                 🔙 החזר
                               </button>
+                            )}
+                            {borrow.form_id && (
+                              <a
+                                href={`/forms/${borrow.form_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{...styles.viewFormBtn, flex: 1, textAlign: 'center'}}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                📄 צפה בטופס
+                              </a>
                             )}
                           </div>
                         </>
@@ -2142,17 +2172,6 @@ ${formUrl}`
                 {/* Manager action buttons with options menu */}
                 {isManager && (
                   <div style={styles.cardActions} className="station-card-actions">
-                    {/* Return button for borrowed wheels - always visible */}
-                    {!wheel.is_available && (
-                      <button
-                        style={styles.returnBtn}
-                        onClick={() => handleReturn(wheel)}
-                        disabled={actionLoading}
-                      >
-                        📥 החזר
-                      </button>
-                    )}
-
                     {/* Return to available for temporarily unavailable */}
                     {wheel.temporarily_unavailable && (
                       <button
@@ -2185,6 +2204,32 @@ ${formUrl}`
                       {/* Dropdown menu */}
                       {openOptionsMenu === wheel.id && (
                         <div style={styles.optionsDropdown} onClick={e => e.stopPropagation()}>
+                          {/* Return wheel - only for borrowed wheels */}
+                          {!wheel.is_available && !wheel.temporarily_unavailable && (
+                            <button
+                              style={styles.optionItem}
+                              onClick={() => {
+                                handleReturn(wheel)
+                                setOpenOptionsMenu(null)
+                              }}
+                            >
+                              📥 החזר גלגל
+                            </button>
+                          )}
+
+                          {/* View form - only for borrowed wheels with form */}
+                          {!wheel.is_available && wheel.current_borrow?.form_id && (
+                            <a
+                              href={`/forms/${wheel.current_borrow.form_id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{...styles.optionItem, textDecoration: 'none', display: 'block'}}
+                              onClick={() => setOpenOptionsMenu(null)}
+                            >
+                              📄 צפייה בטופס
+                            </a>
+                          )}
+
                           {/* WhatsApp share - only for available wheels */}
                           {wheel.is_available && !wheel.temporarily_unavailable && (
                             <button
@@ -2226,10 +2271,15 @@ ${formUrl}`
                             </button>
                           )}
 
-                          {/* Edit wheel */}
+                          {/* Edit wheel - disabled for borrowed wheels */}
                           <button
-                            style={styles.optionItem}
+                            style={{
+                              ...styles.optionItem,
+                              ...(!wheel.is_available && !wheel.temporarily_unavailable ? styles.optionItemDisabled : {})
+                            }}
+                            disabled={!wheel.is_available && !wheel.temporarily_unavailable}
                             onClick={() => {
+                              if (!wheel.is_available && !wheel.temporarily_unavailable) return
                               setSelectedWheel(wheel)
                               setWheelForm({
                                 wheel_number: wheel.wheel_number,
@@ -2244,18 +2294,24 @@ ${formUrl}`
                               setOpenOptionsMenu(null)
                             }}
                           >
-                            ✏️ ערוך גלגל
+                            ✏️ ערוך גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}
                           </button>
 
-                          {/* Delete wheel */}
+                          {/* Delete wheel - disabled for borrowed wheels */}
                           <button
-                            style={{ ...styles.optionItem, color: '#ef4444' }}
+                            style={{
+                              ...styles.optionItem,
+                              color: wheel.is_available || wheel.temporarily_unavailable ? '#ef4444' : '#9ca3af',
+                              ...(!wheel.is_available && !wheel.temporarily_unavailable ? styles.optionItemDisabled : {})
+                            }}
+                            disabled={!wheel.is_available && !wheel.temporarily_unavailable}
                             onClick={() => {
+                              if (!wheel.is_available && !wheel.temporarily_unavailable) return
                               handleDeleteWheel(wheel)
                               setOpenOptionsMenu(null)
                             }}
                           >
-                            🗑️ מחק גלגל
+                            🗑️ מחק גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}
                           </button>
                         </div>
                       )}
@@ -3481,31 +3537,6 @@ ${formUrl}`
               </button>
             </div>
 
-            {/* Section: Push Notifications */}
-            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>🔔 התראות</h4>
-              <p style={{fontSize: '0.85rem', color: '#a0aec0', margin: '0 0 12px'}}>
-                קבל התראה קופצת בכל בקשת השאלה חדשה
-              </p>
-              {pushSupported ? (
-                <button
-                  style={{
-                    ...styles.smallBtn,
-                    background: pushEnabled ? '#ef4444' : '#22c55e',
-                    width: '100%'
-                  }}
-                  onClick={handleTogglePush}
-                  disabled={enablingPush}
-                >
-                  {enablingPush ? 'מעדכן...' : pushEnabled ? '🔕 כבה התראות' : '🔔 הפעל התראות'}
-                </button>
-              ) : (
-                <p style={{fontSize: '0.8rem', color: '#9ca3af', fontStyle: 'italic'}}>
-                  {getPushNotSupportedReason() || 'התראות לא נתמכות בדפדפן זה'}
-                </p>
-              )}
-            </div>
-
             <button style={{...styles.cancelBtn, width: '100%'}} onClick={() => setShowEditDetailsModal(false)}>סגור</button>
           </div>
         </div>
@@ -4351,6 +4382,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     transition: 'background 0.2s',
     borderBottom: '1px solid #334155',
+  },
+  optionItemDisabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
   },
   // Modal styles
   modalOverlay: {

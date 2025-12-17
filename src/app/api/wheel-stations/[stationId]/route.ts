@@ -93,10 +93,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .eq('station_id', stationId)
       .order('wheel_number')
 
-    // Get active borrows to show borrower info
+    // Get active borrows to show borrower info (with signed_forms join)
     const { data: activeBorrows } = await supabase
       .from('wheel_borrows')
-      .select('id, wheel_id, borrower_name, borrower_phone, borrower_id_number, borrower_address, vehicle_model, borrow_date, expected_return_date, deposit_type, deposit_details, signature_data, signed_at')
+      .select('id, wheel_id, borrower_name, borrower_phone, borrower_id_number, borrower_address, vehicle_model, borrow_date, expected_return_date, deposit_type, deposit_details, signature_data, signed_at, signed_forms(id)')
       .eq('station_id', stationId)
       .eq('status', 'borrowed')
 
@@ -114,7 +114,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         deposit_type: b.deposit_type,
         deposit_details: b.deposit_details,
         is_signed: !!b.signature_data,
-        signed_at: b.signed_at
+        signed_at: b.signed_at,
+        form_id: (b as any).signed_forms?.[0]?.id || null
       }]) || []
     )
 

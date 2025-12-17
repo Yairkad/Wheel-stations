@@ -44,7 +44,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         signature_data,
         signed_at,
         created_at,
-        wheels (wheel_number, rim_size, bolt_count, bolt_spacing)
+        wheels (wheel_number, rim_size, bolt_count, bolt_spacing),
+        signed_forms (id)
       `)
       .eq('station_id', stationId)
       .order('created_at', { ascending: false })
@@ -77,8 +78,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       borrows: borrows?.map(b => ({
         ...b,
         is_signed: !!b.signature_data,
+        form_id: b.signed_forms?.[0]?.id || null,
         // Don't send full signature data to client, just the status
-        signature_data: undefined
+        signature_data: undefined,
+        signed_forms: undefined
       })),
       stats: {
         pending,

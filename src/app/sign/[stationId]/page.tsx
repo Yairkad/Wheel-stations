@@ -314,8 +314,41 @@ function SignFormContent({ stationId }: { stationId: string }) {
   if (submitted) {
     return (
       <div style={styles.container}>
-        <div style={styles.successScreen}>
-          <div style={styles.successIcon}>⏳</div>
+        <style>{`
+          @keyframes successPop {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          @keyframes checkmark {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+          }
+          @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+          .success-screen { animation: fadeInUp 0.5s ease-out; }
+        `}</style>
+        <div style={styles.successScreen} className="success-screen">
+          <div style={styles.successIconAnimated}>
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="36" fill="#10b981" style={{ animation: 'successPop 0.5s ease-out' }} />
+              <path
+                d="M24 42 L34 52 L56 28"
+                fill="none"
+                stroke="white"
+                strokeWidth="5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{
+                  strokeDasharray: 100,
+                  strokeDashoffset: 0,
+                  animation: 'checkmark 0.5s ease-out 0.3s both'
+                }}
+              />
+            </svg>
+          </div>
           <h2 style={styles.successTitle}>תודה! הטופס נשלח בהצלחה</h2>
           <p style={styles.successText}>
             פרטי ההתחייבות נשמרו במערכת.<br />
@@ -337,7 +370,29 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
   return (
     <div style={styles.container}>
-      <div ref={formRef} style={styles.card}>
+      {/* Submitting Overlay */}
+      {submitting && (
+        <div style={styles.submittingOverlay}>
+          <style>{`
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          `}</style>
+          <div style={styles.submittingContent}>
+            <div style={styles.submittingSpinner}>
+              <svg width="60" height="60" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="26" fill="none" stroke="#e5e7eb" strokeWidth="4" />
+                <circle
+                  cx="30" cy="30" r="26" fill="none" stroke="#10b981" strokeWidth="4"
+                  strokeDasharray="163.36" strokeDashoffset="120"
+                  style={{ animation: 'spin 1s linear infinite', transformOrigin: 'center' }}
+                />
+              </svg>
+            </div>
+            <p style={styles.submittingText}>שולח את הטופס...</p>
+            <p style={styles.submittingSubtext}>אנא המתן</p>
+          </div>
+        </div>
+      )}
+      <div ref={formRef} style={{...styles.card, ...(submitting ? styles.cardDisabled : {})}}>
         {/* Yedidim Logo */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           <img
@@ -1099,5 +1154,44 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '0.9rem',
     fontWeight: '500',
+  },
+  submittingOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+  },
+  submittingContent: {
+    background: '#fff',
+    borderRadius: '16px',
+    padding: '40px',
+    textAlign: 'center',
+    boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
+  },
+  submittingSpinner: {
+    marginBottom: '20px',
+  },
+  submittingText: {
+    color: '#1f2937',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    marginBottom: '8px',
+  },
+  submittingSubtext: {
+    color: '#6b7280',
+    fontSize: '0.9rem',
+  },
+  cardDisabled: {
+    opacity: 0.5,
+    pointerEvents: 'none' as const,
+  },
+  successIconAnimated: {
+    marginBottom: '20px',
   },
 }
