@@ -2132,26 +2132,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '0',
   },
   footerText: {
-    color: '#9ca3af',
+    color: '#d1d5db',
     fontSize: '0.75rem',
     margin: 0,
   },
   feedbackLink: {
-    color: '#60a5fa',
+    color: '#93c5fd',
     textDecoration: 'none',
   },
   legalLinks: {
-    color: '#6b7280',
+    color: '#9ca3af',
     fontSize: '0.7rem',
     marginTop: '8px',
     margin: 0,
   },
   legalLink: {
-    color: '#6b7280',
+    color: '#9ca3af',
     textDecoration: 'none',
   },
   versionText: {
-    color: '#6b7280',
+    color: '#9ca3af',
     fontSize: '0.65rem',
     marginTop: '8px',
   },
