@@ -805,7 +805,7 @@ export default function WheelsAdminPage() {
                     onChange={e => updateManager(index, 'phone', e.target.value)}
                     style={styles.inputSmall}
                   />
-                  <button style={styles.removeManagerBtn} onClick={() => removeManager(index)}>✕</button>
+                  <button style={styles.removeManagerBtn} onClick={() => removeManager(index)} title="הסר מנהל">🗑️</button>
                 </div>
               ))}
             </div>
@@ -1238,14 +1238,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
   },
   removeManagerBtn: {
-    background: '#ef4444',
-    color: 'white',
+    background: '#dc2626',
     border: 'none',
     width: '32px',
     height: '32px',
     borderRadius: '6px',
     cursor: 'pointer',
-    fontWeight: 'bold',
+    fontSize: '14px',
+    transition: 'all 0.2s',
+    flexShrink: 0,
   },
   primaryToggleBtn: {
     width: '32px',
