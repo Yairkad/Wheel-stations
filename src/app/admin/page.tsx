@@ -48,7 +48,6 @@ export default function WheelsAdminPage() {
 
   // Districts state
   const [districts, setDistricts] = useState<District[]>([])
-  const [showDistrictsSection, setShowDistrictsSection] = useState(false)
   const [showAddDistrict, setShowAddDistrict] = useState(false)
   const [editingDistrict, setEditingDistrict] = useState<District | null>(null)
   const [districtForm, setDistrictForm] = useState({
@@ -57,14 +56,16 @@ export default function WheelsAdminPage() {
     color: '#3b82f6'
   })
 
-  // Stations section toggle
-  const [showStationsSection, setShowStationsSection] = useState(false)
-  const [stationSearchQuery, setStationSearchQuery] = useState('')
+  // Search
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Expanded district for the new collapsible UI
+  const [expandedDistrict, setExpandedDistrict] = useState<string | null>(null)
 
   // Modals
   const [showAddStation, setShowAddStation] = useState(false)
   const [editingStation, setEditingStation] = useState<Station | null>(null)
-  const [expandedStation, setExpandedStation] = useState<string | null>(null)
+  const [addStationToDistrict, setAddStationToDistrict] = useState<string | null>(null)
 
   // Form
   const [stationForm, setStationForm] = useState({
@@ -226,7 +227,7 @@ export default function WheelsAdminPage() {
 
   const handleDeleteDistrict = async (district: District) => {
     setConfirmDialogData({
-      title: '🗑️ מחיקת מחוז',
+      title: 'מחיקת מחוז',
       message: `האם למחוק את מחוז "${district.name}"? פעולה זו תסיר את המחוז מכל התחנות שמשתמשות בו.`,
       onConfirm: async () => {
         setShowConfirmDialog(false)
@@ -282,6 +283,7 @@ export default function WheelsAdminPage() {
       }
       await fetchStations()
       setShowAddStation(false)
+      setAddStationToDistrict(null)
       resetForm()
       toast.success('התחנה נוצרה בהצלחה!')
     } catch (err: unknown) {
@@ -320,7 +322,7 @@ export default function WheelsAdminPage() {
 
   const handleDeleteStation = async (station: Station) => {
     setConfirmDialogData({
-      title: '🗑️ מחיקת תחנה',
+      title: 'מחיקת תחנה',
       message: `האם למחוק את תחנת "${station.name}"? פעולה זו תמחק גם את כל הגלגלים והיסטוריית ההשאלות!`,
       onConfirm: async () => {
         setShowConfirmDialog(false)
@@ -379,6 +381,15 @@ export default function WheelsAdminPage() {
     setEditingStation(station)
   }
 
+  const openAddStationModal = (districtCode?: string) => {
+    resetForm()
+    if (districtCode) {
+      setStationForm(prev => ({ ...prev, district: districtCode }))
+      setAddStationToDistrict(districtCode)
+    }
+    setShowAddStation(true)
+  }
+
   const addManager = () => {
     if (stationForm.managers.length >= 4) {
       toast.error('ניתן להוסיף עד 4 מנהלים')
@@ -403,12 +414,43 @@ export default function WheelsAdminPage() {
     setStationForm({ ...stationForm, managers: updated })
   }
 
+  // Calculate stats
+  const totalWheels = stations.reduce((sum, s) => sum + s.totalWheels, 0)
+  const availableWheels = stations.reduce((sum, s) => sum + s.availableWheels, 0)
+  const totalManagers = stations.reduce((sum, s) => sum + (s.wheel_station_managers?.length || 0), 0)
+
+  // Filter stations by search
+  const filterStations = (stationsList: Station[]) => {
+    if (!searchQuery) return stationsList
+    const query = searchQuery.toLowerCase()
+    return stationsList.filter(station =>
+      station.name.toLowerCase().includes(query) ||
+      station.address?.toLowerCase().includes(query) ||
+      station.wheel_station_managers?.some(m => m.full_name.toLowerCase().includes(query))
+    )
+  }
+
+  // Get stations for a district
+  const getDistrictStations = (districtCode: string) => {
+    return filterStations(stations.filter(s => s.district === districtCode))
+  }
+
+  // Get stations without district
+  const stationsWithoutDistrict = filterStations(stations.filter(s => !s.district))
+
+  // Get district color or default
+  const getDistrictColor = (index: number) => {
+    const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6']
+    return colors[index % colors.length]
+  }
+
   // Login screen
   if (!isAuthenticated) {
     return (
-      <div style={styles.container}>
+      <div style={styles.loginContainer}>
         <div style={styles.loginBox}>
-          <h1 style={styles.loginTitle}>🔐 ניהול תחנות גלגלים</h1>
+          <div style={styles.loginLogoIcon}>🔐</div>
+          <h1 style={styles.loginTitle}>ניהול תחנות גלגלים</h1>
           <p style={styles.loginSubtitle}>הזן סיסמת מנהל</p>
           <div style={{ position: 'relative' }}>
             <input
@@ -417,7 +459,7 @@ export default function WheelsAdminPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              style={{...styles.input, paddingLeft: '40px'}}
+              style={{...styles.formInput, paddingLeft: '40px'}}
             />
             <button
               type="button"
@@ -447,375 +489,362 @@ export default function WheelsAdminPage() {
   }
 
   return (
-    <div style={styles.container}>
+    <div style={styles.pageWrapper}>
       <style>{`
-        @media (max-width: 600px) {
-          .admin-header-title {
-            font-size: 1.4rem !important;
+        @media (max-width: 768px) {
+          .header-content-responsive {
+            flex-direction: column !important;
+            gap: 15px !important;
+            align-items: stretch !important;
           }
-          .admin-header-top {
-            flex-wrap: wrap;
-            gap: 8px;
+          .header-logo-responsive {
+            justify-content: center !important;
           }
-          .admin-btn {
-            padding: 6px 12px !important;
-            font-size: 0.8rem !important;
+          .stats-row-responsive {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+            margin-top: -40px !important;
           }
-          .admin-btn-text {
-            display: none;
+          .stat-value-responsive {
+            font-size: 1.5rem !important;
           }
-          .admin-action-btn {
-            padding: 6px 10px !important;
-            font-size: 0.75rem !important;
+          .section-header-responsive {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
           }
-          .admin-add-btn {
-            padding: 12px !important;
-            font-size: 0.9rem !important;
-          }
-          .admin-station-actions {
-            flex-direction: column;
-            gap: 6px !important;
-          }
-          .admin-station-actions button,
-          .admin-station-actions a {
+          .section-header-responsive .section-buttons {
             width: 100% !important;
+            justify-content: center !important;
+          }
+          .districts-grid-responsive {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .stats-row-responsive {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+          }
+          .stat-card-responsive {
+            padding: 12px !important;
+          }
+          .stat-icon-responsive {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 1rem !important;
+          }
+          .station-actions-responsive {
+            flex-wrap: wrap !important;
+          }
+          .station-actions-responsive button,
+          .station-actions-responsive a {
+            flex: 1 1 calc(50% - 3px) !important;
             text-align: center !important;
           }
-          .admin-manager-row {
-            flex-direction: column !important;
-            gap: 6px !important;
+        }
+        @media (max-width: 360px) {
+          .stats-row-responsive {
+            grid-template-columns: 1fr !important;
           }
-          .admin-manager-row input {
-            width: 100% !important;
+          .manager-row-responsive {
+            flex-wrap: wrap !important;
           }
         }
       `}</style>
-      <header style={styles.header}>
-        <div style={styles.headerTop} className="admin-header-top">
-          <Link href="/" style={styles.backBtn} className="admin-btn">← <span className="admin-btn-text">חזרה</span></Link>
-          <button style={styles.logoutBtn} onClick={handleLogout} className="admin-btn">🚪 <span className="admin-btn-text">יציאה</span></button>
-        </div>
-        <h1 style={styles.title} className="admin-header-title">⚙️ ניהול תחנות גלגלים</h1>
-        <p style={styles.subtitle}>{stations.length} תחנות במערכת</p>
-      </header>
 
-      {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <button
-          style={{...styles.addStationBtn, background: showStationsSection ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'linear-gradient(135deg, #10b981, #059669)'}}
-          className="admin-add-btn"
-          onClick={() => setShowStationsSection(!showStationsSection)}
-        >
-          🏢 {showStationsSection ? 'הסתר' : 'נהל'} תחנות
-        </button>
-        <button
-          style={{...styles.addStationBtn, background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)'}}
-          className="admin-add-btn"
-          onClick={() => setShowDistrictsSection(!showDistrictsSection)}
-        >
-          🗺️ {showDistrictsSection ? 'הסתר' : 'נהל'} מחוזות
-        </button>
+      {/* Header */}
+      <div style={styles.header}>
+        <div style={styles.headerContent} className="header-content-responsive">
+          <div style={styles.headerLogo} className="header-logo-responsive">
+            <div style={styles.logoIcon}>🛞</div>
+            <div>
+              <h1 style={styles.headerTitle}>ניהול תחנות גלגלים</h1>
+              <p style={styles.headerSubtitle}>מערכת ניהול תחנות והשאלות</p>
+            </div>
+          </div>
+          <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+        </div>
       </div>
 
-      {/* Districts Management Section */}
-      {showDistrictsSection && (
-        <div style={{...styles.districtSection, marginBottom: '30px'}}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-            <h2 style={{color: '#8b5cf6', fontSize: '1.3rem', margin: 0}}>🗺️ ניהול מחוזות ({districts.length})</h2>
-            <button
-              style={{...styles.addManagerBtn, background: '#8b5cf6'}}
-              onClick={() => { resetDistrictForm(); setShowAddDistrict(true) }}
-            >
-              ➕ הוסף מחוז
-            </button>
-          </div>
-          <div style={styles.districtsGrid}>
-            {districts.map((district) => (
-              <div key={district.id} style={styles.districtCard}>
-                <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px'}}>
-                  <div
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      backgroundColor: district.color,
-                      border: '2px solid rgba(255,255,255,0.3)'
-                    }}
-                  />
-                  <div>
-                    <h4 style={{margin: 0, fontSize: '1.1rem'}}>{district.name}</h4>
-                    <p style={{margin: 0, fontSize: '0.75rem', color: '#a0aec0'}}>{district.code}</p>
-                  </div>
-                </div>
-                <div style={{display: 'flex', gap: '6px', marginTop: '10px'}}>
-                  <button
-                    style={{...styles.editBtn, fontSize: '0.75rem', padding: '6px 10px'}}
-                    onClick={() => openEditDistrictModal(district)}
-                  >
-                    ✏️ ערוך
-                  </button>
-                  <button
-                    style={{...styles.deleteBtn, fontSize: '0.75rem', padding: '6px 10px'}}
-                    onClick={() => handleDeleteDistrict(district)}
-                    disabled={actionLoading}
-                  >
-                    🗑️ מחק
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Stats Row */}
+      <div style={styles.statsRow} className="stats-row-responsive">
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive">🏢</div>
+          <div style={styles.statLabel}>סה״כ תחנות</div>
+          <div style={styles.statValue} className="stat-value-responsive">{stations.length}</div>
         </div>
-      )}
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive">🛞</div>
+          <div style={styles.statLabel}>סה״כ גלגלים</div>
+          <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{totalWheels}</div>
+        </div>
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}} className="stat-icon-responsive">✅</div>
+          <div style={styles.statLabel}>גלגלים זמינים</div>
+          <div style={{...styles.statValue, color: '#f59e0b'}} className="stat-value-responsive">{availableWheels}</div>
+        </div>
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} className="stat-icon-responsive">👥</div>
+          <div style={styles.statLabel}>מנהלים</div>
+          <div style={{...styles.statValue, color: '#8b5cf6'}} className="stat-value-responsive">{totalManagers}</div>
+        </div>
+      </div>
 
-      {/* Stations Management Section */}
-      {showStationsSection && (
-        <div style={{...styles.stationSection, marginBottom: '30px'}}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-            <h2 style={{color: '#10b981', fontSize: '1.3rem', margin: 0}}>🏢 ניהול תחנות ({stations.length})</h2>
-            <button
-              style={{...styles.addManagerBtn, background: '#10b981'}}
-              onClick={() => { resetForm(); setShowAddStation(true) }}
-            >
-              ➕ הוסף תחנה
-            </button>
+      <div style={styles.container}>
+        {/* Districts & Stations Section */}
+        <div style={styles.section}>
+          <div style={styles.sectionHeader} className="section-header-responsive">
+            <div style={styles.sectionTitle}>
+              <div style={styles.sectionTitleIcon}>🗺️</div>
+              מחוזות ותחנות
+              <span style={styles.sectionCount}>{districts.length} מחוזות • {stations.length} תחנות</span>
+            </div>
+            <div style={styles.sectionButtons} className="section-buttons">
+              <button style={styles.btnGhost} onClick={() => { resetDistrictForm(); setShowAddDistrict(true) }}>+ מחוז</button>
+              <button style={styles.btnPrimary} onClick={() => openAddStationModal()}>+ תחנה</button>
+            </div>
           </div>
 
           {/* Search Bar */}
-          <div style={{marginBottom: '15px'}}>
+          <div style={styles.searchContainer}>
             <input
               type="text"
-              value={stationSearchQuery}
-              onChange={(e) => setStationSearchQuery(e.target.value)}
-              placeholder="🔍 חפש לפי שם תחנה או שם מנהל..."
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                fontSize: '1rem',
-                border: '2px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: '12px',
-                background: 'rgba(255,255,255,0.05)',
-                color: 'white',
-                outline: 'none',
-                transition: 'all 0.2s'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#10b981'}
-              onBlur={(e) => e.target.style.borderColor = 'rgba(16, 185, 129, 0.3)'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="🔍 חפש לפי שם תחנה, כתובת או שם מנהל..."
+              style={styles.searchInput}
             />
-            {stationSearchQuery && (
-              <p style={{fontSize: '0.85rem', color: '#a0aec0', marginTop: '6px'}}>
-                נמצאו {stations.filter(station => {
-                  const query = stationSearchQuery.toLowerCase()
-                  return station.name.toLowerCase().includes(query) ||
-                         station.wheel_station_managers?.some(m => m.full_name.toLowerCase().includes(query))
-                }).length} תחנות
+            {searchQuery && (
+              <p style={styles.searchResults}>
+                נמצאו {filterStations(stations).length} תחנות
               </p>
             )}
           </div>
 
-          {loading ? (
-            <div style={styles.loading}>טוען...</div>
-          ) : (
-            <div style={styles.stationsList}>
-              {stations.filter(station => {
-                if (!stationSearchQuery) return true
-                const query = stationSearchQuery.toLowerCase()
-                return station.name.toLowerCase().includes(query) ||
-                       station.wheel_station_managers?.some(m => m.full_name.toLowerCase().includes(query))
-              }).map(station => (
-            <div key={station.id} style={styles.stationCard}>
-              <div style={styles.stationHeader} onClick={() => setExpandedStation(expandedStation === station.id ? null : station.id)}>
-                <div style={styles.stationInfo}>
-                  <span style={{
-                    ...styles.statusDot,
-                    background: station.is_active ? '#10b981' : '#ef4444'
-                  }} />
-                  <h3 style={styles.stationName}>{station.name}</h3>
-                </div>
-                <div style={styles.stationStats}>
-                  <span style={styles.statBadge}>{station.totalWheels} גלגלים</span>
-                  <span style={{...styles.statBadge, background: 'rgba(16,185,129,0.2)', color: '#10b981'}}>
-                    {station.availableWheels} זמינים
-                  </span>
-                  <span style={styles.expandIcon}>{expandedStation === station.id ? '▼' : '▶'}</span>
-                </div>
-              </div>
+          <div style={styles.sectionContent}>
+            {loading ? (
+              <div style={styles.loading}>טוען...</div>
+            ) : (
+              <div style={styles.districtsGrid} className="districts-grid-responsive">
+                {/* District Cards */}
+                {districts.map((district, index) => {
+                  const districtStations = getDistrictStations(district.code)
+                  const districtWheels = districtStations.reduce((sum, s) => sum + s.totalWheels, 0)
+                  const isExpanded = expandedDistrict === district.code
+                  const districtColor = district.color || getDistrictColor(index)
 
-              {expandedStation === station.id && (
-                <div style={styles.stationDetails}>
-                  <div style={styles.detailRow}>
-                    <span style={styles.detailLabel}>כתובת:</span>
-                    <span>{station.address || 'לא הוגדרה'}</span>
-                  </div>
-                  <div style={styles.detailRow}>
-                    <span style={styles.detailLabel}>מחוז:</span>
-                    {station.district ? (
-                      <span style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                        <div
-                          style={{
-                            width: '12px',
-                            height: '12px',
-                            borderRadius: '50%',
-                            backgroundColor: districts.find(d => d.code === station.district)?.color || '#6b7280',
-                            border: '1px solid rgba(255,255,255,0.3)'
-                          }}
-                        />
-                        {districts.find(d => d.code === station.district)?.name || station.district}
-                      </span>
-                    ) : (
-                      <span style={{color: '#a0aec0'}}>ללא מחוז</span>
-                    )}
-                  </div>
-                  <div style={styles.detailRow}>
-                    <span style={styles.detailLabel}>סיסמת תחנה:</span>
-                    <span style={styles.passwordDisplay}>
-                      {station.manager_password || <span style={{color: '#ef4444'}}>לא הוגדרה!</span>}
-                    </span>
-                  </div>
-                  <div style={styles.detailRow}>
-                    <span style={styles.detailLabel}>מנהלים:</span>
-                    <span>{station.wheel_station_managers?.length || 0}</span>
-                  </div>
-
-                  {station.wheel_station_managers?.length > 0 && (
-                    <div style={styles.managersList}>
-                      {station.wheel_station_managers.map((m, i) => (
-                        <div key={i} style={styles.managerItem}>
-                          {m.is_primary ? '👑' : '👤'} {m.full_name} - {m.phone}
-                          {m.is_primary && <span style={{color: '#10b981', fontSize: '0.75rem', marginRight: '6px'}}>(ראשי)</span>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div style={styles.stationActions} className="admin-station-actions">
-                    <button style={styles.editBtn} className="admin-action-btn" onClick={() => openEditModal(station)}>✏️ ערוך</button>
-                    <button
-                      style={station.is_active ? styles.deactivateBtn : styles.activateBtn}
-                      className="admin-action-btn"
-                      onClick={() => handleToggleActive(station)}
-                      disabled={actionLoading}
+                  return (
+                    <div
+                      key={district.id}
+                      style={{
+                        ...styles.districtCard,
+                        borderColor: isExpanded ? '#22c55e' : '#334155',
+                        boxShadow: isExpanded ? '0 10px 30px rgba(34, 197, 94, 0.15)' : 'none'
+                      }}
                     >
-                      {station.is_active ? '🔴 השבת' : '🟢 הפעל'}
-                    </button>
-                    <button style={styles.deleteBtn} className="admin-action-btn" onClick={() => handleDeleteStation(station)} disabled={actionLoading}>
-                      🗑️ מחק
-                    </button>
-                    <Link href={`/${station.id}`} style={styles.viewBtn} className="admin-action-btn">👁️ צפה</Link>
+                      <div
+                        style={styles.districtHeader}
+                        onClick={() => setExpandedDistrict(isExpanded ? null : district.code)}
+                      >
+                        <div style={{...styles.districtColorOrb, background: `linear-gradient(135deg, ${districtColor} 0%, ${districtColor}dd 100%)`}}>
+                          <span style={{color: 'white', fontSize: '1.3rem'}}>📍</span>
+                        </div>
+                        <div style={styles.districtInfo}>
+                          <div style={styles.districtName}>{district.name}</div>
+                          <div style={styles.districtMeta}>
+                            <span>🏢 {districtStations.length} תחנות</span>
+                            <span>🛞 {districtWheels} גלגלים</span>
+                          </div>
+                        </div>
+                        <div style={styles.districtActions} onClick={e => e.stopPropagation()}>
+                          <button style={styles.btnIcon} onClick={() => openEditDistrictModal(district)}>✏️</button>
+                          <button style={styles.btnIcon} onClick={() => handleDeleteDistrict(district)} disabled={actionLoading}>🗑️</button>
+                        </div>
+                        <span style={{...styles.expandIcon, transform: isExpanded ? 'rotate(180deg)' : 'none'}}>▼</span>
+                      </div>
+
+                      {/* Expanded Stations */}
+                      <div style={{
+                        ...styles.districtStations,
+                        maxHeight: isExpanded ? '2000px' : '0',
+                        opacity: isExpanded ? 1 : 0
+                      }}>
+                        <div style={styles.districtStationsInner}>
+                          <div style={styles.districtStationsHeader}>
+                            <span style={styles.districtStationsTitle}>תחנות במחוז {district.name}</span>
+                            <button
+                              style={styles.btnAddStation}
+                              onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
+                            >
+                              + הוסף תחנה
+                            </button>
+                          </div>
+
+                          {districtStations.length === 0 ? (
+                            <div style={styles.emptyDistrict}>
+                              <div style={styles.emptyDistrictIcon}>🏢</div>
+                              <div style={styles.emptyDistrictText}>אין תחנות במחוז זה</div>
+                              <button
+                                style={styles.btnAddStation}
+                                onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
+                              >
+                                + הוסף תחנה ראשונה
+                              </button>
+                            </div>
+                          ) : (
+                            districtStations.map(station => (
+                              <StationCard
+                                key={station.id}
+                                station={station}
+                                districtColor={districtColor}
+                                onEdit={() => openEditModal(station)}
+                                onToggleActive={() => handleToggleActive(station)}
+                                onDelete={() => handleDeleteStation(station)}
+                                actionLoading={actionLoading}
+                              />
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {/* Stations without district */}
+                {stationsWithoutDistrict.length > 0 && (
+                  <div style={styles.noDistrictSection}>
+                    <div style={styles.noDistrictTitle}>
+                      ⚠️ תחנות ללא מחוז ({stationsWithoutDistrict.length})
+                    </div>
+                    {stationsWithoutDistrict.map(station => (
+                      <StationCard
+                        key={station.id}
+                        station={station}
+                        districtColor="#6b7280"
+                        onEdit={() => openEditModal(station)}
+                        onToggleActive={() => handleToggleActive(station)}
+                        onDelete={() => handleDeleteStation(station)}
+                        actionLoading={actionLoading}
+                      />
+                    ))}
                   </div>
-                </div>
-              )}
-            </div>
-              ))}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Add/Edit Station Modal */}
       {(showAddStation || editingStation) && (
-        <div style={styles.modalOverlay} onClick={() => { setShowAddStation(false); setEditingStation(null) }}>
+        <div style={styles.modalOverlay} onClick={() => { setShowAddStation(false); setEditingStation(null); setAddStationToDistrict(null) }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>
-              {editingStation ? '✏️ עריכת תחנה' : '➕ תחנה חדשה'}
-            </h3>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>שם התחנה *</label>
-              <input
-                type="text"
-                value={stationForm.name}
-                onChange={e => setStationForm({...stationForm, name: e.target.value})}
-                style={styles.input}
-                placeholder="לדוגמה: תחנת בית שמש"
-              />
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>
+                {editingStation ? '✏️ עריכת תחנה' : '➕ תחנה חדשה'}
+              </h3>
             </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>כתובת</label>
-              <input
-                type="text"
-                value={stationForm.address}
-                onChange={e => setStationForm({...stationForm, address: e.target.value})}
-                style={styles.input}
-                placeholder="רחוב ומספר"
-              />
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>מחוז</label>
-              <select
-                value={stationForm.district}
-                onChange={e => setStationForm({...stationForm, district: e.target.value})}
-                style={styles.input}
-              >
-                <option value="">ללא מחוז</option>
-                {districts.map((district) => (
-                  <option key={district.code} value={district.code}>
-                    {district.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>סיסמת תחנה (לכניסת מנהלים)</label>
-              <input
-                type="text"
-                value={stationForm.manager_password}
-                onChange={e => setStationForm({...stationForm, manager_password: e.target.value})}
-                style={styles.input}
-                placeholder="לפחות 4 תווים"
-              />
-            </div>
-
-            <div style={styles.managersSection}>
-              <div style={styles.managersSectionHeader}>
-                <label style={styles.label}>מנהלי תחנה ({stationForm.managers.length}/4)</label>
-                <button style={styles.addManagerBtn} onClick={addManager} disabled={stationForm.managers.length >= 4}>
-                  ➕ הוסף מנהל
-                </button>
+            <div style={styles.modalBody}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>שם התחנה *</label>
+                <input
+                  type="text"
+                  value={stationForm.name}
+                  onChange={e => setStationForm({...stationForm, name: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="לדוגמה: תחנת בית שמש"
+                />
               </div>
 
-              {stationForm.managers.map((manager, index) => (
-                <div key={index} style={styles.managerRow} className="admin-manager-row">
-                  <button
-                    type="button"
-                    style={{
-                      ...styles.primaryToggleBtn,
-                      background: manager.is_primary ? '#10b981' : '#374151',
-                      color: manager.is_primary ? '#fff' : '#9ca3af',
-                    }}
-                    onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
-                    title={manager.is_primary ? 'מנהל ראשי - לחץ להסרה' : 'לחץ להגדרה כמנהל ראשי'}
-                  >
-                    👑
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>כתובת</label>
+                <input
+                  type="text"
+                  value={stationForm.address}
+                  onChange={e => setStationForm({...stationForm, address: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="רחוב ומספר"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>מחוז</label>
+                <select
+                  value={stationForm.district}
+                  onChange={e => setStationForm({...stationForm, district: e.target.value})}
+                  style={styles.formInput}
+                >
+                  <option value="">ללא מחוז</option>
+                  {districts.map((district) => (
+                    <option key={district.code} value={district.code}>
+                      {district.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>סיסמת תחנה (לכניסת מנהלים)</label>
+                <input
+                  type="text"
+                  value={stationForm.manager_password}
+                  onChange={e => setStationForm({...stationForm, manager_password: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="לפחות 4 תווים"
+                />
+              </div>
+
+              <div style={styles.managersSection}>
+                <div style={styles.managersSectionHeader}>
+                  <label style={styles.formLabel}>מנהלי תחנה ({stationForm.managers.length}/4)</label>
+                  <button style={styles.btnAddManager} onClick={addManager} disabled={stationForm.managers.length >= 4}>
+                    + הוסף מנהל
                   </button>
-                  <input
-                    type="text"
-                    placeholder="שם מלא"
-                    value={manager.full_name}
-                    onChange={e => updateManager(index, 'full_name', e.target.value)}
-                    style={styles.inputSmall}
-                  />
-                  <input
-                    type="tel"
-                    placeholder="טלפון"
-                    value={manager.phone}
-                    onChange={e => updateManager(index, 'phone', e.target.value)}
-                    style={styles.inputSmall}
-                  />
-                  <button style={styles.removeManagerBtn} onClick={() => removeManager(index)} title="הסר מנהל">🗑️</button>
                 </div>
-              ))}
+
+                {stationForm.managers.map((manager, index) => (
+                  <div key={index} style={styles.managerRow} className="manager-row-responsive">
+                    <button
+                      type="button"
+                      style={{
+                        ...styles.btnCrownSm,
+                        background: manager.is_primary ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : '#1e293b',
+                        borderColor: manager.is_primary ? '#f59e0b' : '#334155',
+                        color: manager.is_primary ? 'white' : '#64748b',
+                      }}
+                      onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
+                      title={manager.is_primary ? 'מנהל ראשי - לחץ להסרה' : 'לחץ להגדרה כמנהל ראשי'}
+                    >
+                      👑
+                    </button>
+                    <input
+                      type="text"
+                      placeholder="שם מלא"
+                      value={manager.full_name}
+                      onChange={e => updateManager(index, 'full_name', e.target.value)}
+                      style={styles.managerInputCompact}
+                    />
+                    <input
+                      type="tel"
+                      placeholder="טלפון"
+                      value={manager.phone}
+                      onChange={e => updateManager(index, 'phone', e.target.value)}
+                      style={styles.managerInputCompact}
+                    />
+                    <button style={styles.btnDeleteSm} onClick={() => removeManager(index)} title="הסר מנהל">🗑️</button>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div style={styles.modalButtons}>
-              <button style={styles.cancelBtn} onClick={() => { setShowAddStation(false); setEditingStation(null) }}>
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => { setShowAddStation(false); setEditingStation(null); setAddStationToDistrict(null) }}>
                 ביטול
               </button>
               <button
-                style={styles.submitBtn}
+                style={styles.btnSubmit}
                 onClick={editingStation ? handleUpdateStation : handleAddStation}
                 disabled={actionLoading}
               >
@@ -830,63 +859,67 @@ export default function WheelsAdminPage() {
       {(showAddDistrict || editingDistrict) && (
         <div style={styles.modalOverlay} onClick={() => { setShowAddDistrict(false); setEditingDistrict(null) }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>
-              {editingDistrict ? '✏️ עריכת מחוז' : '➕ מחוז חדש'}
-            </h3>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>קוד מחוז (באנגלית) *</label>
-              <input
-                type="text"
-                value={districtForm.code}
-                onChange={e => setDistrictForm({...districtForm, code: e.target.value})}
-                style={styles.input}
-                placeholder="לדוגמה: jerusalem"
-                disabled={!!editingDistrict}
-              />
-              {editingDistrict && (
-                <p style={{fontSize: '0.75rem', color: '#a0aec0', marginTop: '4px'}}>
-                  לא ניתן לשנות את קוד המחוז לאחר יצירתו
-                </p>
-              )}
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>
+                {editingDistrict ? '✏️ עריכת מחוז' : '➕ מחוז חדש'}
+              </h3>
             </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>שם המחוז (בעברית) *</label>
-              <input
-                type="text"
-                value={districtForm.name}
-                onChange={e => setDistrictForm({...districtForm, name: e.target.value})}
-                style={styles.input}
-                placeholder="לדוגמה: ירושלים"
-              />
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>צבע המחוז *</label>
-              <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-                <input
-                  type="color"
-                  value={districtForm.color}
-                  onChange={e => setDistrictForm({...districtForm, color: e.target.value})}
-                  style={{width: '60px', height: '40px', border: 'none', borderRadius: '8px', cursor: 'pointer'}}
-                />
+            <div style={styles.modalBody}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>קוד מחוז (באנגלית) *</label>
                 <input
                   type="text"
-                  value={districtForm.color}
-                  onChange={e => setDistrictForm({...districtForm, color: e.target.value})}
-                  style={{...styles.input, flex: 1}}
-                  placeholder="#3b82f6"
+                  value={districtForm.code}
+                  onChange={e => setDistrictForm({...districtForm, code: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="לדוגמה: jerusalem"
+                  disabled={!!editingDistrict}
                 />
+                {editingDistrict && (
+                  <p style={{fontSize: '0.75rem', color: '#64748b', marginTop: '4px'}}>
+                    לא ניתן לשנות את קוד המחוז לאחר יצירתו
+                  </p>
+                )}
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>שם המחוז (בעברית) *</label>
+                <input
+                  type="text"
+                  value={districtForm.name}
+                  onChange={e => setDistrictForm({...districtForm, name: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="לדוגמה: ירושלים"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>צבע המחוז *</label>
+                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                  <input
+                    type="color"
+                    value={districtForm.color}
+                    onChange={e => setDistrictForm({...districtForm, color: e.target.value})}
+                    style={{width: '60px', height: '40px', border: 'none', borderRadius: '8px', cursor: 'pointer'}}
+                  />
+                  <input
+                    type="text"
+                    value={districtForm.color}
+                    onChange={e => setDistrictForm({...districtForm, color: e.target.value})}
+                    style={{...styles.formInput, flex: 1}}
+                    placeholder="#3b82f6"
+                  />
+                </div>
               </div>
             </div>
 
-            <div style={styles.modalButtons}>
-              <button style={styles.cancelBtn} onClick={() => { setShowAddDistrict(false); setEditingDistrict(null) }}>
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => { setShowAddDistrict(false); setEditingDistrict(null) }}>
                 ביטול
               </button>
               <button
-                style={styles.submitBtn}
+                style={styles.btnSubmit}
                 onClick={editingDistrict ? handleUpdateDistrict : handleAddDistrict}
                 disabled={actionLoading}
               >
@@ -901,10 +934,10 @@ export default function WheelsAdminPage() {
       {showConfirmDialog && confirmDialogData && (
         <div style={styles.modalOverlay} onClick={() => { setShowConfirmDialog(false); setConfirmDialogData(null) }}>
           <div style={styles.confirmDialog} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.confirmTitle}>{confirmDialogData.title}</h3>
+            <h3 style={styles.confirmTitle}>🗑️ {confirmDialogData.title}</h3>
             <p style={styles.confirmMessage}>{confirmDialogData.message}</p>
             <div style={styles.confirmButtons}>
-              <button style={styles.cancelBtn} onClick={() => { setShowConfirmDialog(false); setConfirmDialogData(null) }}>
+              <button style={styles.btnCancel} onClick={() => { setShowConfirmDialog(false); setConfirmDialogData(null) }}>
                 ביטול
               </button>
               <button style={styles.confirmDeleteBtn} onClick={confirmDialogData.onConfirm}>
@@ -918,240 +951,605 @@ export default function WheelsAdminPage() {
   )
 }
 
+// Station Card Component
+function StationCard({
+  station,
+  districtColor,
+  onEdit,
+  onToggleActive,
+  onDelete,
+  actionLoading
+}: {
+  station: Station
+  districtColor: string
+  onEdit: () => void
+  onToggleActive: () => void
+  onDelete: () => void
+  actionLoading: boolean
+}) {
+  const getInitials = (name: string) => {
+    const words = name.replace('תחנת ', '').split(' ')
+    if (words.length >= 2) {
+      return words[0].charAt(0) + '"' + words[1].charAt(0)
+    }
+    return words[0].substring(0, 2)
+  }
+
+  return (
+    <div style={styles.stationCardCompact} onClick={e => e.stopPropagation()}>
+      <div style={styles.stationCompactTop}>
+        <div style={{...styles.stationBadgeSmall, background: `linear-gradient(135deg, ${districtColor} 0%, ${districtColor}dd 100%)`}}>
+          {getInitials(station.name)}
+        </div>
+        <div style={styles.stationCompactInfo}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <div style={styles.stationCompactName}>{station.name}</div>
+            <div style={{
+              ...styles.statusDot,
+              background: station.is_active ? '#22c55e' : '#f59e0b',
+              boxShadow: station.is_active ? '0 0 8px rgba(34, 197, 94, 0.5)' : 'none'
+            }} />
+          </div>
+          <div style={styles.stationCompactAddress}>{station.address || 'כתובת לא הוגדרה'}</div>
+          <div style={styles.stationCompactStats}>
+            <span style={{...styles.compactStat, color: '#22c55e'}}>{station.availableWheels} זמינים</span>
+            <span style={{...styles.compactStat, color: '#f59e0b'}}>{station.totalWheels - station.availableWheels} מושאלים</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.stationExpanded}>
+        <div style={styles.passwordRowCompact}>
+          <span style={styles.passwordLabel}>סיסמה:</span>
+          {station.manager_password ? (
+            <span style={styles.passwordValue}>{station.manager_password}</span>
+          ) : (
+            <span style={styles.passwordMissing}>לא הוגדרה!</span>
+          )}
+        </div>
+
+        {station.wheel_station_managers?.length > 0 && (
+          <div style={styles.managersCompact}>
+            <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/4)</div>
+            {station.wheel_station_managers.map((m, i) => (
+              <div key={i} style={styles.managerRowCompactDisplay}>
+                <span style={{color: m.is_primary ? '#fbbf24' : '#64748b'}}>
+                  {m.is_primary ? '👑' : '👤'}
+                </span>
+                <span style={{color: 'white'}}>{m.full_name}</span>
+                <span style={{color: '#64748b'}}>- {m.phone}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={styles.stationCompactActions} className="station-actions-responsive">
+        <button style={{...styles.btnCompact, ...styles.btnCompactEdit}} onClick={onEdit}>✏️ ערוך</button>
+        <Link href={`/${station.id}`} style={{...styles.btnCompact, ...styles.btnCompactView}}>👁️ צפה</Link>
+        <button
+          style={{
+            ...styles.btnCompact,
+            ...(station.is_active ? styles.btnCompactToggle : styles.btnCompactToggleActivate)
+          }}
+          onClick={onToggleActive}
+          disabled={actionLoading}
+        >
+          {station.is_active ? '🔴 השבת' : '🟢 הפעל'}
+        </button>
+        <button style={{...styles.btnCompact, ...styles.btnCompactDelete}} onClick={onDelete} disabled={actionLoading}>🗑️ מחק</button>
+      </div>
+    </div>
+  )
+}
+
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
+  // Page wrapper
+  pageWrapper: {
+    background: '#0f172a',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-    color: '#fff',
-    padding: '20px',
+    color: '#e2e8f0',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
   },
-  // Login styles
-  loginBox: {
-    maxWidth: '400px',
-    margin: '100px auto',
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '16px',
-    padding: '40px',
-    textAlign: 'center',
-  },
-  loginTitle: {
-    fontSize: '1.8rem',
-    color: '#f59e0b',
-    marginBottom: '10px',
-  },
-  loginSubtitle: {
-    color: '#a0aec0',
-    marginBottom: '20px',
-  },
-  loginBtn: {
-    width: '100%',
-    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-    color: '#000',
-    border: 'none',
-    padding: '14px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '1rem',
-    marginTop: '15px',
-  },
-  backLink: {
-    display: 'block',
-    color: '#a0aec0',
-    textDecoration: 'none',
-    marginTop: '20px',
-    fontSize: '0.9rem',
-  },
+
   // Header
   header: {
-    marginBottom: '30px',
+    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)',
+    borderBottom: '1px solid #22c55e',
+    padding: '40px 30px 80px',
+    position: 'relative',
   },
-  headerTop: {
+  headerContent: {
+    maxWidth: '1300px',
+    margin: '0 auto',
     display: 'flex',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    position: 'relative',
+    zIndex: 1,
+    padding: '0 20px',
+  },
+  headerLogo: {
+    display: 'flex',
     alignItems: 'center',
-    marginBottom: '15px',
+    gap: '15px',
   },
-  backBtn: {
-    color: '#a0aec0',
-    textDecoration: 'none',
-    fontSize: '0.9rem',
+  logoIcon: {
+    width: '55px',
+    height: '55px',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.6rem',
+    boxShadow: '0 8px 25px rgba(34, 197, 94, 0.3)',
+    flexShrink: 0,
   },
-  logoutBtn: {
-    background: '#6b7280',
+  headerTitle: {
     color: 'white',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-  },
-  title: {
     fontSize: '1.8rem',
-    color: '#f59e0b',
+    fontWeight: 800,
+    marginBottom: '6px',
     margin: 0,
   },
-  subtitle: {
-    color: '#a0aec0',
-    margin: '5px 0 0',
+  headerSubtitle: {
+    color: '#64748b',
+    fontSize: '0.95rem',
+    margin: 0,
   },
-  // Add button
-  addStationBtn: {
-    width: '100%',
-    background: 'linear-gradient(135deg, #10b981, #059669)',
-    color: 'white',
-    border: 'none',
-    padding: '14px',
+
+  // Buttons
+  btnLogout: {
+    padding: '12px 24px',
     borderRadius: '12px',
+    border: '1px solid #334155',
+    fontWeight: 600,
     cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '1rem',
-    marginBottom: '20px',
+    transition: 'all 0.3s ease',
+    fontSize: '0.95rem',
+    whiteSpace: 'nowrap',
+    background: 'rgba(255,255,255,0.1)',
+    color: '#94a3b8',
   },
-  loading: {
-    textAlign: 'center',
-    padding: '40px',
-    color: '#a0aec0',
-  },
-  // Stations list
-  stationsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  stationCard: {
-    background: 'rgba(255,255,255,0.05)',
+  btnPrimary: {
+    padding: '10px 16px',
     borderRadius: '12px',
+    border: 'none',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    fontSize: '0.85rem',
+    whiteSpace: 'nowrap',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: 'white',
+  },
+  btnGhost: {
+    padding: '10px 16px',
+    borderRadius: '12px',
+    border: '1px solid #334155',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    fontSize: '0.85rem',
+    whiteSpace: 'nowrap',
+    background: 'transparent',
+    color: '#94a3b8',
+  },
+  btnIcon: {
+    width: '32px',
+    height: '32px',
+    fontSize: '0.8rem',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    color: '#64748b',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+
+  // Stats Row
+  statsRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '20px',
+    margin: '-50px auto 30px',
+    position: 'relative',
+    zIndex: 10,
+    maxWidth: '1300px',
+    padding: '0 20px',
+  },
+  statCard: {
+    background: 'linear-gradient(145deg, #1e293b 0%, #1a2234 100%)',
+    border: '1px solid #334155',
+    borderRadius: '20px',
+    padding: '20px',
+    position: 'relative',
     overflow: 'hidden',
   },
-  stationHeader: {
+  statIcon: {
+    width: '45px',
+    height: '45px',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.3rem',
+    marginBottom: '12px',
+  },
+  statLabel: {
+    color: '#64748b',
+    fontSize: '0.8rem',
+    marginBottom: '4px',
+  },
+  statValue: {
+    fontSize: '1.8rem',
+    fontWeight: 800,
+    color: '#22c55e',
+  },
+
+  // Container
+  container: {
+    maxWidth: '1300px',
+    margin: '0 auto',
+    padding: '30px 20px',
+  },
+
+  // Section
+  section: {
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '24px',
+    marginBottom: '25px',
+    overflow: 'hidden',
+  },
+  sectionHeader: {
+    padding: '18px 24px',
+    borderBottom: '1px solid #334155',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '15px',
-    cursor: 'pointer',
+    background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.05) 0%, transparent 100%)',
+    flexWrap: 'wrap',
+    gap: '12px',
   },
-  stationInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  statusDot: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-  },
-  stationName: {
-    margin: 0,
+  sectionTitle: {
     fontSize: '1.1rem',
-  },
-  stationStats: {
+    fontWeight: 700,
+    color: 'white',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
   },
-  statBadge: {
-    background: 'rgba(255,255,255,0.1)',
+  sectionTitleIcon: {
+    width: '36px',
+    height: '36px',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1rem',
+    flexShrink: 0,
+  },
+  sectionCount: {
+    background: 'rgba(34, 197, 94, 0.2)',
+    color: '#22c55e',
     padding: '4px 10px',
-    borderRadius: '6px',
-    fontSize: '0.85rem',
-  },
-  expandIcon: {
-    color: '#a0aec0',
+    borderRadius: '20px',
     fontSize: '0.8rem',
+    fontWeight: 600,
   },
-  // Station details
-  stationDetails: {
-    padding: '15px',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
-    background: 'rgba(0,0,0,0.2)',
-  },
-  detailRow: {
+  sectionButtons: {
     display: 'flex',
     gap: '10px',
-    marginBottom: '8px',
-  },
-  detailLabel: {
-    color: '#a0aec0',
-    minWidth: '100px',
-  },
-  passwordDisplay: {
-    background: 'rgba(245, 158, 11, 0.2)',
-    color: '#f59e0b',
-    padding: '2px 8px',
-    borderRadius: '4px',
-    fontFamily: 'monospace',
-  },
-  managersList: {
-    marginTop: '10px',
-    padding: '10px',
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '8px',
-  },
-  managerItem: {
-    padding: '5px 0',
-    fontSize: '0.9rem',
-  },
-  stationActions: {
-    display: 'flex',
-    gap: '10px',
-    marginTop: '15px',
     flexWrap: 'wrap',
   },
-  editBtn: {
-    background: '#3b82f6',
+  sectionContent: {
+    padding: '20px 24px',
+  },
+
+  // Search
+  searchContainer: {
+    padding: '0 24px 16px',
+    borderBottom: '1px solid #334155',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '12px 16px',
+    fontSize: '0.95rem',
+    border: '1px solid #334155',
+    borderRadius: '12px',
+    background: '#0f172a',
+    color: 'white',
+    outline: 'none',
+    transition: 'all 0.2s',
+  },
+  searchResults: {
+    fontSize: '0.85rem',
+    color: '#64748b',
+    marginTop: '8px',
+    margin: '8px 0 0 0',
+  },
+
+  // Districts Grid
+  districtsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+    gap: '16px',
+  },
+
+  // District Card
+  districtCard: {
+    background: '#0f172a',
+    border: '1px solid #334155',
+    borderRadius: '16px',
+    overflow: 'hidden',
+    transition: 'all 0.3s',
+  },
+  districtHeader: {
+    padding: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  districtColorOrb: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  districtInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  districtName: {
+    fontWeight: 700,
+    color: 'white',
+    marginBottom: '4px',
+    fontSize: '1rem',
+  },
+  districtMeta: {
+    display: 'flex',
+    gap: '12px',
+    fontSize: '0.8rem',
+    color: '#64748b',
+  },
+  districtActions: {
+    display: 'flex',
+    gap: '6px',
+  },
+  expandIcon: {
+    color: '#64748b',
+    fontSize: '0.9rem',
+    transition: 'transform 0.3s',
+  },
+
+  // District Stations
+  districtStations: {
+    borderTop: '1px solid #334155',
+    background: 'rgba(0, 0, 0, 0.2)',
+    overflow: 'hidden',
+    transition: 'max-height 0.4s ease-out, opacity 0.3s ease-out',
+  },
+  districtStationsInner: {
+    padding: '16px',
+  },
+  districtStationsHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '14px',
+    paddingBottom: '10px',
+    borderBottom: '1px dashed #334155',
+  },
+  districtStationsTitle: {
+    fontSize: '0.85rem',
+    color: '#94a3b8',
+    fontWeight: 600,
+  },
+  btnAddStation: {
+    padding: '6px 12px',
+    fontSize: '0.8rem',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
     color: 'white',
     border: 'none',
-    padding: '8px 16px',
     borderRadius: '8px',
     cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '0.85rem',
+    transition: 'all 0.2s',
   },
-  activateBtn: {
-    background: '#10b981',
+
+  // Empty District
+  emptyDistrict: {
+    textAlign: 'center',
+    padding: '30px 20px',
+    color: '#64748b',
+  },
+  emptyDistrictIcon: {
+    fontSize: '2.5rem',
+    marginBottom: '10px',
+    opacity: 0.5,
+  },
+  emptyDistrictText: {
+    fontSize: '0.9rem',
+    marginBottom: '15px',
+  },
+
+  // Station Card Compact
+  stationCardCompact: {
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '14px',
+    padding: '14px',
+    marginBottom: '12px',
+    transition: 'all 0.2s',
+  },
+  stationCompactTop: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'flex-start',
+  },
+  stationBadgeSmall: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.85rem',
+    fontWeight: 800,
     color: 'white',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '0.85rem',
+    flexShrink: 0,
   },
-  deactivateBtn: {
-    background: '#f59e0b',
-    color: '#000',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '0.85rem',
+  stationCompactInfo: {
+    flex: 1,
+    minWidth: 0,
   },
-  deleteBtn: {
-    background: '#ef4444',
+  stationCompactName: {
+    fontSize: '0.95rem',
+    fontWeight: 600,
     color: 'white',
-    border: 'none',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '0.85rem',
+    marginBottom: '2px',
   },
-  viewBtn: {
-    background: '#6b7280',
-    color: 'white',
-    border: 'none',
-    padding: '8px 16px',
+  stationCompactAddress: {
+    fontSize: '0.8rem',
+    color: '#64748b',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  stationCompactStats: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '8px',
+  },
+  compactStat: {
+    background: '#0f172a',
+    padding: '4px 10px',
     borderRadius: '8px',
+    fontSize: '0.75rem',
+  },
+  statusDot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    flexShrink: 0,
+  },
+
+  // Station Expanded
+  stationExpanded: {
+    marginTop: '12px',
+    paddingTop: '12px',
+    borderTop: '1px dashed #334155',
+  },
+  passwordRowCompact: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 10px',
+    background: 'rgba(34, 197, 94, 0.1)',
+    borderRadius: '8px',
+    marginBottom: '10px',
+    fontSize: '0.8rem',
+  },
+  passwordLabel: {
+    color: '#64748b',
+  },
+  passwordValue: {
+    fontFamily: "'Courier New', monospace",
+    fontWeight: 700,
+    color: '#22c55e',
+    letterSpacing: '1px',
+  },
+  passwordMissing: {
+    color: '#ef4444',
+    fontWeight: 600,
+  },
+
+  // Managers Compact
+  managersCompact: {
+    background: '#0f172a',
+    borderRadius: '10px',
+    padding: '10px',
+  },
+  managersCompactTitle: {
+    fontSize: '0.75rem',
+    color: '#64748b',
+    marginBottom: '8px',
+  },
+  managerRowCompactDisplay: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    marginBottom: '6px',
+    fontSize: '0.8rem',
+  },
+
+  // Station Actions
+  stationCompactActions: {
+    display: 'flex',
+    gap: '6px',
+    marginTop: '10px',
+    paddingTop: '10px',
+    borderTop: '1px solid #334155',
+  },
+  btnCompact: {
+    padding: '6px 10px',
+    fontSize: '0.75rem',
+    borderRadius: '6px',
+    border: 'none',
     cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '0.85rem',
+    transition: 'all 0.2s',
     textDecoration: 'none',
     display: 'inline-block',
+    textAlign: 'center',
   },
+  btnCompactEdit: {
+    background: 'rgba(59, 130, 246, 0.15)',
+    color: '#3b82f6',
+  },
+  btnCompactView: {
+    background: '#334155',
+    color: '#94a3b8',
+  },
+  btnCompactToggle: {
+    background: 'rgba(245, 158, 11, 0.15)',
+    color: '#f59e0b',
+  },
+  btnCompactToggleActivate: {
+    background: 'rgba(34, 197, 94, 0.15)',
+    color: '#22c55e',
+  },
+  btnCompactDelete: {
+    background: 'rgba(239, 68, 68, 0.15)',
+    color: '#ef4444',
+  },
+
+  // No District Section
+  noDistrictSection: {
+    marginTop: '20px',
+    padding: '16px',
+    background: 'rgba(245, 158, 11, 0.1)',
+    border: '1px dashed #f59e0b',
+    borderRadius: '14px',
+    gridColumn: '1 / -1',
+  },
+  noDistrictTitle: {
+    fontSize: '0.9rem',
+    color: '#f59e0b',
+    fontWeight: 600,
+    marginBottom: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+
   // Modal
   modalOverlay: {
     position: 'fixed',
@@ -1159,57 +1557,68 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(0,0,0,0.8)',
+    background: 'rgba(0, 0, 0, 0.8)',
+    backdropFilter: 'blur(8px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
-    padding: '10px',
-    overflow: 'auto',
+    padding: '15px',
   },
   modal: {
     background: '#1e293b',
-    borderRadius: '16px',
-    padding: '20px',
+    border: '1px solid #334155',
+    borderRadius: '20px',
     width: '100%',
     maxWidth: '500px',
-    maxHeight: 'calc(100vh - 20px)',
+    maxHeight: '90vh',
     overflowY: 'auto',
-    margin: 'auto',
+    boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+  },
+  modalHeader: {
+    padding: '20px 24px 16px',
+    borderBottom: '1px solid #334155',
   },
   modalTitle: {
-    color: '#f59e0b',
-    marginBottom: '20px',
-    fontSize: '1.3rem',
+    fontSize: '1.2rem',
+    fontWeight: 800,
+    color: '#22c55e',
+    margin: 0,
   },
+  modalBody: {
+    padding: '20px 24px',
+  },
+  modalFooter: {
+    padding: '16px 24px 20px',
+    display: 'flex',
+    gap: '10px',
+    borderTop: '1px solid #334155',
+  },
+
+  // Form
   formGroup: {
-    marginBottom: '15px',
+    marginBottom: '18px',
   },
-  label: {
+  formLabel: {
     display: 'block',
-    marginBottom: '5px',
-    color: '#a0aec0',
-    fontSize: '0.9rem',
+    color: '#94a3b8',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    marginBottom: '8px',
   },
-  input: {
+  formInput: {
     width: '100%',
-    padding: '12px',
-    borderRadius: '8px',
-    border: '1px solid #4a5568',
-    background: '#2d3748',
+    padding: '12px 14px',
+    background: '#0f172a',
+    border: '1px solid #334155',
+    borderRadius: '10px',
     color: 'white',
-    fontSize: '1rem',
+    fontSize: '0.95rem',
+    transition: 'all 0.2s',
     boxSizing: 'border-box',
   },
-  inputSmall: {
-    flex: 1,
-    padding: '10px',
-    borderRadius: '6px',
-    border: '1px solid #4a5568',
-    background: '#2d3748',
-    color: 'white',
-    fontSize: '0.9rem',
-  },
+
+  // Managers Section
   managersSection: {
     marginTop: '20px',
     padding: '15px',
@@ -1222,8 +1631,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     marginBottom: '10px',
   },
-  addManagerBtn: {
-    background: '#10b981',
+  btnAddManager: {
+    background: '#22c55e',
     color: 'white',
     border: 'none',
     padding: '6px 12px',
@@ -1233,82 +1642,95 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   managerRow: {
     display: 'flex',
-    gap: '8px',
+    gap: '6px',
     marginBottom: '8px',
     alignItems: 'center',
   },
-  removeManagerBtn: {
-    background: '#dc2626',
-    border: 'none',
-    width: '32px',
-    height: '32px',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'all 0.2s',
-    flexShrink: 0,
-  },
-  primaryToggleBtn: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '6px',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'all 0.2s',
-    flexShrink: 0,
-  },
-  modalButtons: {
-    display: 'flex',
-    gap: '10px',
-    marginTop: '25px',
-  },
-  cancelBtn: {
+  managerInputCompact: {
     flex: 1,
-    background: '#4a5568',
+    padding: '6px 8px',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '6px',
+    color: 'white',
+    fontSize: '0.75rem',
+    minWidth: 0,
+  },
+  btnCrownSm: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '6px',
+    border: '1px solid #334155',
+    cursor: 'pointer',
+    fontSize: '0.7rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  btnDeleteSm: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '6px',
+    background: 'rgba(239, 68, 68, 0.15)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    color: '#ef4444',
+    cursor: 'pointer',
+    fontSize: '0.7rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+
+  // Modal Buttons
+  btnCancel: {
+    flex: 1,
+    background: '#334155',
     color: 'white',
     border: 'none',
-    padding: '14px',
-    borderRadius: '8px',
+    padding: '12px',
+    borderRadius: '10px',
     cursor: 'pointer',
-    fontWeight: 'bold',
+    fontWeight: 600,
+    fontSize: '0.95rem',
   },
-  submitBtn: {
+  btnSubmit: {
     flex: 1,
-    background: '#f59e0b',
-    color: '#000',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: 'white',
     border: 'none',
-    padding: '14px',
-    borderRadius: '8px',
+    padding: '12px',
+    borderRadius: '10px',
     cursor: 'pointer',
-    fontWeight: 'bold',
+    fontWeight: 600,
+    fontSize: '0.95rem',
   },
-  errorText: {
-    color: '#ef4444',
-    fontSize: '0.9rem',
-    marginTop: '8px',
-  },
-  // Confirm dialog styles
+
+  // Confirm Dialog
   confirmDialog: {
     background: '#1e293b',
-    borderRadius: '16px',
+    border: '1px solid #334155',
+    borderRadius: '20px',
     padding: '25px',
     width: '100%',
-    maxWidth: '360px',
+    maxWidth: '400px',
     textAlign: 'center',
-    boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+    boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
   },
   confirmTitle: {
-    fontSize: '1.3rem',
-    marginBottom: '12px',
-    fontWeight: 'bold',
+    fontSize: '1.2rem',
+    fontWeight: 800,
     color: '#ef4444',
+    marginBottom: '15px',
+    margin: '0 0 15px 0',
   },
   confirmMessage: {
-    color: '#a0aec0',
-    fontSize: '1rem',
+    color: '#94a3b8',
+    fontSize: '0.95rem',
     marginBottom: '25px',
-    lineHeight: 1.5,
+    lineHeight: 1.6,
+    margin: '0 0 25px 0',
   },
   confirmButtons: {
     display: 'flex',
@@ -1319,35 +1741,85 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#ef4444',
     color: 'white',
     border: 'none',
+    padding: '12px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '0.95rem',
+  },
+
+  // Login styles
+  loginContainer: {
+    minHeight: '100vh',
+    background: '#0f172a',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    direction: 'rtl',
+  },
+  loginBox: {
+    maxWidth: '400px',
+    width: '100%',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '20px',
+    padding: '40px',
+    textAlign: 'center',
+  },
+  loginLogoIcon: {
+    width: '70px',
+    height: '70px',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    borderRadius: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '2rem',
+    margin: '0 auto 20px',
+    boxShadow: '0 8px 25px rgba(34, 197, 94, 0.3)',
+  },
+  loginTitle: {
+    fontSize: '1.5rem',
+    color: 'white',
+    fontWeight: 800,
+    marginBottom: '8px',
+    margin: '0 0 8px 0',
+  },
+  loginSubtitle: {
+    color: '#64748b',
+    marginBottom: '25px',
+    margin: '0 0 25px 0',
+  },
+  loginBtn: {
+    width: '100%',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: 'white',
+    border: 'none',
     padding: '14px',
     borderRadius: '10px',
     cursor: 'pointer',
-    fontWeight: 'bold',
+    fontWeight: 700,
     fontSize: '1rem',
+    marginTop: '15px',
+    transition: 'all 0.3s',
   },
-  // Districts styles
-  districtSection: {
-    background: 'rgba(139, 92, 246, 0.1)',
-    borderRadius: '16px',
-    padding: '20px',
-    border: '2px solid rgba(139, 92, 246, 0.3)',
+  backLink: {
+    display: 'block',
+    color: '#64748b',
+    textDecoration: 'none',
+    marginTop: '20px',
+    fontSize: '0.9rem',
   },
-  districtsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '12px',
+  errorText: {
+    color: '#ef4444',
+    fontSize: '0.9rem',
+    marginTop: '8px',
   },
-  districtCard: {
-    background: 'rgba(255,255,255,0.05)',
-    borderRadius: '12px',
-    padding: '12px',
-    border: '1px solid rgba(255,255,255,0.1)',
-  },
-  // Stations section styles
-  stationSection: {
-    background: 'rgba(16, 185, 129, 0.1)',
-    borderRadius: '16px',
-    padding: '20px',
-    border: '2px solid rgba(16, 185, 129, 0.3)',
+  loading: {
+    textAlign: 'center',
+    padding: '40px',
+    color: '#64748b',
   },
 }
