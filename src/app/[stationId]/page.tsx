@@ -193,9 +193,10 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     deposit_type: 'cash',
     notes: ''
   })
+  const [manualBorrowFormErrors, setManualBorrowFormErrors] = useState<string[]>([])
 
   // Predefined categories
-  const predefinedCategories = ['מכוניות גרמניות', 'מכוניות צרפתיות', 'מכוניות יפניות וקוראניות']
+  const predefinedCategories = ['גרמניות', 'צרפתיות', 'יפניות וקוריאניות']
 
   // Filters
   const [rimSizeFilter, setRimSizeFilter] = useState('')
@@ -675,16 +676,18 @@ ${signFormUrl}
   const handleManualBorrow = async () => {
     if (!manualBorrowWheel) return
 
-    // Validate
-    if (!manualBorrowForm.borrower_name.trim()) {
-      toast.error('נא להזין שם')
-      return
-    }
-    if (!manualBorrowForm.borrower_phone.trim()) {
-      toast.error('נא להזין טלפון')
+    // Validate required fields and highlight missing ones
+    const errors: string[] = []
+    if (!manualBorrowForm.borrower_name.trim()) errors.push('borrower_name')
+    if (!manualBorrowForm.borrower_phone.trim()) errors.push('borrower_phone')
+
+    if (errors.length > 0) {
+      setManualBorrowFormErrors(errors)
+      toast.error('נא למלא את כל שדות החובה')
       return
     }
 
+    setManualBorrowFormErrors([])
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${manualBorrowWheel.id}/borrow`, {
@@ -720,6 +723,7 @@ ${signFormUrl}
         deposit_type: 'cash',
         notes: ''
       })
+      setManualBorrowFormErrors([])
       toast.success('ההשאלה נרשמה בהצלחה!')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'שגיאה בהשאלה')
@@ -2483,8 +2487,42 @@ ${formUrl}`
 
       {/* Manual Borrow Modal */}
       {showManualBorrowModal && manualBorrowWheel && (
-        <div style={styles.modalOverlay} onClick={() => setShowManualBorrowModal(false)}>
-          <div style={{...styles.modal, maxWidth: '450px'}} onClick={e => e.stopPropagation()}>
+        <div style={styles.modalOverlay} onClick={() => !actionLoading && setShowManualBorrowModal(false)}>
+          <div style={{...styles.modal, maxWidth: '450px', position: 'relative'}} onClick={e => e.stopPropagation()}>
+            {/* Submitting Overlay */}
+            {actionLoading && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(15, 23, 42, 0.85)',
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10
+              }}>
+                <style>{`
+                  @keyframes spinManual { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                `}</style>
+                <div style={{textAlign: 'center'}}>
+                  <div style={{marginBottom: '16px'}}>
+                    <svg width="50" height="50" viewBox="0 0 50 50">
+                      <circle cx="25" cy="25" r="20" fill="none" stroke="#334155" strokeWidth="4" />
+                      <circle
+                        cx="25" cy="25" r="20" fill="none" stroke="#10b981" strokeWidth="4"
+                        strokeDasharray="125.66" strokeDashoffset="94"
+                        style={{ animation: 'spinManual 1s linear infinite', transformOrigin: 'center' }}
+                      />
+                    </svg>
+                  </div>
+                  <p style={{color: '#fff', fontSize: '1rem', fontWeight: 'bold', marginBottom: '4px'}}>שומר את ההשאלה...</p>
+                  <p style={{color: '#94a3b8', fontSize: '0.85rem'}}>אנא המתן</p>
+                </div>
+              </div>
+            )}
             <h3 style={styles.modalTitle}>✍️ הזנת השאלה ידנית</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
               רישום השאלה ללא טופס דיגיטלי (לשימוש כשהפונה לא יכול למלא טופס)
@@ -2514,9 +2552,10 @@ ${formUrl}`
                 <input
                   type="text"
                   value={manualBorrowForm.borrower_name}
-                  onChange={e => setManualBorrowForm({...manualBorrowForm, borrower_name: e.target.value})}
+                  onChange={e => { setManualBorrowForm({...manualBorrowForm, borrower_name: e.target.value}); setManualBorrowFormErrors(manualBorrowFormErrors.filter(err => err !== 'borrower_name')) }}
                   placeholder="ישראל ישראלי"
-                  style={styles.input}
+                  style={{...styles.input, ...(manualBorrowFormErrors.includes('borrower_name') ? styles.inputError : {})}}
+                  disabled={actionLoading}
                 />
               </div>
 
@@ -2527,10 +2566,11 @@ ${formUrl}`
                 <input
                   type="tel"
                   value={manualBorrowForm.borrower_phone}
-                  onChange={e => setManualBorrowForm({...manualBorrowForm, borrower_phone: e.target.value})}
+                  onChange={e => { setManualBorrowForm({...manualBorrowForm, borrower_phone: e.target.value}); setManualBorrowFormErrors(manualBorrowFormErrors.filter(err => err !== 'borrower_phone')) }}
                   placeholder="050-1234567"
-                  style={styles.input}
+                  style={{...styles.input, ...(manualBorrowFormErrors.includes('borrower_phone') ? styles.inputError : {})}}
                   dir="ltr"
+                  disabled={actionLoading}
                 />
               </div>
 
@@ -2546,6 +2586,7 @@ ${formUrl}`
                   maxLength={9}
                   style={styles.input}
                   dir="ltr"
+                  disabled={actionLoading}
                 />
               </div>
 
@@ -2559,6 +2600,7 @@ ${formUrl}`
                   onChange={e => setManualBorrowForm({...manualBorrowForm, vehicle_model: e.target.value})}
                   placeholder="יונדאי i25"
                   style={styles.input}
+                  disabled={actionLoading}
                 />
               </div>
 
@@ -2570,6 +2612,7 @@ ${formUrl}`
                   value={manualBorrowForm.deposit_type}
                   onChange={e => setManualBorrowForm({...manualBorrowForm, deposit_type: e.target.value})}
                   style={styles.input}
+                  disabled={actionLoading}
                 >
                   <option value="cash">מזומן</option>
                   <option value="bit">ביט</option>
@@ -2590,6 +2633,7 @@ ${formUrl}`
                   placeholder="הערות נוספות..."
                   rows={2}
                   style={{...styles.input, resize: 'vertical'}}
+                  disabled={actionLoading}
                 />
               </div>
             </div>
@@ -4820,6 +4864,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     border: 'none',
     cursor: 'pointer',
+  },
+  viewFormBtn: {
+    padding: '6px 12px',
+    borderRadius: '8px',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    background: '#8b5cf6',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    display: 'inline-block',
   },
   whatsappLinkBox: {
     background: 'rgba(37, 211, 102, 0.1)',
