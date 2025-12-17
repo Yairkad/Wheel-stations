@@ -9,12 +9,14 @@ export default function GuidePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeGuide, setActiveGuide] = useState<GuideType>('user');
+  const [isManagerMode, setIsManagerMode] = useState(false);
 
-  // Read tab from URL on mount
+  // Read tab from URL on mount - manager tab only accessible via URL param
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'manager') {
       setActiveGuide('manager');
+      setIsManagerMode(true);
     }
   }, [searchParams]);
 
@@ -23,7 +25,9 @@ export default function GuidePage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">מדריך למשתמש</h1>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {isManagerMode ? 'מדריך למנהלי תחנות' : 'מדריך למשתמש'}
+          </h1>
           <button
             onClick={() => router.back()}
             className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
@@ -32,29 +36,31 @@ export default function GuidePage() {
           </button>
         </div>
 
-        {/* Guide Type Selector */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveGuide('user')}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-              activeGuide === 'user'
-                ? 'bg-green-600 text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-            }`}
-          >
-            👤 מדריך לשואלים
-          </button>
-          <button
-            onClick={() => setActiveGuide('manager')}
-            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-              activeGuide === 'manager'
-                ? 'bg-green-600 text-white shadow-lg'
-                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-            }`}
-          >
-            🔧 מדריך למנהלי תחנות
-          </button>
-        </div>
+        {/* Guide Type Selector - only show if manager mode (came from manager menu) */}
+        {isManagerMode && (
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setActiveGuide('user')}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                activeGuide === 'user'
+                  ? 'bg-green-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              👤 מדריך לשואלים
+            </button>
+            <button
+              onClick={() => setActiveGuide('manager')}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
+                activeGuide === 'manager'
+                  ? 'bg-green-600 text-white shadow-lg'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              🔧 מדריך למנהלי תחנות
+            </button>
+          </div>
+        )}
 
         {/* Guide Content */}
         <div className="bg-white rounded-xl shadow-sm p-6">
