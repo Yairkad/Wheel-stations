@@ -29,7 +29,14 @@ export default function GuidePage() {
             {isManagerMode ? 'מדריך למנהלי תחנות' : 'מדריך למשתמש'}
           </h1>
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              // If we have history, go back; otherwise go to home
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
             className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
             חזרה
