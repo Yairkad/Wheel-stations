@@ -1869,15 +1869,7 @@ ${formUrl}`
           {/* WhatsApp Link for new borrowers */}
           <div style={styles.whatsappLinkBox}>
             <h4 style={styles.whatsappLinkTitle}>🔗 קישור לטופס השאלת גלגל</h4>
-            <p style={styles.whatsappLinkDesc}>שלח את הקישור הזה לפונים שצריכים למלא טופס השאלה:</p>
-            <div style={styles.whatsappLinkInput}>
-              <input
-                type="text"
-                readOnly
-                value={typeof window !== 'undefined' ? `${window.location.origin}/sign/${stationId}` : ''}
-                style={styles.linkInput}
-                onClick={e => (e.target as HTMLInputElement).select()}
-              />
+            <div style={{display: 'flex', gap: '8px', marginTop: '8px'}}>
               <button
                 style={styles.copyBtn}
                 onClick={() => {
@@ -1885,34 +1877,19 @@ ${formUrl}`
                   toast.success('הקישור הועתק!')
                 }}
               >
-                📋 העתק
+                📋 העתק קישור
+              </button>
+              <button
+                style={styles.copyBtn}
+                onClick={() => {
+                  const signFormUrl = `${window.location.origin}/sign/${stationId}`
+                  const message = `שלום, להשאלת גלגל נא למלא את הטופס הבא:\n${signFormUrl}`
+                  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+                }}
+              >
+                📲 וואטסאפ
               </button>
             </div>
-            <button
-              style={{
-                marginTop: '12px',
-                padding: '10px 16px',
-                background: '#25d366',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: '500',
-                fontSize: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                width: '100%',
-                justifyContent: 'center',
-              }}
-              onClick={() => {
-                const signFormUrl = `${window.location.origin}/sign/${stationId}`
-                const message = `שלום, להשאלת גלגל נא למלא את הטופס הבא:\n${signFormUrl}`
-                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
-              }}
-            >
-              <span style={{fontSize: '18px'}}>📲</span> שלח ב-WhatsApp
-            </button>
           </div>
         </div>
       )}
@@ -4906,14 +4883,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   whatsappLinkBox: {
     background: 'rgba(37, 211, 102, 0.1)',
     border: '1px solid #25d366',
-    borderRadius: '12px',
-    padding: '20px',
-    marginTop: '20px',
+    borderRadius: '10px',
+    padding: '12px 16px',
+    marginTop: '16px',
   },
   whatsappLinkTitle: {
     color: '#25d366',
-    fontSize: '1rem',
-    margin: '0 0 8px 0',
+    fontSize: '0.9rem',
+    margin: '0',
   },
   whatsappLinkDesc: {
     color: '#9ca3af',
@@ -4936,14 +4913,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
   },
   copyBtn: {
-    padding: '10px 16px',
-    borderRadius: '8px',
+    padding: '8px 12px',
+    borderRadius: '6px',
     border: 'none',
     background: '#25d366',
     color: 'white',
     cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '0.9rem',
+    fontWeight: '500',
+    fontSize: '0.85rem',
   },
   actionButtons: {
     display: 'flex',
