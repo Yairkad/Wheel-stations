@@ -416,15 +416,31 @@ export default function WheelsAdminPage() {
   const availableWheels = stations.reduce((sum, s) => sum + s.availableWheels, 0)
   const totalManagers = stations.reduce((sum, s) => sum + (s.wheel_station_managers?.length || 0), 0)
 
+  // Normalize text for fuzzy search (remove extra spaces, handle Hebrew variations)
+  const normalizeText = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ') // Multiple spaces to single space
+      .replace(/[״"]/g, '"') // Normalize quotes
+      .replace(/בת/g, 'בית') // בת -> בית
+      .replace(/ב'/g, 'בית ') // ב' -> בית
+  }
+
   // Filter stations by search
   const filterStations = (stationsList: Station[]) => {
     if (!searchQuery) return stationsList
-    const query = searchQuery.toLowerCase()
-    return stationsList.filter(station =>
-      station.name.toLowerCase().includes(query) ||
-      station.address?.toLowerCase().includes(query) ||
-      station.wheel_station_managers?.some(m => m.full_name.toLowerCase().includes(query))
-    )
+    const query = normalizeText(searchQuery)
+    return stationsList.filter(station => {
+      const normalizedName = normalizeText(station.name)
+      const normalizedAddress = normalizeText(station.address || '')
+      const matchesName = normalizedName.includes(query)
+      const matchesAddress = normalizedAddress.includes(query)
+      const matchesManager = station.wheel_station_managers?.some(m =>
+        normalizeText(m.full_name).includes(query)
+      )
+      return matchesName || matchesAddress || matchesManager
+    })
   }
 
   // Auto-expand district and station when searching
