@@ -1448,6 +1448,14 @@ ${formUrl}`
                       </button>
                     )}
 
+                    <a
+                      href="/guide"
+                      style={{ ...styles.menuItem, textDecoration: 'none' }}
+                      onClick={() => setShowManagerMenu(false)}
+                    >
+                      📖 מדריך למנהלים
+                    </a>
+
                     {/* Divider */}
                     <div style={styles.menuDivider} />
 

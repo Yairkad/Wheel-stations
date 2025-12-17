@@ -788,6 +788,20 @@ function SignFormContent({ stationId }: { stationId: string }) {
         >
           {submitting ? 'שולח...' : '✅ שליחת הטופס'}
         </button>
+
+        {/* Guide link */}
+        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+          <a
+            href="/guide"
+            style={{
+              color: '#6b7280',
+              fontSize: '0.9rem',
+              textDecoration: 'none'
+            }}
+          >
+            📖 צריכים עזרה? לחצו כאן למדריך למשתמש
+          </a>
+        </div>
       </div>
     </div>
   )

@@ -1057,6 +1057,10 @@ export default function WheelStationsPage() {
             </Link>
           </p>
           <p style={styles.legalLinks}>
+            <Link href="/guide" style={styles.legalLink}>
+              מדריך למשתמש
+            </Link>
+            {' • '}
             <Link href="/privacy" style={styles.legalLink}>
               מדיניות פרטיות
             </Link>
