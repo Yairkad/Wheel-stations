@@ -779,6 +779,18 @@ export default function WheelsAdminPage() {
 
               {stationForm.managers.map((manager, index) => (
                 <div key={index} style={styles.managerRow} className="admin-manager-row">
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.primaryToggleBtn,
+                      background: manager.is_primary ? '#10b981' : '#374151',
+                      color: manager.is_primary ? '#fff' : '#9ca3af',
+                    }}
+                    onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
+                    title={manager.is_primary ? 'מנהל ראשי - לחץ להסרה' : 'לחץ להגדרה כמנהל ראשי'}
+                  >
+                    👑
+                  </button>
                   <input
                     type="text"
                     placeholder="שם מלא"
@@ -793,16 +805,6 @@ export default function WheelsAdminPage() {
                     onChange={e => updateManager(index, 'phone', e.target.value)}
                     style={styles.inputSmall}
                   />
-                  <label style={styles.primaryCheckbox} title="מנהל ראשי - יכול לערוך אנשי קשר ולשנות סיסמה">
-                    <input
-                      type="checkbox"
-                      checked={manager.is_primary}
-                      onChange={e => updateManager(index, 'is_primary', e.target.checked)}
-                    />
-                    <span style={{fontSize: '0.75rem', color: manager.is_primary ? '#10b981' : '#9ca3af'}}>
-                      {manager.is_primary ? '👑 ראשי' : 'ראשי'}
-                    </span>
-                  </label>
                   <button style={styles.removeManagerBtn} onClick={() => removeManager(index)}>✕</button>
                 </div>
               ))}
@@ -1245,12 +1247,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontWeight: 'bold',
   },
-  primaryCheckbox: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
+  primaryToggleBtn: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '6px',
+    border: 'none',
     cursor: 'pointer',
-    whiteSpace: 'nowrap' as const,
+    fontSize: '14px',
+    transition: 'all 0.2s',
+    flexShrink: 0,
   },
   modalButtons: {
     display: 'flex',
