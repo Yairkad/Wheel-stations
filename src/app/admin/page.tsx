@@ -61,6 +61,8 @@ export default function WheelsAdminPage() {
 
   // Expanded district for the new collapsible UI
   const [expandedDistrict, setExpandedDistrict] = useState<string | null>(null)
+  // Expanded station within district
+  const [expandedStation, setExpandedStation] = useState<string | null>(null)
 
   // Modals
   const [showAddStation, setShowAddStation] = useState(false)
@@ -550,6 +552,19 @@ export default function WheelsAdminPage() {
           .manager-row-responsive {
             flex-wrap: wrap !important;
           }
+          .manager-row-responsive input {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .manager-row-responsive {
+            flex-wrap: wrap !important;
+          }
+          .manager-row-responsive input {
+            flex: 1 1 calc(50% - 20px) !important;
+            min-width: 80px !important;
+          }
         }
       `}</style>
 
@@ -698,6 +713,8 @@ export default function WheelsAdminPage() {
                                 key={station.id}
                                 station={station}
                                 districtColor={districtColor}
+                                isExpanded={expandedStation === station.id}
+                                onToggleExpand={() => setExpandedStation(expandedStation === station.id ? null : station.id)}
                                 onEdit={() => openEditModal(station)}
                                 onToggleActive={() => handleToggleActive(station)}
                                 onDelete={() => handleDeleteStation(station)}
@@ -722,6 +739,8 @@ export default function WheelsAdminPage() {
                         key={station.id}
                         station={station}
                         districtColor="#6b7280"
+                        isExpanded={expandedStation === station.id}
+                        onToggleExpand={() => setExpandedStation(expandedStation === station.id ? null : station.id)}
                         onEdit={() => openEditModal(station)}
                         onToggleActive={() => handleToggleActive(station)}
                         onDelete={() => handleDeleteStation(station)}
@@ -955,6 +974,8 @@ export default function WheelsAdminPage() {
 function StationCard({
   station,
   districtColor,
+  isExpanded,
+  onToggleExpand,
   onEdit,
   onToggleActive,
   onDelete,
@@ -962,6 +983,8 @@ function StationCard({
 }: {
   station: Station
   districtColor: string
+  isExpanded: boolean
+  onToggleExpand: () => void
   onEdit: () => void
   onToggleActive: () => void
   onDelete: () => void
@@ -977,7 +1000,8 @@ function StationCard({
 
   return (
     <div style={styles.stationCardCompact} onClick={e => e.stopPropagation()}>
-      <div style={styles.stationCompactTop}>
+      {/* Clickable header for expand/collapse */}
+      <div style={styles.stationCompactTop} onClick={onToggleExpand}>
         <div style={{...styles.stationBadgeSmall, background: `linear-gradient(135deg, ${districtColor} 0%, ${districtColor}dd 100%)`}}>
           {getInitials(station.name)}
         </div>
@@ -996,49 +1020,55 @@ function StationCard({
             <span style={{...styles.compactStat, color: '#f59e0b'}}>{station.totalWheels - station.availableWheels} מושאלים</span>
           </div>
         </div>
+        <span style={{...styles.stationExpandIcon, transform: isExpanded ? 'rotate(180deg)' : 'none'}}>▼</span>
       </div>
 
-      <div style={styles.stationExpanded}>
-        <div style={styles.passwordRowCompact}>
-          <span style={styles.passwordLabel}>סיסמה:</span>
-          {station.manager_password ? (
-            <span style={styles.passwordValue}>{station.manager_password}</span>
-          ) : (
-            <span style={styles.passwordMissing}>לא הוגדרה!</span>
-          )}
-        </div>
+      {/* Expanded content - only show when expanded */}
+      {isExpanded && (
+        <>
+          <div style={styles.stationExpanded}>
+            <div style={styles.passwordRowCompact}>
+              <span style={styles.passwordLabel}>סיסמה:</span>
+              {station.manager_password ? (
+                <span style={styles.passwordValue}>{station.manager_password}</span>
+              ) : (
+                <span style={styles.passwordMissing}>לא הוגדרה!</span>
+              )}
+            </div>
 
-        {station.wheel_station_managers?.length > 0 && (
-          <div style={styles.managersCompact}>
-            <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/4)</div>
-            {station.wheel_station_managers.map((m, i) => (
-              <div key={i} style={styles.managerRowCompactDisplay}>
-                <span style={{color: m.is_primary ? '#fbbf24' : '#64748b'}}>
-                  {m.is_primary ? '👑' : '👤'}
-                </span>
-                <span style={{color: 'white'}}>{m.full_name}</span>
-                <span style={{color: '#64748b'}}>- {m.phone}</span>
+            {station.wheel_station_managers?.length > 0 && (
+              <div style={styles.managersCompact}>
+                <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/4)</div>
+                {station.wheel_station_managers.map((m, i) => (
+                  <div key={i} style={styles.managerRowCompactDisplay}>
+                    <span style={{color: m.is_primary ? '#fbbf24' : '#64748b'}}>
+                      {m.is_primary ? '👑' : '👤'}
+                    </span>
+                    <span style={{color: 'white'}}>{m.full_name}</span>
+                    <span style={{color: '#64748b'}}>- {m.phone}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        )}
-      </div>
 
-      <div style={styles.stationCompactActions} className="station-actions-responsive">
-        <button style={{...styles.btnCompact, ...styles.btnCompactEdit}} onClick={onEdit}>✏️ ערוך</button>
-        <Link href={`/${station.id}`} style={{...styles.btnCompact, ...styles.btnCompactView}}>👁️ צפה</Link>
-        <button
-          style={{
-            ...styles.btnCompact,
-            ...(station.is_active ? styles.btnCompactToggle : styles.btnCompactToggleActivate)
-          }}
-          onClick={onToggleActive}
-          disabled={actionLoading}
-        >
-          {station.is_active ? '🔴 השבת' : '🟢 הפעל'}
-        </button>
-        <button style={{...styles.btnCompact, ...styles.btnCompactDelete}} onClick={onDelete} disabled={actionLoading}>🗑️ מחק</button>
-      </div>
+          <div style={styles.stationCompactActions} className="station-actions-responsive">
+            <button style={{...styles.btnCompact, ...styles.btnCompactEdit}} onClick={onEdit}>✏️ ערוך</button>
+            <Link href={`/${station.id}`} style={{...styles.btnCompact, ...styles.btnCompactView}}>👁️ צפה</Link>
+            <button
+              style={{
+                ...styles.btnCompact,
+                ...(station.is_active ? styles.btnCompactToggle : styles.btnCompactToggleActivate)
+              }}
+              onClick={onToggleActive}
+              disabled={actionLoading}
+            >
+              {station.is_active ? '🔴 השבת' : '🟢 הפעל'}
+            </button>
+            <button style={{...styles.btnCompact, ...styles.btnCompactDelete}} onClick={onDelete} disabled={actionLoading}>🗑️ מחק</button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -1393,7 +1423,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   stationCompactTop: {
     display: 'flex',
     gap: '12px',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    cursor: 'pointer',
+  },
+  stationExpandIcon: {
+    color: '#64748b',
+    fontSize: '0.8rem',
+    transition: 'transform 0.3s',
+    flexShrink: 0,
   },
   stationBadgeSmall: {
     width: '40px',
