@@ -1015,6 +1015,15 @@ export default function WheelStationsPage() {
               דווח על בעיה או הצע שיפור
             </Link>
           </p>
+          <p style={styles.legalLinks}>
+            <Link href="/privacy" style={styles.legalLink}>
+              מדיניות פרטיות
+            </Link>
+            {' • '}
+            <Link href="/accessibility" style={styles.legalLink}>
+              הצהרת נגישות
+            </Link>
+          </p>
           <p style={styles.versionText}>גירסה {VERSION}</p>
         </div>
       </footer>
@@ -2058,6 +2067,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   feedbackLink: {
     color: '#60a5fa',
+    textDecoration: 'none',
+  },
+  legalLinks: {
+    color: '#6b7280',
+    fontSize: '0.7rem',
+    marginTop: '8px',
+    margin: 0,
+  },
+  legalLink: {
+    color: '#6b7280',
     textDecoration: 'none',
   },
   versionText: {
