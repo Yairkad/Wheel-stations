@@ -363,6 +363,7 @@ export default function WheelsAdminPage() {
       })
       if (!response.ok) throw new Error('Failed to update')
       await fetchStations()
+      toast.success(station.is_active ? `תחנת ${station.name} הושבתה` : `תחנת ${station.name} הופעלה`)
     } catch {
       toast.error('שגיאה בעדכון סטטוס')
     } finally {
