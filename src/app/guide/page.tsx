@@ -198,7 +198,7 @@ function UserGuide() {
           <ul className="text-red-800 space-y-2">
             <li>• <strong>זמן החזרה:</strong> עד 72 שעות (3 ימים) מרגע ההשאלה</li>
             <li>• <strong>הארכה:</strong> ניתן להאריך עד 5 ימים באישור מנהל התחנה</li>
-            <li>• <strong>מהירות:</strong> יש לנסוע עד 80 קמ&quot;ש בלבד</li>
+            <li>• <strong>מהירות:</strong> בגלגל דונאט (חירום) יש לנסוע עד 80 קמ&quot;ש בלבד</li>
             <li>• <strong>פיקדון:</strong> יוחזר עם החזרת הגלגל במצב תקין</li>
             <li>• <strong>אי החזרה:</strong> אי החזרה בזמן עלולה לגרום לחילוט הפיקדון</li>
           </ul>
