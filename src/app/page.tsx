@@ -58,6 +58,9 @@ export default function WheelStationsPage() {
   const [error, setError] = useState<string | null>(null)
   const [districts, setDistricts] = useState<District[]>([])
 
+  // Station filter state
+  const [stationFilter, setStationFilter] = useState('')
+
   // Search state
   const [showSearchModal, setShowSearchModal] = useState(false)
   const [searchLoading, setSearchLoading] = useState(false)
@@ -853,6 +856,13 @@ export default function WheelStationsPage() {
           border-color: #3b82f6;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
+        .wheels-station-filter::placeholder {
+          color: rgba(255,255,255,0.5);
+        }
+        .wheels-station-filter:focus {
+          border-color: #f59e0b;
+          background: rgba(255,255,255,0.15);
+        }
         .wheels-select:focus {
           outline: none;
           border-color: #3b82f6;
@@ -888,9 +898,6 @@ export default function WheelStationsPage() {
           }
           .wheels-filter-grid {
             grid-template-columns: 1fr !important;
-          }
-          .wheels-admin-link {
-            padding: 10px 16px !important;
           }
           .wheels-vehicle-modal {
             max-width: calc(100vw - 30px) !important;
@@ -945,13 +952,48 @@ export default function WheelStationsPage() {
         </div>
       </header>
 
-      {stations.length === 0 ? (
+      {/* Station Filter */}
+      <div style={styles.stationFilterContainer}>
+        <input
+          type="text"
+          placeholder="חיפוש תחנה לפי שם עיר או מנהל..."
+          value={stationFilter}
+          onChange={(e) => setStationFilter(e.target.value)}
+          style={styles.stationFilterInput}
+          className="wheels-station-filter"
+        />
+        {stationFilter && (
+          <button
+            onClick={() => setStationFilter('')}
+            style={styles.clearFilterBtn}
+            aria-label="נקה חיפוש"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {stations.filter(station => {
+        if (!stationFilter.trim()) return true
+        const searchLower = stationFilter.toLowerCase()
+        const cityName = station.cities?.name?.toLowerCase() || ''
+        const stationName = station.name?.toLowerCase() || ''
+        const managerNames = station.wheel_station_managers?.map(m => m.full_name?.toLowerCase() || '').join(' ') || ''
+        return cityName.includes(searchLower) || stationName.includes(searchLower) || managerNames.includes(searchLower)
+      }).length === 0 ? (
         <div style={styles.empty}>
-          <p>אין תחנות זמינות כרגע</p>
+          <p>{stationFilter ? 'לא נמצאו תחנות התואמות לחיפוש' : 'אין תחנות זמינות כרגע'}</p>
         </div>
       ) : (
         <div style={styles.grid}>
-          {stations.map(station => (
+          {stations.filter(station => {
+            if (!stationFilter.trim()) return true
+            const searchLower = stationFilter.toLowerCase()
+            const cityName = station.cities?.name?.toLowerCase() || ''
+            const stationName = station.name?.toLowerCase() || ''
+            const managerNames = station.wheel_station_managers?.map(m => m.full_name?.toLowerCase() || '').join(' ') || ''
+            return cityName.includes(searchLower) || stationName.includes(searchLower) || managerNames.includes(searchLower)
+          }).map(station => (
             <Link
               key={station.id}
               href={`/${station.id}`}
@@ -1007,7 +1049,6 @@ export default function WheelStationsPage() {
       )}
 
       <footer style={styles.footer}>
-        <Link href="/admin" style={styles.adminLink} className="wheels-admin-link">⚙️ ניהול</Link>
         <div style={styles.footerInfo}>
           <p style={styles.footerText}>
             מערכת גלגלים ידידים •{' '}
@@ -1923,6 +1964,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     flexWrap: 'wrap',
   },
+  stationFilterContainer: {
+    maxWidth: '500px',
+    margin: '0 auto 20px',
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  stationFilterInput: {
+    width: '100%',
+    padding: '12px 40px 12px 16px',
+    borderRadius: '12px',
+    border: '2px solid rgba(255,255,255,0.2)',
+    background: 'rgba(255,255,255,0.1)',
+    color: '#fff',
+    fontSize: '1rem',
+    outline: 'none',
+    transition: 'border-color 0.2s, background 0.2s',
+  },
+  clearFilterBtn: {
+    position: 'absolute',
+    left: '12px',
+    background: 'none',
+    border: 'none',
+    color: '#9ca3af',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   searchBtn: {
     background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
     color: 'white',
@@ -2052,13 +2124,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     paddingTop: '20px',
     borderTop: '1px solid rgba(255,255,255,0.1)',
   },
-  adminLink: {
-    color: '#f59e0b',
-    textDecoration: 'none',
-    fontSize: '0.9rem',
-  },
   footerInfo: {
-    marginTop: '15px',
+    marginTop: '0',
   },
   footerText: {
     color: '#9ca3af',
