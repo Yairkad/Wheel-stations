@@ -681,7 +681,8 @@ export default function WheelsAdminPage() {
                     <div style={styles.managersList}>
                       {station.wheel_station_managers.map((m, i) => (
                         <div key={i} style={styles.managerItem}>
-                          👤 {m.full_name} - {m.phone}
+                          {m.is_primary ? '👑' : '👤'} {m.full_name} - {m.phone}
+                          {m.is_primary && <span style={{color: '#10b981', fontSize: '0.75rem', marginRight: '6px'}}>(ראשי)</span>}
                         </div>
                       ))}
                     </div>
@@ -792,6 +793,16 @@ export default function WheelsAdminPage() {
                     onChange={e => updateManager(index, 'phone', e.target.value)}
                     style={styles.inputSmall}
                   />
+                  <label style={styles.primaryCheckbox} title="מנהל ראשי - יכול לערוך אנשי קשר ולשנות סיסמה">
+                    <input
+                      type="checkbox"
+                      checked={manager.is_primary}
+                      onChange={e => updateManager(index, 'is_primary', e.target.checked)}
+                    />
+                    <span style={{fontSize: '0.75rem', color: manager.is_primary ? '#10b981' : '#9ca3af'}}>
+                      {manager.is_primary ? '👑 ראשי' : 'ראשי'}
+                    </span>
+                  </label>
                   <button style={styles.removeManagerBtn} onClick={() => removeManager(index)}>✕</button>
                 </div>
               ))}
@@ -1233,6 +1244,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '6px',
     cursor: 'pointer',
     fontWeight: 'bold',
+  },
+  primaryCheckbox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
   },
   modalButtons: {
     display: 'flex',
