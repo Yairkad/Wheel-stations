@@ -672,10 +672,6 @@ export default function WheelsAdminPage() {
                             <span>🛞 {districtWheels} גלגלים</span>
                           </div>
                         </div>
-                        <div style={styles.districtActions} onClick={e => e.stopPropagation()}>
-                          <button style={styles.btnIcon} onClick={() => openEditDistrictModal(district)}>✏️</button>
-                          <button style={styles.btnIcon} onClick={() => handleDeleteDistrict(district)} disabled={actionLoading}>🗑️</button>
-                        </div>
                         <span style={{...styles.expandIcon, transform: isExpanded ? 'rotate(180deg)' : 'none'}}>▼</span>
                       </div>
 
@@ -688,12 +684,16 @@ export default function WheelsAdminPage() {
                         <div style={styles.districtStationsInner}>
                           <div style={styles.districtStationsHeader}>
                             <span style={styles.districtStationsTitle}>תחנות במחוז {district.name}</span>
-                            <button
-                              style={styles.btnAddStation}
-                              onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
-                            >
-                              + הוסף תחנה
-                            </button>
+                            <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
+                              <button
+                                style={styles.btnAddStation}
+                                onClick={(e) => { e.stopPropagation(); openAddStationModal(district.code) }}
+                              >
+                                + הוסף תחנה
+                              </button>
+                              <button style={styles.btnIconSmall} onClick={(e) => { e.stopPropagation(); openEditDistrictModal(district) }}>✏️</button>
+                              <button style={styles.btnIconSmall} onClick={(e) => { e.stopPropagation(); handleDeleteDistrict(district) }} disabled={actionLoading}>🗑️</button>
+                            </div>
                           </div>
 
                           {districtStations.length === 0 ? (
@@ -1175,6 +1175,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #334155',
     color: '#64748b',
     borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  btnIconSmall: {
+    width: '28px',
+    height: '28px',
+    fontSize: '0.75rem',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    color: '#64748b',
+    borderRadius: '6px',
     cursor: 'pointer',
     transition: 'all 0.2s',
   },
