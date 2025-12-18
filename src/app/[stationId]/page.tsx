@@ -224,19 +224,37 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   useEffect(() => {
     fetchStation()
     fetchDistrictsData()
-    // Check if already logged in
-    const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
-    if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession)
-        setIsManager(true)
-        setCurrentManager(session.manager)
-        setSessionPassword(session.password || '')
-      } catch {
-        // Old format or invalid, clear it
-        localStorage.removeItem(`wheel_manager_${stationId}`)
+    // Check if already logged in and validate session with server
+    const validateSession = async () => {
+      const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession)
+          // Validate token with server
+          const response = await fetch(
+            `/api/wheel-stations/${stationId}/auth?token=${encodeURIComponent(session.token)}&phone=${encodeURIComponent(session.manager?.phone || '')}`
+          )
+          const data = await response.json()
+
+          if (data.valid) {
+            // Session is valid - update manager data from server (in case it changed)
+            setIsManager(true)
+            setCurrentManager(data.manager)
+            setSessionPassword(session.password || '')
+          } else {
+            // Session invalid or expired - clear it
+            localStorage.removeItem(`wheel_manager_${stationId}`)
+            if (data.expired) {
+              toast.error('הסשן פג תוקף, יש להתחבר מחדש')
+            }
+          }
+        } catch {
+          // Old format or invalid, clear it
+          localStorage.removeItem(`wheel_manager_${stationId}`)
+        }
       }
     }
+    validateSession()
   }, [stationId])
 
   // Scroll to wheel when hash is in URL (from search results)
