@@ -1,8 +1,8 @@
 /**
  * Station Manager Authentication API
  * GET /api/wheel-stations/[stationId]/auth - Verify session token
- * POST /api/wheel-stations/[stationId]/auth - Login with phone + password
- * PUT /api/wheel-stations/[stationId]/auth - Change password (requires current login)
+ * POST /api/wheel-stations/[stationId]/auth - Login with phone + personal password
+ * PUT /api/wheel-stations/[stationId]/auth - Change own password (requires current login)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -200,18 +200,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Phone and password are required' }, { status: 400 })
     }
 
-    // Get station with password
+    // Get station with managers (including their personal passwords)
     const { data: station, error } = await supabase
       .from('wheel_stations')
       .select(`
         id,
-        manager_password,
         wheel_station_managers (
           id,
           full_name,
           phone,
           role,
-          is_primary
+          is_primary,
+          password
         )
       `)
       .eq('id', stationId)
@@ -221,16 +221,34 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Station not found' }, { status: 404 })
     }
 
-    // Check if station has a password set
-    if (!station.manager_password) {
+    // Find manager by phone
+    const cleanPhone = phone.replace(/\D/g, '')
+    const manager = station.wheel_station_managers.find((m: { phone: string }) =>
+      m.phone.replace(/\D/g, '') === cleanPhone
+    )
+
+    if (!manager) {
+      // Record failed attempt for wrong phone
+      const failResult = recordFailedAttempt(ip, stationId)
+      if (failResult.locked) {
+        return NextResponse.json({
+          error: `יותר מדי ניסיונות כניסה. נסה שוב בעוד ${failResult.remainingTime} דקות`,
+          code: 'RATE_LIMITED'
+        }, { status: 429 })
+      }
+      return NextResponse.json({ error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }, { status: 401 })
+    }
+
+    // Check if manager has a password set
+    if (!manager.password) {
       return NextResponse.json({
-        error: 'לתחנה זו לא הוגדרה סיסמא. יש לפנות לסופר-אדמין.',
+        error: 'לא הוגדרה סיסמא אישית. יש לפנות לאדמין להגדרת סיסמא.',
         code: 'NO_PASSWORD_SET'
       }, { status: 400 })
     }
 
-    // Verify password
-    if (station.manager_password !== password) {
+    // Verify personal password
+    if (manager.password !== password) {
       // Record failed attempt and check if now locked
       const failResult = recordFailedAttempt(ip, stationId)
       if (failResult.locked) {
@@ -240,24 +258,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }, { status: 429 })
       }
       return NextResponse.json({ error: 'סיסמא שגויה' }, { status: 401 })
-    }
-
-    // Verify phone is in managers list
-    const cleanPhone = phone.replace(/\D/g, '')
-    const manager = station.wheel_station_managers.find((m: { phone: string }) =>
-      m.phone.replace(/\D/g, '') === cleanPhone
-    )
-
-    if (!manager) {
-      // Record failed attempt for wrong phone too
-      const failResult = recordFailedAttempt(ip, stationId)
-      if (failResult.locked) {
-        return NextResponse.json({
-          error: `יותר מדי ניסיונות כניסה. נסה שוב בעוד ${failResult.remainingTime} דקות`,
-          code: 'RATE_LIMITED'
-        }, { status: 429 })
-      }
-      return NextResponse.json({ error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }, { status: 401 })
     }
 
     // Successful login - clear rate limit for this IP/station
@@ -283,7 +283,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PUT - Change password (requires being logged in as manager)
+// PUT - Change own personal password (any manager can change their own password)
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
@@ -298,13 +298,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'הסיסמא חייבת להכיל לפחות 4 תווים' }, { status: 400 })
     }
 
-    // Get station
+    // Get station with managers
     const { data: station, error } = await supabase
       .from('wheel_stations')
       .select(`
         id,
-        manager_password,
-        wheel_station_managers (phone, is_primary)
+        wheel_station_managers (id, phone, password)
       `)
       .eq('id', stationId)
       .single()
@@ -313,9 +312,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Station not found' }, { status: 404 })
     }
 
-    // Verify phone is in managers list and check if primary
+    // Find manager by phone
     const cleanPhone = phone.replace(/\D/g, '')
-    const manager = station.wheel_station_managers.find((m: { phone: string; is_primary: boolean }) =>
+    const manager = station.wheel_station_managers.find((m: { phone: string }) =>
       m.phone.replace(/\D/g, '') === cleanPhone
     )
 
@@ -323,21 +322,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'אינך מנהל תחנה מורשה' }, { status: 403 })
     }
 
-    // Only primary manager can change password
-    if (!manager.is_primary) {
-      return NextResponse.json({ error: 'רק מנהל ראשי יכול לשנות סיסמה' }, { status: 403 })
-    }
-
     // Verify current password
-    if (station.manager_password !== current_password) {
+    if (manager.password !== current_password) {
       return NextResponse.json({ error: 'סיסמא נוכחית שגויה' }, { status: 401 })
     }
 
-    // Update password
+    // Update manager's personal password
     const { error: updateError } = await supabase
-      .from('wheel_stations')
-      .update({ manager_password: new_password })
-      .eq('id', stationId)
+      .from('wheel_station_managers')
+      .update({ password: new_password })
+      .eq('id', manager.id)
 
     if (updateError) {
       console.error('Error updating password:', updateError)

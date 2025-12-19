@@ -2905,11 +2905,11 @@ ${formUrl}`
               />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>סיסמת תחנה</label>
+              <label style={styles.label}>סיסמא אישית</label>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showLoginPassword ? 'text' : 'password'}
-                  placeholder="סיסמא"
+                  placeholder="הזן סיסמא אישית"
                   value={loginPassword}
                   onChange={e => setLoginPassword(e.target.value)}
                   style={{...styles.input, paddingLeft: '40px'}}
@@ -3495,11 +3495,10 @@ ${formUrl}`
               </div>
             )}
 
-            {/* Section: Password - Only for primary manager */}
-            {currentManager?.is_primary ? (
-              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>🔑 שינוי סיסמה</h4>
-                <p style={{fontSize: '0.85rem', color: '#a0aec0', margin: '0 0 12px'}}>הסיסמה משותפת לכל מנהלי התחנה</p>
+            {/* Section: Password - Any manager can change their own password */}
+            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>🔑 שינוי סיסמא אישית</h4>
+              <p style={{fontSize: '0.85rem', color: '#a0aec0', margin: '0 0 12px'}}>שנה את הסיסמא האישית שלך</p>
               <div style={styles.formGroup}>
                 <label style={styles.label}>סיסמה נוכחית</label>
                 <div style={{ position: 'relative' }}>
@@ -3593,14 +3592,6 @@ ${formUrl}`
                 {actionLoading ? 'שומר...' : 'שנה סיסמה'}
               </button>
             </div>
-            ) : (
-              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', opacity: 0.6}}>
-                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>🔑 שינוי סיסמה</h4>
-                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
-                  🔒 רק מנהל ראשי יכול לשנות סיסמה
-                </p>
-              </div>
-            )}
 
             <button style={{...styles.cancelBtn, width: '100%'}} onClick={() => setShowEditDetailsModal(false)}>סגור</button>
           </div>

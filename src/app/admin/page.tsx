@@ -10,6 +10,7 @@ interface Manager {
   phone: string
   role: string
   is_primary: boolean
+  password?: string
 }
 
 interface Station {
@@ -18,7 +19,6 @@ interface Station {
   address: string
   district?: string | null
   is_active: boolean
-  manager_password: string | null
   wheel_station_managers: Manager[]
   totalWheels: number
   availableWheels: number
@@ -73,7 +73,6 @@ export default function WheelsAdminPage() {
     name: '',
     address: '',
     district: '' as string,
-    manager_password: '',
     managers: [] as Manager[]
   })
 
@@ -162,7 +161,6 @@ export default function WheelsAdminPage() {
       name: '',
       address: '',
       district: '',
-      manager_password: '',
       managers: []
     })
   }
@@ -376,7 +374,6 @@ export default function WheelsAdminPage() {
       name: station.name,
       address: station.address || '',
       district: station.district || '',
-      manager_password: station.manager_password || '',
       managers: station.wheel_station_managers || []
     })
     setEditingStation(station)
@@ -394,7 +391,7 @@ export default function WheelsAdminPage() {
     }
     setStationForm({
       ...stationForm,
-      managers: [...stationForm.managers, { full_name: '', phone: '', role: 'מנהל תחנה', is_primary: false }]
+      managers: [...stationForm.managers, { full_name: '', phone: '', role: 'מנהל תחנה', is_primary: false, password: '' }]
     })
   }
 
@@ -830,17 +827,6 @@ export default function WheelsAdminPage() {
                 </select>
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>סיסמת תחנה (לכניסת מנהלים)</label>
-                <input
-                  type="text"
-                  value={stationForm.manager_password}
-                  onChange={e => setStationForm({...stationForm, manager_password: e.target.value})}
-                  style={styles.formInput}
-                  placeholder="לפחות 4 תווים"
-                />
-              </div>
-
               <div style={styles.managersSection}>
                 <div style={styles.managersSectionHeader}>
                   <label style={styles.formLabel}>מנהלי תחנה ({stationForm.managers.length}/4)</label>
@@ -850,35 +836,56 @@ export default function WheelsAdminPage() {
                 </div>
 
                 {stationForm.managers.map((manager, index) => (
-                  <div key={index} style={styles.managerRow} className="manager-row-responsive">
-                    <button
-                      type="button"
-                      style={{
-                        ...styles.btnCrownSm,
-                        background: manager.is_primary ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : '#1e293b',
-                        borderColor: manager.is_primary ? '#f59e0b' : '#334155',
-                        color: manager.is_primary ? 'white' : '#64748b',
-                      }}
-                      onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
-                      title={manager.is_primary ? 'מנהל ראשי - לחץ להסרה' : 'לחץ להגדרה כמנהל ראשי'}
-                    >
-                      👑
-                    </button>
-                    <input
-                      type="text"
-                      placeholder="שם מלא"
-                      value={manager.full_name}
-                      onChange={e => updateManager(index, 'full_name', e.target.value)}
-                      style={styles.managerInputCompact}
-                    />
-                    <input
-                      type="tel"
-                      placeholder="טלפון"
-                      value={manager.phone}
-                      onChange={e => updateManager(index, 'phone', e.target.value)}
-                      style={styles.managerInputCompact}
-                    />
-                    <button style={styles.btnDeleteSm} onClick={() => removeManager(index)} title="הסר מנהל">🗑️</button>
+                  <div key={index} style={styles.managerCard}>
+                    <div style={styles.managerRow} className="manager-row-responsive">
+                      <button
+                        type="button"
+                        style={{
+                          ...styles.btnCrownSm,
+                          background: manager.is_primary ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : '#1e293b',
+                          borderColor: manager.is_primary ? '#f59e0b' : '#334155',
+                          color: manager.is_primary ? 'white' : '#64748b',
+                        }}
+                        onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
+                        title={manager.is_primary ? 'מנהל ראשי - לחץ להסרה' : 'לחץ להגדרה כמנהל ראשי'}
+                      >
+                        👑
+                      </button>
+                      <input
+                        type="text"
+                        placeholder="שם מלא"
+                        value={manager.full_name}
+                        onChange={e => updateManager(index, 'full_name', e.target.value)}
+                        style={styles.managerInputCompact}
+                      />
+                      <input
+                        type="tel"
+                        placeholder="טלפון"
+                        value={manager.phone}
+                        onChange={e => updateManager(index, 'phone', e.target.value)}
+                        style={styles.managerInputCompact}
+                      />
+                      <button style={styles.btnDeleteSm} onClick={() => removeManager(index)} title="הסר מנהל">🗑️</button>
+                    </div>
+                    <div style={styles.managerPasswordRow}>
+                      <input
+                        type="text"
+                        placeholder="סיסמא אישית (לפחות 4 תווים)"
+                        value={manager.password || ''}
+                        onChange={e => updateManager(index, 'password', e.target.value)}
+                        style={styles.managerPasswordInput}
+                      />
+                      {manager.id && (
+                        <button
+                          type="button"
+                          style={styles.btnResetPassword}
+                          onClick={() => updateManager(index, 'password', '')}
+                          title="איפוס סיסמא"
+                        >
+                          🔄 איפוס
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1053,15 +1060,6 @@ function StationCard({
       {isExpanded && (
         <>
           <div style={styles.stationExpanded}>
-            <div style={styles.passwordRowCompact}>
-              <span style={styles.passwordLabel}>סיסמה:</span>
-              {station.manager_password ? (
-                <span style={styles.passwordValue}>{station.manager_password}</span>
-              ) : (
-                <span style={styles.passwordMissing}>לא הוגדרה!</span>
-              )}
-            </div>
-
             {station.wheel_station_managers?.length > 0 && (
               <div style={styles.managersCompact}>
                 <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/4)</div>
@@ -1072,6 +1070,16 @@ function StationCard({
                     </span>
                     <span style={{color: 'white'}}>{m.full_name}</span>
                     <span style={{color: '#64748b'}}>- {m.phone}</span>
+                    <span style={{
+                      marginRight: '8px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '0.7rem',
+                      background: m.password ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                      color: m.password ? '#22c55e' : '#ef4444'
+                    }}>
+                      {m.password ? '🔐 יש סיסמא' : '⚠️ ללא סיסמא'}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -1733,6 +1741,38 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     fontSize: '0.75rem',
     minWidth: 0,
+  },
+  managerCard: {
+    background: '#0f172a',
+    border: '1px solid #334155',
+    borderRadius: '8px',
+    padding: '10px',
+    marginBottom: '8px',
+  },
+  managerPasswordRow: {
+    display: 'flex',
+    gap: '6px',
+    marginTop: '8px',
+    alignItems: 'center',
+  },
+  managerPasswordInput: {
+    flex: 1,
+    padding: '6px 8px',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '6px',
+    color: 'white',
+    fontSize: '0.75rem',
+  },
+  btnResetPassword: {
+    padding: '6px 10px',
+    background: 'rgba(245, 158, 11, 0.15)',
+    border: '1px solid rgba(245, 158, 11, 0.3)',
+    borderRadius: '6px',
+    color: '#f59e0b',
+    cursor: 'pointer',
+    fontSize: '0.7rem',
+    whiteSpace: 'nowrap' as const,
   },
   btnCrownSm: {
     width: '26px',

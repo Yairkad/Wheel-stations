@@ -26,14 +26,14 @@ export async function GET() {
         city_id,
         district,
         is_active,
-        manager_password,
         cities (name),
         wheel_station_managers (
           id,
           full_name,
           phone,
           role,
-          is_primary
+          is_primary,
+          password
         ),
         wheels (
           id,
@@ -69,7 +69,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { admin_password, name, address, city_id, district, manager_password, managers } = body
+    const { admin_password, name, address, city_id, district, managers } = body
 
     // Verify admin password
     if (admin_password !== WHEELS_ADMIN_PASSWORD) {
@@ -86,7 +86,6 @@ export async function POST(request: NextRequest) {
       address?: string
       city_id?: string
       district?: string
-      manager_password?: string
       is_active: boolean
     } = {
       name,
@@ -96,7 +95,6 @@ export async function POST(request: NextRequest) {
     if (address) stationData.address = address
     if (city_id) stationData.city_id = city_id
     if (district) stationData.district = district
-    if (manager_password) stationData.manager_password = manager_password
 
     const { data: station, error: stationError } = await supabase
       .from('wheel_stations')
@@ -109,14 +107,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שגיאה ביצירת תחנה' }, { status: 500 })
     }
 
-    // Add managers if provided
+    // Add managers if provided (with personal passwords)
     if (managers && managers.length > 0) {
-      const managersWithStation = managers.map((m: { full_name: string; phone: string; role?: string; is_primary?: boolean }) => ({
+      const managersWithStation = managers.map((m: { full_name: string; phone: string; role?: string; is_primary?: boolean; password?: string }) => ({
         station_id: station.id,
         full_name: m.full_name,
         phone: m.phone,
         role: m.role || 'מנהל תחנה',
-        is_primary: m.is_primary || false
+        is_primary: m.is_primary || false,
+        password: m.password || null
       }))
 
       const { error: managersError } = await supabase

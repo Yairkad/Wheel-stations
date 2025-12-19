@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { admin_password, name, address, city_id, district, is_active, manager_password, managers } = body
+    const { admin_password, name, address, city_id, district, is_active, managers } = body
 
     // Verify admin password
     if (admin_password !== WHEELS_ADMIN_PASSWORD) {
@@ -37,7 +37,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       city_id?: string | null
       district?: string | null
       is_active?: boolean
-      manager_password?: string
     } = {}
 
     if (name !== undefined) updateData.name = name
@@ -45,7 +44,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (city_id !== undefined) updateData.city_id = city_id || null
     if (district !== undefined) updateData.district = district || null
     if (is_active !== undefined) updateData.is_active = is_active
-    if (manager_password !== undefined) updateData.manager_password = manager_password
 
     // Only update if there's something to update
     if (Object.keys(updateData).length > 0) {
@@ -60,7 +58,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Update managers if provided
+    // Update managers if provided (with personal passwords)
     if (managers !== undefined) {
       // Delete existing managers
       await supabase
@@ -68,14 +66,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         .delete()
         .eq('station_id', stationId)
 
-      // Add new managers
+      // Add new managers with their passwords
       if (managers.length > 0) {
-        const managersWithStation = managers.map((m: { full_name: string; phone: string; role?: string; is_primary?: boolean }) => ({
+        const managersWithStation = managers.map((m: { full_name: string; phone: string; role?: string; is_primary?: boolean; password?: string }) => ({
           station_id: stationId,
           full_name: m.full_name,
           phone: m.phone,
           role: m.role || 'מנהל תחנה',
-          is_primary: m.is_primary || false
+          is_primary: m.is_primary || false,
+          password: m.password || null
         }))
 
         const { error: managersError } = await supabase
