@@ -181,6 +181,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   // Manager hamburger menu
   const [showManagerMenu, setShowManagerMenu] = useState(false)
 
+  // Link share menu
+  const [showLinkMenu, setShowLinkMenu] = useState(false)
+
   // Manual borrow modal
   const [showManualBorrowModal, setShowManualBorrowModal] = useState(false)
   const [manualBorrowWheel, setManualBorrowWheel] = useState<Wheel | null>(null)
@@ -325,6 +328,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (showManagerMenu) setShowManagerMenu(false)
+        else if (showLinkMenu) setShowLinkMenu(false)
         else if (openOptionsMenu) setOpenOptionsMenu(null)
         else if (showManualBorrowModal) setShowManualBorrowModal(false)
         else if (showEditWheelModal) setShowEditWheelModal(false)
@@ -341,17 +345,18 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog, openOptionsMenu, showManualBorrowModal, showManagerMenu])
+  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog, openOptionsMenu, showManualBorrowModal, showManagerMenu, showLinkMenu])
 
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       if (openOptionsMenu) setOpenOptionsMenu(null)
       if (showManagerMenu) setShowManagerMenu(false)
+      if (showLinkMenu) setShowLinkMenu(false)
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [openOptionsMenu, showManagerMenu])
+  }, [openOptionsMenu, showManagerMenu, showLinkMenu])
 
   const fetchBorrows = async () => {
     setBorrowsLoading(true)
@@ -1466,6 +1471,16 @@ ${formUrl}`
                       </button>
                     )}
 
+                    <button
+                      style={styles.menuItem}
+                      onClick={() => {
+                        setPasswordForm({ current: '', new: '', confirm: '' })
+                        setShowChangePasswordModal(true)
+                        setShowManagerMenu(false)
+                      }}
+                    >
+                      🔑 שינוי סיסמא
+                    </button>
                     <a
                       href="/guide?tab=manager"
                       style={{ ...styles.menuItem, textDecoration: 'none' }}
@@ -1490,8 +1505,55 @@ ${formUrl}`
               <button style={styles.managerBtn} className="station-login-btn" onClick={() => setShowLoginModal(true)}>🔐 כניסת מנהל</button>
             )}
 
-            {/* Left side - Back button */}
-            <Link href="/" style={styles.backBtnStyled} title="חזרה לרשימה">↩️</Link>
+            {/* Left side - Back button and Link share */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* Share link button - only for managers */}
+              {isManager && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    style={styles.linkShareBtn}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowLinkMenu(!showLinkMenu)
+                    }}
+                    title="שתף קישור לטופס"
+                  >
+                    🔗
+                  </button>
+                  {showLinkMenu && (
+                    <div style={styles.linkShareDropdown} onClick={e => e.stopPropagation()}>
+                      <div style={styles.linkShareHeader}>
+                        <span style={styles.linkShareTitle}>📋 קישור לטופס השאלה</span>
+                      </div>
+                      <button
+                        style={styles.linkShareItem}
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/sign/${stationId}`)
+                          toast.success('הקישור הועתק!')
+                          setShowLinkMenu(false)
+                        }}
+                      >
+                        <span style={styles.linkShareIcon}>📋</span>
+                        העתק קישור
+                      </button>
+                      <button
+                        style={styles.linkShareItem}
+                        onClick={() => {
+                          const signFormUrl = `${window.location.origin}/sign/${stationId}`
+                          const message = `שלום, להשאלת גלגל נא למלא את הטופס הבא:\n${signFormUrl}`
+                          window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+                          setShowLinkMenu(false)
+                        }}
+                      >
+                        <span style={styles.linkShareIcon}>💬</span>
+                        שלח בוואטסאפ
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              <Link href="/" style={styles.backBtnStyled} title="חזרה לרשימה">↩️</Link>
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
             <h1 style={{ ...styles.title, margin: 0, textAlign: 'right' }} className="station-header-title">
@@ -1884,31 +1946,6 @@ ${formUrl}`
             </div>
           )}
 
-          {/* WhatsApp Link for new borrowers */}
-          <div style={styles.whatsappLinkBox}>
-            <h4 style={styles.whatsappLinkTitle}>🔗 קישור לטופס השאלת גלגל</h4>
-            <div style={{display: 'flex', gap: '8px', marginTop: '8px'}}>
-              <button
-                style={styles.copyBtn}
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/sign/${stationId}`)
-                  toast.success('הקישור הועתק!')
-                }}
-              >
-                📋 העתק קישור
-              </button>
-              <button
-                style={styles.copyBtn}
-                onClick={() => {
-                  const signFormUrl = `${window.location.origin}/sign/${stationId}`
-                  const message = `שלום, להשאלת גלגל נא למלא את הטופס הבא:\n${signFormUrl}`
-                  window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
-                }}
-              >
-                📲 וואטסאפ
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -3399,60 +3436,69 @@ ${formUrl}`
               </button>
             </div>
 
-            {/* Section: Email Notifications */}
-            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📧 התראות מייל לטפסים חתומים</h4>
-              <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
-                עותק מכל טופס השאלה חתום יישלח לכתובות המייל הבאות (עד 2 כתובות)
-              </p>
-              {notificationEmails.map((email, index) => (
-                <div key={index} style={{marginBottom: '8px'}}>
-                  <input
-                    type="email"
-                    placeholder={`כתובת מייל ${index + 1}`}
-                    value={email}
-                    onChange={e => {
-                      const newEmails = [...notificationEmails]
-                      newEmails[index] = e.target.value
-                      setNotificationEmails(newEmails)
-                    }}
-                    style={{...styles.input, width: '100%'}}
-                    dir="ltr"
-                  />
-                </div>
-              ))}
-              <button
-                style={{...styles.smallBtn, background: '#10b981', marginTop: '8px'}}
-                onClick={async () => {
-                  setActionLoading(true)
-                  try {
-                    const validEmails = notificationEmails.filter(e => e.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
-                    const response = await fetch(`/api/wheel-stations/${stationId}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        notification_emails: validEmails,
-                        manager_phone: currentManager?.phone,
-                        current_password: sessionPassword
+            {/* Section: Email Notifications - Only for primary manager */}
+            {currentManager?.is_primary ? (
+              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📧 התראות מייל לטפסים חתומים</h4>
+                <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
+                  עותק מכל טופס השאלה חתום יישלח לכתובות המייל הבאות (עד 2 כתובות)
+                </p>
+                {notificationEmails.map((email, index) => (
+                  <div key={index} style={{marginBottom: '8px'}}>
+                    <input
+                      type="email"
+                      placeholder={`כתובת מייל ${index + 1}`}
+                      value={email}
+                      onChange={e => {
+                        const newEmails = [...notificationEmails]
+                        newEmails[index] = e.target.value
+                        setNotificationEmails(newEmails)
+                      }}
+                      style={{...styles.input, width: '100%'}}
+                      dir="ltr"
+                    />
+                  </div>
+                ))}
+                <button
+                  style={{...styles.smallBtn, background: '#10b981', marginTop: '8px'}}
+                  onClick={async () => {
+                    setActionLoading(true)
+                    try {
+                      const validEmails = notificationEmails.filter(e => e.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
+                      const response = await fetch(`/api/wheel-stations/${stationId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          notification_emails: validEmails,
+                          manager_phone: currentManager?.phone,
+                          current_password: sessionPassword
+                        })
                       })
-                    })
-                    if (!response.ok) {
-                      const data = await response.json()
-                      throw new Error(data.error || 'Failed to update')
+                      if (!response.ok) {
+                        const data = await response.json()
+                        throw new Error(data.error || 'Failed to update')
+                      }
+                      await fetchStation()
+                      toast.success('הגדרות המייל עודכנו!')
+                    } catch (err: unknown) {
+                      toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון')
+                    } finally {
+                      setActionLoading(false)
                     }
-                    await fetchStation()
-                    toast.success('הגדרות המייל עודכנו!')
-                  } catch (err: unknown) {
-                    toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון')
-                  } finally {
-                    setActionLoading(false)
-                  }
-                }}
-                disabled={actionLoading}
-              >
-                {actionLoading ? 'שומר...' : 'שמור הגדרות מייל'}
-              </button>
-            </div>
+                  }}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'שומר...' : 'שמור הגדרות מייל'}
+                </button>
+              </div>
+            ) : (
+              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', opacity: 0.6}}>
+                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>📧 התראות מייל</h4>
+                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
+                  🔒 רק מנהל ראשי יכול לערוך כתובות מייל
+                </p>
+              </div>
+            )}
 
             {/* Section: Contacts - Only for primary manager */}
             {currentManager?.is_primary ? (
@@ -3495,22 +3541,63 @@ ${formUrl}`
               </div>
             )}
 
-            {/* Section: Password - Any manager can change their own password */}
-            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>🔑 שינוי סיסמא אישית</h4>
-              <p style={{fontSize: '0.85rem', color: '#a0aec0', margin: '0 0 12px'}}>שנה את הסיסמא האישית שלך</p>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>סיסמה נוכחית</label>
+            <button style={{...styles.cancelBtn, width: '100%'}} onClick={() => setShowEditDetailsModal(false)}>סגור</button>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showChangePasswordModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowChangePasswordModal(false)}>
+          <div style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>🔑 שינוי סיסמא אישית</h3>
+            <p style={{fontSize: '0.9rem', color: '#9ca3af', marginBottom: '20px', textAlign: 'center'}}>
+              שנה את הסיסמא האישית שלך
+            </p>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>סיסמה נוכחית</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  value={passwordForm.current}
+                  onChange={e => setPasswordForm({...passwordForm, current: e.target.value})}
+                  style={{...styles.input, paddingLeft: '40px'}}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  style={{
+                    position: 'absolute',
+                    left: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    fontSize: '16px',
+                    opacity: 0.7,
+                  }}
+                >
+                  {showCurrentPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
+
+            <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+              <div style={{...styles.formGroup, flex: 1, minWidth: '120px'}}>
+                <label style={styles.label}>סיסמה חדשה</label>
                 <div style={{ position: 'relative' }}>
                   <input
-                    type={showCurrentPassword ? 'text' : 'password'}
-                    value={passwordForm.current}
-                    onChange={e => setPasswordForm({...passwordForm, current: e.target.value})}
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={passwordForm.new}
+                    onChange={e => setPasswordForm({...passwordForm, new: e.target.value})}
                     style={{...styles.input, paddingLeft: '40px'}}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    onClick={() => setShowNewPassword(!showNewPassword)}
                     style={{
                       position: 'absolute',
                       left: '10px',
@@ -3524,76 +3611,56 @@ ${formUrl}`
                       opacity: 0.7,
                     }}
                   >
-                    {showCurrentPassword ? '🙈' : '👁️'}
+                    {showNewPassword ? '🙈' : '👁️'}
                   </button>
                 </div>
               </div>
-              <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
-                <div style={{...styles.formGroup, flex: 1, minWidth: '120px'}}>
-                  <label style={styles.label}>סיסמה חדשה</label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showNewPassword ? 'text' : 'password'}
-                      value={passwordForm.new}
-                      onChange={e => setPasswordForm({...passwordForm, new: e.target.value})}
-                      style={{...styles.input, paddingLeft: '40px'}}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      style={{
-                        position: 'absolute',
-                        left: '10px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        fontSize: '16px',
-                        opacity: 0.7,
-                      }}
-                    >
-                      {showNewPassword ? '🙈' : '👁️'}
-                    </button>
-                  </div>
-                </div>
-                <div style={{...styles.formGroup, flex: 1, minWidth: '120px'}}>
-                  <label style={styles.label}>אימות</label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={passwordForm.confirm}
-                      onChange={e => setPasswordForm({...passwordForm, confirm: e.target.value})}
-                      style={{...styles.input, paddingLeft: '40px'}}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      style={{
-                        position: 'absolute',
-                        left: '10px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        fontSize: '16px',
-                        opacity: 0.7,
-                      }}
-                    >
-                      {showConfirmPassword ? '🙈' : '👁️'}
-                    </button>
-                  </div>
+              <div style={{...styles.formGroup, flex: 1, minWidth: '120px'}}>
+                <label style={styles.label}>אימות סיסמה</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={passwordForm.confirm}
+                    onChange={e => setPasswordForm({...passwordForm, confirm: e.target.value})}
+                    style={{...styles.input, paddingLeft: '40px'}}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: 'absolute',
+                      left: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      fontSize: '16px',
+                      opacity: 0.7,
+                    }}
+                  >
+                    {showConfirmPassword ? '🙈' : '👁️'}
+                  </button>
                 </div>
               </div>
-              <button style={{...styles.smallBtn, background: '#f59e0b', color: '#000'}} onClick={handleChangePassword} disabled={actionLoading}>
-                {actionLoading ? 'שומר...' : 'שנה סיסמה'}
-              </button>
             </div>
 
-            <button style={{...styles.cancelBtn, width: '100%'}} onClick={() => setShowEditDetailsModal(false)}>סגור</button>
+            <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
+              <button
+                style={{...styles.submitBtn, flex: 1, background: 'linear-gradient(135deg, #f59e0b, #d97706)'}}
+                onClick={handleChangePassword}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'שומר...' : 'שנה סיסמה'}
+              </button>
+              <button
+                style={{...styles.cancelBtn, flex: 1}}
+                onClick={() => setShowChangePasswordModal(false)}
+              >
+                ביטול
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -3813,6 +3880,60 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     transition: 'all 0.2s',
+  },
+  linkShareBtn: {
+    background: 'linear-gradient(135deg, #10b981, #059669)',
+    border: 'none',
+    borderRadius: '10px',
+    width: '40px',
+    height: '40px',
+    fontSize: '1.3rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+    transition: 'all 0.2s',
+  },
+  linkShareDropdown: {
+    position: 'absolute' as const,
+    top: '48px',
+    left: '0',
+    background: 'linear-gradient(145deg, #1e293b, #0f172a)',
+    border: '1px solid #334155',
+    borderRadius: '12px',
+    minWidth: '200px',
+    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+    zIndex: 1000,
+    overflow: 'hidden',
+  },
+  linkShareHeader: {
+    padding: '12px 16px',
+    borderBottom: '1px solid #334155',
+    background: 'rgba(16, 185, 129, 0.1)',
+  },
+  linkShareTitle: {
+    color: '#10b981',
+    fontSize: '0.85rem',
+    fontWeight: '600',
+  },
+  linkShareItem: {
+    width: '100%',
+    padding: '12px 16px',
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid #1e293b',
+    color: 'white',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    textAlign: 'right' as const,
+    transition: 'background 0.2s',
+  },
+  linkShareIcon: {
+    fontSize: '1.1rem',
   },
   managerBtn: {
     background: 'linear-gradient(135deg, #f59e0b, #d97706)',
