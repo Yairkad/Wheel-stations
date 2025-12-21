@@ -1682,11 +1682,11 @@ ${formUrl}`
               <table style={styles.trackingTable}>
                 <thead>
                   <tr>
-                    <th style={styles.trackingTh}>פונה</th>
-                    <th style={styles.trackingTh}>גלגל</th>
-                    <th style={styles.trackingTh}>פיקדון</th>
-                    <th style={styles.trackingTh}>סטטוס</th>
-                    <th style={styles.trackingTh}>פעולות</th>
+                    <th style={{...styles.trackingTh, width: '25%'}}>פונה</th>
+                    <th style={{...styles.trackingTh, width: '20%'}}>גלגל</th>
+                    <th style={{...styles.trackingTh, width: '15%'}}>פיקדון</th>
+                    <th style={{...styles.trackingTh, width: '20%'}}>סטטוס</th>
+                    <th style={{...styles.trackingTh, width: '20%'}}>פעולות</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1738,55 +1738,57 @@ ${formUrl}`
                           )}
                         </td>
                         <td style={styles.trackingTd}>
-                          {borrow.status === 'pending' && (
-                            <div style={styles.actionButtons}>
-                              <button
-                                style={styles.approveBtn}
-                                onClick={() => handleBorrowAction(borrow.id, 'approve')}
-                                disabled={approvalLoading === borrow.id}
+                          <div style={styles.actionButtons}>
+                            {borrow.status === 'pending' && (
+                              <>
+                                <button
+                                  style={styles.approveBtn}
+                                  onClick={() => handleBorrowAction(borrow.id, 'approve')}
+                                  disabled={approvalLoading === borrow.id}
+                                >
+                                  {approvalLoading === borrow.id ? '...' : '✅ אשר'}
+                                </button>
+                                <button
+                                  style={styles.rejectBtn}
+                                  onClick={() => handleBorrowAction(borrow.id, 'reject')}
+                                  disabled={approvalLoading === borrow.id}
+                                >
+                                  ❌
+                                </button>
+                              </>
+                            )}
+                            {borrow.status === 'borrowed' && !borrow.is_signed && (
+                              <a
+                                href={generateWhatsAppLink(borrow.borrower_name, borrow.borrower_phone)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={styles.whatsappBtn}
                               >
-                                {approvalLoading === borrow.id ? '...' : '✅ אשר'}
-                              </button>
+                                📱 שלח טופס
+                              </a>
+                            )}
+                            {borrow.status === 'borrowed' && (
                               <button
-                                style={styles.rejectBtn}
-                                onClick={() => handleBorrowAction(borrow.id, 'reject')}
-                                disabled={approvalLoading === borrow.id}
+                                style={styles.returnBtnSmall}
+                                onClick={() => {
+                                  const wheel = station?.wheels.find(w => w.id === borrow.wheel_id)
+                                  if (wheel) handleReturn(wheel)
+                                }}
                               >
-                                ❌
+                                🔙 החזר
                               </button>
-                            </div>
-                          )}
-                          {borrow.status === 'borrowed' && !borrow.is_signed && (
-                            <a
-                              href={generateWhatsAppLink(borrow.borrower_name, borrow.borrower_phone)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={styles.whatsappBtn}
-                            >
-                              📱 שלח טופס
-                            </a>
-                          )}
-                          {borrow.status === 'borrowed' && (
-                            <button
-                              style={styles.returnBtnSmall}
-                              onClick={() => {
-                                const wheel = station?.wheels.find(w => w.id === borrow.wheel_id)
-                                if (wheel) handleReturn(wheel)
-                              }}
-                            >
-                              🔙 החזר
-                            </button>
-                          )}
-                          {borrow.form_id && (
-                            <a
-                              href={`/forms/${borrow.form_id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={styles.viewFormBtn}
-                            >
-                              📄 צפה בטופס
-                            </a>
-                          )}
+                            )}
+                            {borrow.form_id && (
+                              <a
+                                href={`/forms/${borrow.form_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={styles.viewFormBtn}
+                              >
+                                📄 צפה בטופס
+                              </a>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )
@@ -4911,6 +4913,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     borderCollapse: 'collapse',
     minWidth: '500px',
+    tableLayout: 'fixed' as const,
   },
   trackingTh: {
     background: '#4b5563',
@@ -5066,6 +5069,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   actionButtons: {
     display: 'flex',
     gap: '6px',
+    flexWrap: 'wrap' as const,
   },
   approveBtn: {
     padding: '6px 12px',
