@@ -1181,7 +1181,7 @@ export default function WheelStationsPage() {
                 ) : (
                   <div style={styles.resultsList}>
                     <div style={styles.resultsHeader}>
-                      נמצאו {searchResults.reduce((acc, r) => acc + r.totalCount, 0)} גלגלים ב-{searchResults.length} תחנות
+                      נמצאו {searchResults.reduce((acc, r) => acc + (r.totalCount || 0), 0)} גלגלים ב-{searchResults.length} תחנות
                     </div>
 
                     {searchResults.map(result => (
@@ -1425,7 +1425,7 @@ export default function WheelStationsPage() {
                   inputMode="numeric"
                   value={modelSearchYear}
                   onChange={e => setModelSearchYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  onKeyDown={e => e.key === 'Enter' && handleModelSearch()}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleModelSearch(); } }}
                   placeholder="שנה - לדוגמה: 2020"
                   style={styles.vehicleInput}
                 />
