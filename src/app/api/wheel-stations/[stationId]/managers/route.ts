@@ -24,14 +24,14 @@ interface Manager {
   is_primary?: boolean
 }
 
-// Helper to verify station manager access (by phone and password)
+// Helper to verify station manager access (by phone and personal password)
 async function verifyStationManager(stationId: string, phone: string, password: string): Promise<{ success: boolean; isPrimary?: boolean; error?: string }> {
-  // Get station with password and managers
+  // Get station with managers including their personal passwords
   const { data: station, error } = await supabase
     .from('wheel_stations')
     .select(`
-      manager_password,
-      wheel_station_managers (phone, is_primary)
+      id,
+      wheel_station_managers (id, phone, password, is_primary)
     `)
     .eq('id', stationId)
     .single()
@@ -40,19 +40,19 @@ async function verifyStationManager(stationId: string, phone: string, password: 
     return { success: false, error: 'Station not found' }
   }
 
-  // Check password
-  if (station.manager_password !== password) {
-    return { success: false, error: 'סיסמא שגויה' }
-  }
-
-  // Check if phone is in managers list and if primary
+  // Find manager by phone
   const cleanPhone = phone.replace(/\D/g, '')
-  const manager = station.wheel_station_managers.find((m: { phone: string; is_primary: boolean }) =>
+  const manager = station.wheel_station_managers.find((m: { id: string; phone: string; password: string; is_primary: boolean }) =>
     m.phone.replace(/\D/g, '') === cleanPhone
   )
 
   if (!manager) {
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
+  }
+
+  // Verify personal password
+  if (manager.password !== password) {
+    return { success: false, error: 'סיסמא שגויה' }
   }
 
   return { success: true, isPrimary: manager.is_primary }

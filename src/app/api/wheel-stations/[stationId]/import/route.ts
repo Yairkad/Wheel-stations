@@ -105,20 +105,20 @@ async function verifyManager(stationId: string, request: NextRequest): Promise<{
   if (authHeader) {
     try {
       const { phone, password } = JSON.parse(authHeader)
+      const cleanPhone = phone.replace(/\D/g, '')
 
-      // Verify manager exists and password is correct
+      // Verify manager exists and personal password is correct
       const { data: managers } = await supabase
         .from('wheel_station_managers')
-        .select('id, wheel_stations(id, manager_password)')
+        .select('id, phone, password')
         .eq('station_id', stationId)
-        .eq('phone', phone)
-        .limit(1)
 
       if (managers && managers.length > 0) {
-        const manager = managers[0]
-        const station = manager.wheel_stations as unknown as { id: string; manager_password: string }
+        const manager = managers.find((m: { phone: string; password: string }) =>
+          m.phone.replace(/\D/g, '') === cleanPhone && m.password === password
+        )
 
-        if (station?.manager_password === password) {
+        if (manager) {
           return { success: true, userId: manager.id }
         }
       }

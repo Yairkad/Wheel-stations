@@ -16,38 +16,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Try to find manager in wheel stations
+    // Try to find manager in wheel stations (using personal password)
+    const cleanPhone = phone.replace(/\D/g, '')
     const { data: wheelManagers, error: wheelError } = await supabase
       .from('wheel_station_managers')
-      .select('*, wheel_stations(id, name, manager_password)')
-      .eq('phone', phone)
-      .limit(1)
+      .select('*, wheel_stations(id, name)')
 
     console.log('Wheel managers search:', { phone, wheelManagers, wheelError })
 
     if (wheelManagers && wheelManagers.length > 0) {
-      const manager = wheelManagers[0]
-      const station = manager.wheel_stations
+      // Find manager by phone
+      const manager = wheelManagers.find((m: { phone: string }) =>
+        m.phone.replace(/\D/g, '') === cleanPhone
+      )
 
-      // Verify password (station manager password)
-      if (station?.manager_password !== password) {
-        return NextResponse.json(
-          { error: 'סיסמה שגויה' },
-          { status: 401 }
-        )
-      }
+      if (manager) {
+        const station = manager.wheel_stations
 
-      return NextResponse.json({
-        success: true,
-        manager: {
-          id: manager.id,
-          full_name: manager.full_name,
-          phone: manager.phone,
-          station_id: station.id,
-          station_name: station.name,
-          type: 'wheel_station'
+        // Verify personal password
+        if (manager.password !== password) {
+          return NextResponse.json(
+            { error: 'סיסמה שגויה' },
+            { status: 401 }
+          )
         }
-      })
+
+        return NextResponse.json({
+          success: true,
+          manager: {
+            id: manager.id,
+            full_name: manager.full_name,
+            phone: manager.phone,
+            station_id: station.id,
+            station_name: station.name,
+            type: 'wheel_station'
+          }
+        })
+      }
     }
 
     // Try to find manager in city managers (equipment cabinets)

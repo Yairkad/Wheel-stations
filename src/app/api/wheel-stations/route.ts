@@ -90,19 +90,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, address, city_id, district, managers, manager_password } = body
+    const { name, address, city_id, district, managers } = body
 
     if (!name) {
       return NextResponse.json({ error: 'Station name is required' }, { status: 400 })
     }
 
-    // Create station with optional password
-    const stationData: { name: string; address?: string; city_id?: string; district?: string; manager_password?: string } = { name, address, city_id }
+    // Create station (personal passwords are now stored per manager, not per station)
+    const stationData: { name: string; address?: string; city_id?: string; district?: string } = { name, address, city_id }
     if (district) {
       stationData.district = district
-    }
-    if (manager_password) {
-      stationData.manager_password = manager_password
     }
 
     const { data: station, error: stationError } = await supabase

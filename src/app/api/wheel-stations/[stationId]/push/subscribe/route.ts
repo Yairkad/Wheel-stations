@@ -34,31 +34,27 @@ export async function POST(
       )
     }
 
-    // Verify manager credentials
-    const { data: station, error: stationError } = await supabase
-      .from('wheel_stations')
-      .select('id, manager_password')
-      .eq('id', stationId)
-      .single()
+    // Verify manager credentials (using personal password)
+    const cleanPhone = manager_phone.replace(/\D/g, '')
+    const { data: manager, error: managerError } = await supabase
+      .from('wheel_station_managers')
+      .select('id, phone, password')
+      .eq('station_id', stationId)
 
-    if (stationError || !station) {
+    if (managerError || !manager || manager.length === 0) {
       return NextResponse.json({ error: 'תחנה לא נמצאה' }, { status: 404 })
     }
 
-    if (station.manager_password !== manager_password) {
-      return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
+    const foundManager = manager.find((m: { phone: string; password: string }) =>
+      m.phone.replace(/\D/g, '') === cleanPhone
+    )
+
+    if (!foundManager) {
+      return NextResponse.json({ error: 'מנהל לא נמצא' }, { status: 404 })
     }
 
-    // Verify manager exists in this station
-    const { data: manager } = await supabase
-      .from('wheel_station_managers')
-      .select('id')
-      .eq('station_id', stationId)
-      .eq('phone', manager_phone)
-      .single()
-
-    if (!manager) {
-      return NextResponse.json({ error: 'מנהל לא נמצא' }, { status: 404 })
+    if (foundManager.password !== manager_password) {
+      return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
     }
 
     // Check if subscription already exists
@@ -144,14 +140,18 @@ export async function DELETE(
       return NextResponse.json({ error: 'חסר endpoint' }, { status: 400 })
     }
 
-    // Verify manager credentials
-    const { data: station } = await supabase
-      .from('wheel_stations')
-      .select('manager_password')
-      .eq('id', stationId)
-      .single()
+    // Verify manager credentials (using personal password)
+    const cleanPhone = manager_phone.replace(/\D/g, '')
+    const { data: managers } = await supabase
+      .from('wheel_station_managers')
+      .select('id, phone, password')
+      .eq('station_id', stationId)
 
-    if (!station || station.manager_password !== manager_password) {
+    const foundManager = managers?.find((m: { phone: string; password: string }) =>
+      m.phone.replace(/\D/g, '') === cleanPhone && m.password === manager_password
+    )
+
+    if (!foundManager) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
     }
 

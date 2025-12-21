@@ -18,14 +18,14 @@ interface RouteParams {
   params: Promise<{ stationId: string }>
 }
 
-// Helper to verify station manager (by phone and password)
+// Helper to verify station manager (by phone and personal password)
 async function verifyStationManager(stationId: string, phone: string, password: string): Promise<{ success: boolean; error?: string }> {
-  // Get station with password and managers
+  // Get station with managers including their personal passwords
   const { data: station, error } = await supabase
     .from('wheel_stations')
     .select(`
-      manager_password,
-      wheel_station_managers (phone)
+      id,
+      wheel_station_managers (id, phone, password)
     `)
     .eq('id', stationId)
     .single()
@@ -34,19 +34,19 @@ async function verifyStationManager(stationId: string, phone: string, password: 
     return { success: false, error: 'Station not found' }
   }
 
-  // Check password
-  if (station.manager_password !== password) {
-    return { success: false, error: 'סיסמא שגויה' }
-  }
-
-  // Check if phone is in managers list
+  // Find manager by phone
   const cleanPhone = phone.replace(/\D/g, '')
-  const isManager = station.wheel_station_managers.some((m: { phone: string }) =>
+  const manager = station.wheel_station_managers.find((m: { id: string; phone: string; password: string }) =>
     m.phone.replace(/\D/g, '') === cleanPhone
   )
 
-  if (!isManager) {
+  if (!manager) {
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
+  }
+
+  // Verify personal password
+  if (manager.password !== password) {
+    return { success: false, error: 'סיסמא שגויה' }
   }
 
   return { success: true }
@@ -66,7 +66,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         city_id,
         district,
         is_active,
-        manager_password,
         deposit_amount,
         payment_methods,
         notification_emails,
@@ -170,7 +169,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { name, address, city_id, district, is_active, managers, manager_password, manager_phone, current_password, deposit_amount, payment_methods, notification_emails } = body
+    const { name, address, city_id, district, is_active, managers, manager_phone, current_password, deposit_amount, payment_methods, notification_emails } = body
 
     // Check if this is a station manager update (has manager_phone and current_password)
     if (manager_phone && current_password) {
@@ -210,13 +209,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     // Build update object
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: { name?: string; address?: string; city_id?: string; district?: string; is_active?: boolean; manager_password?: string; deposit_amount?: number; payment_methods?: any } = {}
+    const updateData: { name?: string; address?: string; city_id?: string; district?: string; is_active?: boolean; deposit_amount?: number; payment_methods?: any } = {}
     if (name !== undefined) updateData.name = name
     if (address !== undefined) updateData.address = address
     if (city_id !== undefined) updateData.city_id = city_id
     if (district !== undefined) updateData.district = district
     if (is_active !== undefined) updateData.is_active = is_active
-    if (manager_password !== undefined) updateData.manager_password = manager_password
     if (deposit_amount !== undefined) updateData.deposit_amount = deposit_amount
     if (payment_methods !== undefined) updateData.payment_methods = payment_methods
 

@@ -16,14 +16,14 @@ interface RouteParams {
   params: Promise<{ stationId: string }>
 }
 
-// Helper to verify station manager (by phone and password)
+// Helper to verify station manager (by phone and personal password)
 async function verifyStationManager(stationId: string, phone: string, password: string): Promise<{ success: boolean; error?: string }> {
-  // Get station with password and managers
+  // Get station with managers including their personal passwords
   const { data: station, error } = await supabase
     .from('wheel_stations')
     .select(`
-      manager_password,
-      wheel_station_managers (phone)
+      id,
+      wheel_station_managers (id, phone, password)
     `)
     .eq('id', stationId)
     .single()
@@ -32,19 +32,19 @@ async function verifyStationManager(stationId: string, phone: string, password: 
     return { success: false, error: 'Station not found' }
   }
 
-  // Check password
-  if (station.manager_password !== password) {
-    return { success: false, error: 'סיסמא שגויה' }
-  }
-
-  // Check if phone is in managers list
+  // Find manager by phone
   const cleanPhone = phone.replace(/\D/g, '')
-  const isManager = station.wheel_station_managers.some((m: { phone: string }) =>
+  const manager = station.wheel_station_managers.find((m: { id: string; phone: string; password: string }) =>
     m.phone.replace(/\D/g, '') === cleanPhone
   )
 
-  if (!isManager) {
+  if (!manager) {
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
+  }
+
+  // Verify personal password
+  if (manager.password !== password) {
+    return { success: false, error: 'סיסמא שגויה' }
   }
 
   return { success: true }
