@@ -650,6 +650,14 @@ ${signFormUrl}
         return
       }
       toast.success('הסיסמא שונתה בהצלחה!')
+      // Update session password and localStorage with new password
+      setSessionPassword(passwordForm.new)
+      const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
+      if (savedSession) {
+        const session = JSON.parse(savedSession)
+        session.password = passwordForm.new
+        localStorage.setItem(`wheel_manager_${stationId}`, JSON.stringify(session))
+      }
       setShowChangePasswordModal(false)
       setPasswordForm({ current: '', new: '', confirm: '' })
     } catch {

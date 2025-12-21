@@ -1754,9 +1754,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px',
     marginTop: '8px',
     alignItems: 'center',
+    width: '100%',
+    overflow: 'hidden',
   },
   managerPasswordInput: {
     flex: 1,
+    minWidth: 0,
     padding: '6px 8px',
     background: '#1e293b',
     border: '1px solid #334155',
@@ -1773,6 +1776,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '0.7rem',
     whiteSpace: 'nowrap' as const,
+    flexShrink: 0,
   },
   btnCrownSm: {
     width: '26px',
