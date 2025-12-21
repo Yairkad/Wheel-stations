@@ -525,6 +525,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       })
       const data = await response.json()
       if (!response.ok) {
+        console.error('Borrow action failed:', { status: response.status, error: data.error, phone: currentManager.phone, passwordLen: sessionPassword?.length })
         toast.error(data.error || 'שגיאה בביצוע הפעולה')
         return
       }
