@@ -35,14 +35,14 @@ export async function GET(request: NextRequest) {
         .or(`year_to.gte.${yearNum},year_to.is.null`)
     }
 
-    const { data, error } = await query.order('make_he', { ascending: true })
+    const { data, error } = await query.order('make', { ascending: true })
 
     if (error) {
       console.error('Supabase error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ models: data || [] })
+    return NextResponse.json({ vehicles: data || [], models: data || [] })
 
   } catch (error: any) {
     console.error('API error:', error)
@@ -72,9 +72,9 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!make || !make_he || !model || !bolt_count || !bolt_spacing) {
+    if (!make || !model || !bolt_count || !bolt_spacing) {
       return NextResponse.json({
-        error: 'Missing required fields: make, make_he, model, bolt_count, bolt_spacing'
+        error: 'Missing required fields: make, model, bolt_count, bolt_spacing'
       }, { status: 400 })
     }
 

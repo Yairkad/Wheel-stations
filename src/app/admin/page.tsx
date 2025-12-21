@@ -652,6 +652,7 @@ export default function WheelsAdminPage() {
               <span style={styles.sectionCount}>{districts.length} מחוזות • {stations.length} תחנות</span>
             </div>
             <div style={styles.sectionButtons} className="section-buttons">
+              <Link href="/admin/vehicles" style={{...styles.btnGhost, textDecoration: 'none', display: 'inline-block'}}>🚗 מאגר רכבים</Link>
               <button style={styles.btnGhost} onClick={() => { resetDistrictForm(); setShowAddDistrict(true) }}>+ מחוז</button>
               <button style={styles.btnPrimary} onClick={() => openAddStationModal()}>+ תחנה</button>
             </div>
