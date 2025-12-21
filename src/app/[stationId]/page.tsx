@@ -526,7 +526,16 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       const data = await response.json()
       if (!response.ok) {
         console.error('Borrow action failed:', { status: response.status, error: data.error, phone: currentManager.phone, passwordLen: sessionPassword?.length })
-        toast.error(data.error || 'שגיאה בביצוע הפעולה')
+        // If password is wrong, force re-login
+        if (data.error === 'סיסמא שגויה') {
+          toast.error('הסיסמה שגויה. נא להתנתק ולהתחבר מחדש')
+          localStorage.removeItem(`wheel_manager_${stationId}`)
+          setIsManager(false)
+          setCurrentManager(null)
+          setSessionPassword('')
+        } else {
+          toast.error(data.error || 'שגיאה בביצוע הפעולה')
+        }
         return
       }
       toast.success(action === 'approve' ? 'הבקשה אושרה!' : 'הבקשה נדחתה')
