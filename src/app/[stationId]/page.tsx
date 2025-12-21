@@ -504,7 +504,14 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
 
   // Approve or reject pending borrow request
   const handleBorrowAction = async (borrowId: string, action: 'approve' | 'reject') => {
-    if (!currentManager) return
+    if (!currentManager) {
+      toast.error('לא מחובר כמנהל')
+      return
+    }
+    if (!sessionPassword) {
+      toast.error('סיסמה לא נמצאה. נא להתנתק ולהתחבר מחדש')
+      return
+    }
     setApprovalLoading(borrowId)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/borrows/${borrowId}`, {
