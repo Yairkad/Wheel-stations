@@ -16,13 +16,13 @@ interface RouteParams {
   params: Promise<{ stationId: string; borrowId: string }>
 }
 
-// Helper to verify station manager
+// Helper to verify station manager (uses personal manager password, not station password)
 async function verifyStationManager(stationId: string, phone: string, password: string): Promise<{ success: boolean; error?: string; managerId?: string }> {
   const { data: station, error } = await supabase
     .from('wheel_stations')
     .select(`
-      manager_password,
-      wheel_station_managers (id, phone)
+      id,
+      wheel_station_managers (id, phone, password)
     `)
     .eq('id', stationId)
     .single()
@@ -32,19 +32,18 @@ async function verifyStationManager(stationId: string, phone: string, password: 
     return { success: false, error: 'Station not found' }
   }
 
-  console.log('Password check:', { received: password?.slice(0, 2) + '***', stored: station.manager_password?.slice(0, 2) + '***', match: station.manager_password === password })
-
-  if (station.manager_password !== password) {
-    return { success: false, error: 'סיסמא שגויה' }
-  }
-
   const cleanPhone = phone.replace(/\D/g, '')
-  const manager = station.wheel_station_managers.find((m: { id: string; phone: string }) =>
+  const manager = station.wheel_station_managers.find((m: { id: string; phone: string; password: string }) =>
     m.phone.replace(/\D/g, '') === cleanPhone
   )
 
   if (!manager) {
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
+  }
+
+  // Verify personal password (each manager has their own password)
+  if (manager.password !== password) {
+    return { success: false, error: 'סיסמא שגויה' }
   }
 
   return { success: true, managerId: manager.id }
