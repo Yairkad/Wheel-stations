@@ -111,6 +111,7 @@ export default function WheelStationsPage() {
   const [modelModelSuggestions, setModelModelSuggestions] = useState<string[]>([])
   const [showModelMakeSuggestions, setShowModelMakeSuggestions] = useState(false)
   const [showModelModelSuggestions, setShowModelModelSuggestions] = useState(false)
+  const [modelSearchErrors, setModelSearchErrors] = useState<{make: boolean, model: boolean, year: boolean}>({make: false, model: false, year: false})
 
   // Add vehicle model modal state
   const [showAddModelModal, setShowAddModelModal] = useState(false)
@@ -331,8 +332,15 @@ export default function WheelStationsPage() {
 
   // Search by make/model/year using wheel-size.com scraper
   const handleModelSearch = async () => {
-    if (!modelSearchMake.trim() || !modelSearchModel.trim() || !modelSearchYear.trim()) {
-      toast.error('נא למלא יצרן, דגם ושנה')
+    const errors = {
+      make: !modelSearchMake.trim(),
+      model: !modelSearchModel.trim(),
+      year: !modelSearchYear.trim()
+    }
+    setModelSearchErrors(errors)
+
+    if (errors.make || errors.model || errors.year) {
+      toast.error('נא למלא יצרן, דגם ושנה', { id: 'model-search-validation' })
       return
     }
 
@@ -1324,11 +1332,12 @@ export default function WheelStationsPage() {
                       setModelSearchMake(e.target.value)
                       fetchModelSearchMakeSuggestions(e.target.value)
                       setShowModelMakeSuggestions(true)
+                      if (modelSearchErrors.make) setModelSearchErrors(prev => ({...prev, make: false}))
                     }}
                     onFocus={() => modelSearchMake.length >= 2 && setShowModelMakeSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowModelMakeSuggestions(false), 200)}
                     placeholder="יצרן - לדוגמה: Toyota או טויוטה"
-                    style={{...styles.vehicleInput, width: '100%', flex: 'none'}}
+                    style={{...styles.vehicleInput, width: '100%', flex: 'none', ...(modelSearchErrors.make && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
                   />
                   {showModelMakeSuggestions && modelMakeSuggestions.length > 0 && (
                     <div style={{
@@ -1377,11 +1386,12 @@ export default function WheelStationsPage() {
                       setModelSearchModel(e.target.value)
                       fetchModelSearchModelSuggestions(modelSearchMake, e.target.value)
                       setShowModelModelSuggestions(true)
+                      if (modelSearchErrors.model) setModelSearchErrors(prev => ({...prev, model: false}))
                     }}
                     onFocus={() => modelSearchModel.length >= 2 && setShowModelModelSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowModelModelSuggestions(false), 200)}
                     placeholder="דגם - לדוגמה: Corolla"
-                    style={{...styles.vehicleInput, width: '100%', flex: 'none'}}
+                    style={{...styles.vehicleInput, width: '100%', flex: 'none', ...(modelSearchErrors.model && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
                   />
                   {showModelModelSuggestions && modelModelSuggestions.length > 0 && (
                     <div style={{
@@ -1424,10 +1434,13 @@ export default function WheelStationsPage() {
                   type="text"
                   inputMode="numeric"
                   value={modelSearchYear}
-                  onChange={e => setModelSearchYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  onChange={e => {
+                    setModelSearchYear(e.target.value.replace(/\D/g, '').slice(0, 4))
+                    if (modelSearchErrors.year) setModelSearchErrors(prev => ({...prev, year: false}))
+                  }}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleModelSearch(); } }}
                   placeholder="שנה - לדוגמה: 2020"
-                  style={styles.vehicleInput}
+                  style={{...styles.vehicleInput, ...(modelSearchErrors.year && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
                 />
                 <button
                   onClick={handleModelSearch}
