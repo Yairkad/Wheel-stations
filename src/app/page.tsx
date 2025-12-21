@@ -1538,8 +1538,8 @@ export default function WheelStationsPage() {
                       {extractRimSize(vehicleResult.vehicle.front_tire) && (
                         <span style={styles.rimBadge}>{extractRimSize(vehicleResult.vehicle.front_tire)}"</span>
                       )}
-                      {/* Manual rim size selector for personal imports */}
-                      {vehicleResult.is_personal_import && !extractRimSize(vehicleResult.vehicle.front_tire) && (
+                      {/* Manual rim size selector when no tire info available */}
+                      {!extractRimSize(vehicleResult.vehicle.front_tire) && (
                         <select
                           value={manualRimSize || ''}
                           onChange={(e) => setManualRimSize(e.target.value ? parseInt(e.target.value) : null)}
@@ -1560,7 +1560,7 @@ export default function WheelStationsPage() {
                           ))}
                         </select>
                       )}
-                      {manualRimSize && vehicleResult.is_personal_import && (
+                      {manualRimSize && !extractRimSize(vehicleResult.vehicle.front_tire) && (
                         <span style={styles.rimBadge}>{manualRimSize}"</span>
                       )}
                     </div>
@@ -1570,17 +1570,17 @@ export default function WheelStationsPage() {
                       const vehicleRimSize = extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize
                       const isPersonalImport = vehicleResult.is_personal_import
 
-                      // For personal imports without tire info, show all available wheels with matching PCD
-                      // For regular vehicles, filter by rim size (exact or one size smaller)
+                      // If no rim size available (no tire info and no manual selection), show all wheels
+                      // Otherwise, filter by rim size (exact or one size smaller)
                       const filteredResults = vehicleSearchResults?.map(result => ({
                         ...result,
                         wheels: result.wheels.filter(w => {
                           if (!w.is_available) return false
-                          // For personal imports without tire size and no manual selection, show all available wheels
-                          if (isPersonalImport && !vehicleRimSize) return true
+                          // No rim size available - show all available wheels with matching PCD
+                          if (!vehicleRimSize) return true
                           // Filter by size (exact or one size smaller)
                           const wheelSize = parseInt(w.rim_size)
-                          return vehicleRimSize && (wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1)
+                          return wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1
                         })
                       })).filter(result => result.wheels.length > 0) || []
 
@@ -1595,22 +1595,19 @@ export default function WheelStationsPage() {
                             <div style={styles.vehicleResultsHeader}>
                               ✅ נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים
                             </div>
-                            {isPersonalImport && !vehicleRimSize && (
+                            {/* No rim size available - show selector hint */}
+                            {!vehicleRimSize && (
                               <div style={{...styles.vehicleResultsNote, background: '#dbeafe', color: '#1e40af', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px'}}>
-                                ℹ️ בחר קוטר ג&apos;אנט לסינון התוצאות, או בדוק מידת גלגל מקורית לפני השאלה
+                                ℹ️ בחר קוטר ג&apos;אנט לסינון התוצאות{isPersonalImport ? ', או בדוק מידת גלגל מקורית לפני השאלה' : ''}
                               </div>
                             )}
-                            {isPersonalImport && vehicleRimSize && hasExactSize && (
+                            {/* Has rim size (from tire or manual selection) */}
+                            {vehicleRimSize && hasExactSize && (
                               <div style={styles.vehicleResultsNote}>
-                                מציג גלגלים בגודל {vehicleRimSize}"
+                                {manualRimSize ? 'מציג' : 'לרכב שלך מתאים'} גודל {vehicleRimSize}"
                               </div>
                             )}
-                            {!isPersonalImport && hasExactSize && (
-                              <div style={styles.vehicleResultsNote}>
-                                לרכב שלך מתאים גודל {vehicleRimSize}"
-                              </div>
-                            )}
-                            {!isPersonalImport && !hasExactSize && hasSmallerSize && (
+                            {vehicleRimSize && !hasExactSize && hasSmallerSize && (
                               <div style={{...styles.vehicleResultsNote, background: '#fef3c7', color: '#92400e', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px'}}>
                                 ⚠️ לא נמצאו גלגלים בגודל {vehicleRimSize}" - מוצגים גלגלים בגודל {(vehicleRimSize || 0) - 1}" (מידה קטנה יותר)
                               </div>
@@ -1652,10 +1649,10 @@ export default function WheelStationsPage() {
                           </div>
                         )
                       } else if (vehicleSearchResults && vehicleSearchResults.length > 0) {
-                        // Has results but all are larger sizes (only relevant for regular vehicles)
+                        // Has results but all are larger sizes
                         return (
                           <div style={styles.noVehicleResults}>
-                            {isPersonalImport && !vehicleRimSize
+                            {!vehicleRimSize
                               ? '😕 לא נמצאו גלגלים עם PCD מתאים במלאי'
                               : `😕 לא נמצאו גלגלים בגודל ${vehicleRimSize}" או קטן יותר במלאי`
                             }
