@@ -1,0 +1,21 @@
+{
+  "name": "ניהול תחנות גלגלים",
+  "short_name": "ניהול",
+  "description": "ממשק ניהול תחנות השאלת גלגלים",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "he",
+  "icons": [
+    {
+      "src": "/logo.wheels.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
