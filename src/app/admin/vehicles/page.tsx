@@ -789,6 +789,212 @@ export default function VehiclesAdminPage() {
     }
   }
 
+  // Auto-fill Hebrew names for existing models
+  const [autoFillLoading, setAutoFillLoading] = useState(false)
+
+  const handleAutoFillHebrewNames = async () => {
+    // Get models that are missing Hebrew names
+    const modelsToUpdate = vehicles.filter(v => !v.model_he && v.model)
+
+    if (modelsToUpdate.length === 0) {
+      toast.success('כל הדגמים כבר מעודכנים!')
+      return
+    }
+
+    setAutoFillLoading(true)
+    let updated = 0
+    let failed = 0
+
+    for (const vehicle of modelsToUpdate) {
+      // Try to find Hebrew name from our mapping
+      const modelHe = getHebrewModelName(vehicle.model)
+
+      if (modelHe) {
+        try {
+          const response = await fetch(`/api/vehicle-models/${vehicle.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model_he: modelHe })
+          })
+
+          if (response.ok) {
+            updated++
+          } else {
+            failed++
+          }
+        } catch {
+          failed++
+        }
+      }
+    }
+
+    setAutoFillLoading(false)
+    fetchVehicles()
+
+    if (updated > 0) {
+      toast.success(`עודכנו ${updated} דגמים בהצלחה!`)
+    }
+    if (failed > 0) {
+      toast.error(`${failed} דגמים נכשלו בעדכון`)
+    }
+    if (updated === 0 && failed === 0) {
+      toast.success('לא נמצאו דגמים לעדכון')
+    }
+  }
+
+  // Get Hebrew model name from English
+  const getHebrewModelName = (englishModel: string): string => {
+    const modelMapReverse: { [key: string]: string } = {
+      // Toyota
+      'corolla': 'קורולה',
+      'yaris': 'יאריס',
+      'camry': 'קאמרי',
+      'rav4': 'ראב4',
+      'land cruiser': 'לנד קרוזר',
+      'hilux': 'היילקס',
+      'auris': 'אוריס',
+      'prius': 'פריוס',
+      'aygo': 'אייגו',
+      'c-hr': 'סי-אייצר',
+      'highlander': 'היילנדר',
+      'avensis': 'אבנסיס',
+      // Hyundai
+      'elantra': 'אלנטרה',
+      'tucson': 'טוסון',
+      'santa fe': 'סנטה פה',
+      'kona': 'קונה',
+      'ioniq': 'איוניק',
+      'accent': 'אקסנט',
+      'getz': 'גטס',
+      'sonata': 'סונטה',
+      // Kia
+      'picanto': 'פיקנטו',
+      'rio': 'ריו',
+      'ceed': 'סיד',
+      'sorento': 'סורנטו',
+      'sportage': "ספורטאז'",
+      'niro': 'נירו',
+      'stonic': 'סטוניק',
+      'optima': 'אופטימה',
+      'carnival': 'קרניבל',
+      'soul': 'סול',
+      // Mazda
+      'mazda2': 'מאזדה 2',
+      'mazda3': 'מאזדה 3',
+      'mazda6': 'מאזדה 6',
+      // Honda
+      'civic': 'סיוויק',
+      'jazz': "ג'אז",
+      'accord': 'אקורד',
+      // Nissan
+      'micra': 'מיקרה',
+      'juke': "ג'וק",
+      'qashqai': 'קשקאי',
+      'x-trail': 'אקס-טרייל',
+      'leaf': 'ליף',
+      'sentra': 'סנטרה',
+      'navara': 'נבארה',
+      // Suzuki
+      'swift': 'סוויפט',
+      'baleno': 'בלנו',
+      'vitara': 'ויטרה',
+      'ignis': 'איגניס',
+      'jimny': "ג'ימני",
+      // Volkswagen
+      'golf': 'גולף',
+      'polo': 'פולו',
+      'passat': 'פאסאט',
+      'tiguan': 'טיגואן',
+      't-roc': 'טי-רוק',
+      'jetta': "ג'טה",
+      'up': 'אפ',
+      'touran': 'טוראן',
+      'caddy': 'קאדי',
+      'transporter': 'טרנספורטר',
+      // Skoda
+      'fabia': 'פאביה',
+      'octavia': 'אוקטביה',
+      'superb': 'סופרב',
+      'karoq': 'קארוק',
+      'kodiaq': 'קודיאק',
+      'scala': 'סקאלה',
+      'kamiq': 'קאמיק',
+      // Seat
+      'ibiza': 'איביזה',
+      'leon': 'לאון',
+      'arona': 'ארונה',
+      'ateca': 'אטקה',
+      // BMW
+      '1 series': 'סדרה 1',
+      '2 series': 'סדרה 2',
+      '3 series': 'סדרה 3',
+      '4 series': 'סדרה 4',
+      '5 series': 'סדרה 5',
+      // Mercedes
+      'a-class': 'A קלאס',
+      'b-class': 'B קלאס',
+      'c-class': 'C קלאס',
+      'e-class': 'E קלאס',
+      'vito': 'ויטו',
+      'sprinter': 'ספרינטר',
+      // Peugeot
+      'partner': 'פרטנר',
+      // Citroen
+      'berlingo': 'ברלינגו',
+      // Renault
+      'clio': 'קליאו',
+      'megane': 'מגאן',
+      'captur': "קפצ'ור",
+      'kadjar': "קדג'אר",
+      'scenic': 'סניק',
+      'kangoo': 'קנגו',
+      'zoe': 'זואי',
+      // Fiat
+      'panda': 'פנדה',
+      'punto': 'פונטו',
+      'tipo': 'טיפו',
+      // Opel
+      'corsa': 'קורסה',
+      'astra': 'אסטרה',
+      'insignia': 'אינסיגניה',
+      'mokka': 'מוקה',
+      'crossland': 'קרוסלנד',
+      'grandland': 'גרנדלנד',
+      // Subaru
+      'impreza': 'אימפרזה',
+      'forester': 'פורסטר',
+      'outback': 'אאוטבק',
+      'legacy': 'לגאסי',
+      // Mitsubishi
+      'lancer': 'לנסר',
+      'outlander': 'אאוטלנדר',
+      'pajero': "פאג'רו",
+      // Ford
+      'fiesta': 'פיאסטה',
+      'focus': 'פוקוס',
+      'puma': 'פומה',
+      'kuga': 'קוגה',
+      'transit': 'טרנזיט',
+      // Chevrolet
+      'spark': 'ספארק',
+      'aveo': 'אוואו',
+      'cruze': 'קרוז',
+      // Dacia
+      'sandero': 'סנדרו',
+      'duster': 'דאסטר',
+      'logan': "לוג'אן",
+      // Jeep
+      'wrangler': 'רנגלר',
+      'compass': 'קומפאס',
+      'renegade': 'רנגייד',
+      'cherokee': "צ'רוקי",
+      'grand cherokee': "גרנד צ'רוקי",
+    }
+
+    const modelLower = englishModel.toLowerCase()
+    return modelMapReverse[modelLower] || ''
+  }
+
   // Apply column filter to a value
   const applyColumnFilter = (value: any, filter: { type: string; value: string }): boolean => {
     if (!filter.type) return true
@@ -951,6 +1157,13 @@ export default function VehiclesAdminPage() {
           </button>
           <button style={styles.btnSecondary} onClick={() => setShowAddModal(true)}>
             ➕ הוספה ידנית
+          </button>
+          <button
+            style={styles.btnAutoFill}
+            onClick={handleAutoFillHebrewNames}
+            disabled={autoFillLoading}
+          >
+            {autoFillLoading ? '⏳ מעדכן...' : '🔤 השלם שמות עבריים'}
           </button>
         </div>
 
@@ -1937,6 +2150,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#334155',
     color: 'white',
     border: '1px solid #475569',
+    padding: '12px 24px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '0.95rem',
+  },
+  btnAutoFill: {
+    background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+    color: 'white',
+    border: 'none',
     padding: '12px 24px',
     borderRadius: '10px',
     cursor: 'pointer',

@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// PUT - Update a vehicle model
+// PUT - Update a vehicle model (only updates provided fields)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -14,35 +14,24 @@ export async function PUT(
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
     const body = await request.json()
 
-    const {
-      make,
-      make_he,
-      model,
-      model_he,
-      year_from,
-      year_to,
-      bolt_count,
-      bolt_spacing,
-      center_bore,
-      rim_size,
-      tire_size_front
-    } = body
+    // Build update object with only provided fields
+    const updateData: Record<string, any> = {}
+
+    if (body.make !== undefined) updateData.make = body.make?.trim().toLowerCase()
+    if (body.make_he !== undefined) updateData.make_he = body.make_he?.trim() || null
+    if (body.model !== undefined) updateData.model = body.model?.trim().toLowerCase()
+    if (body.model_he !== undefined) updateData.model_he = body.model_he?.trim() || null
+    if (body.year_from !== undefined) updateData.year_from = body.year_from || null
+    if (body.year_to !== undefined) updateData.year_to = body.year_to || null
+    if (body.bolt_count !== undefined) updateData.bolt_count = body.bolt_count
+    if (body.bolt_spacing !== undefined) updateData.bolt_spacing = body.bolt_spacing
+    if (body.center_bore !== undefined) updateData.center_bore = body.center_bore || null
+    if (body.rim_size !== undefined) updateData.rim_size = body.rim_size?.trim() || null
+    if (body.tire_size_front !== undefined) updateData.tire_size_front = body.tire_size_front?.trim() || null
 
     const { data, error } = await supabase
       .from('vehicle_models')
-      .update({
-        make: make?.trim().toLowerCase(),
-        make_he: make_he?.trim() || null,
-        model: model?.trim().toLowerCase(),
-        model_he: model_he?.trim() || null,
-        year_from: year_from || null,
-        year_to: year_to || null,
-        bolt_count: bolt_count,
-        bolt_spacing: bolt_spacing,
-        center_bore: center_bore || null,
-        rim_size: rim_size?.trim() || null,
-        tire_size_front: tire_size_front?.trim() || null
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
 
