@@ -612,7 +612,7 @@ export default function VehiclesAdminPage() {
 
       if (data.success && data.data) {
         setScrapeResult(data.data)
-        toast.success('המידע נמצא בהצלחה!')
+        // Don't show toast here - result is visible on screen
       } else {
         throw new Error('לא נמצא מידע')
       }
@@ -835,13 +835,14 @@ export default function VehiclesAdminPage() {
 
   // Filter vehicles
   const filteredVehicles = vehicles.filter(v => {
-    // Search query filter
+    // Search query filter - supports Hebrew and English for both make and model
     if (searchQuery) {
       const q = searchQuery.toLowerCase()
       const matchesSearch = (
         v.make.toLowerCase().includes(q) ||
         v.make_he?.toLowerCase().includes(q) ||
-        v.model.toLowerCase().includes(q)
+        v.model.toLowerCase().includes(q) ||
+        v.model_he?.toLowerCase().includes(q)
       )
       if (!matchesSearch) return false
     }
