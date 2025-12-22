@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
       query = query.or(`make.ilike.%${make}%,make_he.ilike.%${make}%`)
     }
 
-    // Filter by model (case insensitive)
+    // Filter by model (case insensitive) - search both English and Hebrew
     if (model) {
-      query = query.ilike('model', `%${model}%`)
+      query = query.or(`model.ilike.%${model}%,model_he.ilike.%${model}%`)
     }
 
     // Filter by year range

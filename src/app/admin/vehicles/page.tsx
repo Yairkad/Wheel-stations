@@ -306,17 +306,21 @@ export default function VehiclesAdminPage() {
       const makeHebrew = data.vehicle.manufacturer || ''
       const makeEnglish = extractMakeFromHebrew(makeHebrew)
 
+      // Extract model from Hebrew model name
+      const modelHebrew = data.vehicle.model || ''
+      const modelEnglish = extractModelFromHebrew(modelHebrew)
+
       setPlateVehicleInfo({
         manufacturer: makeEnglish || makeHebrew,
         manufacturer_he: makeHebrew,
-        model: data.vehicle.model || '',
+        model: modelEnglish || modelHebrew,
         year: data.vehicle.year
       })
 
       // Auto-fill the scrape form
       setScrapeForm({
         make: makeEnglish || '',
-        model: data.vehicle.model || '',
+        model: modelEnglish || modelHebrew,
         year: data.vehicle.year?.toString() || ''
       })
 
@@ -368,6 +372,210 @@ export default function VehiclesAdminPage() {
     const hebrewLower = hebrew.toLowerCase()
     for (const [heb, eng] of Object.entries(makeMap)) {
       if (hebrewLower.includes(heb)) {
+        return eng
+      }
+    }
+    return ''
+  }
+
+  // Helper function to extract English model from Hebrew
+  const extractModelFromHebrew = (hebrew: string): string => {
+    const modelMap: { [key: string]: string } = {
+      // Toyota
+      'קורולה': 'Corolla',
+      'יאריס': 'Yaris',
+      'קאמרי': 'Camry',
+      'ראב 4': 'RAV4',
+      'ראב4': 'RAV4',
+      'לנד קרוזר': 'Land Cruiser',
+      'היילקס': 'Hilux',
+      'אוריס': 'Auris',
+      'פריוס': 'Prius',
+      'אייגו': 'Aygo',
+      'סי-אייצר': 'C-HR',
+      'היילנדר': 'Highlander',
+      'אבנסיס': 'Avensis',
+      // Hyundai
+      'i10': 'i10',
+      'i20': 'i20',
+      'i25': 'i25',
+      'i30': 'i30',
+      'i35': 'i35',
+      'i40': 'i40',
+      'אלנטרה': 'Elantra',
+      'טוסון': 'Tucson',
+      'סנטה פה': 'Santa Fe',
+      'קונה': 'Kona',
+      'איוניק': 'Ioniq',
+      'אקסנט': 'Accent',
+      'גטס': 'Getz',
+      'סונטה': 'Sonata',
+      // Kia
+      'פיקנטו': 'Picanto',
+      'ריו': 'Rio',
+      'סיד': 'Ceed',
+      "צ'יד": 'Ceed',
+      'סורנטו': 'Sorento',
+      "ספורטאז'": 'Sportage',
+      "ספורטג'": 'Sportage',
+      'נירו': 'Niro',
+      'סטוניק': 'Stonic',
+      'אופטימה': 'Optima',
+      'קרניבל': 'Carnival',
+      'סול': 'Soul',
+      // Mazda
+      'מאזדה 2': 'Mazda2',
+      'מאזדה 3': 'Mazda3',
+      'מאזדה 6': 'Mazda6',
+      'CX-3': 'CX-3',
+      'CX-5': 'CX-5',
+      'CX-30': 'CX-30',
+      'CX-60': 'CX-60',
+      'MX-5': 'MX-5',
+      // Honda
+      'סיוויק': 'Civic',
+      "ג'אז": 'Jazz',
+      'אקורד': 'Accord',
+      'CR-V': 'CR-V',
+      'HR-V': 'HR-V',
+      // Nissan
+      'מיקרה': 'Micra',
+      "ג'וק": 'Juke',
+      'קשקאי': 'Qashqai',
+      'אקס-טרייל': 'X-Trail',
+      'ליף': 'Leaf',
+      'סנטרה': 'Sentra',
+      'נבארה': 'Navara',
+      // Suzuki
+      'סוויפט': 'Swift',
+      'בלנו': 'Baleno',
+      'ויטרה': 'Vitara',
+      'איגניס': 'Ignis',
+      "ג'ימני": 'Jimny',
+      'SX4': 'SX4',
+      // Volkswagen
+      'גולף': 'Golf',
+      'פולו': 'Polo',
+      'פאסאט': 'Passat',
+      'טיגואן': 'Tiguan',
+      'טי-רוק': 'T-Roc',
+      "ג'טה": 'Jetta',
+      'אפ': 'Up',
+      'טוראן': 'Touran',
+      'קאדי': 'Caddy',
+      'טרנספורטר': 'Transporter',
+      // Skoda
+      'פאביה': 'Fabia',
+      'אוקטביה': 'Octavia',
+      'סופרב': 'Superb',
+      'קארוק': 'Karoq',
+      'קודיאק': 'Kodiaq',
+      'סקאלה': 'Scala',
+      'קאמיק': 'Kamiq',
+      // Seat
+      'איביזה': 'Ibiza',
+      'לאון': 'Leon',
+      'ארונה': 'Arona',
+      'אטקה': 'Ateca',
+      // BMW
+      'סדרה 1': '1 Series',
+      'סדרה 2': '2 Series',
+      'סדרה 3': '3 Series',
+      'סדרה 4': '4 Series',
+      'סדרה 5': '5 Series',
+      'X1': 'X1',
+      'X3': 'X3',
+      'X5': 'X5',
+      // Mercedes
+      'A קלאס': 'A-Class',
+      'B קלאס': 'B-Class',
+      'C קלאס': 'C-Class',
+      'E קלאס': 'E-Class',
+      'GLA': 'GLA',
+      'GLC': 'GLC',
+      'GLE': 'GLE',
+      'ויטו': 'Vito',
+      'ספרינטר': 'Sprinter',
+      // Peugeot
+      '108': '108',
+      '208': '208',
+      '308': '308',
+      '508': '508',
+      '2008': '2008',
+      '3008': '3008',
+      '5008': '5008',
+      'פרטנר': 'Partner',
+      // Citroen
+      'C1': 'C1',
+      'C3': 'C3',
+      'C4': 'C4',
+      'C5': 'C5',
+      'ברלינגו': 'Berlingo',
+      // Renault
+      'קליאו': 'Clio',
+      'מגאן': 'Megane',
+      "קפצ'ור": 'Captur',
+      "קדג'אר": 'Kadjar',
+      'סניק': 'Scenic',
+      'קנגו': 'Kangoo',
+      'זואי': 'Zoe',
+      // Fiat
+      '500': '500',
+      'פנדה': 'Panda',
+      'פונטו': 'Punto',
+      'טיפו': 'Tipo',
+      // Opel
+      'קורסה': 'Corsa',
+      'אסטרה': 'Astra',
+      'אינסיגניה': 'Insignia',
+      'מוקה': 'Mokka',
+      'קרוסלנד': 'Crossland',
+      'גרנדלנד': 'Grandland',
+      // Subaru
+      'אימפרזה': 'Impreza',
+      'פורסטר': 'Forester',
+      'אאוטבק': 'Outback',
+      'XV': 'XV',
+      'לגאסי': 'Legacy',
+      // Mitsubishi
+      'לנסר': 'Lancer',
+      'אאוטלנדר': 'Outlander',
+      'ASX': 'ASX',
+      "פאג'רו": 'Pajero',
+      'L200': 'L200',
+      // Ford
+      'פיאסטה': 'Fiesta',
+      'פוקוס': 'Focus',
+      'פומה': 'Puma',
+      'קוגה': 'Kuga',
+      'טרנזיט': 'Transit',
+      // Chevrolet
+      'ספארק': 'Spark',
+      'אוואו': 'Aveo',
+      'קרוז': 'Cruze',
+      // Dacia
+      'סנדרו': 'Sandero',
+      'דאסטר': 'Duster',
+      "לוג'אן": 'Logan',
+      // Jeep
+      'רנגלר': 'Wrangler',
+      'קומפאס': 'Compass',
+      'רנגייד': 'Renegade',
+      "צ'רוקי": 'Cherokee',
+      "גרנד צ'רוקי": 'Grand Cherokee',
+    }
+
+    // First try exact match
+    for (const [heb, eng] of Object.entries(modelMap)) {
+      if (hebrew === heb) {
+        return eng
+      }
+    }
+
+    // Then try partial match
+    const hebrewLower = hebrew.toLowerCase()
+    for (const [heb, eng] of Object.entries(modelMap)) {
+      if (hebrewLower.includes(heb.toLowerCase())) {
         return eng
       }
     }
