@@ -40,8 +40,9 @@ export async function POST(request: NextRequest) {
     const html = await response.text()
 
     // Parse PCD data from HTML
-    // Looking for patterns like "5x114.3" or "4x100"
-    const pcdRegex = /(\d+)x([\d.]+)/g
+    // Looking for patterns like "5x114.3" or "4x100" - must be valid PCD values
+    // Bolt count is typically 3,4,5,6 and spacing is typically between 90-180
+    const pcdRegex = /\b([3-6])x(1[0-9]{2}(?:\.[0-9]+)?)\b/g
     const pcdMatches = [...html.matchAll(pcdRegex)]
 
     if (pcdMatches.length === 0) {
@@ -51,25 +52,20 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Get the first PCD match (most common)
+    // Get the first valid PCD match
     const [, boltCount, boltSpacing] = pcdMatches[0]
 
     // Try to extract center bore
-    // Looking for patterns like "CB: 64.1" or "Center Bore: 64.1mm"
-    const centerBoreRegex = /(?:CB|Center\s+Bore)[\s:]+?([\d.]+)/i
+    // Looking for patterns like "CB: 64.1" or "Center Bore: 64.1mm" or just the number after CB
+    const centerBoreRegex = /(?:CB|Center\s*Bore|hub\s*bore)[:\s]+?([\d.]+)/i
     const centerBoreMatch = html.match(centerBoreRegex)
     const centerBore = centerBoreMatch ? parseFloat(centerBoreMatch[1]) : null
 
-    // Try to extract rim sizes
-    // Looking for patterns like 'R15', 'R16', etc.
-    const rimSizeRegex = /R(\d+)/g
-    const rimSizeMatches = [...html.matchAll(rimSizeRegex)]
-    const rimSizes = [...new Set(rimSizeMatches.map(m => m[1]))].sort()
-
-    // Try to extract tire sizes
-    // Looking for patterns like "195/65R15" or "205/55R16"
-    const tireSizeRegex = /(\d{3}\/\d{2}R\d{2})/g
+    // Try to extract rim sizes from actual tire/rim specifications
+    // Looking for patterns in context like tire sizes "195/65R15" to extract R15, R16, etc.
+    const tireSizeRegex = /(\d{3}\/\d{2}R(\d{2}))/g
     const tireSizeMatches = [...html.matchAll(tireSizeRegex)]
+    const rimSizes = [...new Set(tireSizeMatches.map(m => m[2]))].sort((a, b) => parseInt(a) - parseInt(b))
     const tireSizes = [...new Set(tireSizeMatches.map(m => m[1]))]
 
     return NextResponse.json({

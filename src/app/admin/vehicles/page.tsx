@@ -9,6 +9,7 @@ interface VehicleModel {
   make: string
   make_he: string
   model: string
+  model_he: string | null
   year_from: number
   year_to: number | null
   bolt_count: number
@@ -18,6 +19,20 @@ interface VehicleModel {
   tire_size_front: string | null
   created_at: string
   added_by: string | null
+}
+
+interface EditForm {
+  make: string
+  make_he: string
+  model: string
+  model_he: string
+  year_from: string
+  year_to: string
+  bolt_count: string
+  bolt_spacing: string
+  center_bore: string
+  rim_size: string
+  tire_size_front: string
 }
 
 interface ScrapeResult {
@@ -60,6 +75,7 @@ export default function VehiclesAdminPage() {
     make: '',
     make_he: '',
     model: '',
+    model_he: '',
     year_from: '',
     year_to: '',
     bolt_count: '',
@@ -69,6 +85,66 @@ export default function VehiclesAdminPage() {
     tire_size_front: ''
   })
   const [addLoading, setAddLoading] = useState(false)
+
+  // Edit model state
+  const [editingVehicle, setEditingVehicle] = useState<VehicleModel | null>(null)
+  const [editForm, setEditForm] = useState<EditForm>({
+    make: '',
+    make_he: '',
+    model: '',
+    model_he: '',
+    year_from: '',
+    year_to: '',
+    bolt_count: '',
+    bolt_spacing: '',
+    center_bore: '',
+    rim_size: '',
+    tire_size_front: ''
+  })
+  const [editLoading, setEditLoading] = useState(false)
+
+  // Autocomplete state
+  const [makeSuggestions, setMakeSuggestions] = useState<string[]>([])
+  const [modelSuggestions, setModelSuggestions] = useState<string[]>([])
+  const [showMakeSuggestions, setShowMakeSuggestions] = useState(false)
+  const [showModelSuggestions, setShowModelSuggestions] = useState(false)
+
+  // Column filters state
+  const [columnFilters, setColumnFilters] = useState<{
+    [key: string]: { type: 'empty' | 'equals' | 'greater' | 'less' | ''; value: string }
+  }>({
+    make: { type: '', value: '' },
+    model: { type: '', value: '' },
+    year_from: { type: '', value: '' },
+    bolt_count: { type: '', value: '' },
+    bolt_spacing: { type: '', value: '' },
+    center_bore: { type: '', value: '' },
+    rim_size: { type: '', value: '' },
+  })
+
+  // Common car makes for autocomplete
+  const commonMakes = [
+    'Toyota', 'Hyundai', 'Kia', 'Mazda', 'Honda', 'Nissan', 'Suzuki', 'Mitsubishi',
+    'Subaru', 'Volkswagen', 'Skoda', 'Seat', 'Audi', 'BMW', 'Mercedes-Benz',
+    'Peugeot', 'Citroen', 'Renault', 'Fiat', 'Alfa Romeo', 'Chevrolet', 'Ford',
+    'Jeep', 'Dacia', 'Opel', 'Volvo', 'Lexus', 'Infiniti', 'Tesla', 'BYD', 'MG'
+  ]
+
+  // Fetch model suggestions based on make
+  const fetchModelSuggestions = async (make: string, modelQuery: string) => {
+    if (modelQuery.length < 1 || !make) {
+      setModelSuggestions([])
+      return
+    }
+    try {
+      const response = await fetch(`/api/vehicle-models?make=${encodeURIComponent(make)}&model=${encodeURIComponent(modelQuery)}`)
+      const data = await response.json()
+      const uniqueModels = [...new Set(data.vehicles?.map((v: VehicleModel) => v.model) || [])]
+      setModelSuggestions(uniqueModels.slice(0, 8) as string[])
+    } catch {
+      setModelSuggestions([])
+    }
+  }
 
   useEffect(() => {
     const saved = sessionStorage.getItem('wheels_admin_auth')
@@ -224,13 +300,70 @@ export default function VehiclesAdminPage() {
       fetchVehicles()
       setShowAddModal(false)
       setAddForm({
-        make: '', make_he: '', model: '', year_from: '', year_to: '',
+        make: '', make_he: '', model: '', model_he: '', year_from: '', year_to: '',
         bolt_count: '', bolt_spacing: '', center_bore: '', rim_size: '', tire_size_front: ''
       })
     } catch (err: any) {
       toast.error(err.message || 'שגיאה בהוספה')
     } finally {
       setAddLoading(false)
+    }
+  }
+
+  // Open edit modal
+  const openEditModal = (vehicle: VehicleModel) => {
+    setEditForm({
+      make: vehicle.make || '',
+      make_he: vehicle.make_he || '',
+      model: vehicle.model || '',
+      model_he: vehicle.model_he || '',
+      year_from: vehicle.year_from?.toString() || '',
+      year_to: vehicle.year_to?.toString() || '',
+      bolt_count: vehicle.bolt_count?.toString() || '',
+      bolt_spacing: vehicle.bolt_spacing?.toString() || '',
+      center_bore: vehicle.center_bore?.toString() || '',
+      rim_size: vehicle.rim_size || '',
+      tire_size_front: vehicle.tire_size_front || ''
+    })
+    setEditingVehicle(vehicle)
+  }
+
+  // Update model
+  const handleUpdateVehicle = async () => {
+    if (!editingVehicle) return
+    if (!editForm.make || !editForm.model || !editForm.bolt_count || !editForm.bolt_spacing) {
+      toast.error('נא למלא את שדות החובה')
+      return
+    }
+
+    setEditLoading(true)
+    try {
+      const response = await fetch(`/api/vehicle-models/${editingVehicle.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...editForm,
+          year_from: editForm.year_from ? parseInt(editForm.year_from) : null,
+          year_to: editForm.year_to ? parseInt(editForm.year_to) : null,
+          bolt_count: parseInt(editForm.bolt_count),
+          bolt_spacing: parseFloat(editForm.bolt_spacing),
+          center_bore: editForm.center_bore ? parseFloat(editForm.center_bore) : null
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'שגיאה בעדכון')
+      }
+
+      toast.success('הדגם עודכן בהצלחה!')
+      fetchVehicles()
+      setEditingVehicle(null)
+    } catch (err: any) {
+      toast.error(err.message || 'שגיאה בעדכון')
+    } finally {
+      setEditLoading(false)
     }
   }
 
@@ -254,15 +387,57 @@ export default function VehiclesAdminPage() {
     }
   }
 
+  // Apply column filter to a value
+  const applyColumnFilter = (value: any, filter: { type: string; value: string }): boolean => {
+    if (!filter.type) return true
+
+    if (filter.type === 'empty') {
+      return value === null || value === undefined || value === ''
+    }
+
+    if (filter.type === 'equals') {
+      if (typeof value === 'number') {
+        return value === parseFloat(filter.value)
+      }
+      return String(value).toLowerCase() === filter.value.toLowerCase()
+    }
+
+    if (filter.type === 'greater') {
+      const numVal = typeof value === 'number' ? value : parseFloat(value)
+      return !isNaN(numVal) && numVal > parseFloat(filter.value)
+    }
+
+    if (filter.type === 'less') {
+      const numVal = typeof value === 'number' ? value : parseFloat(value)
+      return !isNaN(numVal) && numVal < parseFloat(filter.value)
+    }
+
+    return true
+  }
+
   // Filter vehicles
   const filteredVehicles = vehicles.filter(v => {
-    if (!searchQuery) return true
-    const q = searchQuery.toLowerCase()
-    return (
-      v.make.toLowerCase().includes(q) ||
-      v.make_he?.toLowerCase().includes(q) ||
-      v.model.toLowerCase().includes(q)
-    )
+    // Search query filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      const matchesSearch = (
+        v.make.toLowerCase().includes(q) ||
+        v.make_he?.toLowerCase().includes(q) ||
+        v.model.toLowerCase().includes(q)
+      )
+      if (!matchesSearch) return false
+    }
+
+    // Column filters
+    if (!applyColumnFilter(v.make, columnFilters.make)) return false
+    if (!applyColumnFilter(v.model, columnFilters.model)) return false
+    if (!applyColumnFilter(v.year_from, columnFilters.year_from)) return false
+    if (!applyColumnFilter(v.bolt_count, columnFilters.bolt_count)) return false
+    if (!applyColumnFilter(v.bolt_spacing, columnFilters.bolt_spacing)) return false
+    if (!applyColumnFilter(v.center_bore, columnFilters.center_bore)) return false
+    if (!applyColumnFilter(v.rim_size, columnFilters.rim_size)) return false
+
+    return true
   })
 
   // Login screen
@@ -360,6 +535,133 @@ export default function VehiclesAdminPage() {
                   <th style={styles.th}>חישוק</th>
                   <th style={styles.th}>פעולות</th>
                 </tr>
+                <tr style={styles.filterRow}>
+                  <th style={styles.thFilter}>
+                    <select
+                      style={styles.filterSelect}
+                      value={columnFilters.make.type}
+                      onChange={e => setColumnFilters({...columnFilters, make: {...columnFilters.make, type: e.target.value as any}})}
+                    >
+                      <option value="">הכל</option>
+                      <option value="empty">ריק</option>
+                      <option value="equals">שווה ל</option>
+                    </select>
+                    {columnFilters.make.type === 'equals' && (
+                      <input
+                        type="text"
+                        style={styles.filterInput}
+                        placeholder="ערך"
+                        value={columnFilters.make.value}
+                        onChange={e => setColumnFilters({...columnFilters, make: {...columnFilters.make, value: e.target.value}})}
+                      />
+                    )}
+                  </th>
+                  <th style={styles.thFilter}>
+                    <select
+                      style={styles.filterSelect}
+                      value={columnFilters.model.type}
+                      onChange={e => setColumnFilters({...columnFilters, model: {...columnFilters.model, type: e.target.value as any}})}
+                    >
+                      <option value="">הכל</option>
+                      <option value="empty">ריק</option>
+                      <option value="equals">שווה ל</option>
+                    </select>
+                    {columnFilters.model.type === 'equals' && (
+                      <input
+                        type="text"
+                        style={styles.filterInput}
+                        placeholder="ערך"
+                        value={columnFilters.model.value}
+                        onChange={e => setColumnFilters({...columnFilters, model: {...columnFilters.model, value: e.target.value}})}
+                      />
+                    )}
+                  </th>
+                  <th style={styles.thFilter}>
+                    <select
+                      style={styles.filterSelect}
+                      value={columnFilters.year_from.type}
+                      onChange={e => setColumnFilters({...columnFilters, year_from: {...columnFilters.year_from, type: e.target.value as any}})}
+                    >
+                      <option value="">הכל</option>
+                      <option value="empty">ריק</option>
+                      <option value="equals">שווה ל</option>
+                      <option value="greater">גדול מ</option>
+                      <option value="less">קטן מ</option>
+                    </select>
+                    {['equals', 'greater', 'less'].includes(columnFilters.year_from.type) && (
+                      <input
+                        type="number"
+                        style={styles.filterInput}
+                        placeholder="שנה"
+                        value={columnFilters.year_from.value}
+                        onChange={e => setColumnFilters({...columnFilters, year_from: {...columnFilters.year_from, value: e.target.value}})}
+                      />
+                    )}
+                  </th>
+                  <th style={styles.thFilter}>
+                    <select
+                      style={styles.filterSelect}
+                      value={columnFilters.bolt_count.type}
+                      onChange={e => setColumnFilters({...columnFilters, bolt_count: {...columnFilters.bolt_count, type: e.target.value as any}})}
+                    >
+                      <option value="">הכל</option>
+                      <option value="equals">שווה ל</option>
+                    </select>
+                    {columnFilters.bolt_count.type === 'equals' && (
+                      <input
+                        type="number"
+                        style={styles.filterInput}
+                        placeholder="ברגים"
+                        value={columnFilters.bolt_count.value}
+                        onChange={e => setColumnFilters({...columnFilters, bolt_count: {...columnFilters.bolt_count, value: e.target.value}})}
+                      />
+                    )}
+                  </th>
+                  <th style={styles.thFilter}>
+                    <select
+                      style={styles.filterSelect}
+                      value={columnFilters.center_bore.type}
+                      onChange={e => setColumnFilters({...columnFilters, center_bore: {...columnFilters.center_bore, type: e.target.value as any}})}
+                    >
+                      <option value="">הכל</option>
+                      <option value="empty">ריק</option>
+                      <option value="equals">שווה ל</option>
+                      <option value="greater">גדול מ</option>
+                      <option value="less">קטן מ</option>
+                    </select>
+                    {['equals', 'greater', 'less'].includes(columnFilters.center_bore.type) && (
+                      <input
+                        type="number"
+                        step="0.1"
+                        style={styles.filterInput}
+                        placeholder="CB"
+                        value={columnFilters.center_bore.value}
+                        onChange={e => setColumnFilters({...columnFilters, center_bore: {...columnFilters.center_bore, value: e.target.value}})}
+                      />
+                    )}
+                  </th>
+                  <th style={styles.thFilter}>
+                    <select
+                      style={styles.filterSelect}
+                      value={columnFilters.rim_size.type}
+                      onChange={e => setColumnFilters({...columnFilters, rim_size: {...columnFilters.rim_size, type: e.target.value as any}})}
+                    >
+                      <option value="">הכל</option>
+                      <option value="empty">ריק</option>
+                      <option value="equals">שווה ל</option>
+                    </select>
+                    {columnFilters.rim_size.type === 'equals' && (
+                      <input
+                        type="text"
+                        style={styles.filterInput}
+                        placeholder="גודל"
+                        value={columnFilters.rim_size.value}
+                        onChange={e => setColumnFilters({...columnFilters, rim_size: {...columnFilters.rim_size, value: e.target.value}})}
+                      />
+                    )}
+                  </th>
+                  <th style={styles.thFilter}></th>
+                </tr>
               </thead>
               <tbody>
                 {filteredVehicles.map(v => (
@@ -378,7 +680,10 @@ export default function VehiclesAdminPage() {
                     <td style={styles.td}>{v.center_bore || '-'}</td>
                     <td style={styles.td}>{v.rim_size || '-'}</td>
                     <td style={styles.td}>
-                      <button style={styles.btnDelete} onClick={() => handleDelete(v.id)}>🗑️</button>
+                      <div style={{display: 'flex', gap: '6px'}}>
+                        <button style={styles.btnEdit} onClick={() => openEditModal(v)}>✏️</button>
+                        <button style={styles.btnDelete} onClick={() => handleDelete(v.id)}>🗑️</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -404,24 +709,88 @@ export default function VehiclesAdminPage() {
 
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>יצרן (באנגלית)</label>
-                <input
-                  type="text"
-                  value={scrapeForm.make}
-                  onChange={e => setScrapeForm({...scrapeForm, make: e.target.value})}
-                  placeholder="Toyota"
-                  style={styles.formInput}
-                />
+                <div style={{position: 'relative'}}>
+                  <input
+                    type="text"
+                    value={scrapeForm.make}
+                    onChange={e => {
+                      setScrapeForm({...scrapeForm, make: e.target.value})
+                      const filtered = commonMakes.filter(m =>
+                        m.toLowerCase().includes(e.target.value.toLowerCase())
+                      )
+                      setMakeSuggestions(filtered)
+                      setShowMakeSuggestions(e.target.value.length > 0)
+                    }}
+                    onFocus={() => {
+                      if (scrapeForm.make.length > 0) {
+                        const filtered = commonMakes.filter(m =>
+                          m.toLowerCase().includes(scrapeForm.make.toLowerCase())
+                        )
+                        setMakeSuggestions(filtered)
+                        setShowMakeSuggestions(true)
+                      }
+                    }}
+                    onBlur={() => setTimeout(() => setShowMakeSuggestions(false), 200)}
+                    placeholder="Toyota"
+                    style={styles.formInput}
+                  />
+                  {showMakeSuggestions && makeSuggestions.length > 0 && (
+                    <div style={styles.suggestionsList}>
+                      {makeSuggestions.map((suggestion, i) => (
+                        <div
+                          key={i}
+                          style={styles.suggestionItem}
+                          onClick={() => {
+                            setScrapeForm({...scrapeForm, make: suggestion})
+                            setShowMakeSuggestions(false)
+                          }}
+                        >
+                          {suggestion}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>דגם (באנגלית)</label>
-                <input
-                  type="text"
-                  value={scrapeForm.model}
-                  onChange={e => setScrapeForm({...scrapeForm, model: e.target.value})}
-                  placeholder="Corolla"
-                  style={styles.formInput}
-                />
+                <div style={{position: 'relative'}}>
+                  <input
+                    type="text"
+                    value={scrapeForm.model}
+                    onChange={e => {
+                      setScrapeForm({...scrapeForm, model: e.target.value})
+                      fetchModelSuggestions(scrapeForm.make, e.target.value)
+                      setShowModelSuggestions(e.target.value.length > 0)
+                    }}
+                    onFocus={() => {
+                      if (scrapeForm.model.length > 0) {
+                        fetchModelSuggestions(scrapeForm.make, scrapeForm.model)
+                        setShowModelSuggestions(true)
+                      }
+                    }}
+                    onBlur={() => setTimeout(() => setShowModelSuggestions(false), 200)}
+                    placeholder="Corolla"
+                    style={styles.formInput}
+                  />
+                  {showModelSuggestions && modelSuggestions.length > 0 && (
+                    <div style={styles.suggestionsList}>
+                      {modelSuggestions.map((suggestion, i) => (
+                        <div
+                          key={i}
+                          style={styles.suggestionItem}
+                          onClick={() => {
+                            setScrapeForm({...scrapeForm, model: suggestion})
+                            setShowModelSuggestions(false)
+                          }}
+                        >
+                          {suggestion}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div style={styles.formGroup}>
@@ -553,15 +922,27 @@ export default function VehiclesAdminPage() {
                 </div>
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>דגם *</label>
-                <input
-                  type="text"
-                  value={addForm.model}
-                  onChange={e => setAddForm({...addForm, model: e.target.value})}
-                  placeholder="Corolla"
-                  style={styles.formInput}
-                />
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>דגם (אנגלית) *</label>
+                  <input
+                    type="text"
+                    value={addForm.model}
+                    onChange={e => setAddForm({...addForm, model: e.target.value})}
+                    placeholder="Corolla"
+                    style={styles.formInput}
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>דגם (עברית)</label>
+                  <input
+                    type="text"
+                    value={addForm.model_he}
+                    onChange={e => setAddForm({...addForm, model_he: e.target.value})}
+                    placeholder="קורולה"
+                    style={styles.formInput}
+                  />
+                </div>
               </div>
 
               <div style={styles.formRow}>
@@ -655,6 +1036,149 @@ export default function VehiclesAdminPage() {
                 disabled={addLoading}
               >
                 {addLoading ? 'מוסיף...' : '✅ הוסף למאגר'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingVehicle && (
+        <div style={styles.modalOverlay} onClick={() => setEditingVehicle(null)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>✏️ עריכת דגם</h3>
+              <button style={styles.closeBtn} onClick={() => setEditingVehicle(null)}>✕</button>
+            </div>
+
+            <div style={styles.modalBody}>
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>יצרן (אנגלית) *</label>
+                  <input
+                    type="text"
+                    value={editForm.make}
+                    onChange={e => setEditForm({...editForm, make: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>יצרן (עברית)</label>
+                  <input
+                    type="text"
+                    value={editForm.make_he}
+                    onChange={e => setEditForm({...editForm, make_he: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+              </div>
+
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>דגם (אנגלית) *</label>
+                  <input
+                    type="text"
+                    value={editForm.model}
+                    onChange={e => setEditForm({...editForm, model: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>דגם (עברית)</label>
+                  <input
+                    type="text"
+                    value={editForm.model_he}
+                    onChange={e => setEditForm({...editForm, model_he: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+              </div>
+
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>משנה</label>
+                  <input
+                    type="number"
+                    value={editForm.year_from}
+                    onChange={e => setEditForm({...editForm, year_from: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>עד שנה</label>
+                  <input
+                    type="number"
+                    value={editForm.year_to}
+                    onChange={e => setEditForm({...editForm, year_to: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+              </div>
+
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>ברגים *</label>
+                  <select
+                    value={editForm.bolt_count}
+                    onChange={e => setEditForm({...editForm, bolt_count: e.target.value})}
+                    style={styles.formInput}
+                  >
+                    <option value="">בחר</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>PCD (מרווח) *</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editForm.bolt_spacing}
+                    onChange={e => setEditForm({...editForm, bolt_spacing: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+              </div>
+
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>Center Bore</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editForm.center_bore}
+                    onChange={e => setEditForm({...editForm, center_bore: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>חישוק</label>
+                  <input
+                    type="text"
+                    value={editForm.rim_size}
+                    onChange={e => setEditForm({...editForm, rim_size: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>צמיג</label>
+                <input
+                  type="text"
+                  value={editForm.tire_size_front}
+                  onChange={e => setEditForm({...editForm, tire_size_front: e.target.value})}
+                  style={styles.formInput}
+                />
+              </div>
+
+              <button
+                style={styles.btnSubmit}
+                onClick={handleUpdateVehicle}
+                disabled={editLoading}
+              >
+                {editLoading ? 'מעדכן...' : '✅ עדכן'}
               </button>
             </div>
           </div>
@@ -825,6 +1349,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '6px',
     fontWeight: 600,
     fontSize: '0.85rem',
+  },
+  btnEdit: {
+    background: 'rgba(59, 130, 246, 0.15)',
+    color: '#3b82f6',
+    border: 'none',
+    padding: '6px 10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
   },
   btnDelete: {
     background: 'rgba(239, 68, 68, 0.15)',
@@ -1072,5 +1604,52 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ef4444',
     fontSize: '0.9rem',
     marginTop: '8px',
+  },
+  suggestionsList: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    background: '#0f172a',
+    border: '1px solid #334155',
+    borderRadius: '8px',
+    marginTop: '4px',
+    maxHeight: '200px',
+    overflowY: 'auto',
+    zIndex: 100,
+  },
+  suggestionItem: {
+    padding: '10px 14px',
+    cursor: 'pointer',
+    borderBottom: '1px solid #334155',
+    transition: 'background 0.2s',
+  },
+  filterRow: {
+    background: '#0f172a',
+  },
+  thFilter: {
+    padding: '8px',
+    textAlign: 'right',
+    borderBottom: '1px solid #334155',
+  },
+  filterSelect: {
+    width: '100%',
+    padding: '6px 8px',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '6px',
+    color: '#94a3b8',
+    fontSize: '0.8rem',
+    marginBottom: '4px',
+  },
+  filterInput: {
+    width: '100%',
+    padding: '6px 8px',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '6px',
+    color: 'white',
+    fontSize: '0.8rem',
+    boxSizing: 'border-box',
   },
 }

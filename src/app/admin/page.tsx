@@ -84,6 +84,18 @@ export default function WheelsAdminPage() {
     onConfirm: () => void
   } | null>(null)
 
+  // Vehicle scraping state
+  const [showVehicleScrapeModal, setShowVehicleScrapeModal] = useState(false)
+  const [scrapeForm, setScrapeForm] = useState({ make: '', model: '', year: '' })
+  const [scrapeLoading, setScrapeLoading] = useState(false)
+  const [scrapeResult, setScrapeResult] = useState<{
+    make: string; model: string; year: number
+    bolt_count: number; bolt_spacing: number; center_bore: number | null
+    rim_sizes: string[]; tire_sizes: string[]; source_url: string
+  } | null>(null)
+  const [scrapeError, setScrapeError] = useState<string | null>(null)
+  const [addVehicleLoading, setAddVehicleLoading] = useState(false)
+
   useEffect(() => {
     // Check if already logged in
     const saved = sessionStorage.getItem('wheels_admin_auth')

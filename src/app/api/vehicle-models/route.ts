@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       make,
       make_he,
       model,
+      model_he,
       variants,
       year_from,
       year_to,
@@ -82,8 +83,9 @@ export async function POST(request: NextRequest) {
       .from('vehicle_models')
       .insert([{
         make: make.trim().toLowerCase(),
-        make_he: make_he.trim(),
+        make_he: make_he?.trim() || null,
         model: model.trim().toLowerCase(),
+        model_he: model_he?.trim() || null,
         variants: variants?.trim() || null,
         year_from: year_from ? parseInt(year_from) : null,
         year_to: year_to ? parseInt(year_to) : null,
