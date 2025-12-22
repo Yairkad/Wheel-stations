@@ -20,7 +20,7 @@ export async function PUT(
     if (body.make !== undefined) updateData.make = body.make?.trim().toLowerCase()
     if (body.make_he !== undefined) updateData.make_he = body.make_he?.trim() || null
     if (body.model !== undefined) updateData.model = body.model?.trim().toLowerCase()
-    if (body.model_he !== undefined) updateData.model_he = body.model_he?.trim() || null
+    if (body.variants !== undefined) updateData.variants = body.variants?.trim() || null
     if (body.year_from !== undefined) updateData.year_from = body.year_from || null
     if (body.year_to !== undefined) updateData.year_to = body.year_to || null
     if (body.bolt_count !== undefined) updateData.bolt_count = body.bolt_count

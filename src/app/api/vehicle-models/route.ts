@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Filter by model (case insensitive) - search both English and Hebrew
     if (model) {
-      query = query.or(`model.ilike.%${model}%,model_he.ilike.%${model}%`)
+      query = query.or(`model.ilike.%${model}%,variants.ilike.%${model}%`)
     }
 
     // Filter by year range
@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
       make,
       make_he,
       model,
-      model_he,
       variants,
       year_from,
       year_to,
@@ -85,7 +84,6 @@ export async function POST(request: NextRequest) {
         make: make.trim().toLowerCase(),
         make_he: make_he?.trim() || null,
         model: model.trim().toLowerCase(),
-        model_he: model_he?.trim() || null,
         variants: variants?.trim() || null,
         year_from: year_from ? parseInt(year_from) : null,
         year_to: year_to ? parseInt(year_to) : null,

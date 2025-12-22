@@ -10,7 +10,7 @@ interface VehicleModel {
   make: string
   make_he: string
   model: string
-  model_he: string | null
+  variants: string | null
   year_from: number
   year_to: number | null
   bolt_count: number
@@ -26,7 +26,7 @@ interface EditForm {
   make: string
   make_he: string
   model: string
-  model_he: string
+  variants: string
   year_from: string
   year_to: string
   bolt_count: string
@@ -68,7 +68,7 @@ export default function VehiclesAdminPage() {
     manufacturer: string
     manufacturer_he: string
     model: string
-    model_he: string
+    variants: string
     year: number
   } | null>(null)
   const [scrapeForm, setScrapeForm] = useState({
@@ -86,7 +86,7 @@ export default function VehiclesAdminPage() {
     make: '',
     make_he: '',
     model: '',
-    model_he: '',
+    variants: '',
     year_from: '',
     year_to: '',
     bolt_count: '',
@@ -103,7 +103,7 @@ export default function VehiclesAdminPage() {
     make: '',
     make_he: '',
     model: '',
-    model_he: '',
+    variants: '',
     year_from: '',
     year_to: '',
     bolt_count: '',
@@ -137,7 +137,7 @@ export default function VehiclesAdminPage() {
   const uniqueMakeValues = [...new Set(vehicles.map(v => v.make))].sort()
   const uniqueMakeHeValues = [...new Set(vehicles.filter(v => v.make_he).map(v => v.make_he))].sort()
   const uniqueModelValues = [...new Set(vehicles.map(v => v.model))].sort()
-  const uniqueModelHeValues = [...new Set(vehicles.filter(v => v.model_he).map(v => v.model_he!))].sort()
+  const uniqueVariantsValues = [...new Set(vehicles.filter(v => v.variants).map(v => v.variants!))].sort()
   const uniqueBoltCountValues = [...new Set(vehicles.map(v => v.bolt_count))].sort((a, b) => a - b)
   const uniqueBoltSpacingValues = [...new Set(vehicles.map(v => v.bolt_spacing))].sort((a, b) => a - b)
   const uniqueCenterBoreValues = [...new Set(vehicles.filter(v => v.center_bore).map(v => v.center_bore!))].sort((a, b) => a - b)
@@ -173,7 +173,7 @@ export default function VehiclesAdminPage() {
       m.toLowerCase().startsWith(searchVal) &&
       m.toLowerCase() !== searchVal
     )
-    const hebrewSuggestions = uniqueModelHeValues.filter(m =>
+    const hebrewSuggestions = uniqueVariantsValues.filter(m =>
       m.startsWith(columnFilters.model.value) &&
       m !== columnFilters.model.value
     )
@@ -315,7 +315,7 @@ export default function VehiclesAdminPage() {
         manufacturer: makeEnglish || makeHebrew,
         manufacturer_he: makeHebrew,
         model: modelEnglish || modelHebrew,
-        model_he: modelHebrew,
+        variants: modelHebrew,
         year: data.vehicle.year
       })
 
@@ -639,7 +639,7 @@ export default function VehiclesAdminPage() {
           make: scrapeResult.make,
           make_he: plateVehicleInfo?.manufacturer_he || '',
           model: scrapeResult.model,
-          model_he: plateVehicleInfo?.model_he || '',
+          variants: plateVehicleInfo?.variants || '',
           year_from: scrapeResult.year,
           year_to: null,
           bolt_count: scrapeResult.bolt_count,
@@ -702,7 +702,7 @@ export default function VehiclesAdminPage() {
       fetchVehicles()
       setShowAddModal(false)
       setAddForm({
-        make: '', make_he: '', model: '', model_he: '', year_from: '', year_to: '',
+        make: '', make_he: '', model: '', variants: '', year_from: '', year_to: '',
         bolt_count: '', bolt_spacing: '', center_bore: '', rim_size: '', tire_size_front: ''
       })
     } catch (err: any) {
@@ -718,7 +718,7 @@ export default function VehiclesAdminPage() {
       make: vehicle.make || '',
       make_he: vehicle.make_he || '',
       model: vehicle.model || '',
-      model_he: vehicle.model_he || '',
+      variants: vehicle.variants || '',
       year_from: vehicle.year_from?.toString() || '',
       year_to: vehicle.year_to?.toString() || '',
       bolt_count: vehicle.bolt_count?.toString() || '',
@@ -789,212 +789,6 @@ export default function VehiclesAdminPage() {
     }
   }
 
-  // Auto-fill Hebrew names for existing models
-  const [autoFillLoading, setAutoFillLoading] = useState(false)
-
-  const handleAutoFillHebrewNames = async () => {
-    // Get models that are missing Hebrew names
-    const modelsToUpdate = vehicles.filter(v => !v.model_he && v.model)
-
-    if (modelsToUpdate.length === 0) {
-      toast.success('כל הדגמים כבר מעודכנים!')
-      return
-    }
-
-    setAutoFillLoading(true)
-    let updated = 0
-    let failed = 0
-
-    for (const vehicle of modelsToUpdate) {
-      // Try to find Hebrew name from our mapping
-      const modelHe = getHebrewModelName(vehicle.model)
-
-      if (modelHe) {
-        try {
-          const response = await fetch(`/api/vehicle-models/${vehicle.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model_he: modelHe })
-          })
-
-          if (response.ok) {
-            updated++
-          } else {
-            failed++
-          }
-        } catch {
-          failed++
-        }
-      }
-    }
-
-    setAutoFillLoading(false)
-    fetchVehicles()
-
-    if (updated > 0) {
-      toast.success(`עודכנו ${updated} דגמים בהצלחה!`)
-    }
-    if (failed > 0) {
-      toast.error(`${failed} דגמים נכשלו בעדכון`)
-    }
-    if (updated === 0 && failed === 0) {
-      toast.success('לא נמצאו דגמים לעדכון')
-    }
-  }
-
-  // Get Hebrew model name from English
-  const getHebrewModelName = (englishModel: string): string => {
-    const modelMapReverse: { [key: string]: string } = {
-      // Toyota
-      'corolla': 'קורולה',
-      'yaris': 'יאריס',
-      'camry': 'קאמרי',
-      'rav4': 'ראב4',
-      'land cruiser': 'לנד קרוזר',
-      'hilux': 'היילקס',
-      'auris': 'אוריס',
-      'prius': 'פריוס',
-      'aygo': 'אייגו',
-      'c-hr': 'סי-אייצר',
-      'highlander': 'היילנדר',
-      'avensis': 'אבנסיס',
-      // Hyundai
-      'elantra': 'אלנטרה',
-      'tucson': 'טוסון',
-      'santa fe': 'סנטה פה',
-      'kona': 'קונה',
-      'ioniq': 'איוניק',
-      'accent': 'אקסנט',
-      'getz': 'גטס',
-      'sonata': 'סונטה',
-      // Kia
-      'picanto': 'פיקנטו',
-      'rio': 'ריו',
-      'ceed': 'סיד',
-      'sorento': 'סורנטו',
-      'sportage': "ספורטאז'",
-      'niro': 'נירו',
-      'stonic': 'סטוניק',
-      'optima': 'אופטימה',
-      'carnival': 'קרניבל',
-      'soul': 'סול',
-      // Mazda
-      'mazda2': 'מאזדה 2',
-      'mazda3': 'מאזדה 3',
-      'mazda6': 'מאזדה 6',
-      // Honda
-      'civic': 'סיוויק',
-      'jazz': "ג'אז",
-      'accord': 'אקורד',
-      // Nissan
-      'micra': 'מיקרה',
-      'juke': "ג'וק",
-      'qashqai': 'קשקאי',
-      'x-trail': 'אקס-טרייל',
-      'leaf': 'ליף',
-      'sentra': 'סנטרה',
-      'navara': 'נבארה',
-      // Suzuki
-      'swift': 'סוויפט',
-      'baleno': 'בלנו',
-      'vitara': 'ויטרה',
-      'ignis': 'איגניס',
-      'jimny': "ג'ימני",
-      // Volkswagen
-      'golf': 'גולף',
-      'polo': 'פולו',
-      'passat': 'פאסאט',
-      'tiguan': 'טיגואן',
-      't-roc': 'טי-רוק',
-      'jetta': "ג'טה",
-      'up': 'אפ',
-      'touran': 'טוראן',
-      'caddy': 'קאדי',
-      'transporter': 'טרנספורטר',
-      // Skoda
-      'fabia': 'פאביה',
-      'octavia': 'אוקטביה',
-      'superb': 'סופרב',
-      'karoq': 'קארוק',
-      'kodiaq': 'קודיאק',
-      'scala': 'סקאלה',
-      'kamiq': 'קאמיק',
-      // Seat
-      'ibiza': 'איביזה',
-      'leon': 'לאון',
-      'arona': 'ארונה',
-      'ateca': 'אטקה',
-      // BMW
-      '1 series': 'סדרה 1',
-      '2 series': 'סדרה 2',
-      '3 series': 'סדרה 3',
-      '4 series': 'סדרה 4',
-      '5 series': 'סדרה 5',
-      // Mercedes
-      'a-class': 'A קלאס',
-      'b-class': 'B קלאס',
-      'c-class': 'C קלאס',
-      'e-class': 'E קלאס',
-      'vito': 'ויטו',
-      'sprinter': 'ספרינטר',
-      // Peugeot
-      'partner': 'פרטנר',
-      // Citroen
-      'berlingo': 'ברלינגו',
-      // Renault
-      'clio': 'קליאו',
-      'megane': 'מגאן',
-      'captur': "קפצ'ור",
-      'kadjar': "קדג'אר",
-      'scenic': 'סניק',
-      'kangoo': 'קנגו',
-      'zoe': 'זואי',
-      // Fiat
-      'panda': 'פנדה',
-      'punto': 'פונטו',
-      'tipo': 'טיפו',
-      // Opel
-      'corsa': 'קורסה',
-      'astra': 'אסטרה',
-      'insignia': 'אינסיגניה',
-      'mokka': 'מוקה',
-      'crossland': 'קרוסלנד',
-      'grandland': 'גרנדלנד',
-      // Subaru
-      'impreza': 'אימפרזה',
-      'forester': 'פורסטר',
-      'outback': 'אאוטבק',
-      'legacy': 'לגאסי',
-      // Mitsubishi
-      'lancer': 'לנסר',
-      'outlander': 'אאוטלנדר',
-      'pajero': "פאג'רו",
-      // Ford
-      'fiesta': 'פיאסטה',
-      'focus': 'פוקוס',
-      'puma': 'פומה',
-      'kuga': 'קוגה',
-      'transit': 'טרנזיט',
-      // Chevrolet
-      'spark': 'ספארק',
-      'aveo': 'אוואו',
-      'cruze': 'קרוז',
-      // Dacia
-      'sandero': 'סנדרו',
-      'duster': 'דאסטר',
-      'logan': "לוג'אן",
-      // Jeep
-      'wrangler': 'רנגלר',
-      'compass': 'קומפאס',
-      'renegade': 'רנגייד',
-      'cherokee': "צ'רוקי",
-      'grand cherokee': "גרנד צ'רוקי",
-    }
-
-    const modelLower = englishModel.toLowerCase()
-    return modelMapReverse[modelLower] || ''
-  }
-
   // Apply column filter to a value
   const applyColumnFilter = (value: any, filter: { type: string; value: string }): boolean => {
     if (!filter.type) return true
@@ -1051,7 +845,7 @@ export default function VehiclesAdminPage() {
         v.make.toLowerCase().includes(q) ||
         v.make_he?.toLowerCase().includes(q) ||
         v.model.toLowerCase().includes(q) ||
-        v.model_he?.toLowerCase().includes(q)
+        v.variants?.toLowerCase().includes(q)
       )
       if (!matchesSearch) return false
     }
@@ -1068,7 +862,7 @@ export default function VehiclesAdminPage() {
     if (columnFilters.model.type === 'equals' && columnFilters.model.value) {
       const filterVal = columnFilters.model.value.toLowerCase()
       const matchesEnglish = v.model.toLowerCase().startsWith(filterVal)
-      const matchesHebrew = v.model_he?.startsWith(columnFilters.model.value)
+      const matchesHebrew = v.variants?.startsWith(columnFilters.model.value)
       if (!matchesEnglish && !matchesHebrew) return false
     }
     if (!applyColumnFilter(v.year_from, columnFilters.year_from)) return false
@@ -1157,13 +951,6 @@ export default function VehiclesAdminPage() {
           </button>
           <button style={styles.btnSecondary} onClick={() => setShowAddModal(true)}>
             ➕ הוספה ידנית
-          </button>
-          <button
-            style={styles.btnAutoFill}
-            onClick={handleAutoFillHebrewNames}
-            disabled={autoFillLoading}
-          >
-            {autoFillLoading ? '⏳ מעדכן...' : '🔤 השלם שמות עבריים'}
           </button>
         </div>
 
@@ -1453,7 +1240,7 @@ export default function VehiclesAdminPage() {
                       </td>
                       <td style={styles.td}>
                         <div>{v.model}</div>
-                        {v.model_he && <div style={styles.hebrewName}>{v.model_he}</div>}
+                        {v.variants && <div style={styles.hebrewName}>{v.variants}</div>}
                       </td>
                       <td style={styles.td}>
                         {v.year_from}{v.year_to ? `-${v.year_to}` : '+'}
@@ -1789,8 +1576,8 @@ export default function VehiclesAdminPage() {
                   <label style={styles.formLabel}>דגם (עברית)</label>
                   <input
                     type="text"
-                    value={addForm.model_he}
-                    onChange={e => setAddForm({...addForm, model_he: e.target.value})}
+                    value={addForm.variants}
+                    onChange={e => setAddForm({...addForm, variants: e.target.value})}
                     placeholder="קורולה"
                     style={styles.formInput}
                   />
@@ -1939,8 +1726,8 @@ export default function VehiclesAdminPage() {
                   <label style={styles.formLabel}>דגם (עברית)</label>
                   <input
                     type="text"
-                    value={editForm.model_he}
-                    onChange={e => setEditForm({...editForm, model_he: e.target.value})}
+                    value={editForm.variants}
+                    onChange={e => setEditForm({...editForm, variants: e.target.value})}
                     style={styles.formInput}
                   />
                 </div>
@@ -2150,16 +1937,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#334155',
     color: 'white',
     border: '1px solid #475569',
-    padding: '12px 24px',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    fontWeight: 600,
-    fontSize: '0.95rem',
-  },
-  btnAutoFill: {
-    background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
-    color: 'white',
-    border: 'none',
     padding: '12px 24px',
     borderRadius: '10px',
     cursor: 'pointer',
