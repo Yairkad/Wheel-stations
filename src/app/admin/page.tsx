@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { VERSION } from '@/lib/version'
 
 interface Manager {
   id?: string
@@ -1012,6 +1013,11 @@ export default function WheelsAdminPage() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <span style={styles.footerVersion}>גרסה {VERSION}</span>
+      </footer>
     </div>
   )
 }
@@ -1956,5 +1962,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
     padding: '40px',
     color: '#64748b',
+  },
+  footer: {
+    padding: '20px',
+    textAlign: 'center',
+    borderTop: '1px solid #334155',
+    marginTop: '20px',
+  },
+  footerVersion: {
+    color: '#64748b',
+    fontSize: '0.8rem',
   },
 }
