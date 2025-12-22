@@ -131,6 +131,57 @@ export default function VehiclesAdminPage() {
     rim_size: { type: '', value: '' },
   })
 
+  // Get unique values from vehicles for filters
+  const uniqueMakeValues = [...new Set(vehicles.map(v => v.make))].sort()
+  const uniqueModelValues = [...new Set(vehicles.map(v => v.model))].sort()
+  const uniqueBoltCountValues = [...new Set(vehicles.map(v => v.bolt_count))].sort((a, b) => a - b)
+  const uniqueBoltSpacingValues = [...new Set(vehicles.map(v => v.bolt_spacing))].sort((a, b) => a - b)
+  const uniqueCenterBoreValues = [...new Set(vehicles.filter(v => v.center_bore).map(v => v.center_bore!))].sort((a, b) => a - b)
+  const uniqueRimSizeValues = [...new Set(vehicles.filter(v => v.rim_size).map(v => v.rim_size!))].sort()
+
+  // Get filtered suggestions based on current input
+  const getMakeSuggestionsForFilter = () => {
+    if (!columnFilters.make.value) return []
+    return uniqueMakeValues.filter(m =>
+      m.toLowerCase().startsWith(columnFilters.make.value.toLowerCase())
+    ).slice(0, 5)
+  }
+
+  const getModelSuggestionsForFilter = () => {
+    if (!columnFilters.model.value) return []
+    return uniqueModelValues.filter(m =>
+      m.toLowerCase().startsWith(columnFilters.model.value.toLowerCase())
+    ).slice(0, 5)
+  }
+
+  const getBoltCountSuggestionsForFilter = () => {
+    if (!columnFilters.bolt_count.value) return []
+    return uniqueBoltCountValues.filter(v =>
+      v.toString().startsWith(columnFilters.bolt_count.value)
+    ).slice(0, 5)
+  }
+
+  const getBoltSpacingSuggestionsForFilter = () => {
+    if (!columnFilters.bolt_spacing.value) return []
+    return uniqueBoltSpacingValues.filter(v =>
+      v.toString().startsWith(columnFilters.bolt_spacing.value)
+    ).slice(0, 5)
+  }
+
+  const getCenterBoreSuggestionsForFilter = () => {
+    if (!columnFilters.center_bore.value) return []
+    return uniqueCenterBoreValues.filter(v =>
+      v.toString().startsWith(columnFilters.center_bore.value)
+    ).slice(0, 5)
+  }
+
+  const getRimSizeSuggestionsForFilter = () => {
+    if (!columnFilters.rim_size.value) return []
+    return uniqueRimSizeValues.filter(v =>
+      v.toLowerCase().startsWith(columnFilters.rim_size.value.toLowerCase())
+    ).slice(0, 5)
+  }
+
   // Common car makes for autocomplete
   const commonMakes = [
     'Toyota', 'Hyundai', 'Kia', 'Mazda', 'Honda', 'Nissan', 'Suzuki', 'Mitsubishi',
@@ -549,13 +600,35 @@ export default function VehiclesAdminPage() {
     }
 
     // Column filters
-    if (!applyColumnFilter(v.make, columnFilters.make)) return false
-    if (!applyColumnFilter(v.model, columnFilters.model)) return false
+    // Make filter - starts with (prefix match)
+    if (columnFilters.make.type === 'equals' && columnFilters.make.value) {
+      if (!v.make.toLowerCase().startsWith(columnFilters.make.value.toLowerCase())) return false
+    }
+    // Model filter - starts with (prefix match)
+    if (columnFilters.model.type === 'equals' && columnFilters.model.value) {
+      if (!v.model.toLowerCase().startsWith(columnFilters.model.value.toLowerCase())) return false
+    }
     if (!applyColumnFilter(v.year_from, columnFilters.year_from)) return false
-    if (!applyColumnFilter(v.bolt_count, columnFilters.bolt_count)) return false
-    if (!applyColumnFilter(v.bolt_spacing, columnFilters.bolt_spacing)) return false
-    if (!applyColumnFilter(v.center_bore, columnFilters.center_bore)) return false
-    if (!applyColumnFilter(v.rim_size, columnFilters.rim_size)) return false
+    // Bolt count filter - exact match from dropdown
+    if (columnFilters.bolt_count.type === 'equals' && columnFilters.bolt_count.value) {
+      if (v.bolt_count !== parseInt(columnFilters.bolt_count.value)) return false
+    }
+    // Bolt spacing filter - exact match from dropdown
+    if (columnFilters.bolt_spacing.type === 'equals' && columnFilters.bolt_spacing.value) {
+      if (v.bolt_spacing !== parseFloat(columnFilters.bolt_spacing.value)) return false
+    }
+    // Center bore filter - exact match from dropdown
+    if (columnFilters.center_bore.type === 'equals' && columnFilters.center_bore.value) {
+      if (v.center_bore !== parseFloat(columnFilters.center_bore.value)) return false
+    } else if (columnFilters.center_bore.type === 'empty') {
+      if (v.center_bore !== null) return false
+    }
+    // Rim size filter - exact match from dropdown
+    if (columnFilters.rim_size.type === 'equals' && columnFilters.rim_size.value) {
+      if (v.rim_size !== columnFilters.rim_size.value) return false
+    } else if (columnFilters.rim_size.type === 'empty') {
+      if (v.rim_size !== null && v.rim_size !== '') return false
+    }
 
     return true
   })
@@ -646,51 +719,60 @@ export default function VehiclesAdminPage() {
                   <th style={styles.th}>יצרן</th>
                   <th style={styles.th}>דגם</th>
                   <th style={styles.th}>שנים</th>
-                  <th style={styles.th}>PCD</th>
+                  <th style={styles.th}>ברגים</th>
+                  <th style={styles.th}>מרווח</th>
                   <th style={styles.th}>CB</th>
                   <th style={styles.th}>חישוק</th>
                   <th style={styles.th}>פעולות</th>
                 </tr>
                 <tr style={styles.filterRow}>
                   <th style={styles.thFilter}>
-                    <select
-                      style={styles.filterSelect}
-                      value={columnFilters.make.type}
-                      onChange={e => setColumnFilters({...columnFilters, make: {...columnFilters.make, type: e.target.value as any}})}
-                    >
-                      <option value="">הכל</option>
-                      <option value="empty">ריק</option>
-                      <option value="equals">שווה ל</option>
-                    </select>
-                    {columnFilters.make.type === 'equals' && (
+                    <div style={styles.filterWithSuggestions}>
                       <input
                         type="text"
                         style={styles.filterInput}
-                        placeholder="ערך"
+                        placeholder="מתחיל ב..."
                         value={columnFilters.make.value}
-                        onChange={e => setColumnFilters({...columnFilters, make: {...columnFilters.make, value: e.target.value}})}
+                        onChange={e => setColumnFilters({...columnFilters, make: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                       />
-                    )}
+                      {getMakeSuggestionsForFilter().length > 0 && (
+                        <div style={styles.filterSuggestions}>
+                          {getMakeSuggestionsForFilter().map(s => (
+                            <div
+                              key={s}
+                              style={styles.filterSuggestionItem}
+                              onClick={() => setColumnFilters({...columnFilters, make: { type: 'equals', value: s }})}
+                            >
+                              {s}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </th>
                   <th style={styles.thFilter}>
-                    <select
-                      style={styles.filterSelect}
-                      value={columnFilters.model.type}
-                      onChange={e => setColumnFilters({...columnFilters, model: {...columnFilters.model, type: e.target.value as any}})}
-                    >
-                      <option value="">הכל</option>
-                      <option value="empty">ריק</option>
-                      <option value="equals">שווה ל</option>
-                    </select>
-                    {columnFilters.model.type === 'equals' && (
+                    <div style={styles.filterWithSuggestions}>
                       <input
                         type="text"
                         style={styles.filterInput}
-                        placeholder="ערך"
+                        placeholder="מתחיל ב..."
                         value={columnFilters.model.value}
-                        onChange={e => setColumnFilters({...columnFilters, model: {...columnFilters.model, value: e.target.value}})}
+                        onChange={e => setColumnFilters({...columnFilters, model: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                       />
-                    )}
+                      {getModelSuggestionsForFilter().length > 0 && (
+                        <div style={styles.filterSuggestions}>
+                          {getModelSuggestionsForFilter().map(s => (
+                            <div
+                              key={s}
+                              style={styles.filterSuggestionItem}
+                              onClick={() => setColumnFilters({...columnFilters, model: { type: 'equals', value: s }})}
+                            >
+                              {s}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </th>
                   <th style={styles.thFilter}>
                     <select
@@ -715,66 +797,100 @@ export default function VehiclesAdminPage() {
                     )}
                   </th>
                   <th style={styles.thFilter}>
-                    <select
-                      style={styles.filterSelect}
-                      value={columnFilters.bolt_count.type}
-                      onChange={e => setColumnFilters({...columnFilters, bolt_count: {...columnFilters.bolt_count, type: e.target.value as any}})}
-                    >
-                      <option value="">הכל</option>
-                      <option value="equals">שווה ל</option>
-                    </select>
-                    {columnFilters.bolt_count.type === 'equals' && (
-                      <input
-                        type="number"
-                        style={styles.filterInput}
-                        placeholder="ברגים"
-                        value={columnFilters.bolt_count.value}
-                        onChange={e => setColumnFilters({...columnFilters, bolt_count: {...columnFilters.bolt_count, value: e.target.value}})}
-                      />
-                    )}
-                  </th>
-                  <th style={styles.thFilter}>
-                    <select
-                      style={styles.filterSelect}
-                      value={columnFilters.center_bore.type}
-                      onChange={e => setColumnFilters({...columnFilters, center_bore: {...columnFilters.center_bore, type: e.target.value as any}})}
-                    >
-                      <option value="">הכל</option>
-                      <option value="empty">ריק</option>
-                      <option value="equals">שווה ל</option>
-                      <option value="greater">גדול מ</option>
-                      <option value="less">קטן מ</option>
-                    </select>
-                    {['equals', 'greater', 'less'].includes(columnFilters.center_bore.type) && (
-                      <input
-                        type="number"
-                        step="0.1"
-                        style={styles.filterInput}
-                        placeholder="CB"
-                        value={columnFilters.center_bore.value}
-                        onChange={e => setColumnFilters({...columnFilters, center_bore: {...columnFilters.center_bore, value: e.target.value}})}
-                      />
-                    )}
-                  </th>
-                  <th style={styles.thFilter}>
-                    <select
-                      style={styles.filterSelect}
-                      value={columnFilters.rim_size.type}
-                      onChange={e => setColumnFilters({...columnFilters, rim_size: {...columnFilters.rim_size, type: e.target.value as any}})}
-                    >
-                      <option value="">הכל</option>
-                      <option value="empty">ריק</option>
-                      <option value="equals">שווה ל</option>
-                    </select>
-                    {columnFilters.rim_size.type === 'equals' && (
+                    <div style={styles.filterWithSuggestions}>
                       <input
                         type="text"
                         style={styles.filterInput}
-                        placeholder="גודל"
-                        value={columnFilters.rim_size.value}
-                        onChange={e => setColumnFilters({...columnFilters, rim_size: {...columnFilters.rim_size, value: e.target.value}})}
+                        placeholder="ברגים"
+                        value={columnFilters.bolt_count.value}
+                        onChange={e => setColumnFilters({...columnFilters, bolt_count: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                       />
-                    )}
+                      {getBoltCountSuggestionsForFilter().length > 0 && (
+                        <div style={styles.filterSuggestions}>
+                          {getBoltCountSuggestionsForFilter().map(s => (
+                            <div
+                              key={s}
+                              style={styles.filterSuggestionItem}
+                              onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: 'equals', value: s.toString() }})}
+                            >
+                              {s}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </th>
+                  <th style={styles.thFilter}>
+                    <div style={styles.filterWithSuggestions}>
+                      <input
+                        type="text"
+                        style={styles.filterInput}
+                        placeholder="מרווח"
+                        value={columnFilters.bolt_spacing.value}
+                        onChange={e => setColumnFilters({...columnFilters, bolt_spacing: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                      />
+                      {getBoltSpacingSuggestionsForFilter().length > 0 && (
+                        <div style={styles.filterSuggestions}>
+                          {getBoltSpacingSuggestionsForFilter().map(s => (
+                            <div
+                              key={s}
+                              style={styles.filterSuggestionItem}
+                              onClick={() => setColumnFilters({...columnFilters, bolt_spacing: { type: 'equals', value: s.toString() }})}
+                            >
+                              {s}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </th>
+                  <th style={styles.thFilter}>
+                    <div style={styles.filterWithSuggestions}>
+                      <input
+                        type="text"
+                        style={styles.filterInput}
+                        placeholder="CB"
+                        value={columnFilters.center_bore.value}
+                        onChange={e => setColumnFilters({...columnFilters, center_bore: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                      />
+                      {getCenterBoreSuggestionsForFilter().length > 0 && (
+                        <div style={styles.filterSuggestions}>
+                          {getCenterBoreSuggestionsForFilter().map(s => (
+                            <div
+                              key={s}
+                              style={styles.filterSuggestionItem}
+                              onClick={() => setColumnFilters({...columnFilters, center_bore: { type: 'equals', value: s.toString() }})}
+                            >
+                              {s}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </th>
+                  <th style={styles.thFilter}>
+                    <div style={styles.filterWithSuggestions}>
+                      <input
+                        type="text"
+                        style={styles.filterInput}
+                        placeholder="חישוק"
+                        value={columnFilters.rim_size.value}
+                        onChange={e => setColumnFilters({...columnFilters, rim_size: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                      />
+                      {getRimSizeSuggestionsForFilter().length > 0 && (
+                        <div style={styles.filterSuggestions}>
+                          {getRimSizeSuggestionsForFilter().map(s => (
+                            <div
+                              key={s}
+                              style={styles.filterSuggestionItem}
+                              onClick={() => setColumnFilters({...columnFilters, rim_size: { type: 'equals', value: s }})}
+                            >
+                              {s}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </th>
                   <th style={styles.thFilter}></th>
                 </tr>
@@ -782,7 +898,7 @@ export default function VehiclesAdminPage() {
               <tbody>
                 {filteredVehicles.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={styles.emptyRow}>
+                    <td colSpan={8} style={styles.emptyRow}>
                       <div style={styles.emptyMessage}>
                         {hasActiveFilters() ? (
                           <>
@@ -808,9 +924,8 @@ export default function VehiclesAdminPage() {
                       <td style={styles.td}>
                         {v.year_from}{v.year_to ? `-${v.year_to}` : '+'}
                       </td>
-                      <td style={styles.td}>
-                        <span style={styles.pcdBadge}>{v.bolt_count}×{v.bolt_spacing}</span>
-                      </td>
+                      <td style={styles.td}>{v.bolt_count}</td>
+                      <td style={styles.td}>{v.bolt_spacing}</td>
                       <td style={styles.td}>{v.center_bore || '-'}</td>
                       <td style={styles.td}>{v.rim_size || '-'}</td>
                       <td style={styles.td}>
@@ -1934,4 +2049,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     fontSize: '0.9rem',
   },
+  filterWithSuggestions: {
+    position: 'relative',
+    width: '100%',
+  } as React.CSSProperties,
+  filterSuggestions: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '6px',
+    marginTop: '2px',
+    zIndex: 100,
+    maxHeight: '150px',
+    overflowY: 'auto',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+  } as React.CSSProperties,
+  filterSuggestionItem: {
+    padding: '8px 10px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    color: 'white',
+    borderBottom: '1px solid #334155',
+    transition: 'background 0.15s',
+  } as React.CSSProperties,
 }
