@@ -1235,7 +1235,10 @@ export default function VehiclesAdminPage() {
                         <div>{v.make}</div>
                         {v.make_he && <div style={styles.hebrewName}>{v.make_he}</div>}
                       </td>
-                      <td style={styles.td}>{v.model}</td>
+                      <td style={styles.td}>
+                        <div>{v.model}</div>
+                        {v.model_he && <div style={styles.hebrewName}>{v.model_he}</div>}
+                      </td>
                       <td style={styles.td}>
                         {v.year_from}{v.year_to ? `-${v.year_to}` : '+'}
                       </td>
