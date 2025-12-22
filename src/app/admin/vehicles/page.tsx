@@ -68,6 +68,7 @@ export default function VehiclesAdminPage() {
     manufacturer: string
     manufacturer_he: string
     model: string
+    model_he: string
     year: number
   } | null>(null)
   const [scrapeForm, setScrapeForm] = useState({
@@ -314,6 +315,7 @@ export default function VehiclesAdminPage() {
         manufacturer: makeEnglish || makeHebrew,
         manufacturer_he: makeHebrew,
         model: modelEnglish || modelHebrew,
+        model_he: modelHebrew,
         year: data.vehicle.year
       })
 
@@ -635,8 +637,9 @@ export default function VehiclesAdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           make: scrapeResult.make,
-          make_he: '', // Admin can fill this later
+          make_he: plateVehicleInfo?.manufacturer_he || '',
           model: scrapeResult.model,
+          model_he: plateVehicleInfo?.model_he || '',
           year_from: scrapeResult.year,
           year_to: null,
           bolt_count: scrapeResult.bolt_count,
