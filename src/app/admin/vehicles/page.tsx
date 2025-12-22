@@ -60,6 +60,15 @@ export default function VehiclesAdminPage() {
 
   // Scrape form state
   const [showScrapeModal, setShowScrapeModal] = useState(false)
+  const [scrapeMode, setScrapeMode] = useState<'manual' | 'plate'>('manual')
+  const [plateNumber, setPlateNumber] = useState('')
+  const [plateLoading, setPlateLoading] = useState(false)
+  const [plateVehicleInfo, setPlateVehicleInfo] = useState<{
+    manufacturer: string
+    manufacturer_he: string
+    model: string
+    year: number
+  } | null>(null)
   const [scrapeForm, setScrapeForm] = useState({
     make: '',
     model: '',
@@ -181,6 +190,98 @@ export default function VehiclesAdminPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Lookup vehicle by plate number
+  const handlePlateLookup = async () => {
+    if (!plateNumber || plateNumber.length < 7) {
+      toast.error('נא להזין מספר רכב תקין (7-8 ספרות)')
+      return
+    }
+
+    setPlateLoading(true)
+    setPlateVehicleInfo(null)
+    setScrapeResult(null)
+    setScrapeError(null)
+
+    try {
+      const response = await fetch(`/api/vehicle/lookup?plate=${plateNumber}`)
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'רכב לא נמצא')
+      }
+
+      // Extract make from Hebrew manufacturer name
+      const makeHebrew = data.vehicle.manufacturer || ''
+      const makeEnglish = extractMakeFromHebrew(makeHebrew)
+
+      setPlateVehicleInfo({
+        manufacturer: makeEnglish || makeHebrew,
+        manufacturer_he: makeHebrew,
+        model: data.vehicle.model || '',
+        year: data.vehicle.year
+      })
+
+      // Auto-fill the scrape form
+      setScrapeForm({
+        make: makeEnglish || '',
+        model: data.vehicle.model || '',
+        year: data.vehicle.year?.toString() || ''
+      })
+
+      toast.success('פרטי הרכב נמצאו!')
+    } catch (err: any) {
+      toast.error(err.message || 'שגיאה בחיפוש הרכב')
+      setScrapeError(err.message)
+    } finally {
+      setPlateLoading(false)
+    }
+  }
+
+  // Helper function to extract English make from Hebrew
+  const extractMakeFromHebrew = (hebrew: string): string => {
+    const makeMap: { [key: string]: string } = {
+      'טויוטה': 'Toyota',
+      'יונדאי': 'Hyundai',
+      'קיה': 'Kia',
+      'מאזדה': 'Mazda',
+      'הונדה': 'Honda',
+      'ניסאן': 'Nissan',
+      'סוזוקי': 'Suzuki',
+      'מיצובישי': 'Mitsubishi',
+      'סובארו': 'Subaru',
+      'פולקסווגן': 'Volkswagen',
+      'סקודה': 'Skoda',
+      'סיאט': 'Seat',
+      'אאודי': 'Audi',
+      'אודי': 'Audi',
+      'ב.מ.וו': 'BMW',
+      'מרצדס': 'Mercedes-Benz',
+      'פיג\'ו': 'Peugeot',
+      'פיגו': 'Peugeot',
+      'סיטרואן': 'Citroen',
+      'רנו': 'Renault',
+      'פיאט': 'Fiat',
+      'אלפא רומיאו': 'Alfa Romeo',
+      'שברולט': 'Chevrolet',
+      'פורד': 'Ford',
+      "ג'יפ": 'Jeep',
+      'דאצ\'יה': 'Dacia',
+      'אופל': 'Opel',
+      'וולוו': 'Volvo',
+      'לקסוס': 'Lexus',
+      'אינפיניטי': 'Infiniti',
+      'טסלה': 'Tesla',
+    }
+
+    const hebrewLower = hebrew.toLowerCase()
+    for (const [heb, eng] of Object.entries(makeMap)) {
+      if (hebrewLower.includes(heb)) {
+        return eng
+      }
+    }
+    return ''
   }
 
   // Scrape from wheel-size.com
@@ -415,6 +516,25 @@ export default function VehiclesAdminPage() {
     return true
   }
 
+  // Check if any filter is active
+  const hasActiveFilters = () => {
+    return Object.values(columnFilters).some(f => f.type !== '') || searchQuery !== ''
+  }
+
+  // Reset all filters
+  const resetFilters = () => {
+    setColumnFilters({
+      make: { type: '', value: '' },
+      model: { type: '', value: '' },
+      year_from: { type: '', value: '' },
+      bolt_count: { type: '', value: '' },
+      bolt_spacing: { type: '', value: '' },
+      center_bore: { type: '', value: '' },
+      rim_size: { type: '', value: '' },
+    })
+    setSearchQuery('')
+  }
+
   // Filter vehicles
   const filteredVehicles = vehicles.filter(v => {
     // Search query filter
@@ -519,10 +639,6 @@ export default function VehiclesAdminPage() {
         <div style={styles.tableContainer}>
           {loading ? (
             <div style={styles.loading}>טוען...</div>
-          ) : filteredVehicles.length === 0 ? (
-            <div style={styles.empty}>
-              {searchQuery ? 'לא נמצאו תוצאות' : 'אין דגמים במאגר'}
-            </div>
           ) : (
             <table style={styles.table}>
               <thead>
@@ -664,29 +780,48 @@ export default function VehiclesAdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredVehicles.map(v => (
-                  <tr key={v.id} style={styles.tr}>
-                    <td style={styles.td}>
-                      <div>{v.make}</div>
-                      {v.make_he && <div style={styles.hebrewName}>{v.make_he}</div>}
-                    </td>
-                    <td style={styles.td}>{v.model}</td>
-                    <td style={styles.td}>
-                      {v.year_from}{v.year_to ? `-${v.year_to}` : '+'}
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.pcdBadge}>{v.bolt_count}×{v.bolt_spacing}</span>
-                    </td>
-                    <td style={styles.td}>{v.center_bore || '-'}</td>
-                    <td style={styles.td}>{v.rim_size || '-'}</td>
-                    <td style={styles.td}>
-                      <div style={{display: 'flex', gap: '6px'}}>
-                        <button style={styles.btnEdit} onClick={() => openEditModal(v)}>✏️</button>
-                        <button style={styles.btnDelete} onClick={() => handleDelete(v.id)}>🗑️</button>
+                {filteredVehicles.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={styles.emptyRow}>
+                      <div style={styles.emptyMessage}>
+                        {hasActiveFilters() ? (
+                          <>
+                            <span>לא נמצאו תוצאות מתאימות לסינון</span>
+                            <button style={styles.btnResetFilters} onClick={resetFilters}>
+                              🔄 אפס מסננים
+                            </button>
+                          </>
+                        ) : (
+                          <span>אין דגמים במאגר</span>
+                        )}
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredVehicles.map(v => (
+                    <tr key={v.id} style={styles.tr}>
+                      <td style={styles.td}>
+                        <div>{v.make}</div>
+                        {v.make_he && <div style={styles.hebrewName}>{v.make_he}</div>}
+                      </td>
+                      <td style={styles.td}>{v.model}</td>
+                      <td style={styles.td}>
+                        {v.year_from}{v.year_to ? `-${v.year_to}` : '+'}
+                      </td>
+                      <td style={styles.td}>
+                        <span style={styles.pcdBadge}>{v.bolt_count}×{v.bolt_spacing}</span>
+                      </td>
+                      <td style={styles.td}>{v.center_bore || '-'}</td>
+                      <td style={styles.td}>{v.rim_size || '-'}</td>
+                      <td style={styles.td}>
+                        <div style={{display: 'flex', gap: '6px'}}>
+                          <button style={styles.btnEdit} onClick={() => openEditModal(v)}>✏️</button>
+                          <button style={styles.btnDelete} onClick={() => handleDelete(v.id)}>🗑️</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           )}
@@ -695,7 +830,7 @@ export default function VehiclesAdminPage() {
 
       {/* Scrape Modal */}
       {showScrapeModal && (
-        <div style={styles.modalOverlay} onClick={() => { setShowScrapeModal(false); setScrapeResult(null); setScrapeError(null) }}>
+        <div style={styles.modalOverlay} onClick={() => { setShowScrapeModal(false); setScrapeResult(null); setScrapeError(null); setPlateVehicleInfo(null); setPlateNumber('') }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>🌐 גרידה מ-wheel-size.com</h3>
@@ -703,9 +838,75 @@ export default function VehiclesAdminPage() {
             </div>
 
             <div style={styles.modalBody}>
-              <p style={styles.modalDesc}>
-                הזן יצרן, דגם ושנה כדי לחפש אוטומטית את מידות ה-PCD מהאתר wheel-size.com
-              </p>
+              {/* Mode Tabs */}
+              <div style={styles.tabsContainer}>
+                <button
+                  style={{...styles.tab, ...(scrapeMode === 'plate' ? styles.tabActive : {})}}
+                  onClick={() => { setScrapeMode('plate'); setScrapeResult(null); setScrapeError(null) }}
+                >
+                  🚗 לפי מספר רכב
+                </button>
+                <button
+                  style={{...styles.tab, ...(scrapeMode === 'manual' ? styles.tabActive : {})}}
+                  onClick={() => { setScrapeMode('manual'); setScrapeResult(null); setScrapeError(null) }}
+                >
+                  ✏️ הזנה ידנית
+                </button>
+              </div>
+
+              {/* Plate Number Mode */}
+              {scrapeMode === 'plate' && (
+                <>
+                  <p style={styles.modalDesc}>
+                    הזן מספר רכב ישראלי כדי לשלוף את פרטי היצרן, דגם ושנה אוטומטית
+                  </p>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>מספר רכב</label>
+                    <div style={{display: 'flex', gap: '10px'}}>
+                      <input
+                        type="text"
+                        value={plateNumber}
+                        onChange={e => setPlateNumber(e.target.value.replace(/\D/g, ''))}
+                        onKeyDown={e => e.key === 'Enter' && handlePlateLookup()}
+                        placeholder="1234567"
+                        maxLength={8}
+                        style={{...styles.formInput, flex: 1}}
+                      />
+                      <button
+                        style={styles.btnLookup}
+                        onClick={handlePlateLookup}
+                        disabled={plateLoading}
+                      >
+                        {plateLoading ? '🔄' : '🔍'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Vehicle Info from Plate */}
+                  {plateVehicleInfo && (
+                    <div style={styles.plateResult}>
+                      <h4 style={styles.plateResultTitle}>📋 פרטי הרכב:</h4>
+                      <div style={styles.plateResultGrid}>
+                        <div><strong>יצרן:</strong> {plateVehicleInfo.manufacturer_he}</div>
+                        <div><strong>דגם:</strong> {plateVehicleInfo.model}</div>
+                        <div><strong>שנה:</strong> {plateVehicleInfo.year}</div>
+                      </div>
+                      <p style={{color: '#94a3b8', fontSize: '0.85rem', marginTop: '10px'}}>
+                        הפרטים הועברו לטופס הגרידה. לחץ על &quot;חפש באתר&quot; להמשך.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Manual Mode - Show form fields */}
+              {(scrapeMode === 'manual' || plateVehicleInfo) && (
+                <>
+                  {scrapeMode === 'manual' && (
+                    <p style={styles.modalDesc}>
+                      הזן יצרן, דגם ושנה כדי לחפש אוטומטית את מידות ה-PCD מהאתר wheel-size.com
+                    </p>
+                  )}
 
               <div style={styles.formGroup}>
                 <label style={styles.formLabel}>יצרן (באנגלית)</label>
@@ -883,6 +1084,8 @@ export default function VehiclesAdminPage() {
                     {addLoading ? 'מוסיף...' : '➕ הוסף למאגר'}
                   </button>
                 </div>
+              )}
+              </>
               )}
             </div>
           </div>
@@ -1316,10 +1519,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#1e293b',
     border: '1px solid #334155',
     borderRadius: '16px',
-    overflow: 'hidden',
+    overflowX: 'auto',
+    WebkitOverflowScrolling: 'touch',
   },
   table: {
     width: '100%',
+    minWidth: '800px',
     borderCollapse: 'collapse',
   },
   th: {
@@ -1651,5 +1856,82 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     fontSize: '0.8rem',
     boxSizing: 'border-box',
+  },
+  // Tabs for scrape modal
+  tabsContainer: {
+    display: 'flex',
+    gap: '8px',
+    marginBottom: '20px',
+    borderBottom: '1px solid #334155',
+    paddingBottom: '12px',
+  },
+  tab: {
+    flex: 1,
+    padding: '10px 16px',
+    background: '#0f172a',
+    border: '1px solid #334155',
+    borderRadius: '8px',
+    color: '#94a3b8',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: 500,
+    transition: 'all 0.2s',
+  },
+  tabActive: {
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    borderColor: '#3b82f6',
+    color: 'white',
+  },
+  btnLookup: {
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: 'white',
+    border: 'none',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '1.1rem',
+    minWidth: '50px',
+  },
+  plateResult: {
+    background: 'rgba(59, 130, 246, 0.1)',
+    border: '1px solid rgba(59, 130, 246, 0.3)',
+    borderRadius: '12px',
+    padding: '16px',
+    marginTop: '16px',
+    marginBottom: '16px',
+  },
+  plateResultTitle: {
+    color: '#60a5fa',
+    fontSize: '1rem',
+    margin: '0 0 12px 0',
+    fontWeight: 600,
+  },
+  plateResultGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  // Empty state in table
+  emptyRow: {
+    padding: '40px 20px',
+    textAlign: 'center',
+  },
+  emptyMessage: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '16px',
+    color: '#64748b',
+    fontSize: '1rem',
+  },
+  btnResetFilters: {
+    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+    color: 'white',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '0.9rem',
   },
 }

@@ -860,9 +860,9 @@ export default function WheelsAdminPage() {
                           color: manager.is_primary ? 'white' : '#64748b',
                         }}
                         onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
-                        title={manager.is_primary ? 'מנהל ראשי - לחץ להסרה' : 'לחץ להגדרה כמנהל ראשי'}
+                        title={manager.is_primary ? 'יש הרשאות - לחץ להסרה' : 'אין הרשאות - לחץ להוספה'}
                       >
-                        👑
+                        {manager.is_primary ? '🔓' : '🔒'}
                       </button>
                       <input
                         type="text"
@@ -1078,8 +1078,8 @@ function StationCard({
                 <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/4)</div>
                 {station.wheel_station_managers.map((m, i) => (
                   <div key={i} style={styles.managerRowCompactDisplay}>
-                    <span style={{color: m.is_primary ? '#fbbf24' : '#64748b'}}>
-                      {m.is_primary ? '👑' : '👤'}
+                    <span style={{color: m.is_primary ? '#22c55e' : '#64748b'}}>
+                      {m.is_primary ? '🔓' : '🔒'}
                     </span>
                     <span style={{color: 'white'}}>{m.full_name}</span>
                     <span style={{color: '#64748b'}}>- {m.phone}</span>
