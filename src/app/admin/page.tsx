@@ -97,6 +97,17 @@ export default function WheelsAdminPage() {
   const [scrapeError, setScrapeError] = useState<string | null>(null)
   const [addVehicleLoading, setAddVehicleLoading] = useState(false)
 
+  // Add Manager modal state
+  const [showAddManager, setShowAddManager] = useState(false)
+  const [addManagerForm, setAddManagerForm] = useState({
+    station_id: '',
+    full_name: '',
+    phone: '',
+    password: '',
+    is_primary: false
+  })
+  const [addManagerLoading, setAddManagerLoading] = useState(false)
+
   useEffect(() => {
     // Check if already logged in
     const saved = sessionStorage.getItem('wheels_admin_auth')
@@ -397,6 +408,41 @@ export default function WheelsAdminPage() {
     setShowAddStation(true)
   }
 
+  // Add Manager to existing station
+  const handleAddManagerToStation = async () => {
+    if (!addManagerForm.station_id) {
+      toast.error('נא לבחור תחנה')
+      return
+    }
+    if (!addManagerForm.full_name || !addManagerForm.phone) {
+      toast.error('נא למלא שם וטלפון')
+      return
+    }
+    setAddManagerLoading(true)
+    try {
+      const response = await fetch('/api/wheel-stations/admin/managers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...addManagerForm,
+          admin_password: password
+        })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add manager')
+      }
+      await fetchStations()
+      setShowAddManager(false)
+      setAddManagerForm({ station_id: '', full_name: '', phone: '', password: '', is_primary: false })
+      toast.success(data.message || 'המנהל נוסף בהצלחה!')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בהוספת מנהל')
+    } finally {
+      setAddManagerLoading(false)
+    }
+  }
+
   const addManager = () => {
     if (stationForm.managers.length >= 4) {
       toast.error('ניתן להוסיף עד 4 מנהלים')
@@ -683,6 +729,7 @@ export default function WheelsAdminPage() {
             </div>
             <div style={styles.sectionButtons} className="section-buttons">
               <button style={styles.btnGhost} onClick={() => { resetDistrictForm(); setShowAddDistrict(true) }}>+ מחוז</button>
+              <button style={styles.btnGhost} onClick={() => setShowAddManager(true)}>+ מנהל</button>
               <button style={styles.btnPrimary} onClick={() => openAddStationModal()}>+ תחנה</button>
             </div>
           </div>
@@ -1024,6 +1071,94 @@ export default function WheelsAdminPage() {
               </button>
               <button style={styles.confirmDeleteBtn} onClick={confirmDialogData.onConfirm}>
                 מחק
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Manager Modal */}
+      {showAddManager && (
+        <div style={styles.modalOverlay} onClick={() => setShowAddManager(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>👤 הוספת מנהל</h3>
+            </div>
+
+            <div style={styles.modalBody}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>תחנה *</label>
+                <select
+                  value={addManagerForm.station_id}
+                  onChange={e => setAddManagerForm({...addManagerForm, station_id: e.target.value})}
+                  style={styles.formInput}
+                >
+                  <option value="">בחר תחנה...</option>
+                  {stations.map(station => (
+                    <option key={station.id} value={station.id}>
+                      {station.name} ({station.wheel_station_managers?.length || 0}/4 מנהלים)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>שם מלא *</label>
+                <input
+                  type="text"
+                  value={addManagerForm.full_name}
+                  onChange={e => setAddManagerForm({...addManagerForm, full_name: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="ישראל ישראלי"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>טלפון *</label>
+                <input
+                  type="tel"
+                  value={addManagerForm.phone}
+                  onChange={e => setAddManagerForm({...addManagerForm, phone: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="050-1234567"
+                  dir="ltr"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>סיסמא (אופציונלי)</label>
+                <input
+                  type="text"
+                  value={addManagerForm.password}
+                  onChange={e => setAddManagerForm({...addManagerForm, password: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="סיסמא אישית למנהל"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={{...styles.formLabel, display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer'}}>
+                  <input
+                    type="checkbox"
+                    checked={addManagerForm.is_primary}
+                    onChange={e => setAddManagerForm({...addManagerForm, is_primary: e.target.checked})}
+                    style={{width: '18px', height: '18px'}}
+                  />
+                  מנהל ראשי (יכול לערוך מנהלים אחרים)
+                </label>
+              </div>
+            </div>
+
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => setShowAddManager(false)}>
+                ביטול
+              </button>
+              <button
+                style={styles.btnSubmit}
+                onClick={handleAddManagerToStation}
+                disabled={addManagerLoading}
+              >
+                {addManagerLoading ? 'מוסיף...' : 'הוסף מנהל'}
               </button>
             </div>
           </div>
