@@ -109,10 +109,20 @@ export default function WheelsAdminPage() {
   const [addManagerLoading, setAddManagerLoading] = useState(false)
 
   useEffect(() => {
-    // Check if already logged in
-    const saved = sessionStorage.getItem('wheels_admin_auth')
-    if (saved === 'true') {
-      setIsAuthenticated(true)
+    // Check if already logged in (with 30-day expiry)
+    const savedAuth = localStorage.getItem('wheels_admin_auth')
+    if (savedAuth) {
+      try {
+        const { expiry, pwd } = JSON.parse(savedAuth)
+        if (expiry && new Date().getTime() < expiry) {
+          setIsAuthenticated(true)
+          setPassword(pwd || '')
+        } else {
+          localStorage.removeItem('wheels_admin_auth')
+        }
+      } catch {
+        localStorage.removeItem('wheels_admin_auth')
+      }
     }
   }, [])
 
@@ -141,7 +151,9 @@ export default function WheelsAdminPage() {
   const handleLogin = () => {
     if (password === WHEELS_ADMIN_PASSWORD) {
       setIsAuthenticated(true)
-      sessionStorage.setItem('wheels_admin_auth', 'true')
+      // Save with 30-day expiry
+      const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000)
+      localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd: password }))
       setPasswordError('')
     } else {
       setPasswordError('סיסמא שגויה')
@@ -150,7 +162,7 @@ export default function WheelsAdminPage() {
 
   const handleLogout = () => {
     setIsAuthenticated(false)
-    sessionStorage.removeItem('wheels_admin_auth')
+    localStorage.removeItem('wheels_admin_auth')
   }
 
   const fetchStations = async () => {
