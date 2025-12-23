@@ -1055,6 +1055,16 @@ function VehiclesAdminPage() {
           .stat-value-responsive {
             font-size: 1rem !important;
           }
+          .actions-row-responsive {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+          }
+          .actions-row-responsive button {
+            flex: 1 1 auto !important;
+            min-width: 100px !important;
+            padding: 10px 14px !important;
+            font-size: 0.85rem !important;
+          }
         }
       `}</style>
 
@@ -1096,9 +1106,9 @@ function VehiclesAdminPage() {
 
       <div style={styles.container}>
         {/* Actions */}
-        <div style={styles.actionsRow}>
+        <div style={styles.actionsRow} className="actions-row-responsive">
           <button style={styles.btnPrimary} onClick={() => setShowScrapeModal(true)}>
-            🌐 גרידה מ-wheel-size.com
+            🌐 גרידה
           </button>
           <button style={styles.btnSecondary} onClick={() => setShowAddModal(true)}>
             ➕ הוספה ידנית
@@ -2175,9 +2185,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   actionsRow: {
     display: 'flex',
-    gap: '12px',
+    gap: '10px',
     marginBottom: '20px',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
   },
   btnPrimary: {
     background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',

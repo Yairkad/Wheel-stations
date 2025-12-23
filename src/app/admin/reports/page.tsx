@@ -116,12 +116,13 @@ export default function ErrorReportsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, admin_notes: adminNotes })
       })
-      if (response.ok) {
+      const result = await response.json()
+      if (response.ok && result.success) {
         await fetchReports()
         setSelectedReport(null)
         toast.success('הסטטוס עודכן בהצלחה')
       } else {
-        throw new Error('Failed to update')
+        toast.error(result.error || 'שגיאה בעדכון סטטוס')
       }
     } catch (err) {
       toast.error('שגיאה בעדכון סטטוס')
@@ -673,6 +674,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   headerButtons: {
     display: 'flex',
+    alignItems: 'center',
     gap: '10px',
     flexWrap: 'wrap',
   },
@@ -690,11 +692,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#f87171',
   },
   btnGhost: {
-    padding: '12px 20px',
-    borderRadius: '12px',
+    padding: '10px 20px',
+    borderRadius: '10px',
     border: '1px solid #334155',
     fontWeight: 600,
     cursor: 'pointer',
+    transition: 'all 0.2s',
     fontSize: '0.9rem',
     background: 'transparent',
     color: '#94a3b8',

@@ -30,6 +30,12 @@ export async function PUT(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Check if update actually happened (RLS might block it silently)
+    if (!data || data.length === 0) {
+      console.error('Update returned no data - RLS might be blocking')
+      return NextResponse.json({ error: 'עדכון נכשל - ייתכן שאין הרשאה לעדכן' }, { status: 403 })
+    }
+
     return NextResponse.json({ success: true, report: data?.[0] })
 
   } catch (error: any) {
