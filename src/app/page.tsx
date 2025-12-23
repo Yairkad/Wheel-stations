@@ -1817,10 +1817,10 @@ export default function WheelStationsPage() {
 
             <div style={{padding: '20px'}}>
               {errorReportVehicle && (
-                <div style={{background: '#f1f5f9', padding: '12px', borderRadius: '8px', marginBottom: '16px', textAlign: 'center'}}>
-                  <strong>{errorReportVehicle.vehicle?.manufacturer} {errorReportVehicle.vehicle?.model} {errorReportVehicle.vehicle?.year}</strong>
+                <div style={{background: '#1e3a5f', padding: '12px', borderRadius: '8px', marginBottom: '16px', textAlign: 'center'}}>
+                  <strong style={{color: '#fbbf24'}}>{errorReportVehicle.vehicle?.manufacturer} {errorReportVehicle.vehicle?.model} {errorReportVehicle.vehicle?.year}</strong>
                   {errorReportVehicle.wheelFitment && (
-                    <div style={{fontSize: '0.9rem', color: '#64748b', marginTop: '4px'}}>
+                    <div style={{fontSize: '0.9rem', color: '#93c5fd', marginTop: '4px'}}>
                       PCD נוכחי: {errorReportVehicle.wheelFitment.pcd}
                     </div>
                   )}
@@ -1828,90 +1828,99 @@ export default function WheelStationsPage() {
               )}
 
               <div style={{marginBottom: '16px'}}>
-                <label style={{display: 'block', marginBottom: '6px', fontWeight: 500, color: '#374151'}}>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: 500, color: '#e2e8f0'}}>
                   📷 צילום מסך (מומלץ)
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setErrorReportImage(e.target.files?.[0] || null)}
-                  style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
-                />
-                {errorReportImage && (
-                  <div style={{fontSize: '0.85rem', color: '#059669', marginTop: '4px'}}>
-                    ✓ {errorReportImage.name}
-                  </div>
-                )}
+                <label style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '12px',
+                  background: '#334155',
+                  border: '2px dashed #64748b',
+                  borderRadius: '8px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  fontSize: '0.9rem'
+                }}>
+                  {errorReportImage ? `✓ ${errorReportImage.name}` : '📁 לחץ לבחירת תמונה'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setErrorReportImage(e.target.files?.[0] || null)}
+                    style={{display: 'none'}}
+                  />
+                </label>
               </div>
 
-              <div style={{marginBottom: '12px', fontWeight: 500, color: '#374151'}}>
+              <div style={{marginBottom: '12px', fontWeight: 600, color: '#f59e0b'}}>
                 הפרטים הנכונים:
               </div>
 
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px'}}>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>מס׳ ברגים</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>מס׳ ברגים</label>
                   <input
                     type="number"
                     value={errorReportForm.correct_bolt_count}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_bolt_count: e.target.value})}
                     placeholder="5"
-                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
                   />
                 </div>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>מרווח (PCD)</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>מרווח (PCD)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={errorReportForm.correct_bolt_spacing}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_bolt_spacing: e.target.value})}
                     placeholder="114.3"
-                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
                   />
                 </div>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>CB (Center Bore)</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>CB (Center Bore)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={errorReportForm.correct_center_bore}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_center_bore: e.target.value})}
                     placeholder="60.1"
-                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
                   />
                 </div>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>גודל חישוק</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>גודל חישוק</label>
                   <input
                     type="text"
                     value={errorReportForm.correct_rim_size}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_rim_size: e.target.value})}
                     placeholder='16"'
-                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
                   />
                 </div>
               </div>
 
               <div style={{marginBottom: '16px'}}>
-                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>גודל צמיג</label>
+                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>גודל צמיג</label>
                 <input
                   type="text"
                   value={errorReportForm.correct_tire_size}
                   onChange={e => setErrorReportForm({...errorReportForm, correct_tire_size: e.target.value})}
                   placeholder="205/55R16"
-                  style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                  style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
                 />
               </div>
 
               <div style={{marginBottom: '20px'}}>
-                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>הערות נוספות</label>
+                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>הערות נוספות</label>
                 <textarea
                   value={errorReportForm.notes}
                   onChange={e => setErrorReportForm({...errorReportForm, notes: e.target.value})}
                   placeholder="תאר את הטעות שמצאת..."
                   rows={3}
-                  style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px', resize: 'vertical'}}
+                  style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem', resize: 'vertical'}}
                 />
               </div>
 
