@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
@@ -51,7 +51,16 @@ interface ScrapeResult {
 
 const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
-export default function VehiclesAdminPage() {
+// Wrapper component for Suspense
+export default function VehiclesAdminPageWrapper() {
+  return (
+    <Suspense fallback={<div style={{ background: '#0f172a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>טוען...</div>}>
+      <VehiclesAdminPage />
+    </Suspense>
+  )
+}
+
+function VehiclesAdminPage() {
   const searchParams = useSearchParams()
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
