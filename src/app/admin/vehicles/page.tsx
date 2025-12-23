@@ -789,6 +789,49 @@ export default function VehiclesAdminPage() {
     }
   }
 
+  // Export to Excel (CSV with BOM for Hebrew support)
+  const exportToExcel = () => {
+    // Add BOM for UTF-8 Excel compatibility
+    const BOM = '\uFEFF'
+
+    // Headers in Hebrew
+    const headers = ['יצרן', 'יצרן (עברית)', 'דגם', 'דגם (עברית)', 'משנה', 'עד שנה', 'ברגים', 'מרווח', 'CB', 'חישוק', 'צמיג']
+
+    // Map data
+    const rows = filteredVehicles.map(v => [
+      v.make,
+      v.make_he || '',
+      v.model,
+      v.variants || '',
+      v.year_from || '',
+      v.year_to || '',
+      v.bolt_count || '',
+      v.bolt_spacing || '',
+      v.center_bore || '',
+      v.rim_size || '',
+      v.tire_size_front || ''
+    ])
+
+    // Create CSV content
+    const csvContent = BOM + [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n')
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `vehicle_models_${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    toast.success(`יוצאו ${filteredVehicles.length} רשומות`)
+  }
+
   // Apply column filter to a value
   const applyColumnFilter = (value: any, filter: { type: string; value: string }): boolean => {
     if (!filter.type) return true
@@ -951,6 +994,9 @@ export default function VehiclesAdminPage() {
           </button>
           <button style={styles.btnSecondary} onClick={() => setShowAddModal(true)}>
             ➕ הוספה ידנית
+          </button>
+          <button style={styles.btnExport} onClick={exportToExcel}>
+            📥 ייצוא לאקסל
           </button>
         </div>
 
@@ -1937,6 +1983,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#334155',
     color: 'white',
     border: '1px solid #475569',
+    padding: '12px 24px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '0.95rem',
+  },
+  btnExport: {
+    background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+    color: 'white',
+    border: 'none',
     padding: '12px 24px',
     borderRadius: '10px',
     cursor: 'pointer',
