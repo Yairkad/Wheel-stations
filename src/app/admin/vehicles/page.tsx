@@ -1026,19 +1026,23 @@ function VehiclesAdminPage() {
           .header-content-responsive {
             flex-direction: column !important;
             gap: 15px !important;
-            text-align: center !important;
+            align-items: center !important;
           }
           .header-logo-responsive {
             justify-content: center !important;
           }
           .header-buttons-responsive {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
             justify-content: center !important;
-            width: 100% !important;
+            gap: 6px !important;
           }
           .header-buttons-responsive a,
           .header-buttons-responsive button {
-            padding: 8px 12px !important;
-            font-size: 0.8rem !important;
+            padding: 8px 10px !important;
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
           }
           .stats-row-responsive {
             max-width: 100% !important;

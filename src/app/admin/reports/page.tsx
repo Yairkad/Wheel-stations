@@ -245,24 +245,24 @@ export default function ErrorReportsPage() {
         @media (max-width: 768px) {
           .header-content-responsive {
             flex-direction: column !important;
-            gap: 12px !important;
-            align-items: stretch !important;
+            gap: 15px !important;
+            align-items: center !important;
           }
           .header-logo-responsive {
             justify-content: center !important;
           }
           .header-buttons-responsive {
-            flex-wrap: wrap !important;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
             justify-content: center !important;
-            gap: 8px !important;
+            gap: 6px !important;
           }
           .header-buttons-responsive a,
           .header-buttons-responsive button {
-            flex: 1 1 auto !important;
-            min-width: 100px !important;
-            text-align: center !important;
-            padding: 10px 12px !important;
-            font-size: 0.85rem !important;
+            padding: 8px 10px !important;
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
           }
           .stats-row-responsive {
             grid-template-columns: repeat(2, 1fr) !important;
