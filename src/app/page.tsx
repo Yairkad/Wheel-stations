@@ -144,6 +144,20 @@ export default function WheelStationsPage() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [pendingVehicleData, setPendingVehicleData] = useState<any>(null)
 
+  // Error report state
+  const [showErrorReportModal, setShowErrorReportModal] = useState(false)
+  const [errorReportVehicle, setErrorReportVehicle] = useState<any>(null)
+  const [errorReportForm, setErrorReportForm] = useState({
+    correct_bolt_count: '',
+    correct_bolt_spacing: '',
+    correct_center_bore: '',
+    correct_rim_size: '',
+    correct_tire_size: '',
+    notes: ''
+  })
+  const [errorReportImage, setErrorReportImage] = useState<File | null>(null)
+  const [errorReportLoading, setErrorReportLoading] = useState(false)
+
   useEffect(() => {
     fetchStations()
     fetchDistrictsData()
@@ -681,6 +695,75 @@ export default function WheelStationsPage() {
       toast.error(error.message || 'שגיאה בהתחברות')
     } finally {
       setLoginLoading(false)
+    }
+  }
+
+  // Open error report modal
+  const handleOpenErrorReport = (vehicle: any, wheelFitment: any) => {
+    setErrorReportVehicle({ vehicle, wheelFitment })
+    setErrorReportForm({
+      correct_bolt_count: '',
+      correct_bolt_spacing: '',
+      correct_center_bore: '',
+      correct_rim_size: '',
+      correct_tire_size: '',
+      notes: ''
+    })
+    setErrorReportImage(null)
+    setShowErrorReportModal(true)
+  }
+
+  // Submit error report
+  const handleSubmitErrorReport = async () => {
+    // At least one correction or note is required
+    if (!errorReportForm.correct_bolt_count && !errorReportForm.correct_bolt_spacing &&
+        !errorReportForm.correct_center_bore && !errorReportForm.correct_rim_size &&
+        !errorReportForm.correct_tire_size && !errorReportForm.notes) {
+      toast.error('נא למלא לפחות שדה אחד')
+      return
+    }
+
+    setErrorReportLoading(true)
+
+    try {
+      // Upload image to Supabase Storage if provided
+      let imageUrl = null
+      if (errorReportImage) {
+        const formData = new FormData()
+        formData.append('file', errorReportImage)
+        formData.append('bucket', 'error-reports')
+
+        // For now, we'll skip image upload and just save the report
+        // Image upload would require Supabase Storage setup
+      }
+
+      const response = await fetch('/api/error-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          make: errorReportVehicle?.vehicle?.manufacturer,
+          model: errorReportVehicle?.vehicle?.model,
+          year_from: errorReportVehicle?.vehicle?.year,
+          image_url: imageUrl,
+          correct_bolt_count: errorReportForm.correct_bolt_count ? parseInt(errorReportForm.correct_bolt_count) : null,
+          correct_bolt_spacing: errorReportForm.correct_bolt_spacing ? parseFloat(errorReportForm.correct_bolt_spacing) : null,
+          correct_center_bore: errorReportForm.correct_center_bore ? parseFloat(errorReportForm.correct_center_bore) : null,
+          correct_rim_size: errorReportForm.correct_rim_size || null,
+          correct_tire_size: errorReportForm.correct_tire_size || null,
+          notes: errorReportForm.notes || null
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('שגיאה בשליחת הדיווח')
+      }
+
+      toast.success('הדיווח נשלח בהצלחה! תודה על העזרה')
+      setShowErrorReportModal(false)
+    } catch (error) {
+      toast.error('שגיאה בשליחת הדיווח')
+    } finally {
+      setErrorReportLoading(false)
     }
   }
 
@@ -1576,6 +1659,13 @@ export default function WheelStationsPage() {
                       {manualRimSize && !extractRimSize(vehicleResult.vehicle.front_tire) && (
                         <span style={styles.rimBadge}>{manualRimSize}"</span>
                       )}
+                      <button
+                        onClick={() => handleOpenErrorReport(vehicleResult.vehicle, vehicleResult.wheel_fitment)}
+                        style={styles.reportErrorBtn}
+                        title="דווח על טעות במידות"
+                      >
+                        🔧 דווח על טעות
+                      </button>
                     </div>
 
                     {/* Search Results */}
@@ -1712,6 +1802,137 @@ export default function WheelStationsPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Error Report Modal */}
+      {showErrorReportModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowErrorReportModal(false)}>
+          <div style={{...styles.vehicleModal, maxWidth: '500px'}} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>🔧 דווח על טעות במידות</h3>
+              <button style={styles.modalClose} onClick={() => setShowErrorReportModal(false)}>✕</button>
+            </div>
+
+            <div style={{padding: '20px'}}>
+              {errorReportVehicle && (
+                <div style={{background: '#f1f5f9', padding: '12px', borderRadius: '8px', marginBottom: '16px', textAlign: 'center'}}>
+                  <strong>{errorReportVehicle.vehicle?.manufacturer} {errorReportVehicle.vehicle?.model} {errorReportVehicle.vehicle?.year}</strong>
+                  {errorReportVehicle.wheelFitment && (
+                    <div style={{fontSize: '0.9rem', color: '#64748b', marginTop: '4px'}}>
+                      PCD נוכחי: {errorReportVehicle.wheelFitment.pcd}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{marginBottom: '16px'}}>
+                <label style={{display: 'block', marginBottom: '6px', fontWeight: 500, color: '#374151'}}>
+                  📷 צילום מסך (מומלץ)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setErrorReportImage(e.target.files?.[0] || null)}
+                  style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                />
+                {errorReportImage && (
+                  <div style={{fontSize: '0.85rem', color: '#059669', marginTop: '4px'}}>
+                    ✓ {errorReportImage.name}
+                  </div>
+                )}
+              </div>
+
+              <div style={{marginBottom: '12px', fontWeight: 500, color: '#374151'}}>
+                הפרטים הנכונים:
+              </div>
+
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px'}}>
+                <div>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>מס׳ ברגים</label>
+                  <input
+                    type="number"
+                    value={errorReportForm.correct_bolt_count}
+                    onChange={e => setErrorReportForm({...errorReportForm, correct_bolt_count: e.target.value})}
+                    placeholder="5"
+                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                  />
+                </div>
+                <div>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>מרווח (PCD)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={errorReportForm.correct_bolt_spacing}
+                    onChange={e => setErrorReportForm({...errorReportForm, correct_bolt_spacing: e.target.value})}
+                    placeholder="114.3"
+                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                  />
+                </div>
+                <div>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>CB (Center Bore)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={errorReportForm.correct_center_bore}
+                    onChange={e => setErrorReportForm({...errorReportForm, correct_center_bore: e.target.value})}
+                    placeholder="60.1"
+                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                  />
+                </div>
+                <div>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>גודל חישוק</label>
+                  <input
+                    type="text"
+                    value={errorReportForm.correct_rim_size}
+                    onChange={e => setErrorReportForm({...errorReportForm, correct_rim_size: e.target.value})}
+                    placeholder='16"'
+                    style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                  />
+                </div>
+              </div>
+
+              <div style={{marginBottom: '16px'}}>
+                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>גודל צמיג</label>
+                <input
+                  type="text"
+                  value={errorReportForm.correct_tire_size}
+                  onChange={e => setErrorReportForm({...errorReportForm, correct_tire_size: e.target.value})}
+                  placeholder="205/55R16"
+                  style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px'}}
+                />
+              </div>
+
+              <div style={{marginBottom: '20px'}}>
+                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#6b7280'}}>הערות נוספות</label>
+                <textarea
+                  value={errorReportForm.notes}
+                  onChange={e => setErrorReportForm({...errorReportForm, notes: e.target.value})}
+                  placeholder="תאר את הטעות שמצאת..."
+                  rows={3}
+                  style={{width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '8px', resize: 'vertical'}}
+                />
+              </div>
+
+              <button
+                onClick={handleSubmitErrorReport}
+                disabled={errorReportLoading}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  background: errorReportLoading ? '#9ca3af' : 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  cursor: errorReportLoading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {errorReportLoading ? '⏳ שולח...' : '📤 שלח דיווח'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -2707,5 +2928,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderBottom: '1px solid #374151',
     color: '#d1d5db',
     fontSize: '0.95rem',
+  },
+  reportErrorBtn: {
+    background: 'rgba(239, 68, 68, 0.2)',
+    color: '#fca5a5',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    padding: '8px 16px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    marginTop: '10px',
   },
 }

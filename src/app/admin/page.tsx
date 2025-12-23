@@ -666,6 +666,7 @@ export default function WheelsAdminPage() {
             </div>
             <div style={styles.sectionButtons} className="section-buttons">
               <Link href="/admin/vehicles" style={{...styles.btnGhost, textDecoration: 'none', display: 'inline-block'}}>🚗 מאגר רכבים</Link>
+              <Link href="/admin/reports" style={{...styles.btnGhost, textDecoration: 'none', display: 'inline-block'}}>📋 דיווחי שגיאות</Link>
               <button style={styles.btnGhost} onClick={() => { resetDistrictForm(); setShowAddDistrict(true) }}>+ מחוז</button>
               <button style={styles.btnPrimary} onClick={() => openAddStationModal()}>+ תחנה</button>
             </div>
