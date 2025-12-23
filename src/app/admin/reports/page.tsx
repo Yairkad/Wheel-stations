@@ -108,6 +108,7 @@ export default function ErrorReportsPage() {
   }
 
   const updateReportStatus = async (reportId: string, status: string) => {
+    if (actionLoading) return
     setActionLoading(true)
     try {
       const response = await fetch(`/api/error-reports/${reportId}`, {
@@ -241,18 +242,90 @@ export default function ErrorReportsPage() {
   return (
     <div style={styles.pageWrapper}>
       <Toaster position="top-center" />
+      <style>{`
+        @media (max-width: 768px) {
+          .header-content-responsive {
+            flex-direction: column !important;
+            gap: 12px !important;
+            align-items: stretch !important;
+          }
+          .header-logo-responsive {
+            justify-content: center !important;
+          }
+          .header-buttons-responsive {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            gap: 8px !important;
+          }
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            flex: 1 1 auto !important;
+            min-width: 100px !important;
+            text-align: center !important;
+            padding: 10px 12px !important;
+            font-size: 0.85rem !important;
+          }
+          .stats-row-responsive {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+            margin-top: -30px !important;
+          }
+          .stat-value-responsive {
+            font-size: 1.2rem !important;
+          }
+          .section-header-responsive {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+          }
+          .modal-responsive {
+            max-width: 100% !important;
+            margin: 10px !important;
+            max-height: calc(100vh - 20px) !important;
+          }
+          .info-grid-responsive {
+            grid-template-columns: 1fr !important;
+          }
+          .status-buttons-responsive {
+            flex-direction: column !important;
+          }
+          .status-buttons-responsive button {
+            width: 100% !important;
+          }
+          .modal-footer-responsive {
+            flex-direction: column-reverse !important;
+          }
+          .modal-footer-responsive button {
+            width: 100% !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .stats-row-responsive {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          .stat-card-responsive {
+            padding: 10px !important;
+          }
+          .stat-icon-responsive {
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 0.9rem !important;
+          }
+        }
+      `}</style>
 
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.headerContent}>
-          <div style={styles.headerLogo}>
+        <div style={styles.headerContent} className="header-content-responsive">
+          <div style={styles.headerLogo} className="header-logo-responsive">
             <div style={styles.logoIcon}>📋</div>
             <div>
               <h1 style={styles.headerTitle}>דיווחי שגיאות</h1>
               <p style={styles.headerSubtitle}>ניהול דיווחים על טעויות במאגר</p>
             </div>
           </div>
-          <div style={styles.headerButtons}>
+          <div style={styles.headerButtons} className="header-buttons-responsive">
             <Link href="/admin" style={styles.btnGhost}>🏢 ניהול תחנות</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
             <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
@@ -261,33 +334,33 @@ export default function ErrorReportsPage() {
       </div>
 
       {/* Stats Row */}
-      <div style={styles.statsRow}>
-        <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}}>⏳</div>
+      <div style={styles.statsRow} className="stats-row-responsive">
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}} className="stat-icon-responsive">⏳</div>
           <div>
             <div style={styles.statLabel}>ממתינים</div>
-            <div style={{...styles.statValue, color: '#f59e0b'}}>{pendingCount}</div>
+            <div style={{...styles.statValue, color: '#f59e0b'}} className="stat-value-responsive">{pendingCount}</div>
           </div>
         </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}}>👁️</div>
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive">👁️</div>
           <div>
             <div style={styles.statLabel}>נבדקו</div>
-            <div style={{...styles.statValue, color: '#3b82f6'}}>{reviewedCount}</div>
+            <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{reviewedCount}</div>
           </div>
         </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}}>✅</div>
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive">✅</div>
           <div>
             <div style={styles.statLabel}>תוקנו</div>
-            <div style={{...styles.statValue, color: '#22c55e'}}>{fixedCount}</div>
+            <div style={{...styles.statValue, color: '#22c55e'}} className="stat-value-responsive">{fixedCount}</div>
           </div>
         </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>📊</div>
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} className="stat-icon-responsive">📊</div>
           <div>
             <div style={styles.statLabel}>סה״כ</div>
-            <div style={{...styles.statValue, color: '#8b5cf6'}}>{reports.length}</div>
+            <div style={{...styles.statValue, color: '#8b5cf6'}} className="stat-value-responsive">{reports.length}</div>
           </div>
         </div>
       </div>
@@ -295,7 +368,7 @@ export default function ErrorReportsPage() {
       <div style={styles.container}>
         {/* Reports Section */}
         <div style={styles.section}>
-          <div style={styles.sectionHeader}>
+          <div style={styles.sectionHeader} className="section-header-responsive">
             <div style={styles.sectionTitle}>
               <div style={styles.sectionTitleIcon}>📋</div>
               דיווחים
@@ -365,7 +438,7 @@ export default function ErrorReportsPage() {
       {/* Report Detail Modal */}
       {selectedReport && (
         <div style={styles.modalOverlay} onClick={() => setSelectedReport(null)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+          <div style={styles.modal} className="modal-responsive" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>📋 פרטי דיווח</h3>
               <button style={styles.closeBtn} onClick={() => setSelectedReport(null)}>✕</button>
@@ -375,7 +448,7 @@ export default function ErrorReportsPage() {
               {/* Vehicle Info */}
               <div style={styles.infoSection}>
                 <div style={styles.infoSectionTitle}>🚗 פרטי הרכב המדווח</div>
-                <div style={styles.infoGrid}>
+                <div style={styles.infoGrid} className="info-grid-responsive">
                   <div style={styles.infoItem}>
                     <span style={styles.infoLabel}>יצרן:</span>
                     <span style={styles.infoValue}>{selectedReport.make || 'לא צוין'}</span>
@@ -394,7 +467,7 @@ export default function ErrorReportsPage() {
               {/* Correct Values */}
               <div style={styles.infoSection}>
                 <div style={styles.infoSectionTitle}>✅ הערכים הנכונים (לפי המדווח)</div>
-                <div style={styles.infoGrid}>
+                <div style={styles.infoGrid} className="info-grid-responsive">
                   {selectedReport.correct_bolt_count && (
                     <div style={styles.infoItem}>
                       <span style={styles.infoLabel}>כמות ברגים:</span>
@@ -465,7 +538,7 @@ export default function ErrorReportsPage() {
               {/* Status Actions */}
               <div style={styles.statusActions}>
                 <div style={styles.statusActionsTitle}>עדכן סטטוס:</div>
-                <div style={styles.statusButtons}>
+                <div style={styles.statusButtons} className="status-buttons-responsive">
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnPending}}
                     onClick={() => updateReportStatus(selectedReport.id, 'pending')}
@@ -498,7 +571,7 @@ export default function ErrorReportsPage() {
               </div>
             </div>
 
-            <div style={styles.modalFooter}>
+            <div style={styles.modalFooter} className="modal-footer-responsive">
               <button
                 style={styles.btnDelete}
                 onClick={() => deleteReport(selectedReport.id)}
