@@ -715,6 +715,9 @@ export default function WheelStationsPage() {
 
   // Submit error report
   const handleSubmitErrorReport = async () => {
+    // Prevent double submission
+    if (errorReportLoading) return
+
     // At least one correction or note is required
     if (!errorReportForm.correct_bolt_count && !errorReportForm.correct_bolt_spacing &&
         !errorReportForm.correct_center_bore && !errorReportForm.correct_rim_size &&
