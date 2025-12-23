@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import toast, { Toaster } from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 
@@ -51,6 +52,8 @@ interface ScrapeResult {
 const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
 export default function VehiclesAdminPage() {
+  const searchParams = useSearchParams()
+
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
@@ -58,6 +61,16 @@ export default function VehiclesAdminPage() {
   const [vehicles, setVehicles] = useState<VehicleModel[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Error report data from URL
+  const [reportData, setReportData] = useState<{
+    reportId: string | null
+    boltCount: string
+    boltSpacing: string
+    centerBore: string
+    rimSize: string
+    tireSize: string
+  } | null>(null)
 
   // Scrape form state
   const [showScrapeModal, setShowScrapeModal] = useState(false)
@@ -252,6 +265,32 @@ export default function VehiclesAdminPage() {
       setIsAuthenticated(true)
     }
   }, [])
+
+  // Read URL params for error report integration
+  useEffect(() => {
+    const search = searchParams.get('search')
+    const reportId = searchParams.get('report')
+    const boltCount = searchParams.get('bolt_count')
+    const boltSpacing = searchParams.get('bolt_spacing')
+    const centerBore = searchParams.get('center_bore')
+    const rimSize = searchParams.get('rim_size')
+    const tireSize = searchParams.get('tire_size')
+
+    if (search) {
+      setSearchQuery(search.replace(/\+/g, ' '))
+    }
+
+    if (reportId) {
+      setReportData({
+        reportId,
+        boltCount: boltCount || '',
+        boltSpacing: boltSpacing || '',
+        centerBore: centerBore || '',
+        rimSize: rimSize || '',
+        tireSize: tireSize || ''
+      })
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -999,6 +1038,72 @@ export default function VehiclesAdminPage() {
             📥 ייצוא לאקסל
           </button>
         </div>
+
+        {/* Report Data Banner */}
+        {reportData && (
+          <div style={{
+            background: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%)',
+            border: '2px solid #3b82f6',
+            borderRadius: '14px',
+            padding: '16px 20px',
+            marginBottom: '16px',
+            color: 'white'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.3rem' }}>📋</span>
+                <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>ערכים מדווחים לתיקון</span>
+              </div>
+              <button
+                onClick={() => {
+                  setReportData(null)
+                  window.history.replaceState({}, '', '/admin/vehicles')
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  color: 'white',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                ✕ סגור
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '0.9rem' }}>
+              {reportData.boltCount && (
+                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#93c5fd' }}>ברגים:</span> <strong>{reportData.boltCount}</strong>
+                </div>
+              )}
+              {reportData.boltSpacing && (
+                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#93c5fd' }}>מרווח:</span> <strong>{reportData.boltSpacing}</strong>
+                </div>
+              )}
+              {reportData.centerBore && (
+                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#93c5fd' }}>CB:</span> <strong>{reportData.centerBore}</strong>
+                </div>
+              )}
+              {reportData.rimSize && (
+                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#93c5fd' }}>חישוק:</span> <strong>{reportData.rimSize}</strong>
+                </div>
+              )}
+              {reportData.tireSize && (
+                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#93c5fd' }}>צמיג:</span> <strong>{reportData.tireSize}</strong>
+                </div>
+              )}
+            </div>
+            <div style={{ marginTop: '12px', fontSize: '0.8rem', color: '#93c5fd' }}>
+              מצא את הרכב בטבלה ולחץ על כפתור העריכה כדי לעדכן את הערכים
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <div style={styles.searchContainer}>

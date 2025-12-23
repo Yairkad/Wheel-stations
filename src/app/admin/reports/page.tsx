@@ -577,8 +577,14 @@ export default function ErrorReportsPage() {
                 onClick={() => deleteReport(selectedReport.id)}
                 disabled={actionLoading}
               >
-                🗑️ מחק דיווח
+                🗑️ מחק
               </button>
+              <Link
+                href={`/admin/vehicles?search=${encodeURIComponent(selectedReport.make || '')}${selectedReport.model ? '+' + encodeURIComponent(selectedReport.model) : ''}&report=${selectedReport.id}&bolt_count=${selectedReport.correct_bolt_count || ''}&bolt_spacing=${selectedReport.correct_bolt_spacing || ''}&center_bore=${selectedReport.correct_center_bore || ''}&rim_size=${encodeURIComponent(selectedReport.correct_rim_size || '')}&tire_size=${encodeURIComponent(selectedReport.correct_tire_size || '')}`}
+                style={styles.btnUpdate}
+              >
+                ✏️ עדכן במאגר
+              </Link>
               <button style={styles.btnCancel} onClick={() => setSelectedReport(null)}>
                 סגור
               </button>
@@ -1050,11 +1056,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'rgba(239, 68, 68, 0.2)',
     color: '#ef4444',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    padding: '12px 20px',
+    padding: '12px 16px',
     borderRadius: '10px',
     cursor: 'pointer',
     fontWeight: 600,
-    fontSize: '0.9rem',
+    fontSize: '0.85rem',
+  },
+  btnUpdate: {
+    flex: 1,
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: 'white',
+    border: 'none',
+    padding: '12px 16px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    textDecoration: 'none',
+    textAlign: 'center',
+    display: 'inline-block',
   },
 
   // Confirm Dialog
