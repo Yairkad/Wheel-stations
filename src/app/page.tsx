@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import { VERSION } from '@/lib/version'
 
@@ -894,21 +894,6 @@ export default function WheelStationsPage() {
 
   return (
     <>
-      <Toaster
-        position="top-center"
-        containerStyle={{
-          top: 20,
-        }}
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#1e293b',
-            color: '#fff',
-            border: '1px solid #3b82f6',
-            zIndex: 9999,
-          },
-        }}
-      />
       <div style={styles.container}>
         <style>{`
         @keyframes pulse {

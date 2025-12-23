@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 
 interface VehicleModel {
@@ -1020,8 +1020,6 @@ function VehiclesAdminPage() {
 
   return (
     <div style={styles.pageWrapper}>
-      <Toaster position="top-center" />
-
       {/* Responsive CSS */}
       <style>{`
         @media (max-width: 768px) {

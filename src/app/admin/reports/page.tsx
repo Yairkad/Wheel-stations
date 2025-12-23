@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import toast, { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 
 interface ErrorReport {
@@ -198,7 +198,6 @@ export default function ErrorReportsPage() {
   if (!isAuthenticated) {
     return (
       <div style={styles.loginContainer}>
-        <Toaster position="top-center" />
         <div style={styles.loginBox}>
           <div style={styles.loginLogoIcon}>📋</div>
           <h1 style={styles.loginTitle}>דיווחי שגיאות</h1>
@@ -241,7 +240,6 @@ export default function ErrorReportsPage() {
 
   return (
     <div style={styles.pageWrapper}>
-      <Toaster position="top-center" />
       <style>{`
         @media (max-width: 768px) {
           .header-content-responsive {
