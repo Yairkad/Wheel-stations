@@ -580,7 +580,7 @@ export default function ErrorReportsPage() {
                 🗑️ מחק
               </button>
               <Link
-                href={`/admin/vehicles?search=${encodeURIComponent(selectedReport.make || '')}${selectedReport.model ? '+' + encodeURIComponent(selectedReport.model) : ''}&report=${selectedReport.id}&bolt_count=${selectedReport.correct_bolt_count || ''}&bolt_spacing=${selectedReport.correct_bolt_spacing || ''}&center_bore=${selectedReport.correct_center_bore || ''}&rim_size=${encodeURIComponent(selectedReport.correct_rim_size || '')}&tire_size=${encodeURIComponent(selectedReport.correct_tire_size || '')}`}
+                href={`/admin/vehicles?make=${encodeURIComponent(selectedReport.make || '')}&model=${encodeURIComponent(selectedReport.model || '')}&year=${selectedReport.year_from || ''}&report=${selectedReport.id}&bolt_count=${selectedReport.correct_bolt_count || ''}&bolt_spacing=${selectedReport.correct_bolt_spacing || ''}&center_bore=${selectedReport.correct_center_bore || ''}&rim_size=${encodeURIComponent(selectedReport.correct_rim_size || '')}&tire_size=${encodeURIComponent(selectedReport.correct_tire_size || '')}`}
                 style={styles.btnUpdate}
               >
                 ✏️ עדכן במאגר

@@ -277,7 +277,9 @@ function VehiclesAdminPage() {
 
   // Read URL params for error report integration
   useEffect(() => {
-    const search = searchParams.get('search')
+    const make = searchParams.get('make')
+    const model = searchParams.get('model')
+    const year = searchParams.get('year')
     const reportId = searchParams.get('report')
     const boltCount = searchParams.get('bolt_count')
     const boltSpacing = searchParams.get('bolt_spacing')
@@ -285,8 +287,14 @@ function VehiclesAdminPage() {
     const rimSize = searchParams.get('rim_size')
     const tireSize = searchParams.get('tire_size')
 
-    if (search) {
-      setSearchQuery(search.replace(/\+/g, ' '))
+    // Set column filters to auto-filter the table
+    if (make || model || year) {
+      setColumnFilters(prev => ({
+        ...prev,
+        make: make ? { type: 'equals', value: make } : prev.make,
+        model: model ? { type: 'equals', value: model } : prev.model,
+        year_from: year ? { type: 'equals', value: year } : prev.year_from
+      }))
     }
 
     if (reportId) {
