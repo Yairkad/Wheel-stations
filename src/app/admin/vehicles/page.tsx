@@ -325,6 +325,11 @@ function VehiclesAdminPage() {
     }
   }
 
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    sessionStorage.removeItem('wheels_admin_auth')
+  }
+
   const fetchVehicles = async () => {
     try {
       const response = await fetch('/api/vehicle-models')
@@ -1017,17 +1022,44 @@ function VehiclesAdminPage() {
     <div style={styles.pageWrapper}>
       <Toaster position="top-center" />
 
+      {/* Responsive CSS */}
+      <style>{`
+        @media (max-width: 768px) {
+          .header-content-responsive {
+            flex-direction: column !important;
+            gap: 15px !important;
+            text-align: center !important;
+          }
+          .header-logo-responsive {
+            justify-content: center !important;
+          }
+          .header-buttons-responsive {
+            justify-content: center !important;
+            width: 100% !important;
+          }
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            padding: 8px 12px !important;
+            font-size: 0.8rem !important;
+          }
+        }
+      `}</style>
+
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.headerContent}>
-          <div style={styles.headerLogo}>
+        <div style={styles.headerContent} className="header-content-responsive">
+          <div style={styles.headerLogo} className="header-logo-responsive">
             <div style={styles.logoIcon}>🚗</div>
             <div>
               <h1 style={styles.headerTitle}>ניהול מאגר דגמי רכבים</h1>
               <p style={styles.headerSubtitle}>גרידה והוספת דגמים למאגר PCD</p>
             </div>
           </div>
-          <Link href="/admin" style={styles.btnBack}>← חזרה לניהול</Link>
+          <div style={styles.headerButtons} className="header-buttons-responsive">
+            <Link href="/admin" style={styles.btnGhost}>🏢 ניהול תחנות</Link>
+            <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
+            <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+          </div>
         </div>
       </div>
 
@@ -2053,6 +2085,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #334155',
     borderRadius: '10px',
     fontSize: '0.9rem',
+  },
+  headerButtons: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  btnGhost: {
+    color: '#94a3b8',
+    textDecoration: 'none',
+    padding: '10px 20px',
+    border: '1px solid #334155',
+    borderRadius: '10px',
+    fontSize: '0.9rem',
+    background: 'transparent',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  btnLogout: {
+    color: '#f87171',
+    background: 'transparent',
+    padding: '10px 20px',
+    border: '1px solid #dc2626',
+    borderRadius: '10px',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
   },
   statsRow: {
     maxWidth: '1200px',

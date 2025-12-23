@@ -543,6 +543,15 @@ export default function WheelsAdminPage() {
           .header-logo-responsive {
             justify-content: center !important;
           }
+          .header-buttons-responsive {
+            justify-content: center !important;
+            width: 100% !important;
+          }
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            padding: 8px 12px !important;
+            font-size: 0.8rem !important;
+          }
           .stats-row-responsive {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 12px !important;
@@ -619,7 +628,11 @@ export default function WheelsAdminPage() {
               <p style={styles.headerSubtitle}>מערכת ניהול תחנות והשאלות</p>
             </div>
           </div>
-          <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+          <div style={styles.headerButtons} className="header-buttons-responsive">
+            <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
+            <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
+            <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+          </div>
         </div>
       </div>
 
@@ -1220,6 +1233,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     whiteSpace: 'nowrap',
     background: 'transparent',
     color: '#94a3b8',
+    textDecoration: 'none',
+  },
+  headerButtons: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
   },
   btnIcon: {
     width: '32px',
