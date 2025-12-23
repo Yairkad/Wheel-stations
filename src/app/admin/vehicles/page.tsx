@@ -2134,13 +2134,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.2s',
   },
   statsRow: {
-    maxWidth: '1200px',
+    maxWidth: '400px',
     margin: '15px auto',
     padding: '0 20px',
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
     gap: '12px',
-    maxWidth: '400px',
   },
   statCard: {
     background: '#1e293b',
