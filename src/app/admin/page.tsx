@@ -678,8 +678,6 @@ export default function WheelsAdminPage() {
               <span style={styles.sectionCount}>{districts.length} מחוזות • {stations.length} תחנות</span>
             </div>
             <div style={styles.sectionButtons} className="section-buttons">
-              <Link href="/admin/vehicles" style={{...styles.btnGhost, textDecoration: 'none', display: 'inline-block'}}>🚗 מאגר רכבים</Link>
-              <Link href="/admin/reports" style={{...styles.btnGhost, textDecoration: 'none', display: 'inline-block'}}>📋 דיווחי שגיאות</Link>
               <button style={styles.btnGhost} onClick={() => { resetDistrictForm(); setShowAddDistrict(true) }}>+ מחוז</button>
               <button style={styles.btnPrimary} onClick={() => openAddStationModal()}>+ תחנה</button>
             </div>
@@ -1199,16 +1197,16 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Buttons
   btnLogout: {
-    padding: '12px 24px',
-    borderRadius: '12px',
-    border: '1px solid #334155',
+    padding: '10px 20px',
+    borderRadius: '10px',
+    border: '1px solid #dc2626',
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    fontSize: '0.95rem',
+    transition: 'all 0.2s',
+    fontSize: '0.9rem',
     whiteSpace: 'nowrap',
-    background: 'rgba(255,255,255,0.1)',
-    color: '#94a3b8',
+    background: 'transparent',
+    color: '#f87171',
   },
   btnPrimary: {
     padding: '10px 16px',

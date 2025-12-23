@@ -1040,6 +1040,21 @@ function VehiclesAdminPage() {
             padding: 8px 12px !important;
             font-size: 0.8rem !important;
           }
+          .stats-row-responsive {
+            max-width: 100% !important;
+            padding: 0 15px !important;
+          }
+          .stat-card-responsive {
+            padding: 10px 12px !important;
+          }
+          .stat-icon-responsive {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 0.9rem !important;
+          }
+          .stat-value-responsive {
+            font-size: 1rem !important;
+          }
         }
       `}</style>
 
@@ -1062,12 +1077,19 @@ function VehiclesAdminPage() {
       </div>
 
       {/* Stats */}
-      <div style={styles.statsRow}>
-        <div style={styles.statCard}>
-          <div style={styles.statIcon}>📊</div>
+      <div style={styles.statsRow} className="stats-row-responsive">
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive">📊</div>
           <div>
-            <div style={styles.statLabel}>דגמים במאגר</div>
-            <div style={styles.statValue}>{vehicles.length}</div>
+            <div style={styles.statLabel}>דגמים</div>
+            <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{vehicles.length}</div>
+          </div>
+        </div>
+        <div style={styles.statCard} className="stat-card-responsive">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive">🏭</div>
+          <div>
+            <div style={styles.statLabel}>יצרנים</div>
+            <div style={{...styles.statValue, color: '#22c55e'}} className="stat-value-responsive">{uniqueMakeValues.length}</div>
           </div>
         </div>
       </div>
@@ -2113,28 +2135,38 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   statsRow: {
     maxWidth: '1200px',
-    margin: '20px auto',
+    margin: '15px auto',
     padding: '0 20px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+    gap: '12px',
+    maxWidth: '400px',
   },
   statCard: {
     background: '#1e293b',
     border: '1px solid #334155',
-    borderRadius: '12px',
-    padding: '15px 20px',
-    display: 'inline-flex',
+    borderRadius: '10px',
+    padding: '12px 14px',
+    display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: '10px',
   },
   statIcon: {
-    fontSize: '1.5rem',
+    width: '36px',
+    height: '36px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1rem',
   },
   statLabel: {
     color: '#64748b',
-    fontSize: '0.8rem',
+    fontSize: '0.75rem',
   },
   statValue: {
     color: '#3b82f6',
-    fontSize: '1.5rem',
+    fontSize: '1.2rem',
     fontWeight: 700,
   },
   container: {

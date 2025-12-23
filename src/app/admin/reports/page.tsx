@@ -679,14 +679,15 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Buttons
   btnLogout: {
-    padding: '12px 24px',
-    borderRadius: '12px',
-    border: '1px solid #334155',
+    padding: '10px 20px',
+    borderRadius: '10px',
+    border: '1px solid #dc2626',
     fontWeight: 600,
     cursor: 'pointer',
-    fontSize: '0.95rem',
-    background: 'rgba(255,255,255,0.1)',
-    color: '#94a3b8',
+    transition: 'all 0.2s',
+    fontSize: '0.9rem',
+    background: 'transparent',
+    color: '#f87171',
   },
   btnGhost: {
     padding: '12px 20px',
