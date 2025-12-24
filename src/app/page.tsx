@@ -1572,14 +1572,31 @@ export default function WheelStationsPage() {
               <div style={styles.vehicleError}>
                 ❌ {vehicleError}
                 <button
-                  onClick={() => {
-                    const message = `בקשה להוספת רכב חסר למאגר%0A%0Aמספר רכב: ${vehiclePlate}%0A%0Aתודה!`
-                    window.open(`https://wa.me/972526841419?text=${message}`, '_blank')
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/missing-vehicle-reports', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ plate_number: vehiclePlate })
+                      })
+                      const data = await response.json()
+                      if (data.success) {
+                        if (data.already_reported) {
+                          toast.success('הדיווח כבר קיים במערכת, תודה!')
+                        } else {
+                          toast.success('הדיווח נשלח בהצלחה!')
+                        }
+                      } else {
+                        toast.error('שגיאה בשליחת הדיווח')
+                      }
+                    } catch {
+                      toast.error('שגיאה בשליחת הדיווח')
+                    }
                   }}
                   style={{
                     marginTop: '12px',
                     padding: '10px 16px',
-                    background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
@@ -1593,7 +1610,7 @@ export default function WheelStationsPage() {
                     justifyContent: 'center'
                   }}
                 >
-                  📱 דווח על רכב חסר
+                  📝 דווח על רכב חסר
                 </button>
               </div>
             )}

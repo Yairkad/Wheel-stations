@@ -23,6 +23,15 @@ interface ErrorReport {
   created_at: string
 }
 
+interface MissingVehicleReport {
+  id: string
+  plate_number: string
+  notes: string | null
+  status: 'pending' | 'reviewed' | 'added' | 'rejected'
+  created_at: string
+  updated_at: string | null
+}
+
 // Super admin password - stored in environment variable
 const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
@@ -33,14 +42,18 @@ export default function ErrorReportsPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const [reports, setReports] = useState<ErrorReport[]>([])
+  const [missingReports, setMissingReports] = useState<MissingVehicleReport[]>([])
   const [loading, setLoading] = useState(true)
+  const [missingLoading, setMissingLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
 
   // Filter
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [missingStatusFilter, setMissingStatusFilter] = useState<string>('all')
 
   // Selected report for viewing
   const [selectedReport, setSelectedReport] = useState<ErrorReport | null>(null)
+  const [selectedMissingReport, setSelectedMissingReport] = useState<MissingVehicleReport | null>(null)
   const [adminNotes, setAdminNotes] = useState('')
 
   // Confirm dialog
@@ -72,6 +85,7 @@ export default function ErrorReportsPage() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchReports()
+      fetchMissingReports()
     }
   }, [isAuthenticated])
 
@@ -80,12 +94,13 @@ export default function ErrorReportsPage() {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (selectedReport) setSelectedReport(null)
+        if (selectedMissingReport) setSelectedMissingReport(null)
         if (showConfirmDialog) setShowConfirmDialog(false)
       }
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [selectedReport, showConfirmDialog])
+  }, [selectedReport, selectedMissingReport, showConfirmDialog])
 
   const handleLogin = () => {
     if (password === WHEELS_ADMIN_PASSWORD) {
@@ -113,9 +128,24 @@ export default function ErrorReportsPage() {
       }
     } catch (err) {
       console.error('Error fetching reports:', err)
-      toast.error('שגיאה בטעינת דיווחים')
+      toast.error('שגיאה בטעינת דיווחי שגיאות')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchMissingReports = async () => {
+    try {
+      const response = await fetch('/api/missing-vehicle-reports')
+      if (response.ok) {
+        const data = await response.json()
+        setMissingReports(data.reports || [])
+      }
+    } catch (err) {
+      console.error('Error fetching missing reports:', err)
+      toast.error('שגיאה בטעינת דיווחי רכבים חסרים')
+    } finally {
+      setMissingLoading(false)
     }
   }
 
@@ -177,6 +207,74 @@ export default function ErrorReportsPage() {
     setAdminNotes(report.admin_notes || '')
   }
 
+  // Missing Vehicle Report functions
+  const updateMissingReportStatus = async (reportId: string, status: string) => {
+    if (actionLoading) return
+    setActionLoading(true)
+    try {
+      const response = await fetch(`/api/missing-vehicle-reports/${reportId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      })
+      const result = await response.json()
+      if (response.ok && result.success) {
+        await fetchMissingReports()
+        setSelectedMissingReport(null)
+        toast.success('הסטטוס עודכן בהצלחה')
+      } else {
+        toast.error(result.error || 'שגיאה בעדכון סטטוס')
+      }
+    } catch (err) {
+      toast.error('שגיאה בעדכון סטטוס')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const deleteMissingReport = async (reportId: string) => {
+    setConfirmDialogData({
+      title: 'מחיקת דיווח',
+      message: 'האם למחוק את הדיווח? פעולה זו לא ניתנת לביטול.',
+      onConfirm: async () => {
+        setShowConfirmDialog(false)
+        setConfirmDialogData(null)
+        setActionLoading(true)
+        try {
+          const response = await fetch(`/api/missing-vehicle-reports/${reportId}`, {
+            method: 'DELETE'
+          })
+          if (response.ok) {
+            await fetchMissingReports()
+            setSelectedMissingReport(null)
+            toast.success('הדיווח נמחק')
+          } else {
+            throw new Error('Failed to delete')
+          }
+        } catch (err) {
+          toast.error('שגיאה במחיקת דיווח')
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
+    setShowConfirmDialog(true)
+  }
+
+  const openMissingReportModal = (report: MissingVehicleReport) => {
+    setSelectedMissingReport(report)
+  }
+
+  const getMissingStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending': return 'ממתין לטיפול'
+      case 'reviewed': return 'נבדק'
+      case 'added': return 'נוסף למאגר'
+      case 'rejected': return 'נדחה'
+      default: return status
+    }
+  }
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'pending': return 'ממתין לטיפול'
@@ -202,10 +300,18 @@ export default function ErrorReportsPage() {
     ? reports
     : reports.filter(r => r.status === statusFilter)
 
-  // Stats
+  const filteredMissingReports = missingStatusFilter === 'all'
+    ? missingReports
+    : missingReports.filter(r => r.status === missingStatusFilter)
+
+  // Stats - Error Reports
   const pendingCount = reports.filter(r => r.status === 'pending').length
   const reviewedCount = reports.filter(r => r.status === 'reviewed').length
   const fixedCount = reports.filter(r => r.status === 'fixed').length
+
+  // Stats - Missing Vehicle Reports
+  const missingPendingCount = missingReports.filter(r => r.status === 'pending').length
+  const missingAddedCount = missingReports.filter(r => r.status === 'added').length
 
   // Login screen
   if (!isAuthenticated) {
@@ -444,6 +550,85 @@ export default function ErrorReportsPage() {
             )}
           </div>
         </div>
+
+        {/* Missing Vehicle Reports Section */}
+        <div style={styles.section}>
+          <div style={styles.sectionHeader} className="section-header-responsive">
+            <div style={styles.sectionTitle}>
+              <div style={{...styles.sectionTitleIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}}>🚗</div>
+              דיווחי רכבים חסרים
+              {missingPendingCount > 0 && (
+                <span style={{
+                  background: '#ef4444',
+                  color: 'white',
+                  padding: '2px 8px',
+                  borderRadius: '10px',
+                  fontSize: '0.75rem',
+                  marginRight: '8px'
+                }}>
+                  {missingPendingCount} חדשים
+                </span>
+              )}
+            </div>
+            <div style={styles.filterContainer}>
+              <select
+                value={missingStatusFilter}
+                onChange={e => setMissingStatusFilter(e.target.value)}
+                style={styles.filterSelect}
+              >
+                <option value="all">הכל ({missingReports.length})</option>
+                <option value="pending">ממתינים ({missingPendingCount})</option>
+                <option value="reviewed">נבדקו ({missingReports.filter(r => r.status === 'reviewed').length})</option>
+                <option value="added">נוספו ({missingAddedCount})</option>
+                <option value="rejected">נדחו ({missingReports.filter(r => r.status === 'rejected').length})</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={styles.sectionContent}>
+            {missingLoading ? (
+              <div style={styles.loading}>טוען...</div>
+            ) : filteredMissingReports.length === 0 ? (
+              <div style={styles.emptyState}>
+                <div style={styles.emptyIcon}>🚗</div>
+                <div style={styles.emptyText}>אין דיווחי רכבים חסרים {missingStatusFilter !== 'all' ? 'בסטטוס זה' : ''}</div>
+              </div>
+            ) : (
+              <div style={styles.reportsList}>
+                {filteredMissingReports.map(report => (
+                  <div
+                    key={report.id}
+                    style={styles.reportCard}
+                    onClick={() => openMissingReportModal(report)}
+                  >
+                    <div style={styles.reportCardHeader}>
+                      <div style={styles.reportVehicle}>
+                        🔢 {report.plate_number}
+                      </div>
+                      <div style={{
+                        ...styles.statusBadge,
+                        background: `${getStatusColor(report.status === 'added' ? 'fixed' : report.status)}20`,
+                        color: getStatusColor(report.status === 'added' ? 'fixed' : report.status),
+                        borderColor: getStatusColor(report.status === 'added' ? 'fixed' : report.status)
+                      }}>
+                        {getMissingStatusLabel(report.status)}
+                      </div>
+                    </div>
+                    <div style={styles.reportMeta}>
+                      <span>📅 {new Date(report.created_at).toLocaleDateString('he-IL')}</span>
+                      {report.notes && <span>💬 יש הערות</span>}
+                    </div>
+                    {report.notes && (
+                      <div style={styles.reportNotes}>
+                        {report.notes.length > 100 ? report.notes.substring(0, 100) + '...' : report.notes}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Report Detail Modal */}
@@ -597,6 +782,121 @@ export default function ErrorReportsPage() {
                 ✏️ עדכן במאגר
               </Link>
               <button style={styles.btnCancel} onClick={() => setSelectedReport(null)}>
+                סגור
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Missing Vehicle Report Detail Modal */}
+      {selectedMissingReport && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedMissingReport(null)}>
+          <div style={styles.modal} className="modal-responsive" onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={{...styles.modalTitle, color: '#3b82f6'}}>🚗 דיווח רכב חסר</h3>
+              <button style={styles.closeBtn} onClick={() => setSelectedMissingReport(null)}>✕</button>
+            </div>
+
+            <div style={styles.modalBody}>
+              {/* Plate Number */}
+              <div style={styles.infoSection}>
+                <div style={styles.infoSectionTitle}>🔢 מספר רכב</div>
+                <div style={{
+                  background: '#0f172a',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  color: '#3b82f6',
+                  textAlign: 'center',
+                  letterSpacing: '2px'
+                }}>
+                  {selectedMissingReport.plate_number}
+                </div>
+              </div>
+
+              {/* Report Info */}
+              <div style={styles.infoSection}>
+                <div style={styles.infoSectionTitle}>📋 פרטי הדיווח</div>
+                <div style={styles.infoGrid} className="info-grid-responsive">
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>תאריך דיווח:</span>
+                    <span style={styles.infoValue}>
+                      {new Date(selectedMissingReport.created_at).toLocaleDateString('he-IL')}
+                    </span>
+                  </div>
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>סטטוס:</span>
+                    <span style={{
+                      ...styles.infoValue,
+                      color: getStatusColor(selectedMissingReport.status === 'added' ? 'fixed' : selectedMissingReport.status)
+                    }}>
+                      {getMissingStatusLabel(selectedMissingReport.status)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedMissingReport.notes && (
+                <div style={styles.infoSection}>
+                  <div style={styles.infoSectionTitle}>💬 הערות</div>
+                  <div style={styles.notesBox}>{selectedMissingReport.notes}</div>
+                </div>
+              )}
+
+              {/* Status Actions */}
+              <div style={styles.statusActions}>
+                <div style={styles.statusActionsTitle}>עדכן סטטוס:</div>
+                <div style={styles.statusButtons} className="status-buttons-responsive">
+                  <button
+                    style={{...styles.statusBtn, ...styles.statusBtnPending}}
+                    onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'pending')}
+                    disabled={actionLoading}
+                  >
+                    ⏳ ממתין
+                  </button>
+                  <button
+                    style={{...styles.statusBtn, ...styles.statusBtnReviewed}}
+                    onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'reviewed')}
+                    disabled={actionLoading}
+                  >
+                    👁️ נבדק
+                  </button>
+                  <button
+                    style={{...styles.statusBtn, ...styles.statusBtnFixed}}
+                    onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'added')}
+                    disabled={actionLoading}
+                  >
+                    ✅ נוסף למאגר
+                  </button>
+                  <button
+                    style={{...styles.statusBtn, ...styles.statusBtnRejected}}
+                    onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'rejected')}
+                    disabled={actionLoading}
+                  >
+                    ❌ נדחה
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.modalFooter} className="modal-footer-responsive">
+              <button
+                style={styles.btnDelete}
+                onClick={() => deleteMissingReport(selectedMissingReport.id)}
+                disabled={actionLoading}
+              >
+                🗑️ מחק
+              </button>
+              <a
+                href={`/admin/vehicles?plate=${encodeURIComponent(selectedMissingReport.plate_number)}`}
+                style={styles.btnUpdate}
+              >
+                🔍 חפש במאגר
+              </a>
+              <button style={styles.btnCancel} onClick={() => setSelectedMissingReport(null)}>
                 סגור
               </button>
             </div>
