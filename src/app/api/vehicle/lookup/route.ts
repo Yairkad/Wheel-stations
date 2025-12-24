@@ -1,11 +1,13 @@
 /**
  * Vehicle Lookup API
  * GET /api/vehicle/lookup?plate=1234567 - Get vehicle details by license plate from data.gov.il
+ * GET /api/vehicle/lookup?plate=1234567&admin=true&admin_password=xxx - Include find-car.co.il fallback
  * Returns vehicle info + PCD (bolt pattern) for wheel matching
  *
- * Searches in two databases:
+ * Searches in multiple databases:
  * 1. Regular vehicles database (053cea08-09bc-40ec-8f7a-156f0677aff3)
  * 2. Personal import vehicles database (03adc637-b6fe-402b-9937-7c3d3afc9140) - fallback
+ * 3. find-car.co.il (admin only) - scrapes when gov databases don't have the vehicle
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -14,6 +16,9 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+// Admin password for extended lookup (find-car.co.il fallback)
+const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
 // data.gov.il resource IDs for vehicle databases
 const RESOURCE_ID_REGULAR = '053cea08-09bc-40ec-8f7a-156f0677aff3'
@@ -69,6 +74,72 @@ interface DataGovResponse<T> {
   result: {
     records: T[]
     total: number
+  }
+}
+
+// Scraped vehicle data from find-car.co.il
+interface FindCarScrapedData {
+  manufacturer: string
+  model: string
+  year: number
+  tire_size: string | null
+}
+
+/**
+ * Scrape vehicle data from find-car.co.il (admin only fallback)
+ * Returns only: manufacturer, model, year, tire size
+ */
+async function scrapeFromFindCar(plate: string): Promise<FindCarScrapedData | null> {
+  try {
+    const url = `https://www.find-car.co.il/car/private/${plate}`
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'he-IL,he;q=0.9,en-US;q=0.8,en;q=0.7',
+      },
+      next: { revalidate: 0 } // Don't cache scxxxxxxxxxxuests
+    })
+
+    if (!response.ok) {
+      console.error('find-car.co.il fetch failed:', response.status)
+      return null
+    }
+
+    const html = await response.text()
+
+    // Extract manufacturer (יצרן)
+    const makeMatch = html.match(/יצרן[^<]*<[^>]*>([^<]+)/i) ||
+                      html.match(/מותג[^<]*<[^>]*>([^<]+)/i) ||
+                      html.match(/"make"[:\s]*"([^"]+)"/i)
+
+    // Extract model (דגם)
+    const modelMatch = html.match(/דגם[^<]*<[^>]*>([^<]+)/i) ||
+                       html.match(/"model"[:\s]*"([^"]+)"/i)
+
+    // Extract year (שנת ייצור)
+    const yearMatch = html.match(/שנת ייצור[^<]*<[^>]*>(\d{4})/i) ||
+                      html.match(/שנה[^<]*<[^>]*>(\d{4})/i) ||
+                      html.match(/"year"[:\s]*(\d{4})/i)
+
+    // Extract tire size (מידת צמיג)
+    const tireMatch = html.match(/צמיג[^<]*<[^>]*>([^<]*\d+\/\d+R?\d+[^<]*)/i) ||
+                      html.match(/(\d{3}\/\d{2}R?\d{2})/i)
+
+    if (!makeMatch || !modelMatch || !yearMatch) {
+      console.log('find-car.co.il: Could not extract required fields')
+      return null
+    }
+
+    return {
+      manufacturer: makeMatch[1].trim(),
+      model: modelMatch[1].trim(),
+      year: parseInt(yearMatch[1]),
+      tire_size: tireMatch ? tireMatch[1].trim() : null
+    }
+  } catch (error) {
+    console.error('Error scraping find-car.co.il:', error)
+    return null
   }
 }
 
@@ -140,10 +211,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const plate = searchParams.get('plate')
+    const isAdmin = searchParams.get('admin') === 'true'
+    const adminPassword = searchParams.get('admin_password')
+
+    // Validate admin access for extended lookup
+    const hasAdminAccess = isAdmin && adminPassword === WHEELS_ADMIN_PASSWORD
 
     if (!plate) {
       return NextResponse.json(
-        { error: 'Missing plate parameter' },
+        { error: 'חסר מספר רכב' },
         { status: 400 }
       )
     }
@@ -154,7 +230,7 @@ export async function GET(request: NextRequest) {
     // Validate plate format (7-8 digits)
     if (!/^\d{7,8}$/.test(cleanPlate)) {
       return NextResponse.json(
-        { error: 'Invalid plate format. Expected 7-8 digits.' },
+        { error: 'פורמט לא תקין. נדרשים 7-8 ספרות.' },
         { status: 400 }
       )
     }
@@ -231,7 +307,7 @@ export async function GET(request: NextRequest) {
     if (!importResponse.ok) {
       console.error('data.gov.il API error:', importResponse.status, importResponse.statusText)
       return NextResponse.json(
-        { error: 'Failed to fetch vehicle data from government database' },
+        { error: 'שגיאה בחיבור למאגר הממשלתי' },
         { status: 502 }
       )
     }
@@ -239,8 +315,32 @@ export async function GET(request: NextRequest) {
     const importData: DataGovResponse<PersonalImportRecord> = await importResponse.json()
 
     if (!importData.success || !importData.result.records.length) {
+      // Step 3: If admin, try find-car.co.il as last resort
+      if (hasAdminAccess) {
+        console.log('Admin lookup: Trying find-car.co.il for plate:', cleanPlate)
+        const scrapedData = await scrapeFromFindCar(cleanPlate)
+
+        if (scrapedData) {
+          return NextResponse.json({
+            success: true,
+            source: 'find_car_scrape',
+            scrape_warning: 'מידע זה נשלף מ-find-car.co.il ולא ממאגרי משרד התחבורה. יש לאמת את המידע.',
+            vehicle: {
+              plate: cleanPlate,
+              manufacturer: scrapedData.manufacturer,
+              model: scrapedData.model,
+              year: scrapedData.year,
+              front_tire: scrapedData.tire_size,
+              rear_tire: scrapedData.tire_size,
+            },
+            wheel_fitment: null,
+            pcd_found: false
+          })
+        }
+      }
+
       return NextResponse.json(
-        { error: 'Vehicle not found', plate: cleanPlate },
+        { error: 'הרכב לא נמצא במאגרים', plate: cleanPlate },
         { status: 404 }
       )
     }
@@ -293,7 +393,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in vehicle lookup:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'שגיאה פנימית בשרת' },
       { status: 500 }
     )
   }

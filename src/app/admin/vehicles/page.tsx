@@ -370,7 +370,8 @@ function VehiclesAdminPage() {
     setScrapeError(null)
 
     try {
-      const response = await fetch(`/api/vehicle/lookup?plate=${plateNumber}`)
+      // Admin lookup includes find-car.co.il fallback
+      const response = await fetch(`/api/vehicle/lookup?plate=${plateNumber}&admin=true&admin_password=${encodeURIComponent(password)}`)
       const data = await response.json()
 
       if (!response.ok || !data.success) {

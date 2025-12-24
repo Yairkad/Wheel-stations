@@ -1571,6 +1571,30 @@ export default function WheelStationsPage() {
             {vehicleError && vehicleSearchTab === 'plate' && (
               <div style={styles.vehicleError}>
                 ❌ {vehicleError}
+                <button
+                  onClick={() => {
+                    const message = `בקשה להוספת רכב חסר למאגר%0A%0Aמספר רכב: ${vehiclePlate}%0A%0Aתודה!`
+                    window.open(`https://wa.me/972526841419?text=${message}`, '_blank')
+                  }}
+                  style={{
+                    marginTop: '12px',
+                    padding: '10px 16px',
+                    background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    justifyContent: 'center'
+                  }}
+                >
+                  📱 דווח על רכב חסר
+                </button>
               </div>
             )}
 
