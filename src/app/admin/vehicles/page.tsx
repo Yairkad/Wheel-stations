@@ -297,6 +297,7 @@ function VehiclesAdminPage() {
     const centerBore = searchParams.get('center_bore')
     const rimSize = searchParams.get('rim_size')
     const tireSize = searchParams.get('tire_size')
+    const plate = searchParams.get('plate')
 
     // Set column filters to auto-filter the table
     if (make || model || year) {
@@ -318,7 +319,14 @@ function VehiclesAdminPage() {
         tireSize: tireSize || ''
       })
     }
-  }, [searchParams])
+
+    // If plate number is provided, open scrape modal and set plate
+    if (plate && isAuthenticated) {
+      setPlateNumber(plate)
+      setScrapeMode('plate')
+      setShowScrapeModal(true)
+    }
+  }, [searchParams, isAuthenticated])
 
   useEffect(() => {
     if (isAuthenticated) {
