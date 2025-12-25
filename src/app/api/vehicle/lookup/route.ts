@@ -108,26 +108,35 @@ async function scrapeFromFindCar(plate: string): Promise<FindCarScrapedData | nu
 
     const html = await response.text()
 
-    // Extract manufacturer (יצרן)
-    const makeMatch = html.match(/יצרן[^<]*<[^>]*>([^<]+)/i) ||
-                      html.match(/מותג[^<]*<[^>]*>([^<]+)/i) ||
-                      html.match(/"make"[:\s]*"([^"]+)"/i)
+    // Check if it's a 404 page (vehicle not found)
+    if (html.includes('אופס') && html.includes('404') || html.includes('לא מצאנו את הרכב')) {
+      console.log('find-car.co.il: Vehicle not found (404 page)')
+      return null
+    }
 
-    // Extract model (דגם)
-    const modelMatch = html.match(/דגם[^<]*<[^>]*>([^<]+)/i) ||
-                       html.match(/"model"[:\s]*"([^"]+)"/i)
+    // find-car.co.il HTML structure:
+    // <span>שם תוצר</span>
+    // <strong>סובארו</strong>
 
-    // Extract year (שנת ייצור)
-    const yearMatch = html.match(/שנת ייצור[^<]*<[^>]*>(\d{4})/i) ||
-                      html.match(/שנה[^<]*<[^>]*>(\d{4})/i) ||
-                      html.match(/"year"[:\s]*(\d{4})/i)
+    // Extract manufacturer (שם תוצר)
+    const makeMatch = html.match(/שם תוצר<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
+                      html.match(/יצרן<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
+                      html.match(/מותג<\/span>\s*<strong>([^<]+)<\/strong>/i)
 
-    // Extract tire size (מידת צמיג)
-    const tireMatch = html.match(/צמיג[^<]*<[^>]*>([^<]*\d+\/\d+R?\d+[^<]*)/i) ||
-                      html.match(/(\d{3}\/\d{2}R?\d{2})/i)
+    // Extract model (כינוי מסחרי)
+    const modelMatch = html.match(/כינוי מסחרי<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
+                       html.match(/דגם<\/span>\s*<strong>([^<]+)<\/strong>/i)
+
+    // Extract year (שנת יצור)
+    const yearMatch = html.match(/שנת יצור<\/span>\s*<strong>(\d{4})<\/strong>/i) ||
+                      html.match(/שנת ייצור<\/span>\s*<strong>(\d{4})<\/strong>/i)
+
+    // Extract tire size (צמיג קדמי)
+    const tireMatch = html.match(/צמיג קדמי<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
+                      html.match(/צמיג<\/span>\s*<strong>([^<]*\d+\/\d+[^<]*)<\/strong>/i)
 
     if (!makeMatch || !modelMatch || !yearMatch) {
-      console.log('find-car.co.il: Could not extract required fields')
+      console.log('find-car.co.il: Could not extract required fields. Make:', !!makeMatch, 'Model:', !!modelMatch, 'Year:', !!yearMatch)
       return null
     }
 
