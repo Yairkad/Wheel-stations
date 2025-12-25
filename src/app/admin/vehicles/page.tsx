@@ -320,11 +320,9 @@ function VehiclesAdminPage() {
       })
     }
 
-    // If plate number is provided, open scrape modal and set plate
+    // If plate number is provided, open the add vehicle modal for manual entry
     if (plate && isAuthenticated) {
-      setPlateNumber(plate)
-      setScrapeMode('plate')
-      setShowScrapeModal(true)
+      setShowAddModal(true)
     }
   }, [searchParams, isAuthenticated])
 
