@@ -1358,6 +1358,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     whiteSpace: 'nowrap',
     background: 'transparent',
     color: '#f87171',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnPrimary: {
     padding: '10px 16px',
@@ -1370,6 +1373,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     whiteSpace: 'nowrap',
     background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
     color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnGhost: {
     padding: '10px 20px',
@@ -1383,6 +1389,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'transparent',
     color: '#94a3b8',
     textDecoration: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerButtons: {
     display: 'flex',

@@ -1037,6 +1037,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
     background: 'transparent',
     color: '#f87171',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnGhost: {
     padding: '10px 20px',
@@ -1049,7 +1052,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'transparent',
     color: '#94a3b8',
     textDecoration: 'none',
-    display: 'inline-block',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Stats Row

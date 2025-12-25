@@ -2156,6 +2156,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'transparent',
     cursor: 'pointer',
     transition: 'all 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btnLogout: {
     color: '#f87171',
@@ -2166,6 +2169,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
     cursor: 'pointer',
     transition: 'all 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statsRow: {
     maxWidth: '400px',
