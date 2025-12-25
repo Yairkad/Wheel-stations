@@ -64,18 +64,6 @@ export default function ErrorReportsPage() {
     onConfirm: () => void
   } | null>(null)
 
-  // Vehicle lookup state for missing reports
-  const [lookupLoading, setLookupLoading] = useState(false)
-  const [lookupResult, setLookupResult] = useState<{
-    manufacturer: string
-    model: string
-    year: number
-    front_tire: string | null
-    source: string
-    scrape_warning?: string
-  } | null>(null)
-  const [lookupError, setLookupError] = useState<string | null>(null)
-
   useEffect(() => {
     // Check if already logged in (with 30-day expiry)
     const savedAuth = localStorage.getItem('wheels_admin_auth')
@@ -275,46 +263,6 @@ export default function ErrorReportsPage() {
 
   const openMissingReportModal = (report: MissingVehicleReport) => {
     setSelectedMissingReport(report)
-    // Reset lookup state when opening modal
-    setLookupResult(null)
-    setLookupError(null)
-  }
-
-  // Lookup vehicle by plate number using admin API
-  const handleVehicleLookup = async (plateNumber: string) => {
-    if (lookupLoading) return
-
-    setLookupLoading(true)
-    setLookupResult(null)
-    setLookupError(null)
-
-    try {
-      const response = await fetch(
-        `/api/vehicle/lookup?plate=${plateNumber}&admin=true&admin_password=${encodeURIComponent(password)}`
-      )
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'רכב לא נמצא')
-      }
-
-      setLookupResult({
-        manufacturer: data.vehicle.manufacturer || '',
-        model: data.vehicle.model || '',
-        year: data.vehicle.year || 0,
-        front_tire: data.vehicle.front_tire || null,
-        source: data.source || 'gov_api',
-        scrape_warning: data.scrape_warning
-      })
-
-      toast.success('פרטי הרכב נמצאו!')
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'שגיאה בחיפוש הרכב'
-      setLookupError(errorMessage)
-      toast.error(errorMessage)
-    } finally {
-      setLookupLoading(false)
-    }
   }
 
   const getMissingStatusLabel = (status: string) => {
@@ -898,101 +846,44 @@ export default function ErrorReportsPage() {
                 </div>
               )}
 
-              {/* Vehicle Lookup Section */}
+              {/* Quick Actions Section */}
               <div style={styles.infoSection}>
                 <div style={styles.infoSectionTitle}>🔎 חיפוש פרטי רכב</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <button
-                    onClick={() => handleVehicleLookup(selectedMissingReport.plate_number)}
-                    disabled={lookupLoading}
+                  <a
+                    href={`https://www.find-car.co.il/car/private/${selectedMissingReport.plate_number}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
-                      ...styles.btnUpdate,
-                      opacity: lookupLoading ? 0.7 : 1,
-                      cursor: lookupLoading ? 'wait' : 'pointer'
+                      display: 'block',
+                      padding: '12px 20px',
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                      color: 'white',
+                      textAlign: 'center',
+                      borderRadius: '10px',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      fontSize: '1rem'
                     }}
                   >
-                    {lookupLoading ? '🔄 מחפש...' : '🔍 חפש במשרד התחבורה'}
-                  </button>
-
-                  {/* Lookup Error */}
-                  {lookupError && (
-                    <div style={{
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      border: '1px solid #ef4444',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      color: '#ef4444',
-                      textAlign: 'center'
-                    }}>
-                      ❌ {lookupError}
-                    </div>
-                  )}
-
-                  {/* Lookup Results */}
-                  {lookupResult && (
-                    <div style={{
-                      background: 'rgba(34, 197, 94, 0.1)',
-                      border: '1px solid #22c55e',
-                      borderRadius: '12px',
-                      padding: '16px'
-                    }}>
-                      {lookupResult.scrape_warning && (
-                        <div style={{
-                          background: 'rgba(245, 158, 11, 0.2)',
-                          border: '1px solid #f59e0b',
-                          borderRadius: '8px',
-                          padding: '8px 12px',
-                          marginBottom: '12px',
-                          fontSize: '0.85rem',
-                          color: '#f59e0b'
-                        }}>
-                          ⚠️ {lookupResult.scrape_warning}
-                        </div>
-                      )}
-                      <div style={{ display: 'grid', gap: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#94a3b8' }}>יצרן:</span>
-                          <span style={{ color: '#22c55e', fontWeight: 600 }}>{lookupResult.manufacturer}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#94a3b8' }}>דגם:</span>
-                          <span style={{ color: '#22c55e', fontWeight: 600 }}>{lookupResult.model}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#94a3b8' }}>שנה:</span>
-                          <span style={{ color: '#22c55e', fontWeight: 600 }}>{lookupResult.year}</span>
-                        </div>
-                        {lookupResult.front_tire && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ color: '#94a3b8' }}>צמיג:</span>
-                            <span style={{ color: '#22c55e', fontWeight: 600 }}>{lookupResult.front_tire}</span>
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#94a3b8' }}>מקור:</span>
-                          <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                            {lookupResult.source === 'find_car_scrape' ? 'find-car.co.il' : 'משרד התחבורה'}
-                          </span>
-                        </div>
-                      </div>
-                      <Link
-                        href={`/admin/vehicles?plate=${selectedMissingReport.plate_number}`}
-                        style={{
-                          display: 'block',
-                          marginTop: '12px',
-                          padding: '10px 16px',
-                          background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                          color: 'white',
-                          textAlign: 'center',
-                          borderRadius: '8px',
-                          textDecoration: 'none',
-                          fontWeight: 600
-                        }}
-                      >
-                        ➕ הוסף למאגר הרכבים
-                      </Link>
-                    </div>
-                  )}
+                    🔍 חפש ב-find-car.co.il
+                  </a>
+                  <Link
+                    href={`/admin/vehicles?plate=${selectedMissingReport.plate_number}`}
+                    style={{
+                      display: 'block',
+                      padding: '12px 20px',
+                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      color: 'white',
+                      textAlign: 'center',
+                      borderRadius: '10px',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      fontSize: '1rem'
+                    }}
+                  >
+                    ➕ הוסף למאגר הרכבים
+                  </Link>
                 </div>
               </div>
 
@@ -1040,14 +931,6 @@ export default function ErrorReportsPage() {
               >
                 🗑️ מחק
               </button>
-              <a
-                href={`https://www.find-car.co.il/car/private/${selectedMissingReport.plate_number}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={styles.btnUpdate}
-              >
-                🔍 פתח ב-find-car
-              </a>
               <button style={styles.btnCancel} onClick={() => setSelectedMissingReport(null)}>
                 סגור
               </button>
