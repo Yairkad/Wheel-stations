@@ -911,7 +911,7 @@ export default function ErrorReportsPage() {
                       cursor: lookupLoading ? 'wait' : 'pointer'
                     }}
                   >
-                    {lookupLoading ? '🔄 מחפש...' : '🔍 חפש אוטומטית במאגרים'}
+                    {lookupLoading ? '🔄 מחפש...' : '🔍 חפש במשרד התחבורה'}
                   </button>
 
                   {/* Lookup Error */}
@@ -1041,12 +1041,12 @@ export default function ErrorReportsPage() {
                 🗑️ מחק
               </button>
               <a
-                href="https://www.find-car.co.il"
+                href={`https://www.find-car.co.il/car/private/${selectedMissingReport.plate_number}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={styles.btnUpdate}
               >
-                🔍 פתח find-car
+                🔍 פתח ב-find-car
               </a>
               <button style={styles.btnCancel} onClick={() => setSelectedMissingReport(null)}>
                 סגור
