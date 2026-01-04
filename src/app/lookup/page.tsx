@@ -270,7 +270,7 @@ export default function VehicleLookupPage() {
                 </p>
                 <div className="mt-4">
                   <a
-                    href={`https://www.wheel-size.com/size/${result.vehicle.model.toLowerCase()}/${result.vehicle.year}/`}
+                    href="https://www.wheel-size.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white font-medium rounded-lg hover:bg-yellow-700 transition-colors text-sm"

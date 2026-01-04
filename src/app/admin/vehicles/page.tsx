@@ -1708,7 +1708,7 @@ function VehiclesAdminPage() {
                 <div style={styles.scrapeError}>
                   ❌ {scrapeError}
                   <a
-                    href={`https://www.wheel-size.com/size/${scrapeForm.make.toLowerCase()}/${scrapeForm.model.toLowerCase()}/${scrapeForm.year}/`}
+                    href="https://www.wheel-size.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={styles.externalLink}

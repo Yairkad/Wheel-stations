@@ -1536,7 +1536,7 @@ export default function WheelStationsPage() {
                 ⚠️ לא נמצאו מידות גלגל לדגם זה במאגר
                 <div style={styles.externalLinks}>
                   <a
-                    href={`https://www.wheel-size.com/size/${(modelSearchMake.includes('(') ? modelSearchMake.split(' (')[0] : modelSearchMake).toLowerCase().replace(/\s+/g, '-')}/${modelSearchModel.toLowerCase().replace(/\s+/g, '-')}/${modelSearchYear || ''}/`}
+                    href="https://www.wheel-size.com"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={styles.wheelSizeLink}
@@ -1799,7 +1799,7 @@ export default function WheelStationsPage() {
                     ⚠️ לא נמצאו מידות גלגל לדגם זה במאגר
                     <div style={styles.externalLinks}>
                       <a
-                        href={`https://www.wheel-size.com/size/${vehicleResult.vehicle.model.toLowerCase()}/${vehicleResult.vehicle.year}/`}
+                        href="https://www.wheel-size.com"
                         target="_blank"
                         rel="noopener noreferrer"
                         style={styles.wheelSizeLink}
