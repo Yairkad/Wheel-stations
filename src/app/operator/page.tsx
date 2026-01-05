@@ -64,16 +64,26 @@ const hebrewToEnglishModels: Record<string, string> = {
   // Hyundai
   'איי 10': 'i10', 'איי 20': 'i20', 'איי 30': 'i30', 'איי 40': 'i40',
   'טוסון': 'Tucson', 'סנטה פה': 'Santa Fe', 'קונה': 'Kona', 'יוניק': 'Ioniq',
+  'אלנטרה': 'Elantra', 'סונטה': 'Sonata', 'אקסנט': 'Accent',
   // Kia
   'פיקנטו': 'Picanto', 'ריו': 'Rio', 'סיד': 'Ceed', 'ספורטאז\'': 'Sportage',
-  'סורנטו': 'Sorento', 'נירו': 'Niro', 'סטוניק': 'Stonic',
+  'סורנטו': 'Sorento', 'נירו': 'Niro', 'סטוניק': 'Stonic', 'סול': 'Soul',
   // Mazda
-  'מאזדה 2': '2', 'מאזדה 3': '3', 'מאזדה 6': '6', 'סי אקס 5': 'CX-5', 'סי אקס 30': 'CX-30',
+  'מזדה 2': 'Mazda2', 'מזדה 3': 'Mazda3', 'מזדה 6': 'Mazda6',
+  'סי-איקס 3': 'CX-3', 'סי-איקס 5': 'CX-5', 'סי-איקס 30': 'CX-30',
+  // Honda
+  'סיוויק': 'Civic', 'אקורד': 'Accord', 'ג\'אז': 'Jazz', 'סי-אר-וי': 'CR-V', 'האר-וי': 'HR-V',
+  // Nissan
+  'מיקרה': 'Micra', 'ג\'וק': 'Juke', 'קשקאי': 'Qashqai', 'איקס-טרייל': 'X-Trail',
+  'ליף': 'Leaf', 'נוט': 'Note', 'סנטרה': 'Sentra',
+  // Volkswagen
+  'גולף': 'Golf', 'פולו': 'Polo', 'פאסאט': 'Passat', 'טיגואן': 'Tiguan',
+  'טי-רוק': 'T-Roc', 'אפ': 'Up', 'ארטיאון': 'Arteon', 'טוארג': 'Touareg',
+  // Skoda
+  'פאביה': 'Fabia', 'אוקטביה': 'Octavia', 'סופרב': 'Superb', 'קארוק': 'Karoq', 'קודיאק': 'Kodiaq',
   // Other common
-  'גולף': 'Golf', 'פולו': 'Polo', 'טיגואן': 'Tiguan', 'פאסאט': 'Passat',
-  'אוקטביה': 'Octavia', 'פאביה': 'Fabia', 'קרוק': 'Karoq',
-  'סיביק': 'Civic', 'ג\'אז': 'Jazz', 'אקורד': 'Accord',
-  'קשקאי': 'Qashqai', 'ג\'וק': 'Juke', 'מיקרה': 'Micra',
+  'פוקוס': 'Focus', 'פיאסטה': 'Fiesta', 'אסטרה': 'Astra', 'קורסה': 'Corsa',
+  'קליאו': 'Clio', 'מגאן': 'Megane', 'סי 3': 'C3', 'סי 4': 'C4', '208': '208', '308': '308',
   'סוויפט': 'Swift', 'ויטרה': 'Vitara', 'בלנו': 'Baleno'
 }
 
@@ -195,8 +205,8 @@ export default function OperatorPage() {
         return
       }
     } else {
-      if (!make || !model) {
-        setSearchError('יש להזין יצרן ודגם')
+      if (!make || !model || !year) {
+        setSearchError('יש להזין יצרן, דגם ושנה')
         return
       }
     }
