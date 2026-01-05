@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         }, { status: 401 })
       }
 
-      const callCenter = manager.call_centers as { id: string; name: string; is_active: boolean }
+      const callCenter = manager.call_centers as unknown as { id: string; name: string; is_active: boolean } | null
       if (!callCenter?.is_active) {
         return NextResponse.json({
           error: 'המוקד אינו פעיל'
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
         }, { status: 401 })
       }
 
-      const callCenter = operator.call_centers as { id: string; name: string; is_active: boolean }
+      const callCenter = operator.call_centers as unknown as { id: string; name: string; is_active: boolean } | null
       if (!callCenter?.is_active) {
         return NextResponse.json({
           error: 'המוקד אינו פעיל'
