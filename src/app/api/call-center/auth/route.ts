@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if call center is active
-    const callCenter = manager.call_centers as { id: string; name: string; is_active: boolean }
+    const callCenter = manager.call_centers as unknown as { id: string; name: string; is_active: boolean } | null
     if (!callCenter?.is_active) {
       return NextResponse.json({
         error: 'המוקד אינו פעיל'
