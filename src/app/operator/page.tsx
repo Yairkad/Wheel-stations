@@ -43,6 +43,12 @@ interface VehicleInfo {
   rim_size: string
 }
 
+interface FilterOptions {
+  rim_sizes: string[]
+  bolt_counts: number[]
+  bolt_spacings: number[]
+}
+
 // Common Hebrew to English car brand mappings
 const hebrewToEnglishMakes: Record<string, string> = {
   'טויוטה': 'Toyota', 'יונדאי': 'Hyundai', 'קיא': 'Kia', 'מזדה': 'Mazda',
@@ -87,6 +93,46 @@ const hebrewToEnglishModels: Record<string, string> = {
   'סוויפט': 'Swift', 'ויטרה': 'Vitara', 'בלנו': 'Baleno'
 }
 
+// Model to Make mapping - which models belong to which make
+const modelToMake: Record<string, string> = {
+  // Toyota
+  'Corolla': 'Toyota', 'Camry': 'Toyota', 'Yaris': 'Toyota', 'Auris': 'Toyota',
+  'RAV4': 'Toyota', 'Land Cruiser': 'Toyota', 'Hilux': 'Toyota', 'Prius': 'Toyota',
+  'Aygo': 'Toyota', 'C-HR': 'Toyota', 'Highlander': 'Toyota',
+  // Hyundai
+  'i10': 'Hyundai', 'i20': 'Hyundai', 'i30': 'Hyundai', 'i40': 'Hyundai',
+  'Tucson': 'Hyundai', 'Santa Fe': 'Hyundai', 'Kona': 'Hyundai', 'Ioniq': 'Hyundai',
+  'Elantra': 'Hyundai', 'Sonata': 'Hyundai', 'Accent': 'Hyundai',
+  // Kia
+  'Picanto': 'Kia', 'Rio': 'Kia', 'Ceed': 'Kia', 'Sportage': 'Kia',
+  'Sorento': 'Kia', 'Niro': 'Kia', 'Stonic': 'Kia', 'Soul': 'Kia',
+  // Mazda
+  'Mazda2': 'Mazda', 'Mazda3': 'Mazda', 'Mazda6': 'Mazda',
+  'CX-3': 'Mazda', 'CX-5': 'Mazda', 'CX-30': 'Mazda',
+  // Honda
+  'Civic': 'Honda', 'Accord': 'Honda', 'Jazz': 'Honda', 'CR-V': 'Honda', 'HR-V': 'Honda',
+  // Nissan
+  'Micra': 'Nissan', 'Juke': 'Nissan', 'Qashqai': 'Nissan', 'X-Trail': 'Nissan',
+  'Leaf': 'Nissan', 'Note': 'Nissan', 'Sentra': 'Nissan',
+  // Volkswagen
+  'Golf': 'Volkswagen', 'Polo': 'Volkswagen', 'Passat': 'Volkswagen', 'Tiguan': 'Volkswagen',
+  'T-Roc': 'Volkswagen', 'Up': 'Volkswagen', 'Arteon': 'Volkswagen', 'Touareg': 'Volkswagen',
+  // Skoda
+  'Fabia': 'Skoda', 'Octavia': 'Skoda', 'Superb': 'Skoda', 'Karoq': 'Skoda', 'Kodiaq': 'Skoda',
+  // Ford
+  'Focus': 'Ford', 'Fiesta': 'Ford',
+  // Opel
+  'Astra': 'Opel', 'Corsa': 'Opel',
+  // Renault
+  'Clio': 'Renault', 'Megane': 'Renault',
+  // Citroen
+  'C3': 'Citroen', 'C4': 'Citroen',
+  // Peugeot
+  '208': 'Peugeot', '308': 'Peugeot',
+  // Suzuki
+  'Swift': 'Suzuki', 'Vitara': 'Suzuki', 'Baleno': 'Suzuki'
+}
+
 export default function OperatorPage() {
   const [operator, setOperator] = useState<Operator | null>(null)
   const [phone, setPhone] = useState('')
@@ -94,8 +140,8 @@ export default function OperatorPage() {
   const [loginLoading, setLoginLoading] = useState(false)
   const [loginError, setLoginError] = useState('')
 
-  // Search state
-  const [searchTab, setSearchTab] = useState<'plate' | 'manual'>('plate')
+  // Search state - 3 tabs: plate, model, spec
+  const [searchTab, setSearchTab] = useState<'plate' | 'model' | 'spec'>('plate')
   const [plateNumber, setPlateNumber] = useState('')
   const [make, setMake] = useState('')
   const [model, setModel] = useState('')
@@ -103,6 +149,21 @@ export default function OperatorPage() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null)
   const [searchError, setSearchError] = useState('')
+
+  // Autocomplete state
+  const [makeSuggestions, setMakeSuggestions] = useState<string[]>([])
+  const [modelSuggestions, setModelSuggestions] = useState<string[]>([])
+  const [showMakeSuggestions, setShowMakeSuggestions] = useState(false)
+  const [showModelSuggestions, setShowModelSuggestions] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<{make: boolean, model: boolean, year: boolean}>({make: false, model: false, year: false})
+
+  // Spec search state
+  const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null)
+  const [specFilters, setSpecFilters] = useState({
+    rim_size: '',
+    bolt_count: '',
+    bolt_spacing: ''
+  })
 
   // Results
   const [results, setResults] = useState<WheelResult[]>([])
@@ -116,7 +177,7 @@ export default function OperatorPage() {
   const [selectedContact, setSelectedContact] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
-  // Check for saved session
+  // Check for saved session and fetch filter options
   useEffect(() => {
     const saved = localStorage.getItem('operator_session')
     if (saved) {
@@ -131,7 +192,109 @@ export default function OperatorPage() {
         localStorage.removeItem('operator_session')
       }
     }
+
+    // Fetch filter options for spec search
+    const fetchFilterOptions = async () => {
+      try {
+        const response = await fetch('/api/wheel-stations/search?')
+        if (response.ok) {
+          const data = await response.json()
+          setFilterOptions(data.filterOptions)
+        }
+      } catch (err) {
+        console.error('Error fetching filter options:', err)
+      }
+    }
+    fetchFilterOptions()
   }, [])
+
+  // Fetch autocomplete suggestions for make (supports Hebrew and English)
+  const fetchMakeSuggestions = async (value: string) => {
+    if (value.length < 2) {
+      setMakeSuggestions([])
+      return
+    }
+
+    // Check if Hebrew input, translate to English
+    const englishValue = hebrewToEnglishMakes[value] || value
+
+    try {
+      // Search in local DB by both make and make_he
+      const response = await fetch(`/api/vehicle-models?make=${encodeURIComponent(englishValue)}`)
+      const data = await response.json()
+
+      // Get unique makes and make_he pairs
+      const suggestions: string[] = []
+      const seen = new Set<string>()
+
+      data.vehicles?.forEach((v: { make?: string }) => {
+        if (v.make && !seen.has(v.make.toLowerCase())) {
+          seen.add(v.make.toLowerCase())
+          const hebrewName = Object.entries(hebrewToEnglishMakes).find(([, eng]) => eng.toLowerCase() === v.make?.toLowerCase())?.[0]
+          suggestions.push(hebrewName ? `${v.make} (${hebrewName})` : v.make)
+        }
+      })
+
+      // Add common makes that match
+      Object.entries(hebrewToEnglishMakes).forEach(([he, en]) => {
+        if ((he.includes(value) || en.toLowerCase().includes(value.toLowerCase())) && !seen.has(en.toLowerCase())) {
+          seen.add(en.toLowerCase())
+          suggestions.push(`${en} (${he})`)
+        }
+      })
+
+      setMakeSuggestions(suggestions.slice(0, 8))
+    } catch {
+      setMakeSuggestions([])
+    }
+  }
+
+  // Fetch autocomplete suggestions for model
+  const fetchModelSuggestions = async (makeValue: string, value: string) => {
+    if (value.length < 2 || !makeValue) {
+      setModelSuggestions([])
+      return
+    }
+
+    // Extract English make name if contains Hebrew in parentheses
+    const englishMake = makeValue.includes('(') ? makeValue.split(' (')[0] : (hebrewToEnglishMakes[makeValue] || makeValue)
+
+    // Check if Hebrew model input, translate to English
+    const englishModel = hebrewToEnglishModels[value] || value
+
+    try {
+      const response = await fetch(`/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}`)
+      const data = await response.json()
+
+      // Get unique models from database
+      const suggestions: string[] = []
+      const seen = new Set<string>()
+
+      data.models?.forEach((v: { model?: string }) => {
+        if (v.model && !seen.has(v.model.toLowerCase())) {
+          seen.add(v.model.toLowerCase())
+          const hebrewName = Object.entries(hebrewToEnglishModels).find(([, eng]) => eng.toLowerCase() === v.model?.toLowerCase())?.[0]
+          suggestions.push(hebrewName ? `${v.model} (${hebrewName})` : v.model)
+        }
+      })
+
+      // Add common models that match - ONLY if they belong to the selected make
+      Object.entries(hebrewToEnglishModels).forEach(([he, en]) => {
+        // Check if this model belongs to the selected make
+        const modelMakeValue = modelToMake[en]
+        if (modelMakeValue && modelMakeValue.toLowerCase() === englishMake.toLowerCase()) {
+          if ((he.includes(value) || en.toLowerCase().includes(value.toLowerCase())) && !seen.has(en.toLowerCase())) {
+            seen.add(en.toLowerCase())
+            suggestions.push(`${en} (${he})`)
+          }
+        }
+      })
+
+      setModelSuggestions(suggestions.slice(0, 8))
+    } catch {
+      setModelSuggestions([])
+    }
+  }
 
   const handleLogin = async () => {
     if (!phone || !code) {
@@ -198,15 +361,29 @@ export default function OperatorPage() {
     setSearchError('')
     setVehicleInfo(null)
     setResults([])
+    setShowMakeSuggestions(false)
+    setShowModelSuggestions(false)
 
+    // Validation based on tab
     if (searchTab === 'plate') {
       if (!plateNumber) {
         setSearchError('יש להזין מספר רכב')
         return
       }
-    } else {
-      if (!make || !model || !year) {
-        setSearchError('יש להזין יצרן, דגם ושנה')
+    } else if (searchTab === 'model') {
+      const errors = {
+        make: !make.trim(),
+        model: !model.trim(),
+        year: !year.trim()
+      }
+      setFieldErrors(errors)
+      if (errors.make || errors.model || errors.year) {
+        toast.error('נא למלא יצרן, דגם ושנה', { id: 'model-search-validation' })
+        return
+      }
+    } else if (searchTab === 'spec') {
+      if (!specFilters.bolt_count && !specFilters.bolt_spacing && !specFilters.rim_size) {
+        setSearchError('יש לבחור לפחות פילטר אחד')
         return
       }
     }
@@ -214,7 +391,65 @@ export default function OperatorPage() {
     setSearchLoading(true)
 
     try {
-      // Step 1: Get vehicle PCD info
+      // For spec search, go directly to wheel search
+      if (searchTab === 'spec') {
+        const params = new URLSearchParams()
+        if (specFilters.rim_size) params.append('rim_size', specFilters.rim_size)
+        if (specFilters.bolt_count) params.append('bolt_count', specFilters.bolt_count)
+        if (specFilters.bolt_spacing) params.append('bolt_spacing', specFilters.bolt_spacing)
+        params.append('available_only', 'true')
+
+        const wheelsRes = await fetch(`/api/wheel-stations/search?${params}`)
+        const wheelsData = await wheelsRes.json()
+
+        if (!wheelsRes.ok) {
+          setSearchError('שגיאה בחיפוש גלגלים')
+          return
+        }
+
+        // Get station managers for all found stations
+        const stationIds = wheelsData.results?.map((r: { station: { id: string } }) => r.station.id) || []
+        let managersMap: Record<string, StationManager[]> = {}
+
+        if (stationIds.length > 0) {
+          const managersRes = await fetch(`/api/wheel-stations/managers?station_ids=${stationIds.join(',')}`)
+          if (managersRes.ok) {
+            const managersData = await managersRes.json()
+            managersMap = managersData.managers || {}
+          }
+        }
+
+        // Transform results
+        const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
+          station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
+          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; is_available: boolean }[]
+          availableCount: number
+          totalCount: number
+        }) => ({
+          station: {
+            ...result.station,
+            managers: managersMap[result.station.id] || []
+          },
+          wheels: result.wheels.map(w => ({
+            ...w,
+            pcd: `${w.bolt_count}×${w.bolt_spacing}`
+          })),
+          availableCount: result.availableCount,
+          totalCount: result.totalCount
+        }))
+
+        setResults(transformedResults)
+
+        if (transformedResults.length === 0) {
+          toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
+        } else {
+          const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
+          toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
+        }
+        return
+      }
+
+      // For plate and model tabs, get vehicle PCD info first
       let pcdInfo: VehicleInfo | null = null
 
       if (searchTab === 'plate') {
@@ -239,7 +474,7 @@ export default function OperatorPage() {
           setSearchError('לא נמצא מידע PCD לרכב זה')
           return
         }
-      } else {
+      } else if (searchTab === 'model') {
         // Manual search by make/model/year
         // Extract English make name if contains Hebrew in parentheses or translate from Hebrew
         const englishMake = make.includes('(') ? make.split(' (')[0] : (hebrewToEnglishMakes[make] || make)
@@ -267,6 +502,8 @@ export default function OperatorPage() {
         }
       }
 
+      if (!pcdInfo) return
+
       setVehicleInfo(pcdInfo)
 
       // Step 2: Search for wheels
@@ -276,7 +513,6 @@ export default function OperatorPage() {
         available_only: 'true'
       })
       // Don't filter by rim_size to show more options
-      // ...(pcdInfo.rim_size && { rim_size: pcdInfo.rim_size })
 
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
       const wheelsData = await wheelsRes.json()
@@ -447,19 +683,25 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
         <div style={styles.section}>
           <h3 style={styles.sectionTitle}>🔍 חיפוש גלגל לרכב</h3>
 
-          {/* Search Tabs */}
+          {/* Search Tabs - 3 options */}
           <div style={styles.searchTabs}>
             <button
               style={{...styles.searchTab, ...(searchTab === 'plate' ? styles.searchTabActive : {})}}
-              onClick={() => setSearchTab('plate')}
+              onClick={() => { setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); }}
             >
-              לפי מספר רכב
+              🔢 מספר רכב
             </button>
             <button
-              style={{...styles.searchTab, ...(searchTab === 'manual' ? styles.searchTabActive : {})}}
-              onClick={() => setSearchTab('manual')}
+              style={{...styles.searchTab, ...(searchTab === 'model' ? styles.searchTabActive : {})}}
+              onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); }}
             >
-              לפי יצרן ודגם
+              🚘 יצרן ודגם
+            </button>
+            <button
+              style={{...styles.searchTab, ...(searchTab === 'spec' ? styles.searchTabActive : {})}}
+              onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); }}
+            >
+              🔧 לפי מפרט
             </button>
           </div>
 
@@ -468,44 +710,171 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
             <div style={styles.searchRow}>
               <input
                 type="text"
+                inputMode="numeric"
                 placeholder="12-345-67"
                 value={plateNumber}
                 onChange={e => setPlateNumber(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSearch()}
                 style={{...styles.formInput, flex: 1, textAlign: 'center', letterSpacing: '2px', fontSize: '1.1rem'}}
                 dir="ltr"
               />
               <button style={styles.searchBtn} onClick={handleSearch} disabled={searchLoading}>
-                {searchLoading ? <span style={styles.spinner}></span> : 'חפש'}
+                {searchLoading ? <span style={styles.spinner}></span> : '🔍'}
               </button>
             </div>
           )}
 
-          {/* Search by Make/Model */}
-          {searchTab === 'manual' && (
-            <div style={styles.searchGrid}>
+          {/* Search by Make/Model with Autocomplete */}
+          {searchTab === 'model' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Make Input with Autocomplete */}
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input
+                  type="text"
+                  value={make}
+                  onChange={e => {
+                    setMake(e.target.value)
+                    fetchMakeSuggestions(e.target.value)
+                    setShowMakeSuggestions(true)
+                    if (fieldErrors.make) setFieldErrors(prev => ({...prev, make: false}))
+                  }}
+                  onFocus={() => make.length >= 2 && setShowMakeSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowMakeSuggestions(false), 200)}
+                  placeholder="יצרן - לדוגמה: Toyota או טויוטה"
+                  style={{...styles.formInput, width: '100%', ...(fieldErrors.make && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
+                />
+                {showMakeSuggestions && makeSuggestions.length > 0 && (
+                  <div style={styles.suggestionsDropdown}>
+                    {makeSuggestions.map((suggestion, i) => (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setMake(suggestion)
+                          setShowMakeSuggestions(false)
+                          setModelSuggestions([])
+                        }}
+                        style={styles.suggestionItem}
+                        onMouseOver={e => (e.currentTarget.style.background = '#374151')}
+                        onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Model Input with Autocomplete */}
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input
+                  type="text"
+                  value={model}
+                  onChange={e => {
+                    setModel(e.target.value)
+                    fetchModelSuggestions(make, e.target.value)
+                    setShowModelSuggestions(true)
+                    if (fieldErrors.model) setFieldErrors(prev => ({...prev, model: false}))
+                  }}
+                  onFocus={() => model.length >= 2 && setShowModelSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowModelSuggestions(false), 200)}
+                  placeholder="דגם - לדוגמה: Corolla"
+                  style={{...styles.formInput, width: '100%', ...(fieldErrors.model && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
+                />
+                {showModelSuggestions && modelSuggestions.length > 0 && (
+                  <div style={styles.suggestionsDropdown}>
+                    {modelSuggestions.map((suggestion, i) => (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          setModel(suggestion)
+                          setShowModelSuggestions(false)
+                        }}
+                        style={styles.suggestionItem}
+                        onMouseOver={e => (e.currentTarget.style.background = '#374151')}
+                        onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <input
                 type="text"
-                placeholder="יצרן"
-                value={make}
-                onChange={e => setMake(e.target.value)}
-                style={styles.formInput}
-              />
-              <input
-                type="text"
-                placeholder="דגם"
-                value={model}
-                onChange={e => setModel(e.target.value)}
-                style={styles.formInput}
-              />
-              <input
-                type="number"
-                placeholder="שנה"
+                inputMode="numeric"
                 value={year}
-                onChange={e => setYear(e.target.value)}
-                style={styles.formInput}
+                onChange={e => {
+                  setYear(e.target.value.replace(/\D/g, '').slice(0, 4))
+                  if (fieldErrors.year) setFieldErrors(prev => ({...prev, year: false}))
+                }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearch(); } }}
+                placeholder="שנה - לדוגמה: 2020"
+                style={{...styles.formInput, ...(fieldErrors.year && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
               />
-              <button style={styles.searchBtn} onClick={handleSearch} disabled={searchLoading}>
-                {searchLoading ? <span style={styles.spinner}></span> : 'חפש'}
+              <button
+                onClick={handleSearch}
+                disabled={searchLoading}
+                style={{...styles.searchBtn, width: '100%', padding: '12px'}}
+              >
+                {searchLoading ? <span style={styles.spinner}></span> : '🔍 חפש'}
+              </button>
+            </div>
+          )}
+
+          {/* Search by Spec (PCD) */}
+          {searchTab === 'spec' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={styles.filterGrid}>
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>גודל ג&apos;אנט</label>
+                  <select
+                    style={styles.filterSelect}
+                    value={specFilters.rim_size}
+                    onChange={e => setSpecFilters({...specFilters, rim_size: e.target.value})}
+                  >
+                    <option value="">בחר...</option>
+                    {filterOptions?.rim_sizes.map(size => (
+                      <option key={size} value={size}>{size}&quot;</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>כמות ברגים</label>
+                  <select
+                    style={styles.filterSelect}
+                    value={specFilters.bolt_count}
+                    onChange={e => setSpecFilters({...specFilters, bolt_count: e.target.value})}
+                  >
+                    <option value="">בחר...</option>
+                    {filterOptions?.bolt_counts.map(count => (
+                      <option key={count} value={count}>{count}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>מרווח ברגים</label>
+                  <select
+                    style={styles.filterSelect}
+                    value={specFilters.bolt_spacing}
+                    onChange={e => setSpecFilters({...specFilters, bolt_spacing: e.target.value})}
+                  >
+                    <option value="">בחר...</option>
+                    {filterOptions?.bolt_spacings.map(spacing => (
+                      <option key={spacing} value={spacing}>{spacing}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSearch}
+                disabled={searchLoading}
+                style={{...styles.searchBtn, width: '100%', padding: '12px'}}
+              >
+                {searchLoading ? <span style={styles.spinner}></span> : '🔍 חפש'}
               </button>
             </div>
           )}
@@ -797,6 +1166,49 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr 80px auto',
     gap: '10px',
+  },
+  suggestionsDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    background: '#1f2937',
+    border: '1px solid #4b5563',
+    borderRadius: '0 0 8px 8px',
+    zIndex: 100,
+    maxHeight: '200px',
+    overflowY: 'auto',
+  },
+  suggestionItem: {
+    padding: '10px 12px',
+    cursor: 'pointer',
+    borderBottom: '1px solid #374151',
+    color: '#fff',
+    fontSize: '0.9rem',
+  },
+  filterGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '12px',
+  },
+  filterGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  filterLabel: {
+    color: '#94a3b8',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+  },
+  filterSelect: {
+    padding: '10px 12px',
+    background: '#0f172a',
+    border: '1px solid #334155',
+    borderRadius: '8px',
+    color: 'white',
+    fontSize: '0.9rem',
+    cursor: 'pointer',
   },
   formGroup: {
     marginBottom: '15px',

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ממשק מנהל מוקד - הדמיה</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        .header .subtitle {
+            color: #f59e0b;
+            font-size: 0.9rem;
+        }
+        .user-info {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info .name {
+            font-weight: bold;
+        }
+        .user-info .role {
+            color: #f59e0b;
+            font-size: 0.85rem;
+        }
+        .user-info .call-center {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        .primary-badge {
+            background: #f59e0b;
+            color: #000;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.05);
+            padding: 5px;
+            border-radius: 10px;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .tab:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .tab.active {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        /* Section */
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 25px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-header h3 {
+            font-size: 1.2rem;
+        }
+        .add-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th {
+            color: #94a3b8;
+            font-weight: normal;
+            font-size: 0.85rem;
+        }
+        tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        .status-active {
+            color: #10b981;
+        }
+        .status-inactive {
+            color: #ef4444;
+        }
+        .code-display {
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            color: #60a5fa;
+        }
+        .action-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 0.85rem;
+        }
+        .action-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .action-btn.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .action-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        /* History Section */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .filter-group select, .filter-group input {
+            padding: 10px 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            min-width: 150px;
+        }
+        .history-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .history-date {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+        .history-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .history-status.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        .history-status.completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .history-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .history-item {
+            font-size: 0.9rem;
+        }
+        .history-item .label {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .modal-header h3 {
+            font-size: 1.2rem;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+        .generated-code {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .generated-code .code {
+            font-size: 2rem;
+            font-family: monospace;
+            color: #10b981;
+            letter-spacing: 5px;
+        }
+        .generated-code .hint {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .hidden { display: none; }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f59e0b;
+        }
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        /* Explanation Section */
+        .explanation {
+            background: linear-gradient(135deg, #7c2d12 0%, #431407 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 40px;
+            border: 1px solid rgba(251, 146, 60, 0.3);
+        }
+        .explanation h3 {
+            color: #fb923c;
+            margin-bottom: 20px;
+        }
+        .explanation h4 {
+            color: #fdba74;
+            margin: 20px 0 15px 0;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .explanation ul {
+            list-style: none;
+        }
+        .explanation li {
+            padding: 8px 0;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .explanation .icon {
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 600px) {
+            .tabs {
+                flex-direction: column;
+            }
+            .filters {
+                flex-direction: column;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ממשק מנהל מוקד</h1>
+            <div class="subtitle">מערכת השאלת גלגלים</div>
+        </div>
+
+        <div class="user-info">
+            <div>
+                <div class="name">
+                    <span class="primary-badge">ראשי</span>
+                    יעקב ישראלי
+                </div>
+                <div class="role">מנהל מוקד</div>
+                <div class="call-center">מוקד מרכז</div>
+            </div>
+            <button class="logout-btn">התנתק</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">מוקדנים פעילים</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">3</div>
+                <div class="stat-label">מנהלים</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">47</div>
+                <div class="stat-label">הפניות החודש</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">89%</div>
+                <div class="stat-label">אחוז מילוי</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('operators')">👥 מוקדנים</button>
+            <button class="tab" onclick="showTab('managers')">👔 מנהלים</button>
+            <button class="tab" onclick="showTab('history')">📋 היסטוריית הפניות</button>
+        </div>
+
+        <!-- Operators Tab -->
+        <div class="section" id="operatorsTab">
+            <div class="section-header">
+                <h3>ניהול מוקדנים</h3>
+                <button class="add-btn" onclick="openAddModal('operator')">
+                    <span>+</span>
+                    הוסף מוקדן
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>טלפון</th>
+                            <th>קוד כניסה</th>
+                            <th>סטטוס</th>
+                            <th>הפניות</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>משה כהן</td>
+                            <td>050-123-4567</td>
+                            <td><span class="code-display">4829</span></td>
+                            <td><span class="status-active">● פעיל</span></td>
+                            <td>23</td>
+                            <td>
+                                <button class="action-btn" onclick="regenerateCode()">🔄 קוד חדש</button>
+                                <button class="action-btn danger">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>שרה לוי</td>
+                            <td>052-987-6543</td>
+                            <td><span class="code-display">7156</span></td>
+                            <td><span class="status-active">● פעיל</span></td>
+                            <td>18</td>
+                            <td>
+                                <button class="action-btn">🔄 קוד חדש</button>
+                                <button class="action-btn danger">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>דוד אברהם</td>
+                            <td>054-555-1212</td>
+                            <td><span class="code-display">3947</span></td>
+                            <td><span class="status-inactive">● לא פעיל</span></td>
+                            <td>6</td>
+                            <td>
+                                <button class="action-btn">🔄 קוד חדש</button>
+                                <button class="action-btn danger">🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Managers Tab -->
+        <div class="section hidden" id="managersTab">
+            <div class="section-header">
+                <h3>ניהול מנהלים</h3>
+                <button class="add-btn" onclick="openAddModal('manager')">
+                    <span>+</span>
+                    הוסף מנהל
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>תפקיד</th>
+                            <th>טלפון</th>
+                            <th>סוג</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>יעקב ישראלי</td>
+                            <td>מנהל מוקד</td>
+                            <td>050-111-2222</td>
+                            <td><span class="primary-badge">ראשי</span></td>
+                            <td>
+                                <span style="color: #94a3b8; font-size: 0.85rem;">לא ניתן למחוק</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>רחל גולן</td>
+                            <td>סגנית מנהל</td>
+                            <td>052-333-4444</td>
+                            <td><span style="color: #94a3b8;">רגיל</span></td>
+                            <td>
+                                <button class="action-btn danger">🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(245, 158, 11, 0.1); border-radius: 10px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                <strong style="color: #f59e0b;">💡 שים לב:</strong>
+                <span style="color: #94a3b8;"> רק מנהל ראשי יכול להוסיף מנהלים נוספים. מנהלים רגילים יכולים להוסיף רק מוקדנים.</span>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div class="section hidden" id="historyTab">
+            <div class="section-header">
+                <h3>היסטוריית הפניות</h3>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>מוקדן</label>
+                    <select>
+                        <option>כל המוקדנים</option>
+                        <option>משה כהן</option>
+                        <option>שרה לוי</option>
+                        <option>דוד אברהם</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>מתאריך</label>
+                    <input type="date" value="2025-01-01">
+                </div>
+                <div class="filter-group">
+                    <label>עד תאריך</label>
+                    <input type="date" value="2025-01-05">
+                </div>
+                <div class="filter-group">
+                    <label>סטטוס</label>
+                    <select>
+                        <option>הכל</option>
+                        <option>ממתין</option>
+                        <option>הושלם</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="history-card">
+                <div class="history-header">
+                    <div class="history-date">05/01/2025 14:32</div>
+                    <span class="history-status pending">ממתין לאישור</span>
+                </div>
+                <div class="history-details">
+                    <div class="history-item">
+                        <div class="label">מוקדן</div>
+                        <div>משה כהן</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">פונה</div>
+                        <div>ישראל ישראלי</div>
+                        <div style="color: #60a5fa; font-size: 0.85rem;">050-999-8888</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">תחנה</div>
+                        <div>בית שמש</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">גלגל</div>
+                        <div>#5 (5×114.3)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-card">
+                <div class="history-header">
+                    <div class="history-date">05/01/2025 11:15</div>
+                    <span class="history-status completed">הושלם</span>
+                </div>
+                <div class="history-details">
+                    <div class="history-item">
+                        <div class="label">מוקדן</div>
+                        <div>שרה לוי</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">פונה</div>
+                        <div>אברהם כהן</div>
+                        <div style="color: #60a5fa; font-size: 0.85rem;">052-777-6666</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">תחנה</div>
+                        <div>ירושלים - רוממה</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">גלגל</div>
+                        <div>#3 (5×100)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-card">
+                <div class="history-header">
+                    <div class="history-date">04/01/2025 16:45</div>
+                    <span class="history-status completed">הושלם</span>
+                </div>
+                <div class="history-details">
+                    <div class="history-item">
+                        <div class="label">מוקדן</div>
+                        <div>משה כהן</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">פונה</div>
+                        <div>יוסי לוי</div>
+                        <div style="color: #60a5fa; font-size: 0.85rem;">054-333-2222</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">תחנה</div>
+                        <div>תל אביב</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="label">גלגל</div>
+                        <div>#8 (4×100)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explanation -->
+        <div class="explanation">
+            <h3>📋 הסבר פונקציות - ממשק מנהל מוקד</h3>
+
+            <h4>👥 טאב מוקדנים</h4>
+            <ul>
+                <li>
+                    <span class="icon">➕</span>
+                    <div><strong>הוספת מוקדן:</strong> מזינים שם וטלפון. המערכת מייצרת קוד כניסה רנדומלי (4 ספרות) שרק המנהל רואה.</div>
+                </li>
+                <li>
+                    <span class="icon">🔄</span>
+                    <div><strong>קוד חדש:</strong> מייצר קוד כניסה חדש למוקדן. הקוד הישן מתבטל מיידית (=חסימה).</div>
+                </li>
+                <li>
+                    <span class="icon">🗑️</span>
+                    <div><strong>מחיקה:</strong> מסיר את המוקדן מהמערכת לצמיתות.</div>
+                </li>
+                <li>
+                    <span class="icon">📊</span>
+                    <div><strong>הפניות:</strong> כמות הטפסים שהמוקדן הפנה (סטטיסטיקה).</div>
+                </li>
+            </ul>
+
+            <h4>👔 טאב מנהלים (רק למנהל ראשי)</h4>
+            <ul>
+                <li>
+                    <span class="icon">➕</span>
+                    <div><strong>הוספת מנהל:</strong> רק מנהל ראשי יכול להוסיף מנהלים נוספים לסניף.</div>
+                </li>
+                <li>
+                    <span class="icon">🏷️</span>
+                    <div><strong>תפקיד:</strong> טייטל חופשי (מנהל, סגן, אחראי משמרת וכו') - אין השפעה על הרשאות.</div>
+                </li>
+                <li>
+                    <span class="icon">⚠️</span>
+                    <div><strong>מנהל ראשי:</strong> לא ניתן למחיקה. רק האדמין יכול להחליף מנהל ראשי.</div>
+                </li>
+            </ul>
+
+            <h4>📋 טאב היסטוריית הפניות</h4>
+            <ul>
+                <li>
+                    <span class="icon">📅</span>
+                    <div><strong>סינון לפי תאריך:</strong> בחירת טווח תאריכים לצפייה.</div>
+                </li>
+                <li>
+                    <span class="icon">👤</span>
+                    <div><strong>סינון לפי מוקדן:</strong> צפייה בהפניות של מוקדן ספציפי.</div>
+                </li>
+                <li>
+                    <span class="icon">📊</span>
+                    <div><strong>פרטי הפניה:</strong> תאריך, מוקדן, פונה (שם + טלפון), תחנה, גלגל, סטטוס.</div>
+                </li>
+                <li>
+                    <span class="icon">✅</span>
+                    <div><strong>סטטוסים:</strong> ממתין (הטופס נשלח, טרם מולא) / הושלם (הפונה מילא את הטופס).</div>
+                </li>
+            </ul>
+
+            <h4>📈 סטטיסטיקות</h4>
+            <ul>
+                <li>
+                    <span class="icon">👥</span>
+                    <div><strong>מוקדנים פעילים:</strong> כמות המוקדנים עם סטטוס פעיל בסניף.</div>
+                </li>
+                <li>
+                    <span class="icon">📝</span>
+                    <div><strong>הפניות החודש:</strong> סה"כ טפסים שנשלחו ע"י מוקדני הסניף החודש.</div>
+                </li>
+                <li>
+                    <span class="icon">✓</span>
+                    <div><strong>אחוז מילוי:</strong> כמה מהטפסים שנשלחו אכן מולאו ע"י הפונים.</div>
+                </li>
+            </ul>
+
+            <h4 style="color: #ef4444;">⚠️ הבדלים בין מנהל ראשי למנהל רגיל</h4>
+            <ul>
+                <li>
+                    <span class="icon">👔</span>
+                    <div><strong>מנהל ראשי:</strong> יכול להוסיף/למחוק מנהלים + מוקדנים.</div>
+                </li>
+                <li>
+                    <span class="icon">👤</span>
+                    <div><strong>מנהל רגיל:</strong> יכול להוסיף/למחוק מוקדנים בלבד. טאב המנהלים מוסתר ממנו.</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Add Operator Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">הוספת מוקדן</h3>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+
+            <div class="form-group">
+                <label>שם מלא</label>
+                <input type="text" placeholder="ישראל ישראלי">
+            </div>
+            <div class="form-group">
+                <label>מספר טלפון</label>
+                <input type="tel" placeholder="050-000-0000">
+            </div>
+            <div class="form-group hidden" id="titleField">
+                <label>תפקיד</label>
+                <input type="text" placeholder="סגן מנהל">
+            </div>
+
+            <div class="generated-code">
+                <div style="color: #94a3b8; margin-bottom: 10px;">קוד כניסה שנוצר:</div>
+                <div class="code">5827</div>
+                <div class="hint">העבר קוד זה למוקדן. רק אתה יכול לראות ולשנות אותו.</div>
+            </div>
+
+            <button class="submit-btn" style="margin-top: 20px;">הוסף</button>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            event.target.classList.add('active');
+        }
+
+        function openAddModal(type) {
+            document.getElementById('addModal').classList.add('show');
+            if (type === 'manager') {
+                document.getElementById('modalTitle').textContent = 'הוספת מנהל';
+                document.getElementById('titleField').classList.remove('hidden');
+            } else {
+                document.getElementById('modalTitle').textContent = 'הוספת מוקדן';
+                document.getElementById('titleField').classList.add('hidden');
+            }
+            // Generate random code
+            document.querySelector('.generated-code .code').textContent =
+                Math.floor(1000 + Math.random() * 9000);
+        }
+
+        function closeModal() {
+            document.getElementById('addModal').classList.remove('show');
+        }
+
+        function regenerateCode() {
+            const newCode = Math.floor(1000 + Math.random() * 9000);
+            alert('קוד חדש נוצר: ' + newCode + '\nהעבר אותו למוקדן.');
+        }
+
+        // Close modal on background click
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>

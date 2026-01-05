@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(curl:*)",
+      "Bash(tree:*)",
+      "Bash(git -C \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\" log --oneline)",
+      "Bash(find:*)",
+      "Bash(dir \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\api\")",
+      "Bash(del \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\operator\\\\route.ts\")",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
