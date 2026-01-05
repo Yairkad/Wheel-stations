@@ -36,7 +36,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       notes,
       signature_data,
       form_image_data, // Full form image captured with html2canvas
-      terms_accepted
+      terms_accepted,
+      referred_by // Track who referred this form (e.g., operator_123)
     } = body
 
     // Validate required fields
@@ -141,7 +142,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             form_image: form_image_data, // Full form image
             borrower_name,
             wheel_number: wheel.wheel_number,
-            borrow_date: borrowDateTime.toISOString()
+            borrow_date: borrowDateTime.toISOString(),
+            referred_by // Track who referred this form (e.g., operator_123)
           })
         })
         const formData = await formResponse.json()

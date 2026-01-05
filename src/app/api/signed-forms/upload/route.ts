@@ -34,12 +34,13 @@ interface UploadRequest {
   borrower_name: string
   wheel_number: string
   borrow_date: string
+  referred_by?: string // Track who referred this form (e.g., operator_123)
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: UploadRequest = await request.json()
-    const { borrow_id, station_id, form_image, borrower_name, wheel_number, borrow_date } = body
+    const { borrow_id, station_id, form_image, borrower_name, wheel_number, borrow_date, referred_by } = body
 
     // Validate required fields
     if (!borrow_id || !station_id || !form_image) {
@@ -92,7 +93,8 @@ export async function POST(request: NextRequest) {
         storage_path: filename,
         file_size: buffer.length,
         expires_at: expiresAt.toISOString(),
-        email_sent_to: station.notification_emails || []
+        email_sent_to: station.notification_emails || [],
+        referred_by: referred_by || null // Track who referred this form (e.g., operator_123)
       })
       .select()
       .single()

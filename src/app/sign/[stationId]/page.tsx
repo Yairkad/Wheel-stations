@@ -46,6 +46,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
   // Pre-filled data from URL params
   const prefilledWheelNumber = searchParams.get('wheel')
   const prefilledPhone = searchParams.get('phone')
+  const referredBy = searchParams.get('ref') // Referral tracking (e.g., operator_123)
   const isPrefilledMode = !!(prefilledWheelNumber && prefilledPhone)
 
   // Form state
@@ -272,7 +273,8 @@ function SignFormContent({ stationId }: { stationId: string }) {
           notes: notes,
           signature_data: signatureData,
           form_image_data: formImageData, // Full form image
-          terms_accepted: true
+          terms_accepted: true,
+          referred_by: referredBy // Track who referred this form (e.g., operator_123)
         })
       })
 
@@ -972,8 +974,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   radioOption: {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     gap: '10px',
-    padding: '10px',
+    padding: '12px 15px',
     background: '#f9fafb',
     borderRadius: '8px',
     cursor: 'pointer',

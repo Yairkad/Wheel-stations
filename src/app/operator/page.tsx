@@ -29,7 +29,7 @@ interface Station {
 
 interface WheelResult {
   station: Station
-  wheels: { wheel_number: number; rim_size: string; pcd: string; is_available: boolean }[]
+  wheels: { wheel_number: number; rim_size: string; pcd: string; is_available: boolean; is_donut?: boolean }[]
   availableCount: number
   totalCount: number
 }
@@ -171,7 +171,8 @@ export default function OperatorPage() {
   const [specFilters, setSpecFilters] = useState({
     rim_size: '',
     bolt_count: '',
-    bolt_spacing: ''
+    bolt_spacing: '',
+    center_bore: ''
   })
 
   // Results
@@ -431,7 +432,7 @@ export default function OperatorPage() {
         // Transform results
         const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
           station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; is_available: boolean }[]
+          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; is_available: boolean; is_donut?: boolean }[]
           availableCount: number
           totalCount: number
         }) => ({
@@ -441,7 +442,8 @@ export default function OperatorPage() {
           },
           wheels: result.wheels.map(w => ({
             ...w,
-            pcd: `${w.bolt_count}×${w.bolt_spacing}`
+            pcd: `${w.bolt_count}×${w.bolt_spacing}`,
+            is_donut: w.is_donut
           })),
           availableCount: result.availableCount,
           totalCount: result.totalCount
@@ -551,7 +553,7 @@ export default function OperatorPage() {
       // Transform results to our format
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
         station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-        wheels: { wheel_number: number; rim_size: string; is_available: boolean }[]
+        wheels: { wheel_number: number; rim_size: string; is_available: boolean; is_donut?: boolean }[]
         availableCount: number
         totalCount: number
       }) => ({
@@ -561,7 +563,8 @@ export default function OperatorPage() {
         },
         wheels: result.wheels.map(w => ({
           ...w,
-          pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`
+          pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`,
+          is_donut: w.is_donut
         })),
         availableCount: result.availableCount,
         totalCount: result.totalCount
@@ -850,21 +853,8 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           {/* Search by Spec (PCD) */}
           {searchTab === 'spec' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={styles.filterGrid}>
-                <div style={styles.filterGroup}>
-                  <label style={styles.filterLabel}>גודל ג&apos;אנט</label>
-                  <select
-                    style={styles.filterSelect}
-                    value={specFilters.rim_size}
-                    onChange={e => setSpecFilters({...specFilters, rim_size: e.target.value})}
-                  >
-                    <option value="">בחר...</option>
-                    {filterOptions?.rim_sizes.map(size => (
-                      <option key={size} value={size}>{size}&quot;</option>
-                    ))}
-                  </select>
-                </div>
-
+              {/* First row - 2 columns */}
+              <div style={styles.filterGridRow}>
                 <div style={styles.filterGroup}>
                   <label style={styles.filterLabel}>כמות ברגים</label>
                   <select
@@ -891,6 +881,36 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                       <option key={spacing} value={spacing}>{spacing}</option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Second row - 2 columns */}
+              <div style={styles.filterGridRow}>
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>גודל ג&apos;אנט</label>
+                  <select
+                    style={styles.filterSelect}
+                    value={specFilters.rim_size}
+                    onChange={e => setSpecFilters({...specFilters, rim_size: e.target.value})}
+                  >
+                    <option value="">בחר...</option>
+                    {filterOptions?.rim_sizes.map(size => (
+                      <option key={size} value={size}>{size}&quot;</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>קדח מרכזי (CB)</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="לדוגמה: 57.1"
+                    value={specFilters.center_bore}
+                    onChange={e => setSpecFilters({...specFilters, center_bore: e.target.value})}
+                    style={styles.filterInput}
+                    dir="ltr"
+                  />
                 </div>
               </div>
 
@@ -993,12 +1013,16 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                         style={{
                           ...styles.wheelItem,
                           ...(sizeMatch === 'exact' ? styles.wheelItemExact : {}),
-                          ...(sizeMatch === 'smaller' ? styles.wheelItemSmaller : {})
+                          ...(sizeMatch === 'smaller' ? styles.wheelItemSmaller : {}),
+                          ...(wheel.is_donut ? styles.wheelItemDonut : {})
                         }}
                         onClick={() => openModal(result.station, wheel.wheel_number, wheel.pcd)}
                       >
                         <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
                         <div style={styles.wheelSpecs}>{wheel.pcd} | {wheel.rim_size}&quot;</div>
+                        {wheel.is_donut && (
+                          <div style={styles.donutBadge}>🍩 דונאט</div>
+                        )}
                         {sizeMatch && (
                           <div style={{
                             fontSize: '0.7rem',
@@ -1269,6 +1293,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '12px',
   },
+  filterGridRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '12px',
+  },
   filterGroup: {
     display: 'flex',
     flexDirection: 'column',
@@ -1287,6 +1316,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     fontSize: '0.9rem',
     cursor: 'pointer',
+  },
+  filterInput: {
+    padding: '10px 12px',
+    background: '#0f172a',
+    border: '1px solid #334155',
+    borderRadius: '8px',
+    color: 'white',
+    fontSize: '0.9rem',
+    textAlign: 'center',
   },
   formGroup: {
     marginBottom: '15px',
@@ -1434,6 +1472,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   wheelItemSmaller: {
     background: 'rgba(245, 158, 11, 0.1)',
     border: '1px solid rgba(245, 158, 11, 0.3)',
+  },
+  wheelItemDonut: {
+    borderStyle: 'dashed',
+  },
+  donutBadge: {
+    fontSize: '0.65rem',
+    color: '#f59e0b',
+    marginTop: '2px',
   },
   wheelNumber: {
     color: '#10b981',

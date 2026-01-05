@@ -1614,10 +1614,13 @@ ${formUrl}`
               🛞 מלאי גלגלים
             </button>
             <button
-              style={{...styles.tabBtn, ...(activeTab === 'tracking' ? styles.tabBtnActive : {})}}
+              style={{...styles.tabBtn, ...(activeTab === 'tracking' ? styles.tabBtnActive : {}), position: 'relative'}}
               onClick={() => setActiveTab('tracking')}
             >
               📊 מעקב השאלות
+              {borrowStats.pending > 0 && (
+                <span style={styles.pendingIndicator}>{borrowStats.pending}</span>
+              )}
             </button>
           </div>
         )}
@@ -4884,6 +4887,23 @@ const styles: { [key: string]: React.CSSProperties } = {
   tabBtnActive: {
     background: '#f59e0b',
     color: '#000',
+  },
+  pendingIndicator: {
+    position: 'absolute',
+    top: '-6px',
+    right: '-6px',
+    background: '#ec4899',
+    color: 'white',
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    minWidth: '18px',
+    height: '18px',
+    borderRadius: '9px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0 4px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
   },
   // Tracking section
   trackingSection: {
