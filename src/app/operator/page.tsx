@@ -349,6 +349,7 @@ export default function OperatorPage() {
 
     const contact = selectedWheel.station.managers?.find(m => m.id === selectedContact)
     const stationName = selectedWheel.station.name.replace('תחנת ', '')
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://wheel-stations.vercel.app'
 
     return `תפתח קריאה שינוע לפנצ'ריה
 בפרטים: איסוף מתחנת השאלת צמיגים
@@ -356,7 +357,7 @@ ${stationName}, ${selectedWheel.station.address}
 במידע פרטי: איש קשר בתחנה ${contact?.full_name || ''}
 ${contact?.phone || ''}
 ולשלוח לפונה שימלא
-https://wheels.co.il/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
+${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
   }
 
   const copyMessage = () => {
