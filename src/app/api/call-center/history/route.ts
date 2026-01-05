@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
         created_at: form.created_at,
         operator_name: operator?.full_name || 'לא ידוע',
         operator_id: refOperatorId,
-        station_name: (form.wheel_stations as { name: string } | null)?.name || 'לא ידוע'
+        station_name: (form.wheel_stations as unknown as { name: string } | null)?.name || 'לא ידוע'
       }
     })
 
