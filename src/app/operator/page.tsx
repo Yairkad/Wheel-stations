@@ -43,6 +43,40 @@ interface VehicleInfo {
   rim_size: string
 }
 
+// Common Hebrew to English car brand mappings
+const hebrewToEnglishMakes: Record<string, string> = {
+  'טויוטה': 'Toyota', 'יונדאי': 'Hyundai', 'קיא': 'Kia', 'מזדה': 'Mazda',
+  'הונדה': 'Honda', 'ניסאן': 'Nissan', 'סוזוקי': 'Suzuki', 'מיצובישי': 'Mitsubishi',
+  'סובארו': 'Subaru', 'פולקסווגן': 'Volkswagen', 'סקודה': 'Skoda', 'סיאט': 'Seat',
+  'אאודי': 'Audi', 'במוו': 'BMW', 'מרצדס': 'Mercedes-Benz', 'פיג\'ו': 'Peugeot',
+  'סיטרואן': 'Citroen', 'רנו': 'Renault', 'פיאט': 'Fiat', 'אלפא רומאו': 'Alfa Romeo',
+  'שברולט': 'Chevrolet', 'פורד': 'Ford', 'ג\'יפ': 'Jeep', 'דאצ\'יה': 'Dacia',
+  'אופל': 'Opel', 'וולוו': 'Volvo', 'לקסוס': 'Lexus', 'אינפיניטי': 'Infiniti',
+  'טסלה': 'Tesla', 'ביואיק': 'BYD', 'ג\'ילי': 'Geely', 'MG': 'MG'
+}
+
+// Common Hebrew to English car model mappings
+const hebrewToEnglishModels: Record<string, string> = {
+  // Toyota
+  'קורולה': 'Corolla', 'קאמרי': 'Camry', 'יאריס': 'Yaris', 'אוריס': 'Auris',
+  'ראב 4': 'RAV4', 'לנד קרוזר': 'Land Cruiser', 'היילקס': 'Hilux', 'פריוס': 'Prius',
+  'אייגו': 'Aygo', 'סי-אייץ\'ר': 'C-HR', 'היילנדר': 'Highlander',
+  // Hyundai
+  'איי 10': 'i10', 'איי 20': 'i20', 'איי 30': 'i30', 'איי 40': 'i40',
+  'טוסון': 'Tucson', 'סנטה פה': 'Santa Fe', 'קונה': 'Kona', 'יוניק': 'Ioniq',
+  // Kia
+  'פיקנטו': 'Picanto', 'ריו': 'Rio', 'סיד': 'Ceed', 'ספורטאז\'': 'Sportage',
+  'סורנטו': 'Sorento', 'נירו': 'Niro', 'סטוניק': 'Stonic',
+  // Mazda
+  'מאזדה 2': '2', 'מאזדה 3': '3', 'מאזדה 6': '6', 'סי אקס 5': 'CX-5', 'סי אקס 30': 'CX-30',
+  // Other common
+  'גולף': 'Golf', 'פולו': 'Polo', 'טיגואן': 'Tiguan', 'פאסאט': 'Passat',
+  'אוקטביה': 'Octavia', 'פאביה': 'Fabia', 'קרוק': 'Karoq',
+  'סיביק': 'Civic', 'ג\'אז': 'Jazz', 'אקורד': 'Accord',
+  'קשקאי': 'Qashqai', 'ג\'וק': 'Juke', 'מיקרה': 'Micra',
+  'סוויפט': 'Swift', 'ויטרה': 'Vitara', 'בלנו': 'Baleno'
+}
+
 export default function OperatorPage() {
   const [operator, setOperator] = useState<Operator | null>(null)
   const [phone, setPhone] = useState('')
@@ -197,12 +231,14 @@ export default function OperatorPage() {
         }
       } else {
         // Manual search by make/model/year
-        const searchParams = new URLSearchParams({
-          make,
-          model,
-          ...(year && { year })
-        })
-        const modelsRes = await fetch(`/api/vehicle-models?${searchParams}`)
+        // Extract English make name if contains Hebrew in parentheses or translate from Hebrew
+        const englishMake = make.includes('(') ? make.split(' (')[0] : (hebrewToEnglishMakes[make] || make)
+        // Extract English model name if contains Hebrew in parentheses or translate from Hebrew
+        const englishModel = model.includes('(') ? model.split(' (')[0] : (hebrewToEnglishModels[model] || model)
+
+        const modelsRes = await fetch(
+          `/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}${year ? `&year=${year}` : ''}`
+        )
         const modelsData = await modelsRes.json()
 
         if (!modelsRes.ok || !modelsData.models?.length) {
