@@ -36,6 +36,8 @@ interface HistoryItem {
   created_at: string
   operator_name: string
   station_name: string
+  borrower_name?: string | null
+  borrower_phone?: string | null
 }
 
 export default function CallCenterPage() {
@@ -479,13 +481,28 @@ export default function CallCenterPage() {
                 <div style={styles.list}>
                   {history.map(item => (
                     <div key={item.id} style={styles.historyItem}>
-                      <div style={styles.historyDate}>
-                        {new Date(item.created_at).toLocaleDateString('he-IL')}
+                      <div style={styles.historyDateTime}>
+                        <div style={styles.historyDate}>
+                          {new Date(item.created_at).toLocaleDateString('he-IL')}
+                        </div>
+                        <div style={styles.historyTime}>
+                          {new Date(item.created_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                       </div>
-                      <div style={styles.historyInfo}>
-                        <span style={styles.historyOperator}>{item.operator_name}</span>
-                        <span style={styles.historyArrow}>←</span>
-                        <span style={styles.historyStation}>{item.station_name}</span>
+                      <div style={styles.historyMainInfo}>
+                        <div style={styles.historyInfo}>
+                          <span style={styles.historyOperator}>{item.operator_name}</span>
+                          <span style={styles.historyArrow}>→</span>
+                          <span style={styles.historyStation}>{item.station_name}</span>
+                        </div>
+                        {item.borrower_name && (
+                          <div style={styles.historyBorrower}>
+                            <span style={styles.historyBorrowerName}>👤 {item.borrower_name}</span>
+                            {item.borrower_phone && (
+                              <span style={styles.historyBorrowerPhone}>📞 {item.borrower_phone}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -923,19 +940,35 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '10px',
     padding: '12px 15px',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: '15px',
   },
+  historyDateTime: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    minWidth: '70px',
+  },
   historyDate: {
-    color: '#64748b',
+    color: '#94a3b8',
     fontSize: '0.8rem',
-    minWidth: '80px',
+    fontWeight: 500,
+  },
+  historyTime: {
+    color: '#64748b',
+    fontSize: '0.75rem',
+  },
+  historyMainInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    flex: 1,
   },
   historyInfo: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    flex: 1,
+    flexWrap: 'wrap',
   },
   historyOperator: {
     color: '#8b5cf6',
@@ -946,6 +979,21 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   historyStation: {
     color: '#22c55e',
+  },
+  historyBorrower: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  historyBorrowerName: {
+    color: '#e2e8f0',
+    fontSize: '0.85rem',
+  },
+  historyBorrowerPhone: {
+    color: '#60a5fa',
+    fontSize: '0.85rem',
+    direction: 'ltr',
   },
   modalOverlay: {
     position: 'fixed',

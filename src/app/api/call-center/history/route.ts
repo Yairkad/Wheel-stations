@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     const patterns = operatorIds.map(id => `operator_${id}`)
 
     // Get signed forms with referred_by matching our operators
+    // Include borrow data for borrower details
     let query = supabase
       .from('signed_forms')
       .select(`
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
         referred_by,
         wheel_stations (
           name
+        ),
+        wheel_borrows (
+          borrower_name,
+          borrower_phone
         )
       `)
       .not('referred_by', 'is', null)
@@ -62,18 +67,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Enrich with operator names
+    // Enrich with operator names and borrower details
     const history = (forms || []).map(form => {
       const refParts = form.referred_by?.split('_')
       const refOperatorId = refParts?.[1]
       const operator = operators.find(op => op.id === refOperatorId)
+      const borrow = form.wheel_borrows as unknown as { borrower_name: string; borrower_phone: string } | null
 
       return {
         id: form.id,
         created_at: form.created_at,
         operator_name: operator?.full_name || 'לא ידוע',
         operator_id: refOperatorId,
-        station_name: (form.wheel_stations as unknown as { name: string } | null)?.name || 'לא ידוע'
+        station_name: (form.wheel_stations as unknown as { name: string } | null)?.name || 'לא ידוע',
+        borrower_name: borrow?.borrower_name || null,
+        borrower_phone: borrow?.borrower_phone || null
       }
     })
 

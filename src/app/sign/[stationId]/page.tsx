@@ -315,7 +315,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
   if (submitted) {
     return (
-      <div style={styles.container}>
+      <div style={styles.successContainer}>
         <style>{`
           @keyframes successPop {
             0% { transform: scale(0); opacity: 0; }
@@ -501,9 +501,9 @@ function SignFormContent({ stationId }: { stationId: string }) {
             onChange={e => { setSelectedWheelId(e.target.value); setFieldErrors(f => f.filter(x => x !== 'wheelId')) }}
             style={{
               ...getInputStyle('wheelId'),
-              ...(isPrefilledMode && selectedWheelId ? { background: '#e2e8f0', cursor: 'not-allowed' } : {})
+              ...((isPrefilledMode || referredBy) && selectedWheelId ? { background: '#e2e8f0', cursor: 'not-allowed' } : {})
             }}
-            disabled={isPrefilledMode && !!selectedWheelId}
+            disabled={(isPrefilledMode || !!referredBy) && !!selectedWheelId}
           >
             <option value="">-- בחר גלגל --</option>
             {wheels.map(wheel => (
@@ -512,8 +512,8 @@ function SignFormContent({ stationId }: { stationId: string }) {
               </option>
             ))}
           </select>
-          {isPrefilledMode && selectedWheelId && (
-            <span style={styles.helpText}>🔒 הגלגל נבחר מראש על ידי מנהל התחנה</span>
+          {(isPrefilledMode || referredBy) && selectedWheelId && (
+            <span style={styles.helpText}>🔒 הגלגל נבחר מראש{referredBy && !isPrefilledMode ? ' על ידי המוקד' : ' על ידי מנהל התחנה'}</span>
           )}
           {/* Show selected wheel details as badges */}
           {selectedWheelId && (() => {
@@ -1086,12 +1086,22 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Success screen
   successScreen: {
     maxWidth: '400px',
-    margin: '50px auto',
+    margin: '0 auto',
     textAlign: 'center',
     background: '#fff',
     borderRadius: '12px',
     padding: '30px',
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  successContainer: {
+    minHeight: '100vh',
+    background: '#f3f4f6',
+    padding: '20px',
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    direction: 'rtl' as const,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   successIcon: {
     fontSize: '60px',

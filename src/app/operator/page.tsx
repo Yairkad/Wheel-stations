@@ -1557,7 +1557,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   contactOption: {
     background: 'rgba(255,255,255,0.05)',
-    border: '2px solid #334155',
+    border: '2px solid transparent',
     borderRadius: '10px',
     padding: '12px',
     marginBottom: '8px',
