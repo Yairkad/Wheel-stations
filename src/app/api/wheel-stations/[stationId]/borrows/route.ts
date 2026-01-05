@@ -45,7 +45,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         signed_at,
         created_at,
         wheels (wheel_number, rim_size, bolt_count, bolt_spacing),
-        signed_forms (id)
+        signed_forms (id, referred_by)
       `)
       .eq('station_id', stationId)
       .order('created_at', { ascending: false })
@@ -74,15 +74,48 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const waitingSignature = stats?.filter(s => s.status === 'borrowed' && !s.signature_data).length || 0
     const signed = stats?.filter(s => s.status === 'borrowed' && s.signature_data).length || 0
 
+    // Get operator names for referred_by values
+    const referredByIds = borrows
+      ?.map(b => {
+        const referredBy = (b.signed_forms as unknown as { referred_by: string }[])?.[0]?.referred_by
+        if (referredBy?.startsWith('operator_')) {
+          return referredBy.replace('operator_', '')
+        }
+        return null
+      })
+      .filter(Boolean) as string[] || []
+
+    let operatorNames: Record<string, string> = {}
+    if (referredByIds.length > 0) {
+      const { data: operators } = await supabase
+        .from('operators')
+        .select('id, full_name')
+        .in('id', referredByIds)
+
+      operators?.forEach(op => {
+        operatorNames[op.id] = op.full_name
+      })
+    }
+
     return NextResponse.json({
-      borrows: borrows?.map(b => ({
-        ...b,
-        is_signed: !!b.signature_data,
-        form_id: b.signed_forms?.[0]?.id || null,
-        // Don't send full signature data to client, just the status
-        signature_data: undefined,
-        signed_forms: undefined
-      })),
+      borrows: borrows?.map(b => {
+        const referredBy = (b.signed_forms as unknown as { referred_by: string }[])?.[0]?.referred_by
+        let referred_by_name: string | null = null
+        if (referredBy?.startsWith('operator_')) {
+          const opId = referredBy.replace('operator_', '')
+          referred_by_name = operatorNames[opId] || null
+        }
+        return {
+          ...b,
+          is_signed: !!b.signature_data,
+          form_id: (b.signed_forms as unknown as { id: string }[])?.[0]?.id || null,
+          referred_by: referredBy || null,
+          referred_by_name,
+          // Don't send full signature data to client, just the status
+          signature_data: undefined,
+          signed_forms: undefined
+        }
+      }),
       stats: {
         pending,
         totalBorrowed,

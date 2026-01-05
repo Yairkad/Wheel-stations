@@ -41,6 +41,15 @@ interface VehicleInfo {
   bolt_count: number
   bolt_spacing: number
   rim_size: string
+  front_tire?: string | null
+  center_bore?: number | null
+}
+
+// Extract rim size from tire string (e.g., "205/55R16" -> 16)
+const extractRimSize = (tire: string | null | undefined): number | null => {
+  if (!tire) return null
+  const match = tire.match(/R(\d+)/i)
+  return match ? parseInt(match[1]) : null
 }
 
 interface FilterOptions {
@@ -462,13 +471,16 @@ export default function OperatorPage() {
         }
 
         if (plateData.wheel_fitment) {
+          const rimSize = extractRimSize(plateData.vehicle.front_tire)
           pcdInfo = {
             manufacturer: plateData.vehicle.manufacturer,
             model: plateData.vehicle.model,
             year: plateData.vehicle.year,
             bolt_count: plateData.wheel_fitment.bolt_count,
             bolt_spacing: plateData.wheel_fitment.bolt_spacing,
-            rim_size: ''
+            rim_size: rimSize ? rimSize.toString() : '',
+            front_tire: plateData.vehicle.front_tire,
+            center_bore: plateData.wheel_fitment.center_bore || null
           }
         } else {
           setSearchError('לא נמצא מידע PCD לרכב זה')
@@ -498,7 +510,9 @@ export default function OperatorPage() {
           year: parseInt(year) || vehicleModel.year_from,
           bolt_count: vehicleModel.bolt_count,
           bolt_spacing: vehicleModel.bolt_spacing,
-          rim_size: vehicleModel.rim_size || ''
+          rim_size: vehicleModel.rim_size || '',
+          front_tire: vehicleModel.tire_size_front || null,
+          center_bore: vehicleModel.center_bore || null
         }
       }
 
@@ -687,19 +701,19 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           <div style={styles.searchTabs}>
             <button
               style={{...styles.searchTab, ...(searchTab === 'plate' ? styles.searchTabActive : {})}}
-              onClick={() => { setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); }}
+              onClick={() => { setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
               🔢 מספר רכב
             </button>
             <button
               style={{...styles.searchTab, ...(searchTab === 'model' ? styles.searchTabActive : {})}}
-              onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); }}
+              onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
               🚘 יצרן ודגם
             </button>
             <button
               style={{...styles.searchTab, ...(searchTab === 'spec' ? styles.searchTabActive : {})}}
-              onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); }}
+              onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
               🔧 לפי מפרט
             </button>
@@ -812,13 +826,24 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                 placeholder="שנה - לדוגמה: 2020"
                 style={{...styles.formInput, ...(fieldErrors.year && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
               />
-              <button
-                onClick={handleSearch}
-                disabled={searchLoading}
-                style={{...styles.searchBtn, width: '100%', padding: '12px'}}
-              >
-                {searchLoading ? <span style={styles.spinner}></span> : '🔍 חפש'}
-              </button>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={handleSearch}
+                  disabled={searchLoading}
+                  style={{...styles.searchBtn, flex: 1, padding: '12px'}}
+                >
+                  {searchLoading ? <span style={styles.spinner}></span> : '🔍 חפש'}
+                </button>
+                {(make || model || year) && (
+                  <button
+                    onClick={() => { setMake(''); setModel(''); setYear(''); setFieldErrors({make: false, model: false, year: false}); }}
+                    style={styles.clearBtn}
+                    title="נקה שדות"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -895,10 +920,23 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
               <div style={styles.vehicleInfoHeader}>פרטי רכב:</div>
               <div style={styles.vehicleInfoRow}>
                 <span>{vehicleInfo.manufacturer} {vehicleInfo.model} {vehicleInfo.year}</span>
-                <span style={styles.pcdBadge}>
-                  {vehicleInfo.bolt_count}×{vehicleInfo.bolt_spacing} | {vehicleInfo.rim_size || '?'}&quot;
-                </span>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={styles.pcdBadge}>
+                    PCD: {vehicleInfo.bolt_count}×{vehicleInfo.bolt_spacing}
+                  </span>
+                  {vehicleInfo.rim_size && (
+                    <span style={styles.rimBadge}>{vehicleInfo.rim_size}&quot;</span>
+                  )}
+                  {vehicleInfo.center_bore && (
+                    <span style={styles.centerBoreBadge}>CB: {vehicleInfo.center_bore}</span>
+                  )}
+                </div>
               </div>
+              {vehicleInfo.front_tire && (
+                <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '0.85rem', direction: 'ltr', textAlign: 'left' }}>
+                  🛞 {vehicleInfo.front_tire}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -909,7 +947,11 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
             <div style={styles.resultsHeader}>
               <h3 style={styles.sectionTitle}>תוצאות חיפוש</h3>
               <span style={styles.resultsCount}>
-                נמצאו {results.reduce((sum, r) => sum + r.wheels.length, 0)} גלגלים ב-{results.length} תחנות
+                נמצאו {results.reduce((sum, r) => sum + r.wheels.filter(w => {
+                  const ws = parseInt(w.rim_size)
+                  const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
+                  return !(vrs && ws > vrs)
+                }).length, 0)} גלגלים ב-{results.length} תחנות
               </span>
             </div>
 
@@ -920,19 +962,55 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                     <div style={styles.stationName}>{result.station.name}</div>
                     <div style={styles.stationAddress}>{result.station.address || 'כתובת לא הוגדרה'}</div>
                   </div>
-                  <span style={styles.wheelCount}>{result.wheels.length} גלגלים</span>
+                  <span style={styles.wheelCount}>
+                    {result.wheels.filter(w => {
+                      const ws = parseInt(w.rim_size)
+                      const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
+                      return !(vrs && ws > vrs)
+                    }).length} גלגלים
+                  </span>
                 </div>
                 <div style={styles.wheelsGrid}>
-                  {result.wheels.map(wheel => (
-                    <div
-                      key={wheel.wheel_number}
-                      style={styles.wheelItem}
-                      onClick={() => openModal(result.station, wheel.wheel_number, wheel.pcd)}
-                    >
-                      <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
-                      <div style={styles.wheelSpecs}>{wheel.pcd} | {wheel.rim_size}&quot;</div>
-                    </div>
-                  ))}
+                  {result.wheels
+                    .filter(wheel => {
+                      // Filter out wheels larger than vehicle rim size
+                      const wheelSize = parseInt(wheel.rim_size)
+                      const vehicleRimSize = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
+                      if (vehicleRimSize && wheelSize > vehicleRimSize) return false
+                      return true
+                    })
+                    .map(wheel => {
+                    const wheelSize = parseInt(wheel.rim_size)
+                    const vehicleRimSize = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
+                    let sizeMatch: 'exact' | 'smaller' | null = null
+                    if (vehicleRimSize && wheelSize) {
+                      if (wheelSize === vehicleRimSize) sizeMatch = 'exact'
+                      else if (wheelSize < vehicleRimSize) sizeMatch = 'smaller'
+                    }
+                    return (
+                      <div
+                        key={wheel.wheel_number}
+                        style={{
+                          ...styles.wheelItem,
+                          ...(sizeMatch === 'exact' ? styles.wheelItemExact : {}),
+                          ...(sizeMatch === 'smaller' ? styles.wheelItemSmaller : {})
+                        }}
+                        onClick={() => openModal(result.station, wheel.wheel_number, wheel.pcd)}
+                      >
+                        <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
+                        <div style={styles.wheelSpecs}>{wheel.pcd} | {wheel.rim_size}&quot;</div>
+                        {sizeMatch && (
+                          <div style={{
+                            fontSize: '0.7rem',
+                            marginTop: '4px',
+                            color: sizeMatch === 'exact' ? '#10b981' : '#f59e0b'
+                          }}>
+                            {sizeMatch === 'exact' ? '✓ מתאים' : '↓ קטן יותר'}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}
@@ -1240,6 +1318,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     whiteSpace: 'nowrap',
   },
+  clearBtn: {
+    padding: '12px 16px',
+    background: 'rgba(239, 68, 68, 0.2)',
+    border: '1px solid #ef4444',
+    borderRadius: '8px',
+    color: '#ef4444',
+    cursor: 'pointer',
+    fontWeight: 600,
+  },
   errorText: {
     color: '#ef4444',
     fontSize: '0.9rem',
@@ -1270,6 +1357,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '4px 10px',
     borderRadius: '20px',
     fontSize: '0.85rem',
+  },
+  rimBadge: {
+    background: 'rgba(59, 130, 246, 0.2)',
+    color: '#3b82f6',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+  },
+  centerBoreBadge: {
+    background: 'rgba(168, 85, 247, 0.2)',
+    color: '#a855f7',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    fontSize: '0.85rem',
+    fontWeight: 600,
   },
   resultsHeader: {
     display: 'flex',
@@ -1323,6 +1426,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
     cursor: 'pointer',
     transition: 'all 0.2s',
+  },
+  wheelItemExact: {
+    background: 'rgba(16, 185, 129, 0.2)',
+    border: '2px solid #10b981',
+  },
+  wheelItemSmaller: {
+    background: 'rgba(245, 158, 11, 0.1)',
+    border: '1px solid rgba(245, 158, 11, 0.3)',
   },
   wheelNumber: {
     color: '#10b981',
@@ -1400,7 +1511,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   contactOption: {
     background: 'rgba(255,255,255,0.05)',
-    border: '2px solid transparent',
+    border: '2px solid #334155',
     borderRadius: '10px',
     padding: '12px',
     marginBottom: '8px',

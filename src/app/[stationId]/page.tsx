@@ -57,6 +57,8 @@ interface BorrowRecord {
   signed_at?: string
   created_at: string
   form_id?: string
+  referred_by?: string
+  referred_by_name?: string
   wheels?: {
     wheel_number: string
     rim_size: string
@@ -1718,6 +1720,11 @@ ${formUrl}`
                           <div style={styles.borrowerInfoCell}>
                             {new Date(borrow.borrow_date || borrow.created_at).toLocaleDateString('he-IL')}
                           </div>
+                          {borrow.referred_by_name && (
+                            <div style={{...styles.borrowerInfoCell, color: '#a855f7', fontSize: '0.7rem'}}>
+                              📞 הופנה ע&quot;י: {borrow.referred_by_name}
+                            </div>
+                          )}
                         </td>
                         <td style={styles.trackingTd}>
                           <div>{borrow.wheels?.wheel_number || '-'}</div>
@@ -1907,6 +1914,12 @@ ${formUrl}`
                               <div style={styles.mobileCardRow}>
                                 <span style={{color: '#9ca3af'}}>רכב:</span>
                                 <span>{borrow.vehicle_model}</span>
+                              </div>
+                            )}
+                            {borrow.referred_by_name && (
+                              <div style={styles.mobileCardRow}>
+                                <span style={{color: '#9ca3af'}}>הופנה ע&quot;י:</span>
+                                <span style={{color: '#a855f7'}}>{borrow.referred_by_name}</span>
                               </div>
                             )}
                           </div>
@@ -5017,7 +5030,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#25d366',
     color: 'white',
     textDecoration: 'none',
-    display: 'inline-block',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
   },
   returnBtnSmall: {
     padding: '6px 12px',
@@ -5028,6 +5044,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     border: 'none',
     cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
   },
   viewFormBtn: {
     padding: '6px 12px',
@@ -5039,7 +5059,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: 'none',
     cursor: 'pointer',
     textDecoration: 'none',
-    display: 'inline-block',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
   },
   whatsappLinkBox: {
     background: 'rgba(37, 211, 102, 0.1)',
@@ -5097,6 +5120,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     border: 'none',
     cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
   },
   rejectBtn: {
     padding: '6px 10px',
@@ -5107,6 +5134,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     border: 'none',
     cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
   },
   // Empty state styles
   emptyState: {
