@@ -51,9 +51,14 @@ export default function CallCenterPage() {
   // Modals
   const [showAddOperator, setShowAddOperator] = useState(false)
   const [showAddManager, setShowAddManager] = useState(false)
+  const [showEditOperator, setShowEditOperator] = useState<Operator | null>(null)
   const [addOperatorForm, setAddOperatorForm] = useState({ full_name: '', phone: '' })
+  const [editOperatorForm, setEditOperatorForm] = useState({ full_name: '', phone: '' })
   const [addManagerForm, setAddManagerForm] = useState({ full_name: '', phone: '', password: '', title: '' })
   const [actionLoading, setActionLoading] = useState(false)
+
+  // Dropdown menu
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
   // Confirm dialog
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -193,6 +198,39 @@ export default function CallCenterPage() {
       toast.success(`קוד חדש: ${data.operator.code}`)
     } catch {
       toast.error('שגיאה ביצירת קוד חדש')
+    }
+  }
+
+  const openEditOperator = (op: Operator) => {
+    setEditOperatorForm({ full_name: op.full_name, phone: op.phone })
+    setShowEditOperator(op)
+    setOpenMenuId(null)
+  }
+
+  const handleEditOperator = async () => {
+    if (!showEditOperator || !editOperatorForm.full_name || !editOperatorForm.phone) {
+      toast.error('יש למלא שם ושם משתמש')
+      return
+    }
+
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/call-center/operators/${showEditOperator.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editOperatorForm)
+      })
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error)
+
+      await fetchOperators()
+      setShowEditOperator(null)
+      toast.success('המוקדן עודכן!')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון מוקדן')
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -347,9 +385,26 @@ export default function CallCenterPage() {
                         <span style={styles.codeLabel}>קוד:</span>
                         <span style={styles.codeValue}>{op.code}</span>
                       </div>
-                      <div style={styles.listItemActions}>
-                        <button style={styles.btnAction} onClick={() => handleRegenerateCode(op)} title="קוד חדש">🔄</button>
-                        <button style={{...styles.btnAction, color: '#ef4444'}} onClick={() => handleDeleteOperator(op)} title="מחק">🗑️</button>
+                      <div style={styles.menuWrapper}>
+                        <button
+                          style={styles.btnSettings}
+                          onClick={() => setOpenMenuId(openMenuId === op.id ? null : op.id)}
+                        >
+                          ⚙️
+                        </button>
+                        {openMenuId === op.id && (
+                          <div style={styles.dropdownMenu}>
+                            <button style={styles.menuItem} onClick={() => openEditOperator(op)}>
+                              ✏️ עריכה
+                            </button>
+                            <button style={styles.menuItem} onClick={() => { handleRegenerateCode(op); setOpenMenuId(null) }}>
+                              🔄 קוד חדש
+                            </button>
+                            <button style={{...styles.menuItem, color: '#ef4444'}} onClick={() => { handleDeleteOperator(op); setOpenMenuId(null) }}>
+                              🗑️ מחיקה
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -442,6 +497,39 @@ export default function CallCenterPage() {
               <button style={styles.btnCancel} onClick={() => setShowAddOperator(false)}>ביטול</button>
               <button style={styles.btnSubmit} onClick={handleAddOperator} disabled={actionLoading}>
                 {actionLoading ? 'מוסיף...' : 'הוסף'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Operator Modal */}
+      {showEditOperator && (
+        <div style={styles.modalOverlay} onClick={() => setShowEditOperator(null)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>✏️ עריכת מוקדן</h3>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>שם מלא</label>
+              <input
+                type="text"
+                value={editOperatorForm.full_name}
+                onChange={e => setEditOperatorForm({...editOperatorForm, full_name: e.target.value})}
+                style={styles.formInput}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>שם משתמש</label>
+              <input
+                type="text"
+                value={editOperatorForm.phone}
+                onChange={e => setEditOperatorForm({...editOperatorForm, phone: e.target.value})}
+                style={styles.formInput}
+              />
+            </div>
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => setShowEditOperator(null)}>ביטול</button>
+              <button style={styles.btnSubmit} onClick={handleEditOperator} disabled={actionLoading}>
+                {actionLoading ? 'שומר...' : 'שמור'}
               </button>
             </div>
           </div>
@@ -731,6 +819,48 @@ const styles: { [key: string]: React.CSSProperties } = {
   listItemActions: {
     display: 'flex',
     gap: '6px',
+  },
+  menuWrapper: {
+    position: 'relative',
+  },
+  btnSettings: {
+    width: '36px',
+    height: '36px',
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid #334155',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '1.1rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    marginTop: '4px',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '10px',
+    padding: '6px',
+    minWidth: '120px',
+    zIndex: 100,
+    boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+  },
+  menuItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: '100%',
+    padding: '10px 12px',
+    background: 'transparent',
+    border: 'none',
+    borderRadius: '6px',
+    color: '#e2e8f0',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    textAlign: 'right',
   },
   btnAction: {
     width: '32px',
