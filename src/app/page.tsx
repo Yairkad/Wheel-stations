@@ -1157,6 +1157,10 @@ export default function WheelStationsPage() {
             <Link href="/accessibility" style={styles.legalLink}>
               הצהרת נגישות
             </Link>
+            {' • '}
+            <Link href="/operator" style={styles.legalLink}>
+              כניסה למוקדנים
+            </Link>
           </p>
           <p style={styles.versionText}>גירסה {VERSION}</p>
         </div>
