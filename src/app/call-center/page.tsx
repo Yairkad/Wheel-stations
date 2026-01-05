@@ -201,6 +201,23 @@ export default function CallCenterPage() {
     }
   }
 
+  const handleToggleActive = async (op: Operator) => {
+    try {
+      const res = await fetch(`/api/call-center/operators/${op.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !op.is_active })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      await fetchOperators()
+      toast.success(op.is_active ? 'המוקדן חסום' : 'המוקדן הופעל')
+    } catch {
+      toast.error('שגיאה בעדכון סטטוס')
+    }
+    setOpenMenuId(null)
+  }
+
   const openEditOperator = (op: Operator) => {
     setEditOperatorForm({ full_name: op.full_name, phone: op.phone })
     setShowEditOperator(op)
@@ -376,9 +393,12 @@ export default function CallCenterPage() {
               ) : (
                 <div style={styles.list}>
                   {operators.map(op => (
-                    <div key={op.id} style={styles.listItem}>
+                    <div key={op.id} style={{...styles.listItem, ...(op.is_active ? {} : styles.listItemBlocked)}}>
                       <div style={styles.listItemInfo}>
-                        <div style={styles.listItemName}>{op.full_name}</div>
+                        <div style={styles.listItemName}>
+                          {op.full_name}
+                          {!op.is_active && <span style={styles.blockedBadge}>חסום</span>}
+                        </div>
                         <div style={styles.listItemMeta}>{op.phone}</div>
                       </div>
                       <div style={styles.codeBox}>
@@ -399,6 +419,12 @@ export default function CallCenterPage() {
                             </button>
                             <button style={styles.menuItem} onClick={() => { handleRegenerateCode(op); setOpenMenuId(null) }}>
                               🔄 קוד חדש
+                            </button>
+                            <button
+                              style={{...styles.menuItem, color: op.is_active ? '#f59e0b' : '#22c55e'}}
+                              onClick={() => handleToggleActive(op)}
+                            >
+                              {op.is_active ? '🚫 חסימה' : '✅ הפעלה'}
                             </button>
                             <button style={{...styles.menuItem, color: '#ef4444'}} onClick={() => { handleDeleteOperator(op); setOpenMenuId(null) }}>
                               🗑️ מחיקה
@@ -878,6 +904,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '10px',
     fontSize: '0.7rem',
     fontWeight: 600,
+  },
+  blockedBadge: {
+    background: 'rgba(239, 68, 68, 0.2)',
+    color: '#ef4444',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    fontSize: '0.7rem',
+    fontWeight: 600,
+  },
+  listItemBlocked: {
+    opacity: 0.6,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   historyItem: {
     background: '#0f172a',

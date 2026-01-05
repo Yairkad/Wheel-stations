@@ -12,16 +12,26 @@ interface Operator {
   call_center_name: string
 }
 
+interface StationManager {
+  id: string
+  full_name: string
+  phone: string
+}
+
 interface Station {
   id: string
   name: string
   address: string
-  wheel_station_managers: { id: string; full_name: string; phone: string }[]
+  city?: string | null
+  district?: string | null
+  managers?: StationManager[]
 }
 
 interface WheelResult {
   station: Station
-  wheels: { wheel_number: number; rim_size: string; pcd: string }[]
+  wheels: { wheel_number: number; rim_size: string; pcd: string; is_available: boolean }[]
+  availableCount: number
+  totalCount: number
 }
 
 interface VehicleInfo {
@@ -217,8 +227,10 @@ export default function OperatorPage() {
       const wheelParams = new URLSearchParams({
         bolt_count: pcdInfo.bolt_count.toString(),
         bolt_spacing: pcdInfo.bolt_spacing.toString(),
-        ...(pcdInfo.rim_size && { rim_size: pcdInfo.rim_size })
+        available_only: 'true'
       })
+      // Don't filter by rim_size to show more options
+      // ...(pcdInfo.rim_size && { rim_size: pcdInfo.rim_size })
 
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
       const wheelsData = await wheelsRes.json()
@@ -228,30 +240,44 @@ export default function OperatorPage() {
         return
       }
 
-      // Group by station
-      const stationMap = new Map<string, WheelResult>()
+      // Get station managers for all found stations
+      const stationIds = wheelsData.results?.map((r: { station: { id: string } }) => r.station.id) || []
+      let managersMap: Record<string, StationManager[]> = {}
 
-      for (const wheel of wheelsData.wheels || []) {
-        const stationId = wheel.station_id
-        if (!stationMap.has(stationId)) {
-          stationMap.set(stationId, {
-            station: wheel.station,
-            wheels: []
-          })
+      if (stationIds.length > 0) {
+        const managersRes = await fetch(`/api/wheel-stations/managers?station_ids=${stationIds.join(',')}`)
+        if (managersRes.ok) {
+          const managersData = await managersRes.json()
+          managersMap = managersData.managers || {}
         }
-        stationMap.get(stationId)!.wheels.push({
-          wheel_number: wheel.wheel_number,
-          rim_size: wheel.rim_size,
-          pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`
-        })
       }
 
-      setResults(Array.from(stationMap.values()))
+      // Transform results to our format
+      const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
+        station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
+        wheels: { wheel_number: number; rim_size: string; is_available: boolean }[]
+        availableCount: number
+        totalCount: number
+      }) => ({
+        station: {
+          ...result.station,
+          managers: managersMap[result.station.id] || []
+        },
+        wheels: result.wheels.map(w => ({
+          ...w,
+          pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`
+        })),
+        availableCount: result.availableCount,
+        totalCount: result.totalCount
+      }))
 
-      if (stationMap.size === 0) {
+      setResults(transformedResults)
+
+      if (transformedResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
       } else {
-        toast.success(`נמצאו ${wheelsData.wheels?.length || 0} גלגלים ב-${stationMap.size} תחנות`)
+        const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
+        toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
       }
     } catch (error) {
       console.error('Search error:', error)
@@ -263,7 +289,7 @@ export default function OperatorPage() {
 
   const openModal = (station: Station, wheelNumber: number, pcd: string) => {
     setSelectedWheel({ station, wheelNumber, pcd })
-    setSelectedContact(station.wheel_station_managers?.[0]?.id || null)
+    setSelectedContact(station.managers?.[0]?.id || null)
     setCopied(false)
   }
 
@@ -275,7 +301,7 @@ export default function OperatorPage() {
   const getMessage = () => {
     if (!selectedWheel || !operator) return ''
 
-    const contact = selectedWheel.station.wheel_station_managers?.find(m => m.id === selectedContact)
+    const contact = selectedWheel.station.managers?.find(m => m.id === selectedContact)
     const stationName = selectedWheel.station.name.replace('תחנת ', '')
 
     return `תפתח קריאה שינוע לפנצ'ריה
@@ -345,6 +371,13 @@ https://wheels.co.il/sign/${selectedWheel.station.id}?wheel=${selectedWheel.whee
   // Main interface
   return (
     <div style={styles.pageWrapper}>
+      {/* Keyframes for spinner animation */}
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
       {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerContent}>
@@ -395,7 +428,7 @@ https://wheels.co.il/sign/${selectedWheel.station.id}?wheel=${selectedWheel.whee
                 dir="ltr"
               />
               <button style={styles.searchBtn} onClick={handleSearch} disabled={searchLoading}>
-                {searchLoading ? '...' : 'חפש'}
+                {searchLoading ? <span style={styles.spinner}></span> : 'חפש'}
               </button>
             </div>
           )}
@@ -425,8 +458,16 @@ https://wheels.co.il/sign/${selectedWheel.station.id}?wheel=${selectedWheel.whee
                 style={styles.formInput}
               />
               <button style={styles.searchBtn} onClick={handleSearch} disabled={searchLoading}>
-                {searchLoading ? '...' : 'חפש'}
+                {searchLoading ? <span style={styles.spinner}></span> : 'חפש'}
               </button>
+            </div>
+          )}
+
+          {/* Loading Animation */}
+          {searchLoading && (
+            <div style={styles.loadingContainer}>
+              <div style={styles.loadingSpinner}></div>
+              <div style={styles.loadingText}>מחפש גלגלים מתאימים...</div>
             </div>
           )}
 
@@ -501,19 +542,25 @@ https://wheels.co.il/sign/${selectedWheel.station.id}?wheel=${selectedWheel.whee
 
             <div style={styles.contactSection}>
               <h4 style={styles.contactTitle}>בחר איש קשר בתחנה:</h4>
-              {selectedWheel.station.wheel_station_managers?.map(manager => (
-                <div
-                  key={manager.id}
-                  style={{
-                    ...styles.contactOption,
-                    ...(selectedContact === manager.id ? styles.contactOptionSelected : {})
-                  }}
-                  onClick={() => setSelectedContact(manager.id)}
-                >
-                  <div style={styles.contactName}>{manager.full_name}</div>
-                  <div style={styles.contactPhone}>{manager.phone}</div>
+              {selectedWheel.station.managers && selectedWheel.station.managers.length > 0 ? (
+                selectedWheel.station.managers.map(manager => (
+                  <div
+                    key={manager.id}
+                    style={{
+                      ...styles.contactOption,
+                      ...(selectedContact === manager.id ? styles.contactOptionSelected : {})
+                    }}
+                    onClick={() => setSelectedContact(manager.id)}
+                  >
+                    <div style={styles.contactName}>{manager.full_name}</div>
+                    <div style={styles.contactPhone}>{manager.phone}</div>
+                  </div>
+                ))
+              ) : (
+                <div style={{color: '#64748b', textAlign: 'center', padding: '10px'}}>
+                  אין אנשי קשר זמינים לתחנה זו
                 </div>
-              ))}
+              )}
             </div>
 
             <h4 style={styles.previewTitle}>תצוגה מקדימה:</h4>
@@ -941,5 +988,39 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   copyBtnCopied: {
     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+  },
+  spinner: {
+    display: 'inline-block',
+    width: '18px',
+    height: '18px',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
+    borderTop: '2px solid white',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+  },
+  loadingContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '30px 20px',
+    marginTop: '15px',
+    background: 'rgba(16, 185, 129, 0.05)',
+    border: '1px solid rgba(16, 185, 129, 0.2)',
+    borderRadius: '12px',
+  },
+  loadingSpinner: {
+    width: '40px',
+    height: '40px',
+    border: '3px solid rgba(16, 185, 129, 0.2)',
+    borderTop: '3px solid #10b981',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    marginBottom: '15px',
+  },
+  loadingText: {
+    color: '#10b981',
+    fontSize: '0.95rem',
+    fontWeight: 500,
   },
 }
