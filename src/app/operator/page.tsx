@@ -182,14 +182,14 @@ export default function OperatorPage() {
           return
         }
 
-        if (plateData.vehicle?.pcd) {
+        if (plateData.wheel_fitment) {
           pcdInfo = {
             manufacturer: plateData.vehicle.manufacturer,
             model: plateData.vehicle.model,
             year: plateData.vehicle.year,
-            bolt_count: plateData.vehicle.pcd.bolt_count,
-            bolt_spacing: plateData.vehicle.pcd.bolt_spacing,
-            rim_size: plateData.vehicle.pcd.rim_size || ''
+            bolt_count: plateData.wheel_fitment.bolt_count,
+            bolt_spacing: plateData.wheel_fitment.bolt_spacing,
+            rim_size: ''
           }
         } else {
           setSearchError('לא נמצא מידע PCD לרכב זה')
