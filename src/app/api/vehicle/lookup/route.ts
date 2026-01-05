@@ -168,19 +168,43 @@ async function findPcdData(
   supabase: any,
   makeHebrew: string,
   modelName: string,
-  year: number
+  year: number,
+  technicalModelName?: string // degem_nm from gov API (e.g., "S31/SM-00")
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   const makeEnglish = extractMakeFromHebrew(makeHebrew)
-  if (!makeEnglish) return null
-
   const modelLower = modelName?.toLowerCase() || ''
+  const technicalModelLower = technicalModelName?.toLowerCase() || ''
 
-  // First try: exact model match
+  // Extract first word from Hebrew make (e.g., "דונגפנג" from "דונגפנג סין")
+  const makeHebrewFirstWord = makeHebrew.split(' ')[0]
+
+  // Build make search condition - search by English (if available) or Hebrew
+  const makeCondition = makeEnglish
+    ? `make.ilike.%${makeEnglish}%,make_he.ilike.%${makeHebrewFirstWord}%`
+    : `make_he.ilike.%${makeHebrewFirstWord}%`
+
+  // First try: search by technical model name (degem_nm) in variants - most accurate match
+  if (technicalModelLower) {
+    const result1 = await supabase
+      .from('vehicle_models')
+      .select('*')
+      .or(makeCondition)
+      .ilike('variants', `%${technicalModelLower}%`)
+      .lte('year_from', year)
+      .or(`year_to.gte.${year},year_to.is.null`)
+      .limit(1)
+
+    if (!result1.error && result1.data && result1.data.length > 0) {
+      return result1.data[0]
+    }
+  }
+
+  // Second try: exact model match by commercial name (kinuy_mishari)
   let { data: vehicleModels, error } = await supabase
     .from('vehicle_models')
     .select('*')
-    .or(`make.ilike.%${makeEnglish}%,make_he.ilike.%${makeHebrew}%`)
+    .or(makeCondition)
     .ilike('model', `%${modelLower}%`)
     .lte('year_from', year)
     .or(`year_to.gte.${year},year_to.is.null`)
@@ -190,11 +214,11 @@ async function findPcdData(
     return vehicleModels[0]
   }
 
-  // Second try: search in variants column
+  // Third try: search in variants column by commercial name
   const result2 = await supabase
     .from('vehicle_models')
     .select('*')
-    .or(`make.ilike.%${makeEnglish}%,make_he.ilike.%${makeHebrew}%`)
+    .or(makeCondition)
     .ilike('variants', `%${modelLower}%`)
     .lte('year_from', year)
     .or(`year_to.gte.${year},year_to.is.null`)
@@ -204,13 +228,13 @@ async function findPcdData(
     return result2.data[0]
   }
 
-  // Third try: search for first word only (e.g., "CAMRY" from "CAMRY HYBRID")
+  // Fourth try: search for first word only (e.g., "CAMRY" from "CAMRY HYBRID")
   if (modelLower.includes(' ')) {
     const firstWord = modelLower.split(' ')[0]
     const result3 = await supabase
       .from('vehicle_models')
       .select('*')
-      .or(`make.ilike.%${makeEnglish}%,make_he.ilike.%${makeHebrew}%`)
+      .or(makeCondition)
       .ilike('model', `%${firstWord}%`)
       .lte('year_from', year)
       .or(`year_to.gte.${year},year_to.is.null`)
@@ -276,7 +300,8 @@ export async function GET(request: NextRequest) {
           supabase,
           vehicle.tozeret_nm,
           vehicle.kinuy_mishari,
-          vehicle.shnat_yitzur
+          vehicle.shnat_yitzur,
+          vehicle.degem_nm // Technical model name for better matching
         )
 
         return NextResponse.json({

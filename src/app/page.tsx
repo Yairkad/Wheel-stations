@@ -106,6 +106,7 @@ export default function WheelStationsPage() {
   const [modelSearchMake, setModelSearchMake] = useState('')
   const [modelSearchModel, setModelSearchModel] = useState('')
   const [modelSearchYear, setModelSearchYear] = useState('')
+  const [modelSearchTechnicalCode, setModelSearchTechnicalCode] = useState('') // degem_nm from gov API
   const [modelSearchLoading, setModelSearchLoading] = useState(false)
   const [modelMakeSuggestions, setModelMakeSuggestions] = useState<string[]>([])
   const [modelModelSuggestions, setModelModelSuggestions] = useState<string[]>([])
@@ -125,7 +126,8 @@ export default function WheelStationsPage() {
     bolt_spacing: '',
     center_bore: '',
     rim_size: '',
-    tire_size_front: ''
+    tire_size_front: '',
+    variants: '' // Technical model code (degem_nm) from gov API
   })
   const [addModelLoading, setAddModelLoading] = useState(false)
   const [makeSuggestions, setMakeSuggestions] = useState<string[]>([])
@@ -825,8 +827,10 @@ export default function WheelStationsPage() {
         bolt_spacing: '',
         center_bore: '',
         rim_size: '',
-        tire_size_front: ''
+        tire_size_front: '',
+        variants: ''
       })
+      setModelSearchTechnicalCode('') // Reset technical code
     } catch (error: any) {
       toast.error(error.message || 'שגיאה בהוספת הדגם')
     } finally {
@@ -1533,7 +1537,7 @@ export default function WheelStationsPage() {
             {/* Error message with external links and add model button */}
             {vehicleError && vehicleSearchTab === 'model' && modelSearchMake && modelSearchModel && (
               <div style={{...styles.noFitmentCard, marginTop: '10px'}}>
-                ⚠️ לא נמצאו מידות גלגל לדגם זה במאגר
+                ⚠️ לא נמצא מידע לפי פרטי הרכב שהוזנו
                 <div style={styles.externalLinks}>
                   <a
                     href="https://www.wheel-size.com"
@@ -1558,7 +1562,8 @@ export default function WheelStationsPage() {
                     make_he: modelSearchMake.includes('(') ? modelSearchMake.split(' (')[1]?.replace(')', '') : modelSearchMake,
                     model: modelSearchModel.toLowerCase(),
                     year_from: modelSearchYear,
-                    tire_size_front: ''
+                    tire_size_front: '',
+                    variants: modelSearchTechnicalCode // Pass technical code for better matching
                   })}
                   style={styles.addModelBtn}
                 >
@@ -1796,36 +1801,21 @@ export default function WheelStationsPage() {
                   </div>
                 ) : (
                   <div style={styles.noFitmentCard}>
-                    ⚠️ לא נמצאו מידות גלגל לדגם זה במאגר
-                    <div style={styles.externalLinks}>
-                      <a
-                        href="https://www.wheel-size.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.wheelSizeLink}
-                      >
-                        חפש ב-wheel-size.com ↗
-                      </a>
-                      <a
-                        href="https://www.wheelfitment.eu/car.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.wheelSizeLink}
-                      >
-                        חפש ב-wheelfitment.eu ↗
-                      </a>
-                    </div>
+                    ⚠️ לא נמצא מידע לפי פרטי הרכב שהוזנו
                     <button
-                      onClick={() => handleOpenAddModel({
-                        make: vehicleResult.vehicle.manufacturer.toLowerCase(),
-                        make_he: vehicleResult.vehicle.manufacturer,
-                        model: vehicleResult.vehicle.model.toLowerCase(),
-                        year_from: vehicleResult.vehicle.year.toString(),
-                        tire_size_front: vehicleResult.vehicle.front_tire
-                      })}
+                      onClick={() => {
+                        // Switch to model search tab with vehicle data pre-filled
+                        setModelSearchMake(vehicleResult.vehicle.manufacturer)
+                        setModelSearchModel(vehicleResult.vehicle.model)
+                        setModelSearchYear(vehicleResult.vehicle.year.toString())
+                        setModelSearchTechnicalCode(vehicleResult.vehicle.model_name || '') // Save technical code
+                        setVehicleSearchTab('model')
+                        setVehicleResult(null)
+                        setVehicleError(null)
+                      }}
                       style={styles.addModelBtn}
                     >
-                      ➕ הוסף דגם זה למאגר
+                      🔍 חפש לפי יצרן ודגם
                     </button>
                   </div>
                 )}
@@ -2149,6 +2139,18 @@ export default function WheelStationsPage() {
                   )}
                 </div>
               </div>
+
+              {addModelForm.variants && (
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>קוד טכני (מהממשלה)</label>
+                  <input
+                    type="text"
+                    value={addModelForm.variants}
+                    readOnly
+                    style={{...styles.formInput, background: '#1e3a5f', color: '#60a5fa', cursor: 'default'}}
+                  />
+                </div>
+              )}
 
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
@@ -2790,11 +2792,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
     color: '#60a5fa',
     marginBottom: '8px',
+    wordBreak: 'break-word' as const,
   },
   vehicleInfoDetails: {
     display: 'flex',
     justifyContent: 'center',
-    gap: '20px',
+    flexWrap: 'wrap' as const,
+    gap: '10px 20px',
     color: '#a0aec0',
     fontSize: '0.9rem',
   },
