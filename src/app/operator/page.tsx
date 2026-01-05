@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import toast from 'react-hot-toast'
 
 interface Operator {
@@ -335,6 +336,7 @@ https://wheels.co.il/sign/${selectedWheel.station.id}?wheel=${selectedWheel.whee
           >
             {loginLoading ? 'מתחבר...' : 'כניסה'}
           </button>
+          <Link href="/" style={styles.backLink}>← חזרה לדף הראשי</Link>
         </div>
       </div>
     )
@@ -590,6 +592,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 700,
     fontSize: '1rem',
     marginTop: '10px',
+  },
+  backLink: {
+    display: 'block',
+    color: '#64748b',
+    textDecoration: 'none',
+    marginTop: '20px',
+    fontSize: '0.9rem',
+    textAlign: 'center',
   },
   header: {
     background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
