@@ -83,6 +83,7 @@ export default function WheelStationsPage() {
     vehicle: {
       manufacturer: string
       model: string
+      model_name?: string // Technical model code (degem_nm) from gov API
       year: number
       color?: string
       front_tire: string | null
