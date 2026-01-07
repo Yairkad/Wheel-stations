@@ -237,17 +237,60 @@ export default function CallCentersAdminPage() {
 
   return (
     <div style={styles.pageWrapper}>
+      <style>{`
+        @media (max-width: 768px) {
+          .header-content-responsive {
+            flex-direction: column !important;
+            gap: 15px !important;
+            align-items: center !important;
+          }
+          .header-logo-responsive {
+            justify-content: center !important;
+          }
+          .header-buttons-responsive {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            width: 100% !important;
+          }
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            padding: 8px 10px !important;
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
+          }
+          .stats-row-responsive {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px !important;
+            margin-top: -30px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            padding: 6px 8px !important;
+            font-size: 0.7rem !important;
+          }
+          .stats-row-responsive {
+            grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 6px !important;
+          }
+        }
+      `}</style>
+
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.headerContent}>
-          <div style={styles.headerLogo}>
+        <div style={styles.headerContent} className="header-content-responsive">
+          <div style={styles.headerLogo} className="header-logo-responsive">
             <div style={styles.logoIcon}>🎧</div>
             <div>
               <h1 style={styles.headerTitle}>ניהול מוקדים</h1>
               <p style={styles.headerSubtitle}>סניפים, מנהלים ומוקדנים</p>
             </div>
           </div>
-          <div style={styles.headerButtons}>
+          <div style={styles.headerButtons} className="header-buttons-responsive">
             <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
             <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
@@ -257,7 +300,7 @@ export default function CallCentersAdminPage() {
       </div>
 
       {/* Stats Row */}
-      <div style={styles.statsRow}>
+      <div style={styles.statsRow} className="stats-row-responsive">
         <div style={styles.statCard}>
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>🎧</div>
           <div>
@@ -527,6 +570,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#e2e8f0',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+    overflowX: 'hidden',
   },
   header: {
     background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)',

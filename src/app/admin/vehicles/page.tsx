@@ -727,7 +727,10 @@ function VehiclesAdminPage() {
           bolt_spacing: scrapeResult.bolt_spacing,
           center_bore: scrapeResult.center_bore,
           rim_size: scrapeResult.rim_sizes?.join(', ') || '',
+          rim_sizes_allowed: scrapeResult.rim_sizes_allowed || [],
           tire_size_front: scrapeResult.tire_sizes?.[0] || '',
+          source_url: scrapeResult.source_url || '',
+          source: scrapeResult.source || 'wheelfitment.eu',
           added_by: 'admin-scrape'
         })
       })
@@ -1524,7 +1527,7 @@ function VehiclesAdminPage() {
         <div style={styles.modalOverlay} onClick={() => { setShowScrapeModal(false); setScrapeResult(null); setScrapeError(null); setPlateVehicleInfo(null); setPlateNumber('') }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🌐 גרידה מ-wheel-size.com</h3>
+              <h3 style={styles.modalTitle}>🌐 גרידה מ-wheelfitment.eu</h3>
               <button style={styles.closeBtn} onClick={() => setShowScrapeModal(false)}>✕</button>
             </div>
 

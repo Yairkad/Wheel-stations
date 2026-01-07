@@ -67,7 +67,10 @@ export async function POST(request: NextRequest) {
       bolt_spacing,
       center_bore,
       rim_size,
+      rim_sizes_allowed,
       tire_size_front,
+      source_url,
+      source,
       added_by
     } = body
 
@@ -91,8 +94,10 @@ export async function POST(request: NextRequest) {
         bolt_spacing: parseFloat(bolt_spacing),
         center_bore: center_bore ? parseFloat(center_bore) : null,
         rim_size: rim_size?.trim() || null,
+        rim_sizes_allowed: rim_sizes_allowed?.length > 0 ? rim_sizes_allowed : null,
         tire_size_front: tire_size_front?.trim() || null,
-        source: 'manual',
+        source_url: source_url?.trim() || null,
+        source: source || 'manual',
         added_by: added_by || null
       }])
       .select()

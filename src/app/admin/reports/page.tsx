@@ -974,6 +974,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#e2e8f0',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+    overflowX: 'hidden',
   },
 
   // Header
@@ -1068,6 +1069,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 10,
     maxWidth: '1300px',
     padding: '0 20px',
+    boxSizing: 'border-box',
   },
   statCard: {
     background: 'linear-gradient(145deg, #1e293b 0%, #1a2234 100%)',
@@ -1104,6 +1106,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: '1300px',
     margin: '0 auto',
     padding: '30px 20px',
+    boxSizing: 'border-box',
   },
 
   // Section
