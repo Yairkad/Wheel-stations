@@ -331,6 +331,8 @@ export async function GET(request: NextRequest) {
             bolt_spacing: pcdData.bolt_spacing,
             pcd: `${pcdData.bolt_count}x${pcdData.bolt_spacing}`,
             center_bore: pcdData.center_bore,
+            rim_sizes_allowed: pcdData.rim_sizes_allowed,
+            source_url: pcdData.source_url,
           } : null,
           pcd_found: !!pcdData
         })
@@ -430,6 +432,8 @@ export async function GET(request: NextRequest) {
         bolt_spacing: pcdData.bolt_spacing,
         pcd: `${pcdData.bolt_count}x${pcdData.bolt_spacing}`,
         center_bore: pcdData.center_bore,
+        rim_sizes_allowed: pcdData.rim_sizes_allowed,
+        source_url: pcdData.source_url,
       } : null,
       pcd_found: !!pcdData
     })

@@ -147,10 +147,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: auth.error }, { status: 401 })
     }
 
-    // Find active borrow
+    // Find active borrow with all details for verified match
     const { data: borrow, error: borrowError } = await supabase
       .from('wheel_borrows')
-      .select('id')
+      .select('id, license_plate, vehicle_model')
       .eq('wheel_id', wheelId)
       .eq('status', 'borrowed')
       .single()
@@ -183,6 +183,48 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (updateWheelError) {
       console.error('Error updating wheel:', updateWheelError)
       return NextResponse.json({ error: 'Failed to update wheel status' }, { status: 500 })
+    }
+
+    // If license plate was provided, create verified wheel match for the database
+    if (borrow.license_plate) {
+      try {
+        // Get wheel details
+        const { data: wheel } = await supabase
+          .from('wheels')
+          .select('rim_size, bolt_count, bolt_spacing, center_bore, is_donut')
+          .eq('id', wheelId)
+          .single()
+
+        if (wheel) {
+          // Try to get vehicle info from license plate
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+          const vehicleResponse = await fetch(`${baseUrl}/api/vehicle/lookup?plate=${borrow.license_plate}`)
+          const vehicleData = vehicleResponse.ok ? await vehicleResponse.json() : null
+
+          // Insert verified match (upsert to avoid duplicates)
+          await supabase
+            .from('verified_wheel_matches')
+            .upsert({
+              license_plate: borrow.license_plate,
+              vehicle_make: vehicleData?.vehicle?.manufacturer || null,
+              vehicle_model: vehicleData?.vehicle?.model || borrow.vehicle_model || null,
+              vehicle_year: vehicleData?.vehicle?.year || null,
+              wheel_rim_size: wheel.rim_size,
+              wheel_bolt_count: wheel.bolt_count,
+              wheel_bolt_spacing: wheel.bolt_spacing,
+              wheel_center_bore: wheel.center_bore,
+              wheel_is_donut: wheel.is_donut || false,
+              borrow_id: borrow.id,
+              station_id: stationId,
+              verified_by: 'system'
+            }, {
+              onConflict: 'license_plate,wheel_rim_size,wheel_bolt_count,wheel_bolt_spacing'
+            })
+        }
+      } catch (verifyError) {
+        // Don't fail the return if verification fails
+        console.error('Error creating verified match:', verifyError)
+      }
     }
 
     return NextResponse.json({ success: true })

@@ -95,6 +95,8 @@ export default function WheelStationsPage() {
       bolt_count: number
       bolt_spacing: number
       center_bore?: number
+      rim_sizes_allowed?: number[]
+      source_url?: string
     } | null
     is_personal_import?: boolean
     personal_import_warning?: string
@@ -390,7 +392,9 @@ export default function WheelStationsPage() {
           pcd: `${model.bolt_count}×${model.bolt_spacing}`,
           bolt_count: model.bolt_count,
           bolt_spacing: model.bolt_spacing,
-          center_bore: model.center_bore
+          center_bore: model.center_bore,
+          rim_sizes_allowed: model.rim_sizes_allowed,
+          source_url: model.source_url
         }
         setVehicleResult({
           vehicle: {
@@ -1670,6 +1674,20 @@ export default function WheelStationsPage() {
                   <div style={styles.vehicleFitmentCard}>
                     <div style={styles.fitmentBadges} className="wheels-fitment-badges">
                       <span style={styles.pcdBadge}>PCD: {vehicleResult.wheel_fitment.pcd}</span>
+                      {vehicleResult.wheel_fitment.center_bore && (
+                        <span style={styles.centerBoreBadge}>CB: {vehicleResult.wheel_fitment.center_bore}</span>
+                      )}
+                      {vehicleResult.wheel_fitment.source_url && (
+                        <a
+                          href={vehicleResult.wheel_fitment.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={styles.sourceLink}
+                          title="אמת מידות באתר המקור"
+                        >
+                          🔗 מקור
+                        </a>
+                      )}
                       {extractRimSize(vehicleResult.vehicle.front_tire) && (
                         <span style={styles.rimBadge}>{extractRimSize(vehicleResult.vehicle.front_tire)}"</span>
                       )}
@@ -1711,25 +1729,32 @@ export default function WheelStationsPage() {
                     {(() => {
                       const vehicleRimSize = extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize
                       const isPersonalImport = vehicleResult.is_personal_import
+                      const allowedSizes = vehicleResult.wheel_fitment?.rim_sizes_allowed
 
                       // If no rim size available (no tire info and no manual selection), show all wheels
-                      // Otherwise, filter by rim size (exact or one size smaller)
+                      // Otherwise, filter by manufacturer allowed sizes or fallback to ±1 logic
                       const filteredResults = vehicleSearchResults?.map(result => ({
                         ...result,
                         wheels: result.wheels.filter(w => {
                           if (!w.is_available) return false
+                          const wheelSize = parseInt(w.rim_size)
                           // No rim size available - show all available wheels with matching PCD
                           if (!vehicleRimSize) return true
-                          // Filter by size (exact or one size smaller)
-                          const wheelSize = parseInt(w.rim_size)
+                          // If we have manufacturer's allowed sizes, use them
+                          if (allowedSizes && allowedSizes.length > 0) {
+                            return allowedSizes.includes(wheelSize)
+                          }
+                          // Fallback: filter by size (exact or one size smaller)
                           return wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1
                         })
                       })).filter(result => result.wheels.length > 0) || []
 
                       const exactSizeWheels = filteredResults.flatMap(r => r.wheels.filter(w => parseInt(w.rim_size) === vehicleRimSize))
+                      const allowedSizeWheels = allowedSizes ? filteredResults.flatMap(r => r.wheels.filter(w => allowedSizes.includes(parseInt(w.rim_size)))) : []
                       const smallerSizeWheels = filteredResults.flatMap(r => r.wheels.filter(w => parseInt(w.rim_size) === (vehicleRimSize || 0) - 1))
                       const hasExactSize = exactSizeWheels.length > 0
                       const hasSmallerSize = smallerSizeWheels.length > 0
+                      const hasAllowedSizes = allowedSizeWheels.length > 0
 
                       if (filteredResults.length > 0) {
                         return (
@@ -1743,13 +1768,19 @@ export default function WheelStationsPage() {
                                 ℹ️ בחר קוטר ג&apos;אנט לסינון התוצאות{isPersonalImport ? ', או בדוק מידת גלגל מקורית לפני השאלה' : ''}
                               </div>
                             )}
-                            {/* Has rim size (from tire or manual selection) */}
-                            {vehicleRimSize && hasExactSize && (
+                            {/* Has manufacturer allowed sizes */}
+                            {allowedSizes && allowedSizes.length > 0 && hasAllowedSizes && (
+                              <div style={styles.vehicleResultsNote}>
+                                לרכב שלך מתאימים גדלים: {allowedSizes.join('", ')}"
+                              </div>
+                            )}
+                            {/* Has rim size but no manufacturer data - use fallback */}
+                            {vehicleRimSize && hasExactSize && !allowedSizes && (
                               <div style={styles.vehicleResultsNote}>
                                 {manualRimSize ? 'מציג' : 'לרכב שלך מתאים'} גודל {vehicleRimSize}"
                               </div>
                             )}
-                            {vehicleRimSize && !hasExactSize && hasSmallerSize && (
+                            {vehicleRimSize && !hasExactSize && hasSmallerSize && !allowedSizes && (
                               <div style={{...styles.vehicleResultsNote, background: '#fef3c7', color: '#92400e', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px'}}>
                                 ⚠️ לא נמצאו גלגלים בגודל {vehicleRimSize}" - מוצגים גלגלים בגודל {(vehicleRimSize || 0) - 1}" (מידה קטנה יותר)
                               </div>
@@ -1766,7 +1797,8 @@ export default function WheelStationsPage() {
                                       href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
                                       style={{
                                         ...styles.resultWheelCard,
-                                        ...(!isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {})
+                                        // Only show warning style if no allowed sizes and wheel is smaller than vehicle size
+                                        ...(!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {})
                                       }}
                                       className="wheels-result-wheel-card"
                                       onClick={closeVehicleModal}
@@ -1774,7 +1806,8 @@ export default function WheelStationsPage() {
                                       <div style={styles.resultWheelNumber}>#{wheel.wheel_number}</div>
                                       <div style={styles.resultWheelSpecs}>
                                         <span>{wheel.rim_size}"</span>
-                                        {!isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize && <span style={{fontSize: '10px', color: '#b45309'}}>קטן יותר</span>}
+                                        {/* Only show "smaller" label if no allowed sizes data */}
+                                        {!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize && <span style={{fontSize: '10px', color: '#b45309'}}>קטן יותר</span>}
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
                                     </Link>
@@ -2834,6 +2867,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '20px',
     fontWeight: 'bold',
     fontSize: '1rem',
+  },
+  centerBoreBadge: {
+    background: 'rgba(168, 85, 247, 0.3)',
+    color: '#c084fc',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    fontWeight: 'bold',
+    fontSize: '1rem',
+  },
+  sourceLink: {
+    background: 'rgba(59, 130, 246, 0.2)',
+    color: '#60a5fa',
+    padding: '8px 16px',
+    borderRadius: '20px',
+    fontWeight: 'bold',
+    fontSize: '0.85rem',
+    textDecoration: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    transition: 'all 0.2s ease',
   },
   vehicleWheelResults: {
     marginTop: '10px',

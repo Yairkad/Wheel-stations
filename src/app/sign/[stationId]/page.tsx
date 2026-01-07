@@ -58,6 +58,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const [borrowDate, setBorrowDate] = useState('')
   const [selectedWheelId, setSelectedWheelId] = useState('')
   const [vehicleModel, setVehicleModel] = useState('')
+  const [licensePlate, setLicensePlate] = useState('')
   const [depositType, setDepositType] = useState('')
   const [notes, setNotes] = useState('')
   const [agreedTerms, setAgreedTerms] = useState(false)
@@ -268,6 +269,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
           borrower_id_number: idNumber,
           borrower_address: address,
           vehicle_model: vehicleModel,
+          license_plate: licensePlate || null,
           borrow_date: borrowDate,
           deposit_type: depositType,
           notes: notes,
@@ -542,6 +544,22 @@ function SignFormContent({ stationId }: { stationId: string }) {
             placeholder="יונדאי i25"
             style={getInputStyle('vehicleModel')}
           />
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>מספר רכב (לא חובה)</label>
+          <input
+            type="text"
+            value={licensePlate}
+            onChange={e => setLicensePlate(e.target.value.replace(/[^0-9-]/g, ''))}
+            placeholder="12-345-67"
+            style={styles.input}
+            maxLength={10}
+            inputMode="numeric"
+          />
+          <small style={{ color: '#9ca3af', fontSize: '12px', marginTop: '4px' }}>
+            הזנת מספר הרכב עוזרת לנו לשפר את ההתאמות למידות גלגלים
+          </small>
         </div>
 
         {/* Deposit Section */}
