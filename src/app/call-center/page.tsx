@@ -138,6 +138,27 @@ export default function CallCenterPage() {
     window.location.href = '/operator'
   }
 
+  // Navigate to operator page while keeping manager session
+  const handleWorkAsOperator = () => {
+    if (!manager) return
+
+    // Create an operator session from manager data
+    const expiry = new Date().getTime() + (12 * 60 * 60 * 1000) // 12 hours
+    localStorage.setItem('operator_session', JSON.stringify({
+      operator: {
+        id: manager.id,
+        full_name: manager.full_name,
+        phone: manager.phone,
+        call_center_id: manager.call_center_id,
+        call_center_name: manager.call_center_name,
+      },
+      expiry,
+      is_manager: true // Flag to show "back to management" button
+    }))
+
+    window.location.href = '/operator'
+  }
+
   const handleAddOperator = async () => {
     if (!addOperatorForm.full_name || !addOperatorForm.phone) {
       toast.error('יש למלא שם וטלפון')
@@ -324,7 +345,10 @@ export default function CallCenterPage() {
               <p style={styles.headerSubtitle}>{manager.title} - {manager.full_name}</p>
             </div>
           </div>
-          <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+          <div style={styles.headerButtons}>
+            <button style={styles.btnPrimary} onClick={handleWorkAsOperator}>🔍 חיפוש גלגלים</button>
+            <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+          </div>
         </div>
       </div>
 
@@ -711,6 +735,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ef4444',
     cursor: 'pointer',
     fontSize: '0.85rem',
+  },
+  headerButtons: {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+  },
+  btnPrimary: {
+    padding: '10px 20px',
+    borderRadius: '10px',
+    border: 'none',
+    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    color: 'white',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
   },
   statsRow: {
     display: 'grid',

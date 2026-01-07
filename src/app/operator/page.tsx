@@ -146,6 +146,7 @@ const modelToMake: Record<string, string> = {
 
 export default function OperatorPage() {
   const [operator, setOperator] = useState<Operator | null>(null)
+  const [isManager, setIsManager] = useState(false) // Track if user is a manager working as operator
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
@@ -197,6 +198,7 @@ export default function OperatorPage() {
         const data = JSON.parse(saved)
         if (data.expiry && new Date().getTime() < data.expiry) {
           setOperator(data.operator)
+          setIsManager(data.is_manager || false) // Check if user is a manager
         } else {
           localStorage.removeItem('operator_session')
         }
@@ -365,8 +367,15 @@ export default function OperatorPage() {
   const handleLogout = () => {
     localStorage.removeItem('operator_session')
     setOperator(null)
+    setIsManager(false)
     setVehicleInfo(null)
     setResults([])
+  }
+
+  // Navigate back to manager dashboard (only for managers)
+  const handleBackToManagement = () => {
+    localStorage.removeItem('operator_session')
+    window.location.href = '/call-center'
   }
 
   const handleSearch = async () => {
@@ -696,6 +705,9 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           </div>
           <div style={styles.userInfo}>
             <span style={styles.userName}>{operator.full_name}</span>
+            {isManager && (
+              <button style={styles.btnBackToManagement} onClick={handleBackToManagement}>← חזרה לניהול</button>
+            )}
             <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
           </div>
         </div>
@@ -1246,6 +1258,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ef4444',
     cursor: 'pointer',
     fontSize: '0.85rem',
+  },
+  btnBackToManagement: {
+    padding: '8px 16px',
+    borderRadius: '8px',
+    border: '1px solid #8b5cf6',
+    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+    color: 'white',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: 500,
   },
   container: {
     maxWidth: '900px',
