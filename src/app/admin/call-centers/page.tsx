@@ -249,6 +249,8 @@ export default function CallCentersAdminPage() {
           </div>
           <div style={styles.headerButtons}>
             <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
+            <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
+            <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
             <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
           </div>
         </div>

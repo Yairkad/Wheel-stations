@@ -20,6 +20,8 @@ interface WheelFitment {
   bolt_spacing: number
   pcd: string
   center_bore?: number
+  rim_sizes_allowed?: number[]
+  source_url?: string
 }
 
 // Extract rim size from tire string (e.g., "195/60R15" -> 15)
@@ -221,24 +223,48 @@ export default function VehicleLookupPage() {
                   <span className="text-2xl">✅</span>
                   נמצא! מידות גלגל מתאימות
                 </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div className="bg-white rounded-xl p-4 text-center shadow">
                     <span className="text-sm text-gray-500">PCD</span>
                     <p className="text-2xl font-bold text-green-700">{result.wheel_fitment.pcd}</p>
                   </div>
+                  {result.wheel_fitment.center_bore && (
+                    <div className="bg-white rounded-xl p-4 text-center shadow">
+                      <span className="text-sm text-gray-500">CB</span>
+                      <p className="text-2xl font-bold text-purple-600">{result.wheel_fitment.center_bore}</p>
+                    </div>
+                  )}
                   <div className="bg-white rounded-xl p-4 text-center shadow">
-                    <span className="text-sm text-gray-500">גודל חישוק</span>
+                    <span className="text-sm text-gray-500">גודל נוכחי</span>
                     <p className="text-2xl font-bold text-blue-600">
                       {extractRimSize(result.vehicle.front_tire) || '—'}"
                     </p>
                   </div>
-                  {result.wheel_fitment.center_bore && (
-                    <div className="bg-white rounded-xl p-4 text-center shadow">
-                      <span className="text-sm text-gray-500">קוטר מרכזי</span>
-                      <p className="text-2xl font-bold text-gray-800">{result.wheel_fitment.center_bore}</p>
-                    </div>
-                  )}
                 </div>
+
+                {/* Allowed sizes */}
+                {result.wheel_fitment.rim_sizes_allowed && result.wheel_fitment.rim_sizes_allowed.length > 0 && (
+                  <div className="mt-4 bg-green-100 rounded-xl p-4 text-center">
+                    <span className="text-sm text-green-700">גדלים מותרים לרכב:</span>
+                    <p className="text-lg font-bold text-green-800 mt-1">
+                      {result.wheel_fitment.rim_sizes_allowed.join('" / ')}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Source link */}
+                {result.wheel_fitment.source_url && (
+                  <div className="mt-3 text-center">
+                    <a
+                      href={result.wheel_fitment.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      🔗 אמת מידות באתר המקור
+                    </a>
+                  </div>
+                )}
 
                 {/* Search Link */}
                 <div className="mt-6 text-center">

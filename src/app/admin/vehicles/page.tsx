@@ -1103,8 +1103,9 @@ function VehiclesAdminPage() {
             </div>
           </div>
           <div style={styles.headerButtons} className="header-buttons-responsive">
-            <Link href="/admin" style={styles.btnGhost}>🏢 ניהול תחנות</Link>
+            <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
             <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
+            <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
             <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
           </div>
         </div>

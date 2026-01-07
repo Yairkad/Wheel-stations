@@ -43,6 +43,8 @@ interface VehicleInfo {
   rim_size: string
   front_tire?: string | null
   center_bore?: number | null
+  rim_sizes_allowed?: number[] | null
+  source_url?: string | null
 }
 
 // Extract rim size from tire string (e.g., "205/55R16" -> 16)
@@ -482,7 +484,9 @@ export default function OperatorPage() {
             bolt_spacing: plateData.wheel_fitment.bolt_spacing,
             rim_size: rimSize ? rimSize.toString() : '',
             front_tire: plateData.vehicle.front_tire,
-            center_bore: plateData.wheel_fitment.center_bore || null
+            center_bore: plateData.wheel_fitment.center_bore || null,
+            rim_sizes_allowed: plateData.wheel_fitment.rim_sizes_allowed || null,
+            source_url: plateData.wheel_fitment.source_url || null
           }
         } else {
           setSearchError('לא נמצא מידע PCD לרכב זה')
@@ -514,7 +518,9 @@ export default function OperatorPage() {
           bolt_spacing: vehicleModel.bolt_spacing,
           rim_size: vehicleModel.rim_size || '',
           front_tire: vehicleModel.tire_size_front || null,
-          center_bore: vehicleModel.center_bore || null
+          center_bore: vehicleModel.center_bore || null,
+          rim_sizes_allowed: vehicleModel.rim_sizes_allowed || null,
+          source_url: vehicleModel.source_url || null
         }
       }
 
@@ -937,24 +943,43 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           {/* Vehicle Info */}
           {vehicleInfo && (
             <div style={styles.vehicleInfoBox}>
-              <div style={styles.vehicleInfoHeader}>פרטי רכב:</div>
-              <div style={styles.vehicleInfoRow}>
+              <div style={styles.vehicleInfoHeader}>
                 <span>{vehicleInfo.manufacturer} {vehicleInfo.model} {vehicleInfo.year}</span>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={styles.pcdBadge}>
-                    PCD: {vehicleInfo.bolt_count}×{vehicleInfo.bolt_spacing}
-                  </span>
-                  {vehicleInfo.rim_size && (
-                    <span style={styles.rimBadge}>{vehicleInfo.rim_size}&quot;</span>
-                  )}
-                  {vehicleInfo.center_bore && (
-                    <span style={styles.centerBoreBadge}>CB: {vehicleInfo.center_bore}</span>
-                  )}
-                </div>
+                {vehicleInfo.source_url && (
+                  <a
+                    href={vehicleInfo.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.sourceLink}
+                  >
+                    🔗 אמת מידות
+                  </a>
+                )}
               </div>
-              {vehicleInfo.front_tire && (
-                <div style={{ marginTop: '8px', color: '#94a3b8', fontSize: '0.85rem', direction: 'ltr', textAlign: 'left' }}>
-                  🛞 {vehicleInfo.front_tire}
+              <div style={styles.vehicleSpecsRow}>
+                <div style={styles.specBox}>
+                  <span style={styles.specLabel}>PCD</span>
+                  <span style={styles.specValue}>{vehicleInfo.bolt_count}×{vehicleInfo.bolt_spacing}</span>
+                </div>
+                {vehicleInfo.center_bore && (
+                  <div style={styles.specBox}>
+                    <span style={styles.specLabel}>CB</span>
+                    <span style={styles.specValue}>{vehicleInfo.center_bore}</span>
+                  </div>
+                )}
+                {vehicleInfo.rim_size && (
+                  <div style={styles.specBox}>
+                    <span style={styles.specLabel}>גודל</span>
+                    <span style={styles.specValue}>{vehicleInfo.rim_size}"</span>
+                  </div>
+                )}
+              </div>
+              {vehicleInfo.rim_sizes_allowed && vehicleInfo.rim_sizes_allowed.length > 0 && (
+                <div style={styles.allowedSizesBox}>
+                  <span style={styles.allowedSizesLabel}>גדלים מותרים:</span>
+                  <span style={styles.allowedSizesValue}>
+                    {vehicleInfo.rim_sizes_allowed.join('" / ')}"
+                  </span>
                 </div>
               )}
             </div>
@@ -1378,9 +1403,67 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '15px',
   },
   vehicleInfoHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    color: 'white',
+    fontWeight: 600,
+    marginBottom: '12px',
+  },
+  vehicleSpecsRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '16px',
+    marginBottom: '10px',
+  },
+  specBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: 'rgba(30, 41, 59, 0.5)',
+    padding: '8px 16px',
+    borderRadius: '10px',
+    minWidth: '60px',
+  },
+  specLabel: {
+    fontSize: '0.65rem',
     color: '#94a3b8',
-    fontSize: '0.8rem',
-    marginBottom: '6px',
+    marginBottom: '2px',
+    textTransform: 'uppercase',
+  },
+  specValue: {
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    color: '#f1f5f9',
+  },
+  allowedSizesBox: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '6px 12px',
+    background: 'rgba(34, 197, 94, 0.1)',
+    borderRadius: '8px',
+    border: '1px solid rgba(34, 197, 94, 0.2)',
+  },
+  allowedSizesLabel: {
+    fontSize: '0.75rem',
+    color: '#86efac',
+  },
+  allowedSizesValue: {
+    fontSize: '0.85rem',
+    fontWeight: 'bold',
+    color: '#4ade80',
+  },
+  sourceLink: {
+    background: 'rgba(59, 130, 246, 0.15)',
+    color: '#93c5fd',
+    padding: '4px 10px',
+    borderRadius: '6px',
+    fontWeight: '500',
+    fontSize: '0.75rem',
+    textDecoration: 'none',
+    border: '1px solid rgba(59, 130, 246, 0.3)',
   },
   vehicleInfoRow: {
     display: 'flex',

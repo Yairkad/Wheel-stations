@@ -1672,10 +1672,50 @@ export default function WheelStationsPage() {
                 {/* Wheel Fitment */}
                 {vehicleResult.wheel_fitment ? (
                   <div style={styles.vehicleFitmentCard}>
-                    <div style={styles.fitmentBadges} className="wheels-fitment-badges">
-                      <span style={styles.pcdBadge}>PCD: {vehicleResult.wheel_fitment.pcd}</span>
+                    {/* Main specs row */}
+                    <div style={styles.fitmentMainRow} className="wheels-fitment-badges">
+                      <div style={styles.fitmentSpec}>
+                        <span style={styles.fitmentLabel}>PCD</span>
+                        <span style={styles.fitmentValue}>{vehicleResult.wheel_fitment.pcd}</span>
+                      </div>
                       {vehicleResult.wheel_fitment.center_bore && (
-                        <span style={styles.centerBoreBadge}>CB: {vehicleResult.wheel_fitment.center_bore}</span>
+                        <div style={styles.fitmentSpec}>
+                          <span style={styles.fitmentLabel}>CB</span>
+                          <span style={styles.fitmentValue}>{vehicleResult.wheel_fitment.center_bore}</span>
+                        </div>
+                      )}
+                      {(extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize) && (
+                        <div style={styles.fitmentSpec}>
+                          <span style={styles.fitmentLabel}>גודל</span>
+                          <span style={styles.fitmentValue}>{extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize}"</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Allowed sizes row */}
+                    {vehicleResult.wheel_fitment.rim_sizes_allowed && vehicleResult.wheel_fitment.rim_sizes_allowed.length > 0 && (
+                      <div style={styles.allowedSizesRow}>
+                        <span style={styles.allowedSizesLabel}>גדלים מותרים:</span>
+                        <span style={styles.allowedSizesValue}>
+                          {vehicleResult.wheel_fitment.rim_sizes_allowed.join('" / ')}"
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Actions row */}
+                    <div style={styles.fitmentActionsRow}>
+                      {/* Manual rim size selector when no tire info available */}
+                      {!extractRimSize(vehicleResult.vehicle.front_tire) && (
+                        <select
+                          value={manualRimSize || ''}
+                          onChange={(e) => setManualRimSize(e.target.value ? parseInt(e.target.value) : null)}
+                          style={styles.rimSizeSelect}
+                        >
+                          <option value="">בחר קוטר</option>
+                          {[14, 15, 16, 17, 18, 19, 20, 21, 22].map(size => (
+                            <option key={size} value={size}>{size}"</option>
+                          ))}
+                        </select>
                       )}
                       {vehicleResult.wheel_fitment.source_url && (
                         <a
@@ -1685,36 +1725,8 @@ export default function WheelStationsPage() {
                           style={styles.sourceLink}
                           title="אמת מידות באתר המקור"
                         >
-                          🔗 מקור
+                          🔗 אמת מידות
                         </a>
-                      )}
-                      {extractRimSize(vehicleResult.vehicle.front_tire) && (
-                        <span style={styles.rimBadge}>{extractRimSize(vehicleResult.vehicle.front_tire)}"</span>
-                      )}
-                      {/* Manual rim size selector when no tire info available */}
-                      {!extractRimSize(vehicleResult.vehicle.front_tire) && (
-                        <select
-                          value={manualRimSize || ''}
-                          onChange={(e) => setManualRimSize(e.target.value ? parseInt(e.target.value) : null)}
-                          style={{
-                            padding: '6px 10px',
-                            borderRadius: '8px',
-                            border: '2px solid #3b82f6',
-                            background: manualRimSize ? '#dbeafe' : 'white',
-                            color: '#1e40af',
-                            fontWeight: 'bold',
-                            fontSize: '0.9rem',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <option value="">בחר קוטר ג&apos;אנט</option>
-                          {[14, 15, 16, 17, 18, 19, 20, 21, 22].map(size => (
-                            <option key={size} value={size}>{size}&quot;</option>
-                          ))}
-                        </select>
-                      )}
-                      {manualRimSize && !extractRimSize(vehicleResult.vehicle.front_tire) && (
-                        <span style={styles.rimBadge}>{manualRimSize}"</span>
                       )}
                       <button
                         onClick={() => handleOpenErrorReport(vehicleResult.vehicle, vehicleResult.wheel_fitment)}
@@ -2852,6 +2864,69 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '12px',
     marginBottom: '15px',
   },
+  fitmentMainRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '20px',
+    marginBottom: '12px',
+  },
+  fitmentSpec: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: 'rgba(30, 41, 59, 0.5)',
+    padding: '10px 18px',
+    borderRadius: '12px',
+    minWidth: '70px',
+  },
+  fitmentLabel: {
+    fontSize: '0.7rem',
+    color: '#94a3b8',
+    marginBottom: '4px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  fitmentValue: {
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    color: '#f1f5f9',
+  },
+  allowedSizesRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '12px',
+    padding: '8px 16px',
+    background: 'rgba(34, 197, 94, 0.1)',
+    borderRadius: '8px',
+    border: '1px solid rgba(34, 197, 94, 0.2)',
+  },
+  allowedSizesLabel: {
+    fontSize: '0.8rem',
+    color: '#86efac',
+  },
+  allowedSizesValue: {
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
+    color: '#4ade80',
+  },
+  fitmentActionsRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  rimSizeSelect: {
+    padding: '6px 12px',
+    borderRadius: '8px',
+    border: '1px solid #475569',
+    background: '#1e293b',
+    color: '#f1f5f9',
+    fontWeight: 'bold',
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+  },
   pcdBadge: {
     background: 'rgba(16, 185, 129, 0.3)',
     color: '#34d399',
@@ -2877,16 +2952,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1rem',
   },
   sourceLink: {
-    background: 'rgba(59, 130, 246, 0.2)',
-    color: '#60a5fa',
-    padding: '8px 16px',
-    borderRadius: '20px',
-    fontWeight: 'bold',
-    fontSize: '0.85rem',
+    background: 'rgba(59, 130, 246, 0.15)',
+    color: '#93c5fd',
+    padding: '6px 12px',
+    borderRadius: '8px',
+    fontWeight: '500',
+    fontSize: '0.8rem',
     textDecoration: 'none',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
+    border: '1px solid rgba(59, 130, 246, 0.3)',
     transition: 'all 0.2s ease',
   },
   vehicleWheelResults: {

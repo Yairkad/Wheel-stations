@@ -443,8 +443,9 @@ export default function ErrorReportsPage() {
             </div>
           </div>
           <div style={styles.headerButtons} className="header-buttons-responsive">
-            <Link href="/admin" style={styles.btnGhost}>🏢 ניהול תחנות</Link>
+            <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
+            <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
             <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
           </div>
         </div>
