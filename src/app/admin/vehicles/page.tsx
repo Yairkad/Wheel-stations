@@ -45,8 +45,10 @@ interface ScrapeResult {
   bolt_spacing: number
   center_bore: number | null
   rim_sizes: string[]
+  rim_sizes_allowed: number[]
   tire_sizes: string[]
   source_url: string
+  source: string
 }
 
 const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
