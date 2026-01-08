@@ -13,26 +13,22 @@ export async function GET(request: NextRequest) {
     const model = searchParams.get('model')
     const year = searchParams.get('year')
 
-    let query = supabase
-      .from('vehicle_models')
-      .select('*')
+    // Helper function to build query with filters
+    const buildQuery = () => {
+      let q = supabase.from('vehicle_models').select('*')
 
-    // Filter by make (case insensitive)
-    if (make) {
-      query = query.or(`make.ilike.%${make}%,make_he.ilike.%${make}%`)
-    }
+      if (make) {
+        q = q.or(`make.ilike.%${make}%,make_he.ilike.%${make}%`)
+      }
+      if (model) {
+        q = q.or(`model.ilike.%${model}%,variants.ilike.%${model}%`)
+      }
+      if (year) {
+        const yearNum = parseInt(year)
+        q = q.lte('year_from', yearNum).or(`year_to.gte.${yearNum},year_to.is.null`)
+      }
 
-    // Filter by model (case insensitive) - search both English and Hebrew
-    if (model) {
-      query = query.or(`model.ilike.%${model}%,variants.ilike.%${model}%`)
-    }
-
-    // Filter by year range
-    if (year) {
-      const yearNum = parseInt(year)
-      query = query
-        .lte('year_from', yearNum)
-        .or(`year_to.gte.${yearNum},year_to.is.null`)
+      return q
     }
 
     // Supabase has a default limit of 1000, use pagination to get all records
@@ -41,7 +37,7 @@ export async function GET(request: NextRequest) {
     const pageSize = 1000
 
     while (true) {
-      const { data: pageData, error: pageError } = await query
+      const { data: pageData, error: pageError } = await buildQuery()
         .order('make', { ascending: true })
         .range(from, from + pageSize - 1)
 
@@ -58,15 +54,7 @@ export async function GET(request: NextRequest) {
       from += pageSize
     }
 
-    const data = allData
-    const error = null
-
-    if (error) {
-      console.error('Supabase error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ vehicles: data || [], models: data || [] })
+    return NextResponse.json({ vehicles: allData, models: allData })
 
   } catch (error: any) {
     console.error('API error:', error)
