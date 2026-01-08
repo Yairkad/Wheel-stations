@@ -77,6 +77,9 @@ function VehiclesAdminPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Scroll to top button
+  const [showScrollTop, setShowScrollTop] = useState(false)
+
   // Error report data from URL
   const [reportData, setReportData] = useState<{
     reportId: string | null
@@ -289,6 +292,19 @@ function VehiclesAdminPage() {
     } catch {
       setModelSuggestions([])
     }
+  }
+
+  // Scroll to top listener
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   useEffect(() => {
@@ -2206,6 +2222,17 @@ function VehiclesAdminPage() {
       <footer style={styles.footer}>
         <span style={styles.footerVersion}>גרסה {VERSION}</span>
       </footer>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={styles.scrollTopBtn}
+          title="חזור למעלה"
+        >
+          ⬆️
+        </button>
+      )}
     </div>
   )
 }
@@ -2870,5 +2897,24 @@ const styles: { [key: string]: React.CSSProperties } = {
   footerVersion: {
     color: '#64748b',
     fontSize: '0.8rem',
+  } as React.CSSProperties,
+  scrollTopBtn: {
+    position: 'fixed',
+    bottom: '30px',
+    left: '30px',
+    width: '50px',
+    height: '50px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    border: 'none',
+    color: 'white',
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    transition: 'transform 0.2s, box-shadow 0.2s',
   } as React.CSSProperties,
 }

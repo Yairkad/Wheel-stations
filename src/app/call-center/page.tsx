@@ -518,10 +518,10 @@ export default function CallCenterPage() {
                       </div>
                       <div style={styles.menuWrapper}>
                         <button
-                          style={styles.btnSettings}
+                          style={styles.btnMenuDots}
                           onClick={() => setOpenMenuId(openMenuId === op.id ? null : op.id)}
                         >
-                          ⚙️
+                          ⋮
                         </button>
                         {openMenuId === op.id && (
                           <div style={styles.dropdownMenu}>
@@ -1044,7 +1044,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   menuWrapper: {
     position: 'relative',
   },
-  btnSettings: {
+  btnMenuDots: {
     width: '36px',
     height: '36px',
     background: 'rgba(255,255,255,0.05)',
