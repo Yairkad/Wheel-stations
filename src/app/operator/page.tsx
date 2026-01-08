@@ -192,13 +192,14 @@ export default function OperatorPage() {
 
   // Check for saved session and fetch filter options
   useEffect(() => {
+    const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
     const saved = localStorage.getItem('operator_session')
     if (saved) {
       try {
         const data = JSON.parse(saved)
         // Check both old format (expiry) and new format from login page (timestamp)
         const hasValidOldFormat = data.expiry && new Date().getTime() < data.expiry
-        const hasValidNewFormat = data.timestamp && data.user
+        const hasValidNewFormat = data.timestamp && data.user && (Date.now() - data.timestamp < SESSION_EXPIRY_MS)
 
         if (hasValidOldFormat) {
           setOperator(data.operator)
@@ -393,6 +394,7 @@ export default function OperatorPage() {
     setIsManager(false)
     setVehicleInfo(null)
     setResults([])
+    window.location.href = '/login'
   }
 
   // Navigate back to manager dashboard (only for managers)
