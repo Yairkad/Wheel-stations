@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // PUT - Update a vehicle model (only updates provided fields)
 export async function PUT(
@@ -11,7 +11,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
     // Build update object with only provided fields
@@ -27,7 +27,9 @@ export async function PUT(
     if (body.bolt_spacing !== undefined) updateData.bolt_spacing = body.bolt_spacing
     if (body.center_bore !== undefined) updateData.center_bore = body.center_bore || null
     if (body.rim_size !== undefined) updateData.rim_size = body.rim_size?.trim() || null
+    if (body.rim_sizes_allowed !== undefined) updateData.rim_sizes_allowed = body.rim_sizes_allowed || null
     if (body.tire_size_front !== undefined) updateData.tire_size_front = body.tire_size_front?.trim() || null
+    if (body.source_url !== undefined) updateData.source_url = body.source_url?.trim() || null
 
     const { data, error } = await supabase
       .from('vehicle_models')
@@ -55,7 +57,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const { error } = await supabase
       .from('vehicle_models')
