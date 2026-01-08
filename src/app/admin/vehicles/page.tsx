@@ -155,7 +155,7 @@ function VehiclesAdminPage() {
 
   // Column filters state
   const [columnFilters, setColumnFilters] = useState<{
-    [key: string]: { type: 'empty' | 'equals' | 'greater' | 'less' | ''; value: string }
+    [key: string]: { type: 'empty' | 'equals' | 'greater' | 'less' | 'range' | 'has_value' | ''; value: string; valueTo?: string }
   }>({
     make: { type: '', value: '' },
     model: { type: '', value: '' },
@@ -164,6 +164,8 @@ function VehiclesAdminPage() {
     bolt_spacing: { type: '', value: '' },
     center_bore: { type: '', value: '' },
     rim_size: { type: '', value: '' },
+    rim_sizes_allowed: { type: '', value: '', valueTo: '' },
+    source_url: { type: '', value: '' },
   })
 
   // Get unique values from vehicles for filters
@@ -202,14 +204,30 @@ function VehiclesAdminPage() {
     if (!columnFilters.model.value || openFilter !== 'model') return []
     const searchVal = columnFilters.model.value.toLowerCase()
 
-    // Filter vehicles by selected make first (if a make is selected)
+    // Filter vehicles by selected make first (if a make is selected in column filter OR in general search)
     let relevantVehicles = vehicles
+
+    // Check column filter for make
     if (columnFilters.make.value) {
       const makeFilter = columnFilters.make.value.toLowerCase()
       relevantVehicles = vehicles.filter(v =>
         v.make.toLowerCase().includes(makeFilter) ||
         v.make_he?.includes(columnFilters.make.value)
       )
+    }
+    // Also check if searchQuery contains a make name
+    else if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase()
+      // Check if search matches any make
+      const matchingMakes = uniqueMakeValues.filter(m => m.toLowerCase().includes(searchLower))
+      const matchingMakesHe = uniqueMakeHeValues.filter(m => m.includes(searchQuery))
+
+      if (matchingMakes.length > 0 || matchingMakesHe.length > 0) {
+        relevantVehicles = vehicles.filter(v =>
+          v.make.toLowerCase().includes(searchLower) ||
+          v.make_he?.includes(searchQuery)
+        )
+      }
     }
 
     // Get unique models from relevant vehicles - use contains match for partial words
@@ -1030,6 +1048,8 @@ function VehiclesAdminPage() {
       bolt_spacing: { type: '', value: '' },
       center_bore: { type: '', value: '' },
       rim_size: { type: '', value: '' },
+      rim_sizes_allowed: { type: '', value: '', valueTo: '' },
+      source_url: { type: '', value: '' },
     })
     setSearchQuery('')
   }
@@ -1103,6 +1123,34 @@ function VehiclesAdminPage() {
       if (v.rim_size !== columnFilters.rim_size.value) return false
     } else if (columnFilters.rim_size.type === 'empty') {
       if (v.rim_size !== null && v.rim_size !== '') return false
+    }
+
+    // Rim sizes allowed filter - range filter (e.g., 14-16 means has any size between 14 and 16)
+    if (columnFilters.rim_sizes_allowed.type === 'range' && columnFilters.rim_sizes_allowed.value) {
+      const fromVal = parseInt(columnFilters.rim_sizes_allowed.value)
+      const toVal = columnFilters.rim_sizes_allowed.valueTo ? parseInt(columnFilters.rim_sizes_allowed.valueTo) : fromVal
+      if (!isNaN(fromVal)) {
+        if (!v.rim_sizes_allowed || v.rim_sizes_allowed.length === 0) return false
+        // Check if any allowed size falls within the range
+        const hasMatchingSize = v.rim_sizes_allowed.some(size => size >= fromVal && size <= toVal)
+        if (!hasMatchingSize) return false
+      }
+    } else if (columnFilters.rim_sizes_allowed.type === 'equals' && columnFilters.rim_sizes_allowed.value) {
+      const filterVal = parseInt(columnFilters.rim_sizes_allowed.value)
+      if (!isNaN(filterVal)) {
+        if (!v.rim_sizes_allowed || !v.rim_sizes_allowed.includes(filterVal)) return false
+      }
+    } else if (columnFilters.rim_sizes_allowed.type === 'empty') {
+      if (v.rim_sizes_allowed && v.rim_sizes_allowed.length > 0) return false
+    } else if (columnFilters.rim_sizes_allowed.type === 'has_value') {
+      if (!v.rim_sizes_allowed || v.rim_sizes_allowed.length === 0) return false
+    }
+
+    // Source URL filter - has value or empty
+    if (columnFilters.source_url.type === 'has_value') {
+      if (!v.source_url || v.source_url === '') return false
+    } else if (columnFilters.source_url.type === 'empty') {
+      if (v.source_url && v.source_url !== '') return false
     }
 
     return true
@@ -1560,10 +1608,47 @@ function VehiclesAdminPage() {
                     </div>
                   </th>
                   <th style={styles.thFilter}>
-                    {/* קוטר מתאים - no filter */}
+                    <div style={styles.filterWithSuggestions}>
+                      <div style={styles.rangeFilterWrapper}>
+                        <input
+                          type="number"
+                          style={{...styles.filterInputSmall, width: '45px'}}
+                          placeholder="מ-"
+                          value={columnFilters.rim_sizes_allowed.value}
+                          onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: {
+                            type: e.target.value ? 'range' : '',
+                            value: e.target.value,
+                            valueTo: columnFilters.rim_sizes_allowed.valueTo || ''
+                          }})}
+                        />
+                        <span style={{color: '#64748b'}}>-</span>
+                        <input
+                          type="number"
+                          style={{...styles.filterInputSmall, width: '45px'}}
+                          placeholder="עד"
+                          value={columnFilters.rim_sizes_allowed.valueTo || ''}
+                          onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: {
+                            type: columnFilters.rim_sizes_allowed.value ? 'range' : '',
+                            value: columnFilters.rim_sizes_allowed.value,
+                            valueTo: e.target.value
+                          }})}
+                        />
+                        {(columnFilters.rim_sizes_allowed.value || columnFilters.rim_sizes_allowed.valueTo) && (
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}>✕</button>
+                        )}
+                      </div>
+                    </div>
                   </th>
                   <th style={styles.thFilter}>
-                    {/* קישור - no filter */}
+                    <select
+                      style={styles.filterSelect}
+                      value={columnFilters.source_url.type}
+                      onChange={e => setColumnFilters({...columnFilters, source_url: { type: e.target.value as 'empty' | 'has_value' | '', value: '' }})}
+                    >
+                      <option value="">הכל</option>
+                      <option value="has_value">עם קישור</option>
+                      <option value="empty">ללא קישור</option>
+                    </select>
                   </th>
                   <th style={styles.thFilter}>
                     {hasActiveFilters() && (
@@ -2741,9 +2826,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#1e293b',
     border: '1px solid #334155',
     borderRadius: '6px',
-    color: '#94a3b8',
-    fontSize: '0.8rem',
-    marginBottom: '4px',
+    color: 'white',
+    fontSize: '0.75rem',
+    cursor: 'pointer',
   },
   filterInput: {
     width: '100%',
@@ -2754,6 +2839,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     fontSize: '0.8rem',
     boxSizing: 'border-box',
+  },
+  filterInputSmall: {
+    padding: '4px 6px',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '4px',
+    color: 'white',
+    fontSize: '0.75rem',
+    boxSizing: 'border-box' as const,
+  },
+  rangeFilterWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
   },
   // Tabs for scrape modal
   tabsContainer: {
