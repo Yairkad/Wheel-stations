@@ -107,6 +107,7 @@ interface WheelForm {
   rim_size: string
   bolt_count: string
   bolt_spacing: string
+  center_bore: string
   category: string
   is_donut: boolean
   notes: string
@@ -166,6 +167,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     rim_size: '',
     bolt_count: '4',
     bolt_spacing: '',
+    center_bore: '',
     category: '',
     is_donut: false,
     notes: ''
@@ -906,6 +908,7 @@ ${signFormUrl}
           rim_size: wheelForm.rim_size,
           bolt_count: parseInt(wheelForm.bolt_count),
           bolt_spacing: parseFloat(wheelForm.bolt_spacing),
+          center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
@@ -925,6 +928,7 @@ ${signFormUrl}
         rim_size: '',
         bolt_count: '4',
         bolt_spacing: '',
+        center_bore: '',
         category: '',
         is_donut: false,
         notes: ''
@@ -962,6 +966,7 @@ ${signFormUrl}
           rim_size: wheelForm.rim_size,
           bolt_count: parseInt(wheelForm.bolt_count),
           bolt_spacing: parseFloat(wheelForm.bolt_spacing),
+          center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
@@ -982,6 +987,7 @@ ${signFormUrl}
         rim_size: '',
         bolt_count: '4',
         bolt_spacing: '',
+        center_bore: '',
         category: '',
         is_donut: false,
         notes: ''
@@ -2348,6 +2354,7 @@ ${formUrl}`
                                 rim_size: wheel.rim_size,
                                 bolt_count: String(wheel.bolt_count),
                                 bolt_spacing: String(wheel.bolt_spacing),
+                                center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
                                 category: wheel.category || '',
                                 is_donut: wheel.is_donut,
                                 notes: wheel.notes || ''
@@ -3067,6 +3074,16 @@ ${formUrl}`
                   style={{...styles.input, ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})}}
                 />
               </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>CB (קוטר מרכז)</label>
+                <input
+                  type="text"
+                  placeholder="54.1, 60.1, 66.6"
+                  value={wheelForm.center_bore}
+                  onChange={e => setWheelForm({...wheelForm, center_bore: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>קטגוריה</label>
@@ -3185,6 +3202,16 @@ ${formUrl}`
                   value={wheelForm.bolt_spacing}
                   onChange={e => { setWheelForm({...wheelForm, bolt_spacing: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing')) }}
                   style={{...styles.input, ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})}}
+                />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>CB (קוטר מרכז)</label>
+                <input
+                  type="text"
+                  placeholder="54.1, 60.1, 66.6"
+                  value={wheelForm.center_bore}
+                  onChange={e => setWheelForm({...wheelForm, center_bore: e.target.value})}
+                  style={styles.input}
                 />
               </div>
             </div>

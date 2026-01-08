@@ -239,7 +239,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                 {/* My Station - show if user has a station */}
                 {userSession.stationId && (
                   <>
-                    {/* Go to my station - only show if not already there */}
+                    {/* Go to my station - only show if not on own station */}
                     {!isOwnStation && (
                       <Link
                         href={`/${userSession.stationId}`}
@@ -251,107 +251,111 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                       </Link>
                     )}
 
-                    {/* Station management actions - always show for logged in users */}
-                    <Link
-                      href={`/search?from=${userSession.stationId}`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>🔍</span>
-                      <span>חיפוש רכב</span>
-                    </Link>
-                    <Link
-                      href={`/${userSession.stationId}?action=add`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>➕</span>
-                      <span>הוסף גלגל</span>
-                    </Link>
-                    <Link
-                      href={`/${userSession.stationId}?action=excel`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>📊</span>
-                      <span>יבוא/יצוא Excel</span>
-                    </Link>
-                    <Link
-                      href={`/${userSession.stationId}?action=settings`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>⚙️</span>
-                      <span>הגדרות תחנה</span>
-                    </Link>
-                    <Link
-                      href={`/${userSession.stationId}?action=notifications`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>🔔</span>
-                      <span>הפעל התראות</span>
-                    </Link>
+                    {/* Station management actions - only show on own station or search/home pages */}
+                    {(isOwnStation || isOnStationsPage || isOnSearchPage) && (
+                      <>
+                        <Link
+                          href={`/search?from=${userSession.stationId}`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>🔍</span>
+                          <span>חיפוש רכב</span>
+                        </Link>
+                        <Link
+                          href={`/${userSession.stationId}?action=add`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>➕</span>
+                          <span>הוסף גלגל</span>
+                        </Link>
+                        <Link
+                          href={`/${userSession.stationId}?action=excel`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>📊</span>
+                          <span>יבוא/יצוא Excel</span>
+                        </Link>
+                        <Link
+                          href={`/${userSession.stationId}?action=settings`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>⚙️</span>
+                          <span>הגדרות תחנה</span>
+                        </Link>
+                        <Link
+                          href={`/${userSession.stationId}?action=notifications`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>🔔</span>
+                          <span>הפעל התראות</span>
+                        </Link>
 
-                    {/* Form link submenu */}
-                    <div style={styles.submenuContainer}>
-                      <button
-                        style={{...styles.dropdownItem, ...styles.submenuTrigger}}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setShowFormSubmenu(!showFormSubmenu)
-                        }}
-                      >
-                        <span>🔗</span>
-                        <span>קישור לטופס השאלה</span>
-                        <span style={styles.submenuArrow}>{showFormSubmenu ? '▲' : '▼'}</span>
-                      </button>
-                      {showFormSubmenu && (
-                        <div style={styles.submenu}>
-                          <Link
-                            href={`/sign/${userSession.stationId}`}
-                            style={styles.submenuItem}
-                            onClick={() => {
-                              setShowProfileMenu(false)
-                              setShowFormSubmenu(false)
+                        {/* Form link submenu */}
+                        <div style={styles.submenuContainer}>
+                          <button
+                            style={{...styles.dropdownItem, ...styles.submenuTrigger}}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShowFormSubmenu(!showFormSubmenu)
                             }}
                           >
-                            <span>📝</span>
-                            <span>פתח טופס</span>
-                          </Link>
-                          <button
-                            style={styles.submenuItem}
-                            onClick={handleCopyFormLink}
-                          >
-                            <span>📋</span>
-                            <span>העתק קישור</span>
+                            <span>🔗</span>
+                            <span>קישור לטופס השאלה</span>
+                            <span style={styles.submenuArrow}>{showFormSubmenu ? '▲' : '▼'}</span>
                           </button>
-                          <button
-                            style={styles.submenuItem}
-                            onClick={handleWhatsAppForm}
-                          >
-                            <span>💬</span>
-                            <span>שלח בוואטסאפ</span>
-                          </button>
+                          {showFormSubmenu && (
+                            <div style={styles.submenu}>
+                              <Link
+                                href={`/sign/${userSession.stationId}`}
+                                style={styles.submenuItem}
+                                onClick={() => {
+                                  setShowProfileMenu(false)
+                                  setShowFormSubmenu(false)
+                                }}
+                              >
+                                <span>📝</span>
+                                <span>פתח טופס</span>
+                              </Link>
+                              <button
+                                style={styles.submenuItem}
+                                onClick={handleCopyFormLink}
+                              >
+                                <span>📋</span>
+                                <span>העתק קישור</span>
+                              </button>
+                              <button
+                                style={styles.submenuItem}
+                                onClick={handleWhatsAppForm}
+                              >
+                                <span>💬</span>
+                                <span>שלח בוואטסאפ</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+
+                        <div style={styles.dropdownDivider} />
+
+                        {/* Account actions */}
+                        <Link
+                          href={`/${userSession.stationId}?action=password`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>🔑</span>
+                          <span>שינוי סיסמא</span>
+                        </Link>
+                      </>
+                    )}
                   </>
                 )}
 
-                <div style={styles.dropdownDivider} />
-
-                {/* Account actions */}
-                {userSession.stationId && (
-                  <Link
-                    href={`/${userSession.stationId}?action=password`}
-                    style={styles.dropdownItem}
-                    onClick={() => setShowProfileMenu(false)}
-                  >
-                    <span>🔑</span>
-                    <span>שינוי סיסמא</span>
-                  </Link>
-                )}
+                {/* Always show guide and logout */}
                 <Link
                   href="/guide?tab=manager"
                   style={styles.dropdownItem}

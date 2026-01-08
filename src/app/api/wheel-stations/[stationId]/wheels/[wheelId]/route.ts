@@ -92,7 +92,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { wheel_number, rim_size, bolt_count, bolt_spacing, category, is_donut, notes, manager_phone, manager_password } = body
+    const { wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, category, is_donut, notes, manager_phone, manager_password } = body
 
     // Verify manager credentials
     if (!manager_phone || !manager_password) {
@@ -111,6 +111,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         rim_size,
         bolt_count,
         bolt_spacing,
+        center_bore: center_bore || null,
         category,
         is_donut,
         notes
