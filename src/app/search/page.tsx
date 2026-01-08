@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -56,7 +56,7 @@ interface FilterOptions {
   offsets: number[]
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams()
   const fromStationId = searchParams.get('from')
 
@@ -2227,6 +2227,14 @@ export default function SearchPage() {
       )}
     </div>
     </>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #374151 0%, #4b5563 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>טוען...</div>}>
+      <SearchPageContent />
+    </Suspense>
   )
 }
 
