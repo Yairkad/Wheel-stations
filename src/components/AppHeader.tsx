@@ -36,7 +36,16 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
       try {
         const session = JSON.parse(localStorage.getItem(sessionKeys[0]) || '{}')
         if (session.manager) {
-          setUserSession(session)
+          // Make sure stationId is set correctly from the session key or manager data
+          const stationIdFromKey = sessionKeys[0].replace('station_session_', '')
+          setUserSession({
+            ...session,
+            stationId: session.stationId || session.manager.station_id || stationIdFromKey,
+            manager: {
+              ...session.manager,
+              station_id: session.manager.station_id || stationIdFromKey
+            }
+          })
         }
       } catch {
         // Invalid session
@@ -92,7 +101,8 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
     router.push('/login')
   }
 
-  const isOwnStation = userSession?.stationId === currentStationId
+  // Check if current page is user's own station
+  const isOwnStation = currentStationId && userSession?.stationId === currentStationId
   const isOnStationsPage = pathname === '/' || pathname === '/stations'
   const isOnSearchPage = pathname === '/search'
 
@@ -124,73 +134,131 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
 
   return (
     <>
-      <header style={styles.header}>
+      <style>{`
+        @media (max-width: 768px) {
+          .app-header {
+            padding: 10px 12px !important;
+            gap: 8px !important;
+          }
+          .app-header-right {
+            gap: 6px !important;
+          }
+          .app-header-btn {
+            padding: 6px 10px !important;
+            font-size: 12px !important;
+          }
+          .app-header-btn span:last-child {
+            display: none !important;
+          }
+          .app-header-btn span:first-child {
+            font-size: 16px !important;
+          }
+          .station-indicator {
+            display: none !important;
+          }
+          .profile-name {
+            font-size: 12px !important;
+          }
+          .profile-role {
+            display: none !important;
+          }
+          .profile-avatar {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 12px !important;
+          }
+          .profile-arrow {
+            display: none !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .app-header-btn {
+            padding: 6px 8px !important;
+          }
+          .profile-info {
+            display: none !important;
+          }
+        }
+      `}</style>
+      <header className="app-header" style={styles.header}>
+        {/* Right side - Profile (RTL) */}
         <div style={styles.headerRight}>
-          {/* Search Button */}
-          <Link href="/search" style={{...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {})}}>
-            <span>🔍</span>
-            <span>חיפוש רכב</span>
-          </Link>
-
-          {/* All Stations Button */}
-          <Link href="/" style={{...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {})}}>
-            <span>📍</span>
-            <span>כל התחנות</span>
-          </Link>
-
-          {/* Station Indicator */}
-          {currentStationId && (
-            <div style={{...styles.stationIndicator, ...(isOwnStation ? {} : styles.stationIndicatorOther)}}>
-              <span>{isOwnStation ? '🏠' : '👁️'}</span>
-              <span>{isOwnStation ? 'התחנה שלי' : 'צפייה בתחנה אחרת'}</span>
-            </div>
-          )}
-        </div>
-
-        <div style={styles.headerLeft}>
           {/* Profile Dropdown */}
           <div className="profile-dropdown" style={styles.profileDropdown}>
             <button
               style={styles.profileBtn}
               onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
-              <span style={styles.profileArrow}>▼</span>
-              <div style={styles.profileInfo}>
-                <div style={styles.profileName}>{userSession.manager.full_name}</div>
-                <div style={styles.profileRole}>{getRoleDisplay(userSession.manager.role)}</div>
-              </div>
-              <div style={styles.profileAvatar}>
+              <div className="profile-avatar" style={styles.profileAvatar}>
                 {getInitials(userSession.manager.full_name)}
               </div>
+              <div className="profile-info" style={styles.profileInfo}>
+                <div className="profile-name" style={styles.profileName}>{userSession.manager.full_name}</div>
+                <div className="profile-role" style={styles.profileRole}>{getRoleDisplay(userSession.manager.role)}</div>
+              </div>
+              <span className="profile-arrow" style={styles.profileArrow}>▼</span>
             </button>
 
             {showProfileMenu && (
               <div style={styles.dropdownMenu}>
-                {/* My Station - show if not on own station */}
-                {!isOwnStation && userSession.stationId && (
-                  <Link
-                    href={`/${userSession.stationId}`}
-                    style={styles.dropdownItem}
-                    onClick={() => setShowProfileMenu(false)}
-                  >
-                    <span>🏠</span>
-                    <span>התחנה שלי</span>
-                  </Link>
-                )}
+                {/* User info section */}
+                <div style={styles.menuUserInfo}>
+                  <div style={styles.menuUserName}>{userSession.manager.full_name}</div>
+                  <div style={styles.menuUserPhone}>{userSession.manager.phone}</div>
+                  {userSession.stationName && (
+                    <div style={styles.menuStationName}>{userSession.stationName}</div>
+                  )}
+                </div>
 
-                {/* Station actions - only on own station */}
-                {isOwnStation && (
+                <div style={styles.dropdownDivider} />
+
+                {/* My Station - show if user has a station */}
+                {userSession.stationId && (
                   <>
+                    {/* Go to my station - only show if not already there */}
+                    {!isOwnStation && (
+                      <Link
+                        href={`/${userSession.stationId}`}
+                        style={styles.dropdownItem}
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <span>🏠</span>
+                        <span>התחנה שלי</span>
+                      </Link>
+                    )}
+
+                    {/* Station management actions - always available for manager/admin */}
+                    {(userSession.manager.role === 'manager' || userSession.manager.role === 'admin') && (
+                      <>
+                        <Link
+                          href={`/${userSession.stationId}/add`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>➕</span>
+                          <span>הוסף גלגל</span>
+                        </Link>
+                        <Link
+                          href={`/${userSession.stationId}/excel`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>📊</span>
+                          <span>יבוא/יצוא Excel</span>
+                        </Link>
+                        <Link
+                          href={`/${userSession.stationId}/settings`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>⚙️</span>
+                          <span>הגדרות תחנה</span>
+                        </Link>
+                      </>
+                    )}
+
                     <Link
-                      href={`/${currentStationId}/add`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>➕</span>
-                      <span>הוספת גלגל</span>
-                    </Link>
-                    <Link
-                      href={`/sign/${currentStationId}`}
+                      href={`/sign/${userSession.stationId}`}
                       style={styles.dropdownItem}
                       onClick={() => setShowProfileMenu(false)}
                     >
@@ -198,23 +266,35 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                       <span>טופס השאלה</span>
                     </Link>
                     <Link
-                      href={`/${currentStationId}/history`}
+                      href={`/${userSession.stationId}/history`}
                       style={styles.dropdownItem}
                       onClick={() => setShowProfileMenu(false)}
                     >
                       <span>📋</span>
                       <span>היסטוריית התחנה</span>
                     </Link>
-                    <Link
-                      href={`/${currentStationId}/settings`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>⚙️</span>
-                      <span>הגדרות תחנה</span>
-                    </Link>
                   </>
                 )}
+
+                <div style={styles.dropdownDivider} />
+
+                {/* Account actions */}
+                <Link
+                  href="/change-password"
+                  style={styles.dropdownItem}
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  <span>🔑</span>
+                  <span>שינוי סיסמא</span>
+                </Link>
+                <Link
+                  href="/guide?tab=manager"
+                  style={styles.dropdownItem}
+                  onClick={() => setShowProfileMenu(false)}
+                >
+                  <span>📖</span>
+                  <span>מדריך למנהלים</span>
+                </Link>
 
                 <div style={styles.dropdownDivider} />
 
@@ -228,6 +308,29 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Left side - Buttons (RTL) */}
+        <div className="app-header-right" style={styles.headerLeft}>
+          {/* Station Indicator */}
+          {currentStationId && (
+            <div className="station-indicator" style={{...styles.stationIndicator, ...(isOwnStation ? styles.stationIndicatorOwn : styles.stationIndicatorOther)}}>
+              <span>{isOwnStation ? '🏠' : '👁️'}</span>
+              <span>{isOwnStation ? 'התחנה שלי' : 'צפייה בתחנה אחרת'}</span>
+            </div>
+          )}
+
+          {/* All Stations Button */}
+          <Link href="/" className="app-header-btn" style={{...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {})}}>
+            <span>📍</span>
+            <span>כל התחנות</span>
+          </Link>
+
+          {/* Search Button */}
+          <Link href="/search" className="app-header-btn" style={{...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {})}}>
+            <span>🔍</span>
+            <span>חיפוש רכב</span>
+          </Link>
         </div>
       </header>
       {/* Spacer to push content below fixed header */}
@@ -250,6 +353,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '15px',
+    direction: 'rtl',
   },
   headerSpacer: {
     height: '70px',
@@ -291,16 +395,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    background: 'rgba(34, 197, 94, 0.1)',
-    border: '1px solid rgba(34, 197, 94, 0.3)',
     padding: '6px 12px',
     borderRadius: '20px',
     fontSize: '13px',
+  },
+  stationIndicatorOwn: {
+    background: 'rgba(34, 197, 94, 0.1)',
+    border: '1px solid rgba(34, 197, 94, 0.3)',
     color: '#22c55a',
   },
   stationIndicatorOther: {
     background: 'rgba(251, 191, 36, 0.1)',
-    borderColor: 'rgba(251, 191, 36, 0.3)',
+    border: '1px solid rgba(251, 191, 36, 0.3)',
     color: '#fbbf24',
   },
   profileDropdown: {
@@ -342,13 +448,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   profileArrow: {
     color: '#64748b',
-    marginRight: '5px',
     fontSize: '10px',
   },
   dropdownMenu: {
     position: 'absolute',
     top: 'calc(100% + 8px)',
-    left: 0,
+    right: 0,
     background: '#1e293b',
     border: '1px solid #334155',
     borderRadius: '10px',
@@ -380,5 +485,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '1px',
     background: '#334155',
     margin: '4px 0',
+  },
+  menuUserInfo: {
+    padding: '16px',
+    background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
+    textAlign: 'center' as const,
+  },
+  menuUserName: {
+    fontWeight: 700,
+    fontSize: '16px',
+    color: 'white',
+    marginBottom: '4px',
+  },
+  menuUserPhone: {
+    fontSize: '13px',
+    color: '#94a3b8',
+    marginBottom: '4px',
+  },
+  menuStationName: {
+    fontSize: '12px',
+    color: '#60a5fa',
+    fontWeight: 500,
   },
 }

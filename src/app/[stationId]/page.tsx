@@ -1478,184 +1478,28 @@ ${formUrl}`
           }
         }
       `}</style>
-      {/* Sticky Header Section */}
-      <div style={styles.stickyHeader} className="sticky-header">
-        <header style={styles.header}>
-          <div style={styles.headerTop} className="station-header-top">
-            {/* Right side - Hamburger menu for manager or login button */}
-            {isManager ? (
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept=".xlsx,.xls"
-                  style={{ display: 'none' }}
-                  onChange={handleExcelUpload}
-                />
-                <button
-                  style={styles.hamburgerBtn}
-                  onClick={() => setShowManagerMenu(!showManagerMenu)}
-                >
-                  <span style={styles.hamburgerIcon}>☰</span>
-                  <span style={styles.managerName}>{currentManager?.full_name}</span>
-                </button>
-
-                {/* Manager dropdown menu */}
-                {showManagerMenu && (
-                  <div style={styles.managerDropdown} onClick={e => e.stopPropagation()}>
-                    {/* User info section */}
-                    <div style={styles.menuUserInfo}>
-                      <div style={styles.menuUserName}>{currentManager?.full_name}</div>
-                      <div style={styles.menuUserPhone}>{currentManager?.phone}</div>
-                      <div style={styles.menuStationNameSmall}>{station.name}</div>
-                    </div>
-
-                    {/* Divider */}
-                    <div style={styles.menuDivider} />
-
-                    {/* Actions */}
-                    <button
-                      style={styles.menuItem}
-                      onClick={() => { setShowAddWheelModal(true); setShowManagerMenu(false) }}
-                    >
-                      ➕ הוסף גלגל
-                    </button>
-                    <button
-                      style={styles.menuItem}
-                      onClick={() => { setShowExcelModal(true); setShowManagerMenu(false) }}
-                    >
-                      📊 יבוא/יצוא Excel
-                    </button>
-                    <button
-                      style={styles.menuItem}
-                      onClick={() => {
-                        setEditAddress(station.address || '')
-                        setEditDepositAmount(String(station.deposit_amount || 200))
-                        setEditPaymentMethods(station.payment_methods || { cash: true, id_deposit: true, license_deposit: true })
-                        setNotificationEmails(station.notification_emails?.length ? [...station.notification_emails, ...Array(2 - station.notification_emails.length).fill('')].slice(0, 2) : ['', ''])
-                        setShowEditDetailsModal(true)
-                        setShowManagerMenu(false)
-                      }}
-                    >
-                      ⚙️ הגדרות תחנה
-                    </button>
-                    {/* Push Notifications toggle */}
-                    {pushSupported && (
-                      <button
-                        style={{
-                          ...styles.menuItem,
-                          color: pushEnabled ? '#ef4444' : '#22c55e'
-                        }}
-                        onClick={() => { handleTogglePush(); setShowManagerMenu(false) }}
-                        disabled={enablingPush}
-                      >
-                        {enablingPush ? '⏳ מעדכן...' : pushEnabled ? '🔕 כבה התראות' : '🔔 הפעל התראות'}
-                      </button>
-                    )}
-
-                    <button
-                      style={styles.menuItem}
-                      onClick={() => {
-                        setPasswordForm({ current: '', new: '', confirm: '' })
-                        setShowChangePasswordModal(true)
-                        setShowManagerMenu(false)
-                      }}
-                    >
-                      🔑 שינוי סיסמא
-                    </button>
-                    <a
-                      href="/guide?tab=manager"
-                      style={{ ...styles.menuItem, textDecoration: 'none' }}
-                      onClick={() => setShowManagerMenu(false)}
-                    >
-                      📖 מדריך למנהלים
-                    </a>
-
-                    {/* Divider */}
-                    <div style={styles.menuDivider} />
-
-                    <button
-                      style={{ ...styles.menuItem, color: '#ef4444' }}
-                      onClick={() => { handleLogout(); setShowManagerMenu(false) }}
-                    >
-                      🚪 יציאה
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : null}
-
-            {/* Left side - Back button and Link share */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {/* Share link button - only for managers */}
-              {isManager && (
-                <div style={{ position: 'relative' }}>
-                  <button
-                    style={styles.linkShareBtn}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowLinkMenu(!showLinkMenu)
-                    }}
-                    title="שתף קישור לטופס"
-                  >
-                    🔗
-                  </button>
-                  {showLinkMenu && (
-                    <div style={styles.linkShareDropdown} onClick={e => e.stopPropagation()}>
-                      <div style={styles.linkShareHeader}>
-                        <span style={styles.linkShareTitle}>📋 קישור לטופס השאלה</span>
-                      </div>
-                      <button
-                        style={styles.linkShareItem}
-                        onClick={() => {
-                          navigator.clipboard.writeText(`${window.location.origin}/sign/${stationId}`)
-                          toast.success('הקישור הועתק!')
-                          setShowLinkMenu(false)
-                        }}
-                      >
-                        <span style={styles.linkShareIcon}>📋</span>
-                        העתק קישור
-                      </button>
-                      <button
-                        style={styles.linkShareItem}
-                        onClick={() => {
-                          const signFormUrl = `${window.location.origin}/sign/${stationId}`
-                          const message = `שלום, להשאלת גלגל נא למלא את הטופס הבא:\n${signFormUrl}`
-                          window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
-                          setShowLinkMenu(false)
-                        }}
-                      >
-                        <span style={styles.linkShareIcon}>💬</span>
-                        שלח בוואטסאפ
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-              <Link href="/" style={styles.backBtnStyled} title="כל התחנות">🏪 כל התחנות</Link>
+      {/* Station Info Section */}
+      <div style={styles.stationInfoSection}>
+        <div style={styles.stationInfoHeader}>
+          <h1 style={styles.stationTitle} className="station-header-title">
+            {station.name}
+          </h1>
+          {station.district && (
+            <div style={{
+              padding: '3px 10px',
+              border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              color: getDistrictColor(station.district, districts),
+              backgroundColor: `${getDistrictColor(station.district, districts)}15`,
+              whiteSpace: 'nowrap',
+            }}>
+              {getDistrictName(station.district, districts)}
             </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
-            <h1 style={{ ...styles.title, margin: 0, textAlign: 'right' }} className="station-header-title">
-              {station.name}
-            </h1>
-            {station.district && (
-              <div style={{
-                padding: '3px 10px',
-                border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                color: getDistrictColor(station.district, districts),
-                backgroundColor: `${getDistrictColor(station.district, districts)}15`,
-                whiteSpace: 'nowrap',
-              }}>
-                {getDistrictName(station.district, districts)}
-              </div>
-            )}
-          </div>
-          {station.address && <p style={styles.address}>📍 {station.address}</p>}
-        </header>
+          )}
+        </div>
+        {station.address && <p style={styles.stationAddress}>📍 {station.address}</p>}
 
         {/* Tab Navigation - only show tracking tab for managers */}
         {isManager && (
@@ -3942,6 +3786,31 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+  },
+  stationInfoSection: {
+    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+    borderRadius: '12px',
+    padding: '16px 20px',
+    marginBottom: '20px',
+    border: '1px solid #334155',
+  },
+  stationInfoHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '12px',
+    flexWrap: 'wrap' as const,
+  },
+  stationTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    margin: 0,
+    color: 'white',
+  },
+  stationAddress: {
+    fontSize: '0.9rem',
+    color: '#94a3b8',
+    margin: '8px 0 0 0',
   },
   stickyHeader: {
     position: 'sticky',
