@@ -234,6 +234,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
     if (!address.trim()) errors.push('address')
     if (!selectedWheelId) errors.push('wheelId')
     if (!vehicleModel.trim()) errors.push('vehicleModel')
+    if (!licensePlate.trim()) errors.push('licensePlate')
     if (!depositType) errors.push('depositType')
     if (!hasSigned) errors.push('signature')
     if (!agreedTerms) errors.push('terms')
@@ -547,19 +548,16 @@ function SignFormContent({ stationId }: { stationId: string }) {
         </div>
 
         <div style={styles.formGroup}>
-          <label style={styles.label}>מספר רכב (לא חובה)</label>
+          <label style={styles.label}>מספר רכב <span style={styles.required}>*</span></label>
           <input
             type="text"
             value={licensePlate}
             onChange={e => setLicensePlate(e.target.value.replace(/[^0-9-]/g, ''))}
             placeholder="12-345-67"
-            style={styles.input}
+            style={getInputStyle('licensePlate')}
             maxLength={10}
             inputMode="numeric"
           />
-          <small style={{ color: '#9ca3af', fontSize: '12px', marginTop: '4px' }}>
-            הזנת מספר הרכב עוזרת לנו לשפר את ההתאמות למידות גלגלים
-          </small>
         </div>
 
         {/* Deposit Section */}

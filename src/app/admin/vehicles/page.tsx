@@ -18,7 +18,9 @@ interface VehicleModel {
   bolt_spacing: number
   center_bore: number | null
   rim_size: string | null
+  rim_sizes_allowed: number[] | null
   tire_size_front: string | null
+  source_url: string | null
   created_at: string
   added_by: string | null
 }
@@ -34,7 +36,9 @@ interface EditForm {
   bolt_spacing: string
   center_bore: string
   rim_size: string
+  rim_sizes_allowed: string
   tire_size_front: string
+  source_url: string
 }
 
 interface ScrapeResult {
@@ -134,7 +138,9 @@ function VehiclesAdminPage() {
     bolt_spacing: '',
     center_bore: '',
     rim_size: '',
-    tire_size_front: ''
+    rim_sizes_allowed: '',
+    tire_size_front: '',
+    source_url: ''
   })
   const [editLoading, setEditLoading] = useState(false)
 
@@ -192,13 +198,28 @@ function VehiclesAdminPage() {
   const getModelSuggestionsForFilter = () => {
     if (!columnFilters.model.value || openFilter !== 'model') return []
     const searchVal = columnFilters.model.value.toLowerCase()
-    // Search both English and Hebrew model names
-    const englishSuggestions = uniqueModelValues.filter(m =>
-      m.toLowerCase().startsWith(searchVal) &&
+
+    // Filter vehicles by selected make first (if a make is selected)
+    let relevantVehicles = vehicles
+    if (columnFilters.make.value) {
+      const makeFilter = columnFilters.make.value.toLowerCase()
+      relevantVehicles = vehicles.filter(v =>
+        v.make.toLowerCase().includes(makeFilter) ||
+        v.make_he?.includes(columnFilters.make.value)
+      )
+    }
+
+    // Get unique models from relevant vehicles - use contains match for partial words
+    const relevantModels = [...new Set(relevantVehicles.map(v => v.model))]
+    const relevantVariants = [...new Set(relevantVehicles.filter(v => v.variants).map(v => v.variants!))]
+
+    // Search with partial matching (includes instead of startsWith)
+    const englishSuggestions = relevantModels.filter(m =>
+      m.toLowerCase().includes(searchVal) &&
       m.toLowerCase() !== searchVal
     )
-    const hebrewSuggestions = uniqueVariantsValues.filter(m =>
-      m.startsWith(columnFilters.model.value) &&
+    const hebrewSuggestions = relevantVariants.filter(m =>
+      m.includes(columnFilters.model.value) &&
       m !== columnFilters.model.value
     )
     // Combine and dedupe
@@ -811,7 +832,9 @@ function VehiclesAdminPage() {
       bolt_spacing: vehicle.bolt_spacing?.toString() || '',
       center_bore: vehicle.center_bore?.toString() || '',
       rim_size: vehicle.rim_size || '',
-      tire_size_front: vehicle.tire_size_front || ''
+      rim_sizes_allowed: vehicle.rim_sizes_allowed?.join(', ') || '',
+      tire_size_front: vehicle.tire_size_front || '',
+      source_url: vehicle.source_url || ''
     })
     setEditingVehicle(vehicle)
   }
@@ -835,7 +858,9 @@ function VehiclesAdminPage() {
           year_to: editForm.year_to ? parseInt(editForm.year_to) : null,
           bolt_count: parseInt(editForm.bolt_count),
           bolt_spacing: parseFloat(editForm.bolt_spacing),
-          center_bore: editForm.center_bore ? parseFloat(editForm.center_bore) : null
+          center_bore: editForm.center_bore ? parseFloat(editForm.center_bore) : null,
+          rim_sizes_allowed: editForm.rim_sizes_allowed ? editForm.rim_sizes_allowed.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : null,
+          source_url: editForm.source_url || null
         })
       })
 
@@ -918,6 +943,34 @@ function VehiclesAdminPage() {
     toast.success(`יוצאו ${filteredVehicles.length} רשומות`)
   }
 
+  // Fuzzy matching helper - normalizes Hebrew text for comparison
+  // Handles common variations like מאזדה/מזדה, טויוטה/טויטה, etc.
+  const normalizeHebrew = (text: string): string => {
+    if (!text) return ''
+    let normalized = text.toLowerCase()
+    // Remove common vowel letters that cause variations
+    // Alef (א) variations
+    normalized = normalized.replace(/א/g, '')
+    // Vav (ו) as a vowel
+    normalized = normalized.replace(/ו+/g, 'ו')
+    // Yod (י) as a vowel
+    normalized = normalized.replace(/י+/g, 'י')
+    // Ayin (ע) - sometimes dropped
+    // normalized = normalized.replace(/ע/g, '')
+    // He (ה) at end of words
+    normalized = normalized.replace(/ה$/g, '')
+    return normalized.trim()
+  }
+
+  // Check if two strings match with fuzzy Hebrew matching
+  const fuzzyMatch = (text: string, query: string): boolean => {
+    if (!text || !query) return false
+    const normalizedText = normalizeHebrew(text)
+    const normalizedQuery = normalizeHebrew(query)
+    // Check if normalized query is contained in normalized text
+    return normalizedText.includes(normalizedQuery) || text.toLowerCase().includes(query.toLowerCase())
+  }
+
   // Apply column filter to a value
   const applyColumnFilter = (value: any, filter: { type: string; value: string }): boolean => {
     if (!filter.type) return true
@@ -967,34 +1020,46 @@ function VehiclesAdminPage() {
 
   // Filter vehicles
   const filteredVehicles = vehicles.filter(v => {
-    // Search query filter - supports Hebrew and English for both make and model
+    // Search query filter - supports Hebrew and English with fuzzy matching
     if (searchQuery) {
       const q = searchQuery.toLowerCase()
       const matchesSearch = (
         v.make.toLowerCase().includes(q) ||
         v.make_he?.toLowerCase().includes(q) ||
         v.model.toLowerCase().includes(q) ||
-        v.variants?.toLowerCase().includes(q)
+        v.variants?.toLowerCase().includes(q) ||
+        // Fuzzy Hebrew matching
+        fuzzyMatch(v.make_he || '', searchQuery) ||
+        fuzzyMatch(v.variants || '', searchQuery)
       )
       if (!matchesSearch) return false
     }
 
     // Column filters
-    // Make filter - starts with (prefix match), supports Hebrew and English
+    // Make filter - with fuzzy Hebrew matching
     if (columnFilters.make.type === 'equals' && columnFilters.make.value) {
       const filterVal = columnFilters.make.value.toLowerCase()
       const matchesEnglish = v.make.toLowerCase().startsWith(filterVal)
-      const matchesHebrew = v.make_he?.startsWith(columnFilters.make.value)
-      if (!matchesEnglish && !matchesHebrew) return false
+      const matchesHebrewExact = v.make_he?.startsWith(columnFilters.make.value)
+      const matchesHebrewFuzzy = v.make_he ? fuzzyMatch(v.make_he, columnFilters.make.value) : false
+      if (!matchesEnglish && !matchesHebrewExact && !matchesHebrewFuzzy) return false
     }
-    // Model filter - starts with (prefix match), supports Hebrew and English
+    // Model filter - partial match (contains), with fuzzy Hebrew matching
     if (columnFilters.model.type === 'equals' && columnFilters.model.value) {
       const filterVal = columnFilters.model.value.toLowerCase()
-      const matchesEnglish = v.model.toLowerCase().startsWith(filterVal)
-      const matchesHebrew = v.variants?.startsWith(columnFilters.model.value)
-      if (!matchesEnglish && !matchesHebrew) return false
+      const matchesEnglish = v.model.toLowerCase().includes(filterVal)
+      const matchesHebrewExact = v.variants?.includes(columnFilters.model.value)
+      const matchesHebrewFuzzy = v.variants ? fuzzyMatch(v.variants, columnFilters.model.value) : false
+      if (!matchesEnglish && !matchesHebrewExact && !matchesHebrewFuzzy) return false
     }
-    if (!applyColumnFilter(v.year_from, columnFilters.year_from)) return false
+    // Year filter - search within range (year_from <= searchedYear <= year_to)
+    if (columnFilters.year_from.type === 'equals' && columnFilters.year_from.value) {
+      const searchedYear = parseInt(columnFilters.year_from.value)
+      if (!isNaN(searchedYear)) {
+        const yearTo = v.year_to || new Date().getFullYear() // If no year_to, assume current year
+        if (searchedYear < v.year_from || searchedYear > yearTo) return false
+      }
+    }
     // Bolt count filter - exact match from dropdown
     if (columnFilters.bolt_count.type === 'equals' && columnFilters.bolt_count.value) {
       if (v.bolt_count !== parseInt(columnFilters.bolt_count.value)) return false
@@ -1003,9 +1068,17 @@ function VehiclesAdminPage() {
     if (columnFilters.bolt_spacing.type === 'equals' && columnFilters.bolt_spacing.value) {
       if (v.bolt_spacing !== parseFloat(columnFilters.bolt_spacing.value)) return false
     }
-    // Center bore filter - exact match from dropdown
-    if (columnFilters.center_bore.type === 'equals' && columnFilters.center_bore.value) {
-      if (v.center_bore !== parseFloat(columnFilters.center_bore.value)) return false
+    // Center bore filter - equals or greater than or equal
+    if (columnFilters.center_bore.value) {
+      const filterValue = parseFloat(columnFilters.center_bore.value)
+      if (!isNaN(filterValue)) {
+        if (columnFilters.center_bore.type === 'equals') {
+          if (v.center_bore !== filterValue) return false
+        } else if (columnFilters.center_bore.type === 'greater') {
+          // Greater than or equal
+          if (v.center_bore === null || v.center_bore < filterValue) return false
+        }
+      }
     } else if (columnFilters.center_bore.type === 'empty') {
       if (v.center_bore !== null) return false
     }
@@ -1240,6 +1313,8 @@ function VehiclesAdminPage() {
                   <th style={styles.th}>מרווח</th>
                   <th style={styles.th}>CB</th>
                   <th style={styles.th}>חישוק</th>
+                  <th style={styles.th}>קוטר מתאים</th>
+                  <th style={styles.th}>קישור</th>
                   <th style={styles.th}>פעולות</th>
                 </tr>
                 <tr style={styles.filterRow}>
@@ -1401,14 +1476,22 @@ function VehiclesAdminPage() {
                   <th style={styles.thFilter}>
                     <div style={styles.filterWithSuggestions}>
                       <div style={styles.filterInputWrapper}>
+                        <select
+                          style={{...styles.filterInput, width: '50px', padding: '4px 2px', fontSize: '10px', marginLeft: '2px'}}
+                          value={columnFilters.center_bore.type || 'equals'}
+                          onChange={e => setColumnFilters({...columnFilters, center_bore: { ...columnFilters.center_bore, type: e.target.value as any }})}
+                        >
+                          <option value="equals">=</option>
+                          <option value="greater">≥</option>
+                        </select>
                         <input
                           type="text"
-                          style={styles.filterInput}
+                          style={{...styles.filterInput, flex: 1}}
                           placeholder="CB"
                           value={columnFilters.center_bore.value}
                           onFocus={() => setOpenFilter('center_bore')}
                           onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, center_bore: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                          onChange={e => setColumnFilters({...columnFilters, center_bore: { type: columnFilters.center_bore.type || 'equals', value: e.target.value }})}
                         />
                         {columnFilters.center_bore.value && (
                           <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, center_bore: { type: '', value: '' }})}>✕</button>
@@ -1420,7 +1503,7 @@ function VehiclesAdminPage() {
                             <div
                               key={s}
                               style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, center_bore: { type: 'equals', value: s.toString() }}); setOpenFilter(null) }}
+                              onMouseDown={() => { setColumnFilters({...columnFilters, center_bore: { type: columnFilters.center_bore.type || 'equals', value: s.toString() }}); setOpenFilter(null) }}
                             >
                               {s}
                             </div>
@@ -1461,6 +1544,12 @@ function VehiclesAdminPage() {
                     </div>
                   </th>
                   <th style={styles.thFilter}>
+                    {/* קוטר מתאים - no filter */}
+                  </th>
+                  <th style={styles.thFilter}>
+                    {/* קישור - no filter */}
+                  </th>
+                  <th style={styles.thFilter}>
                     {hasActiveFilters() && (
                       <button
                         style={styles.btnResetAllFilters}
@@ -1476,7 +1565,7 @@ function VehiclesAdminPage() {
               <tbody>
                 {filteredVehicles.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={styles.emptyRow}>
+                    <td colSpan={10} style={styles.emptyRow}>
                       <div style={styles.emptyMessage}>
                         {hasActiveFilters() ? (
                           <>
@@ -1509,6 +1598,12 @@ function VehiclesAdminPage() {
                       <td style={styles.td}>{v.bolt_spacing}</td>
                       <td style={styles.td}>{v.center_bore || '-'}</td>
                       <td style={styles.td}>{v.rim_size || '-'}</td>
+                      <td style={styles.td}>{v.rim_sizes_allowed?.join(', ') || '-'}</td>
+                      <td style={styles.td}>
+                        {v.source_url ? (
+                          <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa'}}>🔗</a>
+                        ) : '-'}
+                      </td>
                       <td style={styles.td}>
                         <div style={{display: 'flex', gap: '6px'}}>
                           <button style={styles.btnEdit} onClick={() => openEditModal(v)}>✏️</button>
@@ -2070,6 +2165,29 @@ function VehiclesAdminPage() {
                   onChange={e => setEditForm({...editForm, tire_size_front: e.target.value})}
                   style={styles.formInput}
                 />
+              </div>
+
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>קטרים מתאימים</label>
+                  <input
+                    type="text"
+                    placeholder="14, 15, 16"
+                    value={editForm.rim_sizes_allowed}
+                    onChange={e => setEditForm({...editForm, rim_sizes_allowed: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>קישור למקור</label>
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={editForm.source_url}
+                    onChange={e => setEditForm({...editForm, source_url: e.target.value})}
+                    style={styles.formInput}
+                  />
+                </div>
               </div>
 
               <button

@@ -59,6 +59,10 @@ export default function CallCenterPage() {
   const [addManagerForm, setAddManagerForm] = useState({ full_name: '', phone: '', password: '', title: '' })
   const [actionLoading, setActionLoading] = useState(false)
 
+  // Change password modal
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
+
   // Dropdown menu
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
@@ -162,6 +166,60 @@ export default function CallCenterPage() {
     localStorage.removeItem('call_center_session')
     localStorage.removeItem('operator_session')
     window.location.href = '/login'
+  }
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
+      toast.error('יש למלא את כל השדות')
+      return
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      toast.error('הסיסמאות אינן תואמות')
+      return
+    }
+    if (passwordForm.new.length < 4) {
+      toast.error('הסיסמה חייבת להכיל לפחות 4 תווים')
+      return
+    }
+
+    setActionLoading(true)
+    try {
+      // First verify current password by checking session
+      const session = localStorage.getItem('operator_session')
+      if (session) {
+        const data = JSON.parse(session)
+        if (data.password !== passwordForm.current) {
+          toast.error('סיסמה נוכחית שגויה')
+          setActionLoading(false)
+          return
+        }
+      }
+
+      const res = await fetch(`/api/call-center/managers/${manager?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordForm.new })
+      })
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.error)
+
+      // Update password in session
+      const currentSession = localStorage.getItem('operator_session')
+      if (currentSession) {
+        const sessionData = JSON.parse(currentSession)
+        sessionData.password = passwordForm.new
+        localStorage.setItem('operator_session', JSON.stringify(sessionData))
+      }
+
+      toast.success('הסיסמה שונתה בהצלחה')
+      setShowChangePassword(false)
+      setPasswordForm({ current: '', new: '', confirm: '' })
+    } catch (err: any) {
+      toast.error(err.message || 'שגיאה בשינוי סיסמה')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   // Navigate to operator page while keeping manager session
@@ -373,6 +431,7 @@ export default function CallCenterPage() {
           </div>
           <div style={styles.headerButtons}>
             <button style={styles.btnPrimary} onClick={handleWorkAsOperator}>🔍 חיפוש גלגלים</button>
+            <button style={styles.btnSettings} onClick={() => setShowChangePassword(true)}>⚙️</button>
             <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
           </div>
         </div>
@@ -694,6 +753,48 @@ export default function CallCenterPage() {
           </div>
         </div>
       )}
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <div style={styles.modalOverlay} onClick={() => setShowChangePassword(false)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>🔐 שינוי סיסמה</h3>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>סיסמה נוכחית</label>
+              <input
+                type="password"
+                value={passwordForm.current}
+                onChange={e => setPasswordForm({...passwordForm, current: e.target.value})}
+                style={styles.formInput}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>סיסמה חדשה</label>
+              <input
+                type="password"
+                value={passwordForm.new}
+                onChange={e => setPasswordForm({...passwordForm, new: e.target.value})}
+                style={styles.formInput}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>אימות סיסמה חדשה</label>
+              <input
+                type="password"
+                value={passwordForm.confirm}
+                onChange={e => setPasswordForm({...passwordForm, confirm: e.target.value})}
+                style={styles.formInput}
+              />
+            </div>
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => { setShowChangePassword(false); setPasswordForm({ current: '', new: '', confirm: '' }) }}>ביטול</button>
+              <button style={styles.btnSubmit} onClick={handleChangePassword} disabled={actionLoading}>
+                {actionLoading ? 'משנה...' : 'שנה סיסמה'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -761,6 +862,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ef4444',
     cursor: 'pointer',
     fontSize: '0.85rem',
+  },
+  btnSettings: {
+    padding: '8px 12px',
+    borderRadius: '8px',
+    border: '1px solid #64748b',
+    background: 'transparent',
+    color: '#94a3b8',
+    cursor: 'pointer',
+    fontSize: '1rem',
   },
   headerButtons: {
     display: 'flex',
