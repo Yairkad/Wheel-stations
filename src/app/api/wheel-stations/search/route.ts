@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
     const rim_size = searchParams.get('rim_size')
     const bolt_count = searchParams.get('bolt_count')
     const bolt_spacing = searchParams.get('bolt_spacing')
+    const center_bore = searchParams.get('center_bore')
+    const offset = searchParams.get('offset')
     const district = searchParams.get('district')
     const available_only = searchParams.get('available_only') === 'true'
 
@@ -29,6 +31,8 @@ export async function GET(request: NextRequest) {
         rim_size,
         bolt_count,
         bolt_spacing,
+        center_bore,
+        offset,
         category,
         is_donut,
         is_available,
@@ -53,6 +57,12 @@ export async function GET(request: NextRequest) {
     }
     if (bolt_spacing) {
       query = query.eq('bolt_spacing', parseFloat(bolt_spacing))
+    }
+    if (center_bore) {
+      query = query.eq('center_bore', parseFloat(center_bore))
+    }
+    if (offset) {
+      query = query.eq('offset', parseInt(offset))
     }
     if (district) {
       query = query.eq('wheel_stations.district', district)
@@ -123,6 +133,8 @@ export async function GET(request: NextRequest) {
         rim_size,
         bolt_count,
         bolt_spacing,
+        center_bore,
+        offset,
         wheel_stations!inner (is_active)
       `)
       .eq('wheel_stations.is_active', true)
@@ -134,7 +146,9 @@ export async function GET(request: NextRequest) {
     const filterOptions = {
       rim_sizes: [...new Set(allWheels?.map(w => w.rim_size).filter(Boolean))].sort(),
       bolt_counts: [...new Set(allWheels?.map(w => w.bolt_count).filter(Boolean))].sort((a, b) => a - b),
-      bolt_spacings: [...new Set(allWheels?.map(w => w.bolt_spacing).filter(Boolean))].sort((a, b) => a - b)
+      bolt_spacings: [...new Set(allWheels?.map(w => w.bolt_spacing).filter(Boolean))].sort((a, b) => a - b),
+      center_bores: [...new Set(allWheels?.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a - b),
+      offsets: [...new Set(allWheels?.map(w => w.offset).filter(Boolean))].sort((a, b) => a - b)
     }
 
     return NextResponse.json({

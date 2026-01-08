@@ -27,6 +27,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
   const pathname = usePathname()
   const [userSession, setUserSession] = useState<UserSession | null>(null)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [showFormSubmenu, setShowFormSubmenu] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -99,6 +100,31 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
     })
     toast.success('התנתקת בהצלחה')
     router.push('/login')
+  }
+
+  const getFormUrl = () => {
+    if (!userSession?.stationId) return ''
+    return `${window.location.origin}/sign/${userSession.stationId}`
+  }
+
+  const handleCopyFormLink = () => {
+    const url = getFormUrl()
+    if (url) {
+      navigator.clipboard.writeText(url)
+      toast.success('הקישור הועתק!')
+      setShowProfileMenu(false)
+      setShowFormSubmenu(false)
+    }
+  }
+
+  const handleWhatsAppForm = () => {
+    const url = getFormUrl()
+    const stationName = userSession?.stationName || userSession?.manager.station_name || 'התחנה'
+    const message = `שלום! הנה קישור לטופס השאלת גלגל מ${stationName}:\n${url}`
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank')
+    setShowProfileMenu(false)
+    setShowFormSubmenu(false)
   }
 
   // Check if current page is user's own station
@@ -204,8 +230,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
               <div style={styles.dropdownMenu}>
                 {/* User info section */}
                 <div style={styles.menuUserInfo}>
-                  <div style={styles.menuUserLabel}>תחנה מנוהלת</div>
-                  <div style={styles.menuStationNameLarge}>{userSession.stationName || 'לא משויך לתחנה'}</div>
+                  <div style={styles.menuStationNameLarge}>{userSession.stationName || userSession.manager.station_name || 'התחנה שלי'}</div>
                   <div style={styles.menuUserPhone}>{userSession.manager.phone}</div>
                 </div>
 
@@ -253,17 +278,60 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                           <span>⚙️</span>
                           <span>הגדרות תחנה</span>
                         </Link>
+                        <Link
+                          href={`/${userSession.stationId}?action=notifications`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>🔔</span>
+                          <span>הפעל התראות</span>
+                        </Link>
                       </>
                     )}
 
-                    <Link
-                      href={`/sign/${userSession.stationId}`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>📝</span>
-                      <span>טופס השאלה</span>
-                    </Link>
+                    {/* Form link submenu */}
+                    <div style={styles.submenuContainer}>
+                      <button
+                        style={{...styles.dropdownItem, ...styles.submenuTrigger}}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setShowFormSubmenu(!showFormSubmenu)
+                        }}
+                      >
+                        <span>🔗</span>
+                        <span>קישור לטופס השאלה</span>
+                        <span style={styles.submenuArrow}>{showFormSubmenu ? '▲' : '▼'}</span>
+                      </button>
+                      {showFormSubmenu && (
+                        <div style={styles.submenu}>
+                          <Link
+                            href={`/sign/${userSession.stationId}`}
+                            style={styles.submenuItem}
+                            onClick={() => {
+                              setShowProfileMenu(false)
+                              setShowFormSubmenu(false)
+                            }}
+                          >
+                            <span>📝</span>
+                            <span>פתח טופס</span>
+                          </Link>
+                          <button
+                            style={styles.submenuItem}
+                            onClick={handleCopyFormLink}
+                          >
+                            <span>📋</span>
+                            <span>העתק קישור</span>
+                          </button>
+                          <button
+                            style={styles.submenuItem}
+                            onClick={handleWhatsAppForm}
+                          >
+                            <span>💬</span>
+                            <span>שלח בוואטסאפ</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 )}
 
@@ -499,5 +567,36 @@ const styles: { [key: string]: React.CSSProperties } = {
   menuUserPhone: {
     fontSize: '13px',
     color: '#94a3b8',
+  },
+  submenuContainer: {
+    position: 'relative' as const,
+  },
+  submenuTrigger: {
+    justifyContent: 'flex-start',
+  },
+  submenuArrow: {
+    marginRight: 'auto',
+    fontSize: '10px',
+    color: '#64748b',
+  },
+  submenu: {
+    background: '#0f172a',
+    borderTop: '1px solid #334155',
+  },
+  submenuItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '10px 16px 10px 30px',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+    borderBottom: '1px solid #1e293b',
+    textDecoration: 'none',
+    color: '#94a3b8',
+    background: 'none',
+    border: 'none',
+    width: '100%',
+    textAlign: 'right' as const,
+    fontSize: '13px',
   },
 }

@@ -15,6 +15,8 @@ interface Wheel {
   rim_size: string
   bolt_count: number
   bolt_spacing: number
+  center_bore?: number | null
+  offset?: number | null
   category: string | null
   is_donut: boolean
   notes: string | null
@@ -212,6 +214,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [rimSizeFilter, setRimSizeFilter] = useState('')
   const [boltCountFilter, setBoltCountFilter] = useState('')
   const [boltSpacingFilter, setBoltSpacingFilter] = useState('')
+  const [centerBoreFilter, setCenterBoreFilter] = useState('')
+  const [offsetFilter, setOffsetFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [availabilityFilter, setAvailabilityFilter] = useState('')
@@ -222,6 +226,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     setRimSizeFilter('')
     setBoltCountFilter('')
     setBoltSpacingFilter('')
+    setCenterBoreFilter('')
+    setOffsetFilter('')
     setCategoryFilter('')
     setTypeFilter('')
     setAvailabilityFilter('')
@@ -229,7 +235,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     setTireSizeRatio('')
   }
 
-  const hasActiveFilters = rimSizeFilter || boltCountFilter || boltSpacingFilter || categoryFilter || typeFilter || availabilityFilter || tireSizeWidth || tireSizeRatio
+  const hasActiveFilters = rimSizeFilter || boltCountFilter || boltSpacingFilter || centerBoreFilter || offsetFilter || categoryFilter || typeFilter || availabilityFilter || tireSizeWidth || tireSizeRatio
 
   useEffect(() => {
     fetchStation()
@@ -465,6 +471,10 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         case 'password':
           setPasswordForm({ current: '', new: '', confirm: '' })
           setShowChangePasswordModal(true)
+          break
+        case 'notifications':
+          // Trigger push notification toggle
+          handleTogglePush()
           break
       }
     }
@@ -1370,6 +1380,8 @@ ${formUrl}`
     if (rimSizeFilter && wheel.rim_size !== rimSizeFilter) return false
     if (boltCountFilter && wheel.bolt_count.toString() !== boltCountFilter) return false
     if (boltSpacingFilter && wheel.bolt_spacing.toString() !== boltSpacingFilter) return false
+    if (centerBoreFilter && wheel.center_bore?.toString() !== centerBoreFilter) return false
+    if (offsetFilter && wheel.offset?.toString() !== offsetFilter) return false
     if (categoryFilter && wheel.category !== categoryFilter) return false
     if (typeFilter === 'donut' && !wheel.is_donut) return false
     if (typeFilter === 'full' && wheel.is_donut) return false
@@ -1388,6 +1400,8 @@ ${formUrl}`
   const rimSizes = [...new Set(station?.wheels.map(w => w.rim_size))].sort()
   const boltCounts = [...new Set(station?.wheels.map(w => w.bolt_count.toString()))].sort()
   const boltSpacings = [...new Set(station?.wheels.map(w => w.bolt_spacing.toString()))].sort()
+  const centerBores = [...new Set(station?.wheels.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a! - b!)
+  const offsets = [...new Set(station?.wheels.map(w => w.offset).filter(Boolean))].sort((a, b) => a! - b!)
   const categories = [...new Set(station?.wheels.map(w => w.category).filter(Boolean))]
 
   if (loading) {
@@ -2003,6 +2017,32 @@ ${formUrl}`
         {showAdvancedFilters && (
           <>
             <div style={styles.filterRow} className="station-filter-row">
+              <div style={styles.filterGroup} className="station-filter-group">
+                <label style={styles.filterLabel}>CB (קוטר מרכז)</label>
+                <select
+                  style={styles.filterSelect}
+                  value={centerBoreFilter}
+                  onChange={e => setCenterBoreFilter(e.target.value)}
+                >
+                  <option value="">הכל</option>
+                  {centerBores.map(cb => (
+                    <option key={cb} value={cb?.toString()}>{cb}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={styles.filterGroup} className="station-filter-group">
+                <label style={styles.filterLabel}>ET (קור)</label>
+                <select
+                  style={styles.filterSelect}
+                  value={offsetFilter}
+                  onChange={e => setOffsetFilter(e.target.value)}
+                >
+                  <option value="">הכל</option>
+                  {offsets.map(off => (
+                    <option key={off} value={off?.toString()}>{off}</option>
+                  ))}
+                </select>
+              </div>
               <div style={styles.filterGroup} className="station-filter-group">
                 <label style={styles.filterLabel}>קטגוריה</label>
                 <select

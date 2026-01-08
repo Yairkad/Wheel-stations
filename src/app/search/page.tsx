@@ -51,6 +51,8 @@ interface FilterOptions {
   rim_sizes: string[]
   bolt_counts: number[]
   bolt_spacings: number[]
+  center_bores: number[]
+  offsets: number[]
 }
 
 export default function SearchPage() {
@@ -71,6 +73,8 @@ export default function SearchPage() {
     rim_size: '',
     bolt_count: '',
     bolt_spacing: '',
+    center_bore: '',
+    offset: '',
     district: '',
     available_only: true
   })
@@ -231,7 +235,7 @@ export default function SearchPage() {
 
   const handleSearch = async () => {
     // Need at least one filter
-    if (!searchFilters.rim_size && !searchFilters.bolt_count && !searchFilters.bolt_spacing) {
+    if (!searchFilters.rim_size && !searchFilters.bolt_count && !searchFilters.bolt_spacing && !searchFilters.center_bore && !searchFilters.offset) {
       toast.error('נא לבחור לפחות פילטר אחד')
       return
     }
@@ -242,6 +246,8 @@ export default function SearchPage() {
       if (searchFilters.rim_size) params.append('rim_size', searchFilters.rim_size)
       if (searchFilters.bolt_count) params.append('bolt_count', searchFilters.bolt_count)
       if (searchFilters.bolt_spacing) params.append('bolt_spacing', searchFilters.bolt_spacing)
+      if (searchFilters.center_bore) params.append('center_bore', searchFilters.center_bore)
+      if (searchFilters.offset) params.append('offset', searchFilters.offset)
       if (searchFilters.district) params.append('district', searchFilters.district)
       if (searchFilters.available_only) params.append('available_only', 'true')
 
@@ -282,6 +288,8 @@ export default function SearchPage() {
       rim_size: '',
       bolt_count: '',
       bolt_spacing: '',
+      center_bore: '',
+      offset: '',
       district: '',
       available_only: true
     })
@@ -856,52 +864,7 @@ export default function SearchPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <style>{`
-          @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-          }
-          .skeleton {
-            background: linear-gradient(90deg, #3d4a5c 25%, #4b5a6e 50%, #3d4a5c 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 8px;
-          }
-        `}</style>
-        <header style={styles.header}>
-          <img
-            src="/logo.wheels.png"
-            alt="טוען..."
-            style={styles.loadingLogo}
-          />
-          <h1 style={styles.title}>תחנות השאלת גלגלים</h1>
-          <p style={styles.subtitle}>טוען תחנות...</p>
-        </header>
-        <div style={styles.grid}>
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} style={{...styles.card, cursor: 'default'}}>
-              <div className="skeleton" style={{ height: '24px', width: '70%', marginBottom: '15px' }}></div>
-              <div className="skeleton" style={{ height: '16px', width: '90%', marginBottom: '10px' }}></div>
-              <div className="skeleton" style={{ height: '14px', width: '50%', marginBottom: '20px' }}></div>
-              <div style={{ display: 'flex', justifyContent: 'space-around', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div className="skeleton" style={{ height: '32px', width: '50px', margin: '0 auto 8px' }}></div>
-                  <div className="skeleton" style={{ height: '12px', width: '60px' }}></div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div className="skeleton" style={{ height: '32px', width: '50px', margin: '0 auto 8px' }}></div>
-                  <div className="skeleton" style={{ height: '12px', width: '60px' }}></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
+  // No loading screen needed - search page loads instantly
 
   if (error) {
     return (
@@ -1143,6 +1106,34 @@ export default function SearchPage() {
                       <option value="">בחר...</option>
                       {filterOptions?.bolt_spacings.map(spacing => (
                         <option key={spacing} value={spacing}>{spacing}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>CB (קוטר מרכז)</label>
+                    <select
+                      style={styles.filterSelect}
+                      value={searchFilters.center_bore}
+                      onChange={e => setSearchFilters({...searchFilters, center_bore: e.target.value})}
+                    >
+                      <option value="">בחר...</option>
+                      {filterOptions?.center_bores?.map(cb => (
+                        <option key={cb} value={cb}>{cb}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>ET (קור)</label>
+                    <select
+                      style={styles.filterSelect}
+                      value={searchFilters.offset}
+                      onChange={e => setSearchFilters({...searchFilters, offset: e.target.value})}
+                    >
+                      <option value="">בחר...</option>
+                      {filterOptions?.offsets?.map(off => (
+                        <option key={off} value={off}>{off}</option>
                       ))}
                     </select>
                   </div>
@@ -1593,6 +1584,14 @@ export default function SearchPage() {
                 {/* Wheel Fitment */}
                 {vehicleResult.wheel_fitment ? (
                   <div style={styles.vehicleFitmentCard}>
+                    {/* Source indicator */}
+                    <div style={styles.sourceIndicator} title={vehicleResult.wheel_fitment.source_url ? 'מידע מאומת מאתר חיצוני' : 'מידע מהמאגר הפנימי'}>
+                      {vehicleResult.wheel_fitment.source_url ? (
+                        <span style={styles.sourceVerified}>✓ מאומת</span>
+                      ) : (
+                        <span style={styles.sourceInternal}>📊 מאגר פנימי</span>
+                      )}
+                    </div>
                     {/* Main specs row */}
                     <div style={styles.fitmentMainRow} className="wheels-fitment-badges">
                       <div style={styles.fitmentSpec}>
@@ -2240,6 +2239,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+    display: 'flex',
+    flexDirection: 'column',
   },
   searchPageHeader: {
     textAlign: 'center',
@@ -2488,8 +2489,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   footer: {
     textAlign: 'center',
-    marginTop: '40px',
-    paddingTop: '20px',
+    marginTop: 'auto',
+    paddingTop: '40px',
+    paddingBottom: '20px',
     borderTop: '1px solid rgba(255,255,255,0.1)',
   },
   footerInfo: {
@@ -2824,6 +2826,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid rgba(16, 185, 129, 0.3)',
     borderRadius: '12px',
     padding: '15px',
+    position: 'relative' as const,
+  },
+  sourceIndicator: {
+    position: 'absolute' as const,
+    top: '8px',
+    left: '8px',
+    fontSize: '0.7rem',
+    cursor: 'help',
+  },
+  sourceVerified: {
+    color: '#10b981',
+    background: 'rgba(16, 185, 129, 0.2)',
+    padding: '2px 6px',
+    borderRadius: '4px',
+  },
+  sourceInternal: {
+    color: '#60a5fa',
+    background: 'rgba(96, 165, 250, 0.2)',
+    padding: '2px 6px',
+    borderRadius: '4px',
   },
   fitmentBadges: {
     display: 'flex',
