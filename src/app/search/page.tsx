@@ -1138,20 +1138,6 @@ export default function SearchPage() {
                   </div>
 
                   <div style={styles.filterGroup}>
-                    <label style={styles.filterLabel}>קור (ET)</label>
-                    <select
-                      style={styles.filterSelect}
-                      value={searchFilters.offset}
-                      onChange={e => setSearchFilters({...searchFilters, offset: e.target.value})}
-                    >
-                      <option value="">בחר...</option>
-                      {filterOptions?.offsets?.map(off => (
-                        <option key={off} value={off}>{off}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div style={styles.filterGroup}>
                     <label style={styles.filterLabel}>מחוז</label>
                     <select
                       style={styles.filterSelect}
