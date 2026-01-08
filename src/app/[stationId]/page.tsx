@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import { isPushSupported, requestNotificationPermission, registerServiceWorker, getPushNotSupportedReason } from '@/lib/push'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
+import AppHeader from '@/components/AppHeader'
 
 interface Wheel {
   id: string
@@ -1374,6 +1375,8 @@ ${formUrl}`
   }
 
   return (
+    <>
+    <AppHeader currentStationId={stationId} />
     <div style={styles.container}>
       <style>{`
         @media (max-width: 600px) {
@@ -3927,6 +3930,7 @@ ${formUrl}`
       )}
 
     </div>
+    </>
   )
 }
 

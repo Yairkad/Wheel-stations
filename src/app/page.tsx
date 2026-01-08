@@ -5,6 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import { VERSION } from '@/lib/version'
+import AppHeader from '@/components/AppHeader'
 
 interface Station {
   id: string
@@ -915,6 +916,7 @@ export default function WheelStationsPage() {
 
   return (
     <>
+      <AppHeader />
       <div style={styles.container}>
         <style>{`
         @keyframes pulse {
