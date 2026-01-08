@@ -106,13 +106,14 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
   const isOnStationsPage = pathname === '/' || pathname === '/stations'
   const isOnSearchPage = pathname === '/search'
 
-  // Get user initials for avatar
-  const getInitials = (name: string) => {
-    const parts = name.split(' ')
+  // Get station initials for avatar
+  const getStationInitials = (stationName: string | undefined) => {
+    if (!stationName) return '🏠'
+    const parts = stationName.split(' ')
     if (parts.length >= 2) {
       return parts[0][0] + parts[1][0]
     }
-    return name.substring(0, 2)
+    return stationName.substring(0, 2)
   }
 
   const getRoleDisplay = (role: string) => {
@@ -190,7 +191,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
               onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
               <div className="profile-avatar" style={styles.profileAvatar}>
-                {getInitials(userSession.manager.full_name)}
+                {getStationInitials(userSession.stationName)}
               </div>
               <div className="profile-info" style={styles.profileInfo}>
                 <div className="profile-name" style={styles.profileName}>{userSession.manager.full_name}</div>
@@ -203,11 +204,9 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
               <div style={styles.dropdownMenu}>
                 {/* User info section */}
                 <div style={styles.menuUserInfo}>
-                  <div style={styles.menuUserName}>{userSession.manager.full_name}</div>
+                  <div style={styles.menuUserLabel}>תחנה מנוהלת</div>
+                  <div style={styles.menuStationNameLarge}>{userSession.stationName || 'לא משויך לתחנה'}</div>
                   <div style={styles.menuUserPhone}>{userSession.manager.phone}</div>
-                  {userSession.stationName && (
-                    <div style={styles.menuStationName}>{userSession.stationName}</div>
-                  )}
                 </div>
 
                 <div style={styles.dropdownDivider} />
@@ -227,11 +226,11 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                       </Link>
                     )}
 
-                    {/* Station management actions - always available for manager/admin */}
+                    {/* Station management actions - link to station page where modals exist */}
                     {(userSession.manager.role === 'manager' || userSession.manager.role === 'admin') && (
                       <>
                         <Link
-                          href={`/${userSession.stationId}/add`}
+                          href={`/${userSession.stationId}?action=add`}
                           style={styles.dropdownItem}
                           onClick={() => setShowProfileMenu(false)}
                         >
@@ -239,7 +238,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                           <span>הוסף גלגל</span>
                         </Link>
                         <Link
-                          href={`/${userSession.stationId}/excel`}
+                          href={`/${userSession.stationId}?action=excel`}
                           style={styles.dropdownItem}
                           onClick={() => setShowProfileMenu(false)}
                         >
@@ -247,7 +246,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                           <span>יבוא/יצוא Excel</span>
                         </Link>
                         <Link
-                          href={`/${userSession.stationId}/settings`}
+                          href={`/${userSession.stationId}?action=settings`}
                           style={styles.dropdownItem}
                           onClick={() => setShowProfileMenu(false)}
                         >
@@ -265,28 +264,22 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                       <span>📝</span>
                       <span>טופס השאלה</span>
                     </Link>
-                    <Link
-                      href={`/${userSession.stationId}/history`}
-                      style={styles.dropdownItem}
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <span>📋</span>
-                      <span>היסטוריית התחנה</span>
-                    </Link>
                   </>
                 )}
 
                 <div style={styles.dropdownDivider} />
 
                 {/* Account actions */}
-                <Link
-                  href="/change-password"
-                  style={styles.dropdownItem}
-                  onClick={() => setShowProfileMenu(false)}
-                >
-                  <span>🔑</span>
-                  <span>שינוי סיסמא</span>
-                </Link>
+                {userSession.stationId && (
+                  <Link
+                    href={`/${userSession.stationId}?action=password`}
+                    style={styles.dropdownItem}
+                    onClick={() => setShowProfileMenu(false)}
+                  >
+                    <span>🔑</span>
+                    <span>שינוי סיסמא</span>
+                  </Link>
+                )}
                 <Link
                   href="/guide?tab=manager"
                   style={styles.dropdownItem}
@@ -491,20 +484,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)',
     textAlign: 'center' as const,
   },
-  menuUserName: {
+  menuUserLabel: {
+    fontSize: '11px',
+    color: '#64748b',
+    marginBottom: '4px',
+    textTransform: 'uppercase' as const,
+  },
+  menuStationNameLarge: {
     fontWeight: 700,
     fontSize: '16px',
-    color: 'white',
-    marginBottom: '4px',
+    color: '#60a5fa',
+    marginBottom: '6px',
   },
   menuUserPhone: {
     fontSize: '13px',
     color: '#94a3b8',
-    marginBottom: '4px',
-  },
-  menuStationName: {
-    fontSize: '12px',
-    color: '#60a5fa',
-    fontWeight: 500,
   },
 }

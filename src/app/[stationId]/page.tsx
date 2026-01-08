@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import { isPushSupported, requestNotificationPermission, registerServiceWorker, getPushNotSupportedReason } from '@/lib/push'
@@ -114,6 +115,8 @@ type PageTab = 'wheels' | 'tracking'
 
 export default function StationPage({ params }: { params: Promise<{ stationId: string }> }) {
   const { stationId } = use(params)
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [station, setStation] = useState<Station | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -196,6 +199,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     borrower_id_number: '',
     borrower_address: '',
     vehicle_model: '',
+    vehicle_plate: '',
     deposit_type: 'cash',
     notes: ''
   })
@@ -433,6 +437,38 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       fetchBorrows()
     }
   }, [activeTab, borrowFilter, isManager])
+
+  // Handle URL action parameter to open modals from header menu
+  useEffect(() => {
+    if (!isManager) return
+
+    const action = searchParams.get('action')
+    if (action) {
+      // Clear the action parameter from URL
+      router.replace(`/${stationId}`, { scroll: false })
+
+      // Open the appropriate modal
+      switch (action) {
+        case 'add':
+          setShowAddWheelModal(true)
+          break
+        case 'excel':
+          setShowExcelModal(true)
+          break
+        case 'settings':
+          setEditAddress(station?.address || '')
+          setEditDepositAmount(String(station?.deposit_amount || 200))
+          setEditPaymentMethods(station?.payment_methods || { cash: true, id_deposit: true, license_deposit: true })
+          setNotificationEmails(station?.notification_emails?.length ? [...station.notification_emails, ...Array(2 - station.notification_emails.length).fill('')].slice(0, 2) : ['', ''])
+          setShowEditDetailsModal(true)
+          break
+        case 'password':
+          setPasswordForm({ current: '', new: '', confirm: '' })
+          setShowChangePasswordModal(true)
+          break
+      }
+    }
+  }, [searchParams, isManager, stationId, station, router])
 
   // Check push notification support and status
   useEffect(() => {
@@ -802,6 +838,7 @@ ${signFormUrl}
           borrower_id_number: manualBorrowForm.borrower_id_number || undefined,
           borrower_address: manualBorrowForm.borrower_address || undefined,
           vehicle_model: manualBorrowForm.vehicle_model || undefined,
+          vehicle_plate: manualBorrowForm.vehicle_plate || undefined,
           deposit_type: manualBorrowForm.deposit_type,
           notes: manualBorrowForm.notes || undefined,
           manager_phone: currentManager?.phone,
@@ -823,6 +860,7 @@ ${signFormUrl}
         borrower_id_number: '',
         borrower_address: '',
         vehicle_model: '',
+        vehicle_plate: '',
         deposit_type: 'cash',
         notes: ''
       })
@@ -2580,6 +2618,22 @@ ${formUrl}`
                   onChange={e => setManualBorrowForm({...manualBorrowForm, vehicle_model: e.target.value})}
                   placeholder="יונדאי i25"
                   style={styles.input}
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  מספר רכב (אופציונלי)
+                </label>
+                <input
+                  type="text"
+                  value={manualBorrowForm.vehicle_plate}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, vehicle_plate: e.target.value})}
+                  placeholder="12-345-67"
+                  maxLength={10}
+                  style={styles.input}
+                  dir="ltr"
                   disabled={actionLoading}
                 />
               </div>

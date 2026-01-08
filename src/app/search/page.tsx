@@ -1038,122 +1038,29 @@ export default function SearchPage() {
           }
         }
       `}</style>
-      <header style={styles.header}>
-        <img
-          src="/logo.wheels.png"
-          alt="לוגו גלגלים"
-          style={styles.headerLogo}
-          className="wheels-header-icon"
-        />
-        <h1 style={styles.title} className="wheels-header-title">תחנות השאלת גלגלים</h1>
-        <p style={styles.subtitle}>בחר תחנה כדי לראות את המלאי הזמין</p>
-
-        {/* Search Buttons */}
-        <div style={styles.searchBtnsRow}>
-          <button style={styles.searchBtn} className="wheels-search-btn" onClick={openSearchModal}>
-            🔍 חיפוש לפי מפרט
-          </button>
-          <button style={styles.vehicleSearchBtn} className="wheels-search-btn" onClick={openVehicleModal}>
-            🚗 חיפוש לפי רכב
-          </button>
-        </div>
+      {/* Search Page Header */}
+      <header style={styles.searchPageHeader}>
+        <h1 style={styles.searchPageTitle}>🔍 חיפוש גלגל</h1>
+        <p style={styles.searchPageSubtitle}>מצא גלגל מתאים לפי מספר רכב או מפרט טכני</p>
       </header>
 
-      {/* Station Filter */}
-      <div style={styles.stationFilterContainer}>
-        <input
-          type="text"
-          placeholder="חיפוש תחנה לפי שם עיר או מנהל..."
-          value={stationFilter}
-          onChange={(e) => setStationFilter(e.target.value)}
-          style={styles.stationFilterInput}
-          className="wheels-station-filter"
-        />
-        {stationFilter && (
-          <button
-            onClick={() => setStationFilter('')}
-            style={styles.clearFilterBtn}
-            aria-label="נקה חיפוש"
-          >
-            ✕
-          </button>
-        )}
+      {/* Search Type Selection */}
+      <div style={styles.searchTypeContainer}>
+        <button
+          style={{...styles.searchTypeBtn, ...(vehicleSearchTab === 'plate' || showVehicleModal ? styles.searchTypeBtnActive : {})}}
+          onClick={openVehicleModal}
+        >
+          <span style={styles.searchTypeIcon}>🚗</span>
+          <span>חיפוש לפי רכב</span>
+        </button>
+        <button
+          style={{...styles.searchTypeBtn, ...(showSearchModal ? styles.searchTypeBtnActive : {})}}
+          onClick={openSearchModal}
+        >
+          <span style={styles.searchTypeIcon}>🔧</span>
+          <span>חיפוש לפי מפרט</span>
+        </button>
       </div>
-
-      {stations.filter(station => {
-        if (!stationFilter.trim()) return true
-        const searchLower = stationFilter.toLowerCase()
-        const cityName = station.cities?.name?.toLowerCase() || ''
-        const stationName = station.name?.toLowerCase() || ''
-        const managerNames = station.wheel_station_managers?.map(m => m.full_name?.toLowerCase() || '').join(' ') || ''
-        return cityName.includes(searchLower) || stationName.includes(searchLower) || managerNames.includes(searchLower)
-      }).length === 0 ? (
-        <div style={styles.empty}>
-          <p>{stationFilter ? 'לא נמצאו תחנות התואמות לחיפוש' : 'אין תחנות זמינות כרגע'}</p>
-        </div>
-      ) : (
-        <div style={styles.grid}>
-          {stations.filter(station => {
-            if (!stationFilter.trim()) return true
-            const searchLower = stationFilter.toLowerCase()
-            const cityName = station.cities?.name?.toLowerCase() || ''
-            const stationName = station.name?.toLowerCase() || ''
-            const managerNames = station.wheel_station_managers?.map(m => m.full_name?.toLowerCase() || '').join(' ') || ''
-            return cityName.includes(searchLower) || stationName.includes(searchLower) || managerNames.includes(searchLower)
-          }).map(station => (
-            <Link
-              key={station.id}
-              href={`/${station.id}`}
-              style={styles.card}
-              className="wheels-card"
-              aria-label={`תחנת ${station.name} - ${station.availableWheels} גלגלים זמינים מתוך ${station.totalWheels}`}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <h3 style={{...styles.cardTitle, margin: 0}}>
-                  {station.name}
-                </h3>
-                {station.district && (
-                  <div style={{
-                    display: 'inline-block',
-                    padding: '2px 6px',
-                    border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
-                    borderRadius: '4px',
-                    fontSize: '0.7rem',
-                    fontWeight: '600',
-                    color: getDistrictColor(station.district, districts),
-                    backgroundColor: `${getDistrictColor(station.district, districts)}15`,
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0
-                  }}>
-                    {getDistrictName(station.district, districts)}
-                  </div>
-                )}
-              </div>
-              {station.address && (
-                <div style={styles.address}>📍 {station.address}</div>
-              )}
-              {station.cities?.name && (
-                <div style={styles.cityName}>{station.cities.name}</div>
-              )}
-              <div style={styles.stats}>
-                <div style={styles.stat}>
-                  <div style={styles.statValue}>{station.totalWheels}</div>
-                  <div style={styles.statLabel}>סה"כ גלגלים</div>
-                </div>
-                <div style={styles.stat}>
-                  <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
-                  <div style={styles.statLabel}>זמינים</div>
-                </div>
-              </div>
-              {station.wheel_station_managers.length > 0 && (
-                <div style={styles.managers}>
-                  📞 {station.wheel_station_managers.length} אנשי קשר
-                </div>
-              )}
-            </Link>
-          ))}
-        </div>
-      )}
 
       <footer style={styles.footer}>
         <div style={styles.footerInfo}>
@@ -2333,6 +2240,52 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+  },
+  searchPageHeader: {
+    textAlign: 'center',
+    marginBottom: '30px',
+    padding: '20px',
+  },
+  searchPageTitle: {
+    fontSize: '2rem',
+    fontWeight: 700,
+    marginBottom: '10px',
+    color: 'white',
+  },
+  searchPageSubtitle: {
+    fontSize: '1rem',
+    color: '#9ca3af',
+    margin: 0,
+  },
+  searchTypeContainer: {
+    display: 'flex',
+    gap: '15px',
+    justifyContent: 'center',
+    marginBottom: '30px',
+    flexWrap: 'wrap' as const,
+  },
+  searchTypeBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '20px 30px',
+    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+    border: '2px solid #334155',
+    borderRadius: '16px',
+    color: 'white',
+    fontSize: '1.1rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    minWidth: '200px',
+    justifyContent: 'center',
+  },
+  searchTypeBtnActive: {
+    borderColor: '#22c55e',
+    boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)',
+  },
+  searchTypeIcon: {
+    fontSize: '1.5rem',
   },
   header: {
     textAlign: 'center',
