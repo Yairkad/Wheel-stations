@@ -231,18 +231,16 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     fetchDistrictsData()
     // Check if already logged in and validate session with server
     const validateSession = async () => {
-      // Check new login page session first (from /login)
+      const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+      // Check session for THIS specific station first
       const newSession = localStorage.getItem(`station_session_${stationId}`)
-      // Also check old format for backwards compatibility
       const oldSession = localStorage.getItem(`wheel_manager_${stationId}`)
 
-      // New session format from /login page - trust it directly (session expiry: 7 days)
+      // New session format from /login page - trust it directly
       if (newSession) {
         try {
           const session = JSON.parse(newSession)
-          const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
-
-          // Check if session is still valid (within 7 days)
           if (session.timestamp && Date.now() - session.timestamp < SESSION_EXPIRY_MS && session.manager) {
             setIsManager(true)
             setCurrentManager({
@@ -255,11 +253,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
             setSessionPassword(session.password || '')
             return
           } else {
-            // Session expired
             localStorage.removeItem(`station_session_${stationId}`)
-            toast.error('הסשן פג תוקף, יש להתחבר מחדש')
-            window.location.href = '/login'
-            return
           }
         } catch {
           localStorage.removeItem(`station_session_${stationId}`)
@@ -287,15 +281,32 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
               return
             }
           }
-
-          // Invalid old session
           localStorage.removeItem(`wheel_manager_${stationId}`)
         } catch {
           localStorage.removeItem(`wheel_manager_${stationId}`)
         }
       }
 
-      // No valid session - redirect to login
+      // Not manager of THIS station - check if logged in elsewhere (allow viewing as guest)
+      const hasAnyStationSession = Object.keys(localStorage).some(key => {
+        if (key.startsWith('station_session_')) {
+          try {
+            const session = JSON.parse(localStorage.getItem(key) || '{}')
+            return session.timestamp && Date.now() - session.timestamp < SESSION_EXPIRY_MS
+          } catch { return false }
+        }
+        return false
+      })
+      const hasOperatorSession = localStorage.getItem('operator_session')
+      const hasOldStationSession = Object.keys(localStorage).some(key => key.startsWith('wheel_manager_'))
+
+      if (hasAnyStationSession || hasOperatorSession || hasOldStationSession) {
+        // User is logged in elsewhere - allow viewing this station as guest (not manager)
+        // isManager stays false, no manager controls shown
+        return
+      }
+
+      // Not logged in at all - redirect to login
       window.location.href = '/login'
     }
     validateSession()
@@ -1555,14 +1566,6 @@ ${formUrl}`
                       onClick={() => setShowManagerMenu(false)}
                     >
                       📖 מדריך למנהלים
-                    </a>
-
-                    <a
-                      href="/"
-                      style={{ ...styles.menuItem, textDecoration: 'none' }}
-                      onClick={() => setShowManagerMenu(false)}
-                    >
-                      🏪 כל התחנות
                     </a>
 
                     {/* Divider */}
