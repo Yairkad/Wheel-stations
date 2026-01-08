@@ -196,15 +196,38 @@ export default function OperatorPage() {
     if (saved) {
       try {
         const data = JSON.parse(saved)
-        if (data.expiry && new Date().getTime() < data.expiry) {
+        // Check both old format (expiry) and new format from login page (timestamp)
+        const hasValidOldFormat = data.expiry && new Date().getTime() < data.expiry
+        const hasValidNewFormat = data.timestamp && data.user
+
+        if (hasValidOldFormat) {
           setOperator(data.operator)
-          setIsManager(data.is_manager || false) // Check if user is a manager
+          setIsManager(data.is_manager || false)
+        } else if (hasValidNewFormat) {
+          // New format from /login page
+          setOperator({
+            id: data.user.id,
+            full_name: data.user.full_name,
+            phone: data.user.phone,
+            call_center_id: data.callCenterId,
+            call_center_name: data.callCenterName
+          })
+          setIsManager(data.role === 'manager')
         } else {
+          // Session expired
           localStorage.removeItem('operator_session')
+          window.location.href = '/login'
+          return
         }
       } catch {
         localStorage.removeItem('operator_session')
+        window.location.href = '/login'
+        return
       }
+    } else {
+      // No session - redirect to login
+      window.location.href = '/login'
+      return
     }
 
     // Fetch filter options for spec search

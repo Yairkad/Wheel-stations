@@ -231,13 +231,23 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     fetchDistrictsData()
     // Check if already logged in and validate session with server
     const validateSession = async () => {
-      const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
+      // Check new login page session first
+      const newSession = localStorage.getItem(`station_session_${stationId}`)
+      // Also check old format for backwards compatibility
+      const oldSession = localStorage.getItem(`wheel_manager_${stationId}`)
+      const savedSession = newSession || oldSession
+
       if (savedSession) {
         try {
           const session = JSON.parse(savedSession)
+          // Get manager data from session
+          const manager = session.manager
+          const phone = manager?.phone || ''
+          const token = session.token || session.password || ''
+
           // Validate token with server
           const response = await fetch(
-            `/api/wheel-stations/${stationId}/auth?token=${encodeURIComponent(session.token)}&phone=${encodeURIComponent(session.manager?.phone || '')}`
+            `/api/wheel-stations/${stationId}/auth?token=${encodeURIComponent(token)}&phone=${encodeURIComponent(phone)}`
           )
           const data = await response.json()
 
@@ -245,18 +255,25 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
             // Session is valid - update manager data from server (in case it changed)
             setIsManager(true)
             setCurrentManager(data.manager)
-            setSessionPassword(session.password || '')
+            setSessionPassword(session.password || token)
           } else {
-            // Session invalid or expired - clear it
+            // Session invalid or expired - clear it and redirect to login
+            localStorage.removeItem(`station_session_${stationId}`)
             localStorage.removeItem(`wheel_manager_${stationId}`)
             if (data.expired) {
               toast.error('הסשן פג תוקף, יש להתחבר מחדש')
             }
+            window.location.href = '/login'
           }
         } catch {
-          // Old format or invalid, clear it
+          // Old format or invalid, clear it and redirect to login
+          localStorage.removeItem(`station_session_${stationId}`)
           localStorage.removeItem(`wheel_manager_${stationId}`)
+          window.location.href = '/login'
         }
+      } else {
+        // No session at all - redirect to login
+        window.location.href = '/login'
       }
     }
     validateSession()

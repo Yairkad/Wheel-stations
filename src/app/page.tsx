@@ -164,19 +164,8 @@ export default function WheelStationsPage() {
   const [errorReportLoading, setErrorReportLoading] = useState(false)
 
   useEffect(() => {
-    fetchStations()
-    fetchDistrictsData()
-    // Check if manager is logged in from localStorage
-    const savedManager = localStorage.getItem('vehicle_db_manager')
-    if (savedManager) {
-      try {
-        const { phone } = JSON.parse(savedManager)
-        setIsManagerLoggedIn(true)
-        setManagerPhone(phone)
-      } catch {
-        localStorage.removeItem('vehicle_db_manager')
-      }
-    }
+    // Redirect to login - home page is not public
+    window.location.href = '/login'
   }, [])
 
   // Close modals on Escape key

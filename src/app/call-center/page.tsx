@@ -71,22 +71,47 @@ export default function CallCenterPage() {
 
   // Check session on load
   useEffect(() => {
-    const saved = localStorage.getItem('call_center_session')
-    if (saved) {
+    // Check both old call_center_session and new operator_session from /login
+    const oldSession = localStorage.getItem('call_center_session')
+    const newSession = localStorage.getItem('operator_session')
+
+    if (oldSession) {
       try {
-        const data = JSON.parse(saved)
+        const data = JSON.parse(oldSession)
         if (data.expiry && new Date().getTime() < data.expiry && data.role === 'manager') {
           setManager(data.user)
+          return
         } else {
           localStorage.removeItem('call_center_session')
-          window.location.href = '/operator'
         }
       } catch {
-        window.location.href = '/operator'
+        localStorage.removeItem('call_center_session')
       }
-    } else {
-      window.location.href = '/operator'
     }
+
+    if (newSession) {
+      try {
+        const data = JSON.parse(newSession)
+        // New format from /login page - only managers can access this page
+        if (data.timestamp && data.user && data.role === 'manager') {
+          setManager({
+            id: data.user.id,
+            full_name: data.user.full_name,
+            title: data.user.title || 'מנהל מוקד',
+            phone: data.user.phone,
+            is_primary: data.user.is_primary || false,
+            call_center_id: data.callCenterId,
+            call_center_name: data.callCenterName
+          })
+          return
+        }
+      } catch {
+        localStorage.removeItem('operator_session')
+      }
+    }
+
+    // No valid manager session - redirect to login
+    window.location.href = '/login'
   }, [])
 
   // Fetch data when manager is set
@@ -135,7 +160,8 @@ export default function CallCenterPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('call_center_session')
-    window.location.href = '/operator'
+    localStorage.removeItem('operator_session')
+    window.location.href = '/login'
   }
 
   // Navigate to operator page while keeping manager session

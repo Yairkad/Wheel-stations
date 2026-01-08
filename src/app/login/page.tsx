@@ -39,17 +39,18 @@ export default function LoginPage() {
       }
 
       // Save session to localStorage
+      const stationId = data.manager.station_id
       const session = {
         manager: data.manager,
-        stationId: data.station_id,
-        stationName: data.station_name,
+        stationId: stationId,
+        stationName: data.manager.station_name,
         password: password,
         timestamp: Date.now()
       }
-      localStorage.setItem(`station_session_${data.station_id}`, JSON.stringify(session))
+      localStorage.setItem(`station_session_${stationId}`, JSON.stringify(session))
 
       toast.success(`שלום ${data.manager.full_name}`)
-      router.push(`/${data.station_id}`)
+      router.push(`/${stationId}`)
     } catch (err) {
       setError('שגיאה בכניסה')
       setLoading(false)
