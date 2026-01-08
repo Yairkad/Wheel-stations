@@ -1580,9 +1580,7 @@ ${formUrl}`
                   </div>
                 )}
               </div>
-            ) : (
-              <button style={styles.managerBtn} className="station-login-btn" onClick={() => setShowLoginModal(true)}>🔐 כניסת מנהל</button>
-            )}
+            ) : null}
 
             {/* Left side - Back button and Link share */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1631,7 +1629,7 @@ ${formUrl}`
                   )}
                 </div>
               )}
-              <Link href="/" style={styles.backBtnStyled} title="חזרה לרשימה">↩️</Link>
+              <Link href="/" style={styles.backBtnStyled} title="כל התחנות">🏪 כל התחנות</Link>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
