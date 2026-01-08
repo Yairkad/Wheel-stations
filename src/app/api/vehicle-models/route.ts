@@ -35,9 +35,31 @@ export async function GET(request: NextRequest) {
         .or(`year_to.gte.${yearNum},year_to.is.null`)
     }
 
-    const { data, error } = await query
-      .order('make', { ascending: true })
-      .range(0, 9999)
+    // Supabase has a default limit of 1000, use pagination to get all records
+    let allData: any[] = []
+    let from = 0
+    const pageSize = 1000
+
+    while (true) {
+      const { data: pageData, error: pageError } = await query
+        .order('make', { ascending: true })
+        .range(from, from + pageSize - 1)
+
+      if (pageError) {
+        console.error('Supabase error:', pageError)
+        return NextResponse.json({ error: pageError.message }, { status: 500 })
+      }
+
+      if (!pageData || pageData.length === 0) break
+
+      allData = [...allData, ...pageData]
+
+      if (pageData.length < pageSize) break // Last page
+      from += pageSize
+    }
+
+    const data = allData
+    const error = null
 
     if (error) {
       console.error('Supabase error:', error)
