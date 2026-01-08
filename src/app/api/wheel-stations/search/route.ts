@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const district = searchParams.get('district')
     const available_only = searchParams.get('available_only') === 'true'
 
-    // Build query
+    // Build query - join with active stations only
     let query = supabase
       .from('wheels')
       .select(`
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
           cities (name)
         )
       `)
-      .eq('wheel_stations.is_active', true)
+      .filter('wheel_stations.is_active', 'eq', true)
 
     // Apply filters
     if (rim_size) {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('offset', parseInt(offset))
     }
     if (district) {
-      query = query.eq('wheel_stations.district', district)
+      query = query.filter('wheel_stations.district', 'eq', district)
     }
     if (available_only) {
       query = query.eq('is_available', true)
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
         offset,
         wheel_stations!inner (is_active)
       `)
-      .eq('wheel_stations.is_active', true)
+      .filter('wheel_stations.is_active', 'eq', true)
 
     if (filterError) {
       console.error('Error fetching filter options:', filterError)
