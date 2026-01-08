@@ -162,7 +162,155 @@ async function scrapeFromFindCar(plate: string): Promise<FindCarScrapedData | nu
   }
 }
 
+// Hebrew to English make translations for wheelfitment.eu
+const MAKE_TRANSLATIONS: Record<string, string> = {
+  'טויוטה': 'toyota',
+  'יונדאי': 'hyundai',
+  'קיה': 'kia',
+  'מאזדה': 'mazda',
+  'הונדה': 'honda',
+  'ניסאן': 'nissan',
+  'מיצובישי': 'mitsubishi',
+  'סוזוקי': 'suzuki',
+  'סובארו': 'subaru',
+  'פולקסווגן': 'volkswagen',
+  'אאודי': 'audi',
+  'ב.מ.וו': 'bmw',
+  'מרצדס': 'mercedes-benz',
+  'פורד': 'ford',
+  'שברולט': 'chevrolet',
+  'פיאט': 'fiat',
+  'פיג\'ו': 'peugeot',
+  'סיטרואן': 'citroen',
+  'רנו': 'renault',
+  'וולוו': 'volvo',
+  'ג\'יפ': 'jeep',
+  'לקסוס': 'lexus',
+  'סקודה': 'skoda',
+  'אופל': 'opel',
+  'סיאט': 'seat',
+  'מיני': 'mini',
+  'דאצ\'יה': 'dacia',
+  'פורשה': 'porsche',
+}
+
+function normalizeMakeForWheelfitment(make: string): string {
+  const makeLower = make.toLowerCase().trim()
+  for (const [heb, eng] of Object.entries(MAKE_TRANSLATIONS)) {
+    if (makeLower.includes(heb.toLowerCase())) {
+      return eng
+    }
+  }
+  return makeLower.replace(/\s+/g, '').replace(/[\-\.]/g, '')
+}
+
+// Scrape PCD data from wheelfitment.eu
+async function scrapeWheelfitmentForLookup(make: string, model: string, year: number): Promise<{
+  bolt_count: number
+  bolt_spacing: number
+  center_bore: number | null
+  rim_sizes_allowed: number[]
+  source_url: string
+} | null> {
+  const makeNormalized = normalizeMakeForWheelfitment(make)
+
+  try {
+    // Step 1: Get list of models for this make
+    const makeUrl = `https://www.wheelfitment.eu/car/${makeNormalized}.html`
+    const makeResponse = await fetch(makeUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+    })
+
+    if (!makeResponse.ok) return null
+
+    const makeHtml = await makeResponse.text()
+    const modelLower = model.toLowerCase().replace(/[\s\-]/g, '')
+    const rowRegex = /<tr[^>]*>[\s\S]*?<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>[\s\S]*?<td[^>]*>\(([^)]*)\)<\/td>[\s\S]*?<\/tr>/gi
+
+    let bestMatch: { url: string; yearFrom: number; yearTo: number | null } | null = null
+    let match
+
+    while ((match = rowRegex.exec(makeHtml)) !== null) {
+      const modelUrl = match[1]
+      const modelName = match[2].trim()
+      const yearRange = match[3].trim()
+      const yearMatch = yearRange.match(/(\d{4})\s*-\s*(\d{4})?/)
+      const yearFrom = yearMatch ? parseInt(yearMatch[1]) : 0
+      const yearTo = yearMatch && yearMatch[2] ? parseInt(yearMatch[2]) : null
+      const modelNameClean = modelName.toLowerCase().replace(/[\s\-]/g, '')
+
+      if (modelNameClean.includes(modelLower) || modelLower.includes(modelNameClean)) {
+        if (yearFrom <= year && (yearTo === null || yearTo >= year)) {
+          bestMatch = { url: modelUrl, yearFrom, yearTo }
+          break
+        }
+        if (!bestMatch) {
+          bestMatch = { url: modelUrl, yearFrom, yearTo }
+        }
+      }
+    }
+
+    if (!bestMatch) return null
+
+    // Step 2: Fetch model page for wheel data
+    const modelPageUrl = bestMatch.url.startsWith('http') ? bestMatch.url : `https://www.wheelfitment.eu${bestMatch.url}`
+    const modelResponse = await fetch(modelPageUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+    })
+
+    if (!modelResponse.ok) return null
+
+    const modelHtml = await modelResponse.text()
+
+    // Extract PCD
+    const pcdMatch = modelHtml.match(/PCD[^<]*<\/td>\s*<td[^>]*>([^<]+)/i)
+    const pcdStr = pcdMatch ? pcdMatch[1].trim() : null
+    let boltCount = 0, boltSpacing = 0
+
+    if (pcdStr) {
+      const pcdParts = pcdStr.match(/(\d+)x([\d.]+)/)
+      if (pcdParts) {
+        boltCount = parseInt(pcdParts[1])
+        boltSpacing = parseFloat(pcdParts[2])
+      }
+    }
+
+    if (!boltCount || !boltSpacing) return null
+
+    // Extract Center bore
+    const cbMatch = modelHtml.match(/Center\s*bore[^<]*<\/td>\s*<td[^>]*>([\d.]+)/i)
+    const centerBore = cbMatch ? parseFloat(cbMatch[1]) : null
+
+    // Extract rim sizes
+    const tireSizesMatch = modelHtml.match(/Possible\s*tire\s*sizes[^<]*<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/i)
+    const rimSizesAllowed: number[] = []
+
+    if (tireSizesMatch) {
+      const rimMatches = tireSizesMatch[1].matchAll(/R(\d{2})/g)
+      for (const m of rimMatches) {
+        const size = parseInt(m[1])
+        if (size >= 12 && size <= 24 && !rimSizesAllowed.includes(size)) {
+          rimSizesAllowed.push(size)
+        }
+      }
+      rimSizesAllowed.sort((a, b) => a - b)
+    }
+
+    return {
+      bolt_count: boltCount,
+      bolt_spacing: boltSpacing,
+      center_bore: centerBore,
+      rim_sizes_allowed: rimSizesAllowed,
+      source_url: modelPageUrl
+    }
+  } catch (error) {
+    console.error('Wheelfitment scrape error:', error)
+    return null
+  }
+}
+
 // Helper function to search for PCD data in our database
+// If found without source_url (not verified), also checks wheelfitment and updates DB
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function findPcdData(
   supabase: any,
@@ -184,70 +332,125 @@ async function findPcdData(
     ? `make.ilike.%${makeEnglish}%,make_he.ilike.%${makeHebrewFirstWord}%`
     : `make_he.ilike.%${makeHebrewFirstWord}%`
 
-  // First try: search by technical model name (degem_nm) in variants - most accurate match
-  if (technicalModelLower) {
-    const result1 = await supabase
+  // Helper to find in DB
+  async function searchDb(): Promise<any> {
+    // First try: search by technical model name (degem_nm) in variants
+    if (technicalModelLower) {
+      const result1 = await supabase
+        .from('vehicle_models')
+        .select('*')
+        .or(makeCondition)
+        .ilike('variants', `%${technicalModelLower}%`)
+        .lte('year_from', year)
+        .or(`year_to.gte.${year},year_to.is.null`)
+        .limit(1)
+
+      if (!result1.error && result1.data && result1.data.length > 0) {
+        return result1.data[0]
+      }
+    }
+
+    // Second try: exact model match by commercial name
+    const { data: vehicleModels, error } = await supabase
       .from('vehicle_models')
       .select('*')
       .or(makeCondition)
-      .ilike('variants', `%${technicalModelLower}%`)
+      .ilike('model', `%${modelLower}%`)
       .lte('year_from', year)
       .or(`year_to.gte.${year},year_to.is.null`)
       .limit(1)
 
-    if (!result1.error && result1.data && result1.data.length > 0) {
-      return result1.data[0]
+    if (!error && vehicleModels && vehicleModels.length > 0) {
+      return vehicleModels[0]
     }
-  }
 
-  // Second try: exact model match by commercial name (kinuy_mishari)
-  let { data: vehicleModels, error } = await supabase
-    .from('vehicle_models')
-    .select('*')
-    .or(makeCondition)
-    .ilike('model', `%${modelLower}%`)
-    .lte('year_from', year)
-    .or(`year_to.gte.${year},year_to.is.null`)
-    .limit(1)
-
-  if (!error && vehicleModels && vehicleModels.length > 0) {
-    return vehicleModels[0]
-  }
-
-  // Third try: search in variants column by commercial name
-  const result2 = await supabase
-    .from('vehicle_models')
-    .select('*')
-    .or(makeCondition)
-    .ilike('variants', `%${modelLower}%`)
-    .lte('year_from', year)
-    .or(`year_to.gte.${year},year_to.is.null`)
-    .limit(1)
-
-  if (!result2.error && result2.data && result2.data.length > 0) {
-    return result2.data[0]
-  }
-
-  // Fourth try: search for first word only (e.g., "CAMRY" from "CAMRY HYBRID")
-  if (modelLower.includes(' ')) {
-    const firstWord = modelLower.split(' ')[0]
-    const result3 = await supabase
+    // Third try: search in variants column
+    const result2 = await supabase
       .from('vehicle_models')
       .select('*')
       .or(makeCondition)
-      .ilike('model', `%${firstWord}%`)
+      .ilike('variants', `%${modelLower}%`)
       .lte('year_from', year)
       .or(`year_to.gte.${year},year_to.is.null`)
       .limit(1)
 
-    if (!result3.error && result3.data && result3.data.length > 0) {
-      return result3.data[0]
+    if (!result2.error && result2.data && result2.data.length > 0) {
+      return result2.data[0]
+    }
+
+    // Fourth try: search for first word only
+    if (modelLower.includes(' ')) {
+      const firstWord = modelLower.split(' ')[0]
+      const result3 = await supabase
+        .from('vehicle_models')
+        .select('*')
+        .or(makeCondition)
+        .ilike('model', `%${firstWord}%`)
+        .lte('year_from', year)
+        .or(`year_to.gte.${year},year_to.is.null`)
+        .limit(1)
+
+      if (!result3.error && result3.data && result3.data.length > 0) {
+        return result3.data[0]
+      }
+    }
+
+    return null
+  }
+
+  // Step 1: Search in DB
+  const dbResult = await searchDb()
+
+  // Step 2: If found with source_url - already verified, return it
+  if (dbResult && dbResult.source_url) {
+    return dbResult
+  }
+
+  // Step 3: Not verified or not found - try wheelfitment
+  const wheelfitmentData = await scrapeWheelfitmentForLookup(makeHebrew, modelName, year)
+
+  if (wheelfitmentData) {
+    if (dbResult) {
+      // Update existing record with verified data
+      await supabase
+        .from('vehicle_models')
+        .update({
+          bolt_count: wheelfitmentData.bolt_count,
+          bolt_spacing: wheelfitmentData.bolt_spacing,
+          center_bore: wheelfitmentData.center_bore,
+          rim_sizes_allowed: wheelfitmentData.rim_sizes_allowed,
+          source_url: wheelfitmentData.source_url,
+          source: 'wheelfitment.eu'
+        })
+        .eq('id', dbResult.id)
+
+      return { ...dbResult, ...wheelfitmentData }
+    } else {
+      // Create new record
+      const { data: newRecord } = await supabase
+        .from('vehicle_models')
+        .insert([{
+          make: makeEnglish || makeHebrewFirstWord.toLowerCase(),
+          make_he: makeHebrewFirstWord,
+          model: modelName.toLowerCase(),
+          year_from: year,
+          year_to: null,
+          bolt_count: wheelfitmentData.bolt_count,
+          bolt_spacing: wheelfitmentData.bolt_spacing,
+          center_bore: wheelfitmentData.center_bore,
+          rim_sizes_allowed: wheelfitmentData.rim_sizes_allowed,
+          source_url: wheelfitmentData.source_url,
+          source: 'wheelfitment.eu',
+          added_by: 'auto-lookup'
+        }])
+        .select()
+
+      return newRecord?.[0] || wheelfitmentData
     }
   }
 
-  // Note: We intentionally don't search by make only, as different models
-  // of the same make can have different PCDs (e.g., Toyota Prius 5x100 vs Camry 5x114.3)
-  return null
+  // Step 4: Wheelfitment failed - return DB result if exists (even unverified)
+  return dbResult
 }
 
 export async function GET(request: NextRequest) {

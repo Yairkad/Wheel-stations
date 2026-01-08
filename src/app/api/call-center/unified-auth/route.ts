@@ -69,10 +69,10 @@ export async function POST(request: NextRequest) {
           full_name: manager.full_name,
           title: manager.title,
           phone: manager.phone,
-          is_primary: manager.is_primary,
-          call_center_id: manager.call_center_id,
-          call_center_name: callCenter.name
-        }
+          is_primary: manager.is_primary
+        },
+        call_center_id: manager.call_center_id,
+        call_center_name: callCenter.name
       })
     }
 
@@ -122,10 +122,10 @@ export async function POST(request: NextRequest) {
         user: {
           id: operator.id,
           full_name: operator.full_name,
-          phone: operator.phone,
-          call_center_id: operator.call_center_id,
-          call_center_name: callCenter.name
-        }
+          phone: operator.phone
+        },
+        call_center_id: operator.call_center_id,
+        call_center_name: callCenter.name
       })
     }
 

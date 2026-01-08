@@ -35,7 +35,9 @@ export async function GET(request: NextRequest) {
         .or(`year_to.gte.${yearNum},year_to.is.null`)
     }
 
-    const { data, error } = await query.order('make', { ascending: true })
+    const { data, error } = await query
+      .order('make', { ascending: true })
+      .range(0, 9999)
 
     if (error) {
       console.error('Supabase error:', error)
