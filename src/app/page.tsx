@@ -164,8 +164,31 @@ export default function WheelStationsPage() {
   const [errorReportLoading, setErrorReportLoading] = useState(false)
 
   useEffect(() => {
-    // Redirect to login - home page is not public
-    window.location.href = '/login'
+    // Check if user is authenticated (station manager or operator)
+    const hasStationSession = Object.keys(localStorage).some(key => key.startsWith('station_session_'))
+    const hasOperatorSession = localStorage.getItem('operator_session')
+    const hasOldSession = Object.keys(localStorage).some(key => key.startsWith('wheel_manager_'))
+
+    if (!hasStationSession && !hasOperatorSession && !hasOldSession) {
+      // Not logged in - redirect to login
+      window.location.href = '/login'
+      return
+    }
+
+    // User is logged in - load stations
+    fetchStations()
+    fetchDistrictsData()
+    // Check if manager is logged in from localStorage
+    const savedManager = localStorage.getItem('vehicle_db_manager')
+    if (savedManager) {
+      try {
+        const { phone } = JSON.parse(savedManager)
+        setIsManagerLoggedIn(true)
+        setManagerPhone(phone)
+      } catch {
+        localStorage.removeItem('vehicle_db_manager')
+      }
+    }
   }, [])
 
   // Close modals on Escape key

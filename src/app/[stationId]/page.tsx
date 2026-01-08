@@ -675,6 +675,8 @@ ${signFormUrl}
     setCurrentManager(null)
     setSessionPassword('')
     localStorage.removeItem(`wheel_manager_${stationId}`)
+    localStorage.removeItem(`station_session_${stationId}`)
+    window.location.href = '/login'
   }
 
   // Change password
@@ -1553,6 +1555,14 @@ ${formUrl}`
                       onClick={() => setShowManagerMenu(false)}
                     >
                       📖 מדריך למנהלים
+                    </a>
+
+                    <a
+                      href="/"
+                      style={{ ...styles.menuItem, textDecoration: 'none' }}
+                      onClick={() => setShowManagerMenu(false)}
+                    >
+                      🏪 כל התחנות
                     </a>
 
                     {/* Divider */}
