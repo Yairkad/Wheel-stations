@@ -1047,16 +1047,6 @@ export default function WheelStationsPage() {
         />
         <h1 style={styles.title} className="wheels-header-title">תחנות השאלת גלגלים</h1>
         <p style={styles.subtitle}>בחר תחנה כדי לראות את המלאי הזמין</p>
-
-        {/* Search Buttons */}
-        <div style={styles.searchBtnsRow}>
-          <button style={styles.searchBtn} className="wheels-search-btn" onClick={openSearchModal}>
-            🔍 חיפוש לפי מפרט
-          </button>
-          <button style={styles.vehicleSearchBtn} className="wheels-search-btn" onClick={openVehicleModal}>
-            🚗 חיפוש לפי רכב
-          </button>
-        </div>
       </header>
 
       {/* Station Filter */}
