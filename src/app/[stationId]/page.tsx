@@ -231,50 +231,72 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     fetchDistrictsData()
     // Check if already logged in and validate session with server
     const validateSession = async () => {
-      // Check new login page session first
+      // Check new login page session first (from /login)
       const newSession = localStorage.getItem(`station_session_${stationId}`)
       // Also check old format for backwards compatibility
       const oldSession = localStorage.getItem(`wheel_manager_${stationId}`)
-      const savedSession = newSession || oldSession
 
-      if (savedSession) {
+      // New session format from /login page - trust it directly (session expiry: 7 days)
+      if (newSession) {
         try {
-          const session = JSON.parse(savedSession)
-          // Get manager data from session
-          const manager = session.manager
-          const phone = manager?.phone || ''
-          const token = session.token || session.password || ''
+          const session = JSON.parse(newSession)
+          const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
-          // Validate token with server
-          const response = await fetch(
-            `/api/wheel-stations/${stationId}/auth?token=${encodeURIComponent(token)}&phone=${encodeURIComponent(phone)}`
-          )
-          const data = await response.json()
-
-          if (data.valid) {
-            // Session is valid - update manager data from server (in case it changed)
+          // Check if session is still valid (within 7 days)
+          if (session.timestamp && Date.now() - session.timestamp < SESSION_EXPIRY_MS && session.manager) {
             setIsManager(true)
-            setCurrentManager(data.manager)
-            setSessionPassword(session.password || token)
+            setCurrentManager({
+              id: session.manager.id,
+              full_name: session.manager.full_name,
+              phone: session.manager.phone,
+              role: session.manager.role || 'manager',
+              is_primary: session.manager.is_primary || false
+            })
+            setSessionPassword(session.password || '')
+            return
           } else {
-            // Session invalid or expired - clear it and redirect to login
+            // Session expired
             localStorage.removeItem(`station_session_${stationId}`)
-            localStorage.removeItem(`wheel_manager_${stationId}`)
-            if (data.expired) {
-              toast.error('הסשן פג תוקף, יש להתחבר מחדש')
-            }
+            toast.error('הסשן פג תוקף, יש להתחבר מחדש')
             window.location.href = '/login'
+            return
           }
         } catch {
-          // Old format or invalid, clear it and redirect to login
           localStorage.removeItem(`station_session_${stationId}`)
-          localStorage.removeItem(`wheel_manager_${stationId}`)
-          window.location.href = '/login'
         }
-      } else {
-        // No session at all - redirect to login
-        window.location.href = '/login'
       }
+
+      // Old session format - validate with server
+      if (oldSession) {
+        try {
+          const session = JSON.parse(oldSession)
+          const manager = session.manager
+          const phone = manager?.phone || ''
+          const token = session.token || ''
+
+          if (token) {
+            const response = await fetch(
+              `/api/wheel-stations/${stationId}/auth?token=${encodeURIComponent(token)}&phone=${encodeURIComponent(phone)}`
+            )
+            const data = await response.json()
+
+            if (data.valid) {
+              setIsManager(true)
+              setCurrentManager(data.manager)
+              setSessionPassword(session.password || token)
+              return
+            }
+          }
+
+          // Invalid old session
+          localStorage.removeItem(`wheel_manager_${stationId}`)
+        } catch {
+          localStorage.removeItem(`wheel_manager_${stationId}`)
+        }
+      }
+
+      // No valid session - redirect to login
+      window.location.href = '/login'
     }
     validateSession()
   }, [stationId])
