@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
@@ -56,6 +57,9 @@ interface FilterOptions {
 }
 
 export default function SearchPage() {
+  const searchParams = useSearchParams()
+  const fromStationId = searchParams.get('from')
+
   const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -1001,6 +1005,15 @@ export default function SearchPage() {
           }
         }
       `}</style>
+      {/* Back to station button */}
+      {fromStationId && (
+        <div style={styles.backToStationContainer}>
+          <Link href={`/${fromStationId}`} style={styles.backToStationBtn}>
+            ← חזרה לתחנה
+          </Link>
+        </div>
+      )}
+
       {/* Search Page Header */}
       <header style={styles.searchPageHeader}>
         <h1 style={styles.searchPageTitle}>🔍 חיפוש גלגל</h1>
@@ -1125,7 +1138,7 @@ export default function SearchPage() {
                   </div>
 
                   <div style={styles.filterGroup}>
-                    <label style={styles.filterLabel}>ET (קור)</label>
+                    <label style={styles.filterLabel}>קור (ET)</label>
                     <select
                       style={styles.filterSelect}
                       value={searchFilters.offset}
@@ -2241,6 +2254,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     direction: 'rtl',
     display: 'flex',
     flexDirection: 'column',
+  },
+  backToStationContainer: {
+    marginBottom: '10px',
+    textAlign: 'center',
+  },
+  backToStationBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 20px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    borderRadius: '8px',
+    color: 'white',
+    textDecoration: 'none',
+    fontWeight: 600,
+    fontSize: '0.95rem',
+    transition: 'transform 0.2s',
   },
   searchPageHeader: {
     textAlign: 'center',

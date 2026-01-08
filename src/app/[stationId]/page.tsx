@@ -2031,7 +2031,7 @@ ${formUrl}`
                 </select>
               </div>
               <div style={styles.filterGroup} className="station-filter-group">
-                <label style={styles.filterLabel}>ET (קור)</label>
+                <label style={styles.filterLabel}>קור (ET)</label>
                 <select
                   style={styles.filterSelect}
                   value={offsetFilter}

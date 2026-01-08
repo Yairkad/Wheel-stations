@@ -251,43 +251,47 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                       </Link>
                     )}
 
-                    {/* Station management actions - link to station page where modals exist */}
-                    {(userSession.manager.role === 'manager' || userSession.manager.role === 'admin') && (
-                      <>
-                        <Link
-                          href={`/${userSession.stationId}?action=add`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>➕</span>
-                          <span>הוסף גלגל</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=excel`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>📊</span>
-                          <span>יבוא/יצוא Excel</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=settings`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>⚙️</span>
-                          <span>הגדרות תחנה</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=notifications`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>🔔</span>
-                          <span>הפעל התראות</span>
-                        </Link>
-                      </>
-                    )}
+                    {/* Station management actions - always show for logged in users */}
+                    <Link
+                      href={`/search?from=${userSession.stationId}`}
+                      style={styles.dropdownItem}
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      <span>🔍</span>
+                      <span>חיפוש רכב</span>
+                    </Link>
+                    <Link
+                      href={`/${userSession.stationId}?action=add`}
+                      style={styles.dropdownItem}
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      <span>➕</span>
+                      <span>הוסף גלגל</span>
+                    </Link>
+                    <Link
+                      href={`/${userSession.stationId}?action=excel`}
+                      style={styles.dropdownItem}
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      <span>📊</span>
+                      <span>יבוא/יצוא Excel</span>
+                    </Link>
+                    <Link
+                      href={`/${userSession.stationId}?action=settings`}
+                      style={styles.dropdownItem}
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      <span>⚙️</span>
+                      <span>הגדרות תחנה</span>
+                    </Link>
+                    <Link
+                      href={`/${userSession.stationId}?action=notifications`}
+                      style={styles.dropdownItem}
+                      onClick={() => setShowProfileMenu(false)}
+                    >
+                      <span>🔔</span>
+                      <span>הפעל התראות</span>
+                    </Link>
 
                     {/* Form link submenu */}
                     <div style={styles.submenuContainer}>

@@ -10,7 +10,22 @@
       "Bash(find:*)",
       "Bash(dir \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\api\")",
       "Bash(del \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\operator\\\\route.ts\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(dir:*)",
+      "Bash(powershell -Command \"\\(Get-Content upsert_part_2.sql\\) -replace ''NaN'', ''NULL'' | Set-Content upsert_part_2.sql\")",
+      "Bash(powershell -Command \"Get-ChildItem upsert_part_*.sql | ForEach-Object { \\(Get-Content $_FullName\\) -replace '', NaN,'', '', NULL,'' | Set-Content $_FullName }\")",
+      "Bash(node:*)",
+      "Bash(wc:*)",
+      "Bash(powershell -Command \"Get-ChildItem ''c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\scripts\\\\upsert_part_*.sql'' | ForEach-Object { Write-Host $_Name '':'' \\(Get-Content $_FullName | Measure-Object -Line\\).Lines }\")",
+      "Bash(cat:*)",
+      "Bash(npm run build:*)",
+      "Bash(python3:*)",
+      "Bash(git diff:*)",
+      "Bash(start \"\" \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\header-demo.html\")",
+      "Bash($env:NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1)",
+      "Bash(set:*)",
+      "Bash(git push:*)"
     ]
   }
 }
