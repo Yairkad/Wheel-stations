@@ -138,6 +138,31 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Helper to normalize model name for comparison
+    const normalizeModel = (model: string): string => {
+      return model?.toLowerCase()
+        .replace(/\s+/g, '') // Remove spaces
+        .replace(/[-_]/g, '') // Remove dashes and underscores
+        .replace(/\d+[a-z]?$/i, '') // Remove trailing generation codes like "8l", "8p"
+        .trim()
+    }
+
+    // Helper to check if models are similar (one contains the other or same normalized)
+    const areModelsSimilar = (m1: string, m2: string): boolean => {
+      const n1 = normalizeModel(m1)
+      const n2 = normalizeModel(m2)
+
+      // Exact match after normalization
+      if (n1 === n2) return true
+
+      // One is contained in the other (e.g., "a3" and "a3 8l")
+      const l1 = m1?.toLowerCase().replace(/\s+/g, '')
+      const l2 = m2?.toLowerCase().replace(/\s+/g, '')
+      if (l1.startsWith(l2) || l2.startsWith(l1)) return true
+
+      return false
+    }
+
     // Group by make + model + overlapping years
     const duplicateGroups: VehicleModel[][] = []
     const processed = new Set<string>()
@@ -149,9 +174,11 @@ export async function GET() {
       const duplicates = (allRecords || []).filter(r => {
         if (r.id === record.id || processed.has(r.id)) return false
 
-        // Same make and model
+        // Same make
         if (r.make?.toLowerCase() !== record.make?.toLowerCase()) return false
-        if (r.model?.toLowerCase() !== record.model?.toLowerCase()) return false
+
+        // Similar model (exact match or one contains the other)
+        if (!areModelsSimilar(r.model, record.model)) return false
 
         // Overlapping year ranges or same years
         const r1Start = record.year_from || 1900
@@ -159,10 +186,17 @@ export async function GET() {
         const r2Start = r.year_from || 1900
         const r2End = r.year_to || 2100
 
-        // Check overlap
-        const hasOverlap = r1Start <= r2End && r2Start <= r1End
+        // Check if years truly overlap (not just touch at edges)
+        // For example: 1982-1990 and 1990-1994 should NOT be considered duplicates
+        // But 1996-2003 and 1996-2003 SHOULD be considered duplicates
+        const overlapStart = Math.max(r1Start, r2Start)
+        const overlapEnd = Math.min(r1End, r2End)
+        const overlapYears = overlapEnd - overlapStart
 
-        return hasOverlap
+        // Require at least 2 years of overlap to be considered duplicate
+        const hasSignificantOverlap = overlapYears >= 2
+
+        return hasSignificantOverlap
       })
 
       if (duplicates.length > 0) {
