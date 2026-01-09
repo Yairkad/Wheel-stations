@@ -874,21 +874,33 @@ function VehiclesAdminPage() {
     setEditingVehicle(null)
   }
 
-  // Search for vehicles to merge with
+  // Search for vehicles to merge with - search from API to get all vehicles
   const searchMergeTargets = async (query: string) => {
     if (query.length < 2) {
       setMergeSearchResults([])
       return
     }
 
-    const results = vehicles.filter(v =>
-      v.id !== mergeTargetVehicle?.id &&
-      (v.make?.toLowerCase().includes(query.toLowerCase()) ||
-       v.model?.toLowerCase().includes(query.toLowerCase()) ||
-       v.make_he?.includes(query))
-    ).slice(0, 10)
+    try {
+      const response = await fetch(`/api/vehicle-models?search=${encodeURIComponent(query)}&limit=15`)
+      const data = await response.json()
 
-    setMergeSearchResults(results)
+      if (data.vehicles) {
+        // Filter out the current vehicle being edited
+        const results = data.vehicles.filter((v: VehicleModel) => v.id !== mergeTargetVehicle?.id)
+        setMergeSearchResults(results.slice(0, 10))
+      }
+    } catch (err) {
+      console.error('Error searching vehicles:', err)
+      // Fallback to local search
+      const results = vehicles.filter(v =>
+        v.id !== mergeTargetVehicle?.id &&
+        (v.make?.toLowerCase().includes(query.toLowerCase()) ||
+         v.model?.toLowerCase().includes(query.toLowerCase()) ||
+         v.make_he?.includes(query))
+      ).slice(0, 10)
+      setMergeSearchResults(results)
+    }
   }
 
   // Initialize field selections when target is selected
@@ -936,7 +948,16 @@ function VehiclesAdminPage() {
         mergedData[field] = value
       })
 
-      // Update the source vehicle with merged data
+      // IMPORTANT: Delete the target vehicle FIRST to avoid unique constraint violation
+      const deleteResponse = await fetch(`/api/vehicle-models/${selectedMergeTarget.id}`, {
+        method: 'DELETE'
+      })
+
+      if (!deleteResponse.ok) {
+        throw new Error('שגיאה במחיקת הרשומה הכפולה')
+      }
+
+      // Now update the source vehicle with merged data
       const response = await fetch(`/api/vehicle-models/${mergeTargetVehicle.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -946,15 +967,6 @@ function VehiclesAdminPage() {
       if (!response.ok) {
         const data = await response.json()
         throw new Error(data.error || 'שגיאה בעדכון')
-      }
-
-      // Delete the target vehicle
-      const deleteResponse = await fetch(`/api/vehicle-models/${selectedMergeTarget.id}`, {
-        method: 'DELETE'
-      })
-
-      if (!deleteResponse.ok) {
-        throw new Error('שגיאה במחיקת הרשומה הכפולה')
       }
 
       toast.success('הרשומות מוזגו בהצלחה!')
@@ -2405,7 +2417,7 @@ function VehiclesAdminPage() {
                 </div>
               </div>
 
-              <div style={{display: 'flex', gap: '10px', marginTop: '15px'}}>
+              <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px'}}>
                 <button
                   style={styles.btnSubmit}
                   onClick={handleUpdateVehicle}
@@ -2414,7 +2426,16 @@ function VehiclesAdminPage() {
                   {editLoading ? 'מעדכן...' : '✅ עדכן'}
                 </button>
                 <button
-                  style={{...styles.btnSecondary, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', flex: 1}}
+                  style={{
+                    padding: '12px 20px',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.95rem'
+                  }}
                   onClick={() => editingVehicle && openMergeModal(editingVehicle)}
                 >
                   🔗 מזג עם דגם אחר

@@ -12,10 +12,17 @@ export async function GET(request: NextRequest) {
     const make = searchParams.get('make')
     const model = searchParams.get('model')
     const year = searchParams.get('year')
+    const search = searchParams.get('search') // General search term
+    const limit = searchParams.get('limit')
 
     // Helper function to build query with filters
     const buildQuery = () => {
       let q = supabase.from('vehicle_models').select('*')
+
+      // General search - search across make, make_he, model, variants
+      if (search) {
+        q = q.or(`make.ilike.%${search}%,make_he.ilike.%${search}%,model.ilike.%${search}%,variants.ilike.%${search}%`)
+      }
 
       if (make) {
         q = q.or(`make.ilike.%${make}%,make_he.ilike.%${make}%`)
@@ -29,6 +36,20 @@ export async function GET(request: NextRequest) {
       }
 
       return q
+    }
+
+    // If limit is specified, return limited results (for merge search)
+    if (limit) {
+      const { data, error } = await buildQuery()
+        .order('make', { ascending: true })
+        .limit(parseInt(limit))
+
+      if (error) {
+        console.error('Supabase error:', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({ vehicles: data, models: data })
     }
 
     // Supabase has a default limit of 1000, use pagination to get all records
