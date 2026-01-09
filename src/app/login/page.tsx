@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import toast from 'react-hot-toast'
 
 type LoginMode = 'select' | 'station' | 'operator'
@@ -225,6 +226,17 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+
+        {/* Footer */}
+        <footer style={styles.footer}>
+          <p style={styles.footerLinks}>
+            <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
+            {' • '}
+            <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
+            {' • '}
+            <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
+          </p>
+        </footer>
       </div>
     )
   }
@@ -292,6 +304,17 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <p style={styles.footerLinks}>
+          <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
+          {' • '}
+          <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
+          {' • '}
+          <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
+        </p>
+      </footer>
     </div>
   )
 }
@@ -430,5 +453,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     transition: 'transform 0.2s',
     marginTop: '10px'
+  },
+  footer: {
+    marginTop: '20px',
+    textAlign: 'center'
+  },
+  footerLinks: {
+    fontSize: '12px',
+    color: 'rgba(255,255,255,0.7)',
+    margin: 0
+  },
+  footerLink: {
+    color: 'rgba(255,255,255,0.9)',
+    textDecoration: 'none'
   }
 }

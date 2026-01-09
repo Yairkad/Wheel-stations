@@ -19,9 +19,15 @@ export async function GET(request: NextRequest) {
     const buildQuery = () => {
       let q = supabase.from('vehicle_models').select('*')
 
-      // General search - search across make, make_he, model, variants
+      // General search - split into words and search each word across all text fields
+      // This allows "מזדה 6" to find cars where make_he contains "מזדה" AND model contains "6"
       if (search) {
-        q = q.or(`make.ilike.%${search}%,make_he.ilike.%${search}%,model.ilike.%${search}%,variants.ilike.%${search}%`)
+        const searchWords = search.trim().split(/\s+/).filter(w => w.length > 0)
+
+        // For each word, it must match at least one of the text fields
+        searchWords.forEach(word => {
+          q = q.or(`make.ilike.%${word}%,make_he.ilike.%${word}%,model.ilike.%${word}%,variants.ilike.%${word}%`)
+        })
       }
 
       if (make) {

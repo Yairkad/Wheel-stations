@@ -856,13 +856,21 @@ function VehiclesAdminPage() {
       }
     } catch (err) {
       console.error('Error searching vehicles:', err)
-      // Fallback to local search
-      const results = vehicles.filter(v =>
-        v.id !== mergeTargetVehicle?.id &&
-        (v.make?.toLowerCase().includes(query.toLowerCase()) ||
-         v.model?.toLowerCase().includes(query.toLowerCase()) ||
-         v.make_he?.includes(query))
-      ).slice(0, 10)
+      // Fallback to local search - support multi-word queries
+      const searchWords = query.trim().split(/\s+/).filter(w => w.length > 0)
+      const results = vehicles.filter(v => {
+        if (v.id === mergeTargetVehicle?.id) return false
+        // Each word must match at least one field
+        return searchWords.every(word => {
+          const wordLower = word.toLowerCase()
+          return (
+            v.make?.toLowerCase().includes(wordLower) ||
+            v.model?.toLowerCase().includes(wordLower) ||
+            v.make_he?.includes(word) ||
+            v.variants?.toLowerCase().includes(word)
+          )
+        })
+      }).slice(0, 10)
       setMergeSearchResults(results)
     }
   }
@@ -1147,18 +1155,24 @@ function VehiclesAdminPage() {
   // Filter vehicles
   const filteredVehicles = vehicles.filter(v => {
     // Search query filter - supports Hebrew and English with fuzzy matching
+    // Split query into words to support "מזדה 6" style searches
     if (searchQuery) {
-      const q = searchQuery.toLowerCase()
-      const matchesSearch = (
-        v.make.toLowerCase().includes(q) ||
-        v.make_he?.toLowerCase().includes(q) ||
-        v.model.toLowerCase().includes(q) ||
-        v.variants?.toLowerCase().includes(q) ||
-        // Fuzzy Hebrew matching
-        fuzzyMatch(v.make_he || '', searchQuery) ||
-        fuzzyMatch(v.variants || '', searchQuery)
-      )
-      if (!matchesSearch) return false
+      const searchWords = searchQuery.trim().split(/\s+/).filter(w => w.length > 0)
+
+      // Each word must match at least one field
+      const allWordsMatch = searchWords.every(word => {
+        const wordLower = word.toLowerCase()
+        return (
+          v.make.toLowerCase().includes(wordLower) ||
+          v.make_he?.toLowerCase().includes(word) ||
+          v.model.toLowerCase().includes(wordLower) ||
+          v.variants?.toLowerCase().includes(word) ||
+          // Fuzzy Hebrew matching
+          fuzzyMatch(v.make_he || '', word) ||
+          fuzzyMatch(v.variants || '', word)
+        )
+      })
+      if (!allWordsMatch) return false
     }
 
     // Column filters
