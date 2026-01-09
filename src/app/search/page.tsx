@@ -1584,9 +1584,9 @@ function SearchPageContent() {
                 {vehicleResult.wheel_fitment ? (
                   <div style={styles.vehicleFitmentCard}>
                     {/* Source indicator */}
-                    <div style={styles.sourceIndicator} title={vehicleResult.wheel_fitment.source_url ? 'מידע מאומת מאתר חיצוני' : 'מידע מהמאגר הפנימי'}>
+                    <div style={styles.sourceIndicator} title={vehicleResult.wheel_fitment.source_url ? 'מידע ממקור חיצוני' : 'מידע מהמאגר הפנימי'}>
                       {vehicleResult.wheel_fitment.source_url ? (
-                        <span style={styles.sourceVerified}>✓ מאומת</span>
+                        <span style={styles.sourceVerified}>🌐 מקור חיצוני</span>
                       ) : (
                         <span style={styles.sourceInternal}>📊 מאגר פנימי</span>
                       )}

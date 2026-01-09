@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleStationLogin = async () => {
     if (!phone || !password) {
@@ -166,25 +167,34 @@ export default function LoginPage() {
         <h1 style={styles.title}>
           {mode === 'station' ? 'כניסת מנהל תחנה' : 'כניסת מוקדן'}
         </h1>
-        <p style={styles.subtitle}>הזן טלפון וסיסמה</p>
+        <p style={styles.subtitle}>הזן שם משתמש וסיסמה</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
-            type="tel"
-            placeholder="טלפון"
+            type="text"
+            placeholder="שם משתמש"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             style={styles.input}
             dir="ltr"
           />
-          <input
-            type="password"
-            placeholder="סיסמה"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
-            dir="ltr"
-          />
+          <div style={styles.passwordWrapper}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="סיסמה"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.passwordInput}
+              dir="ltr"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={styles.toggleButton}
+            >
+              {showPassword ? '🙈' : '👁️'}
+            </button>
+          </div>
 
           {error && <div style={styles.error}>{error}</div>}
 
@@ -291,6 +301,31 @@ const styles: { [key: string]: React.CSSProperties } = {
     outline: 'none',
     transition: 'border-color 0.2s',
     textAlign: 'center'
+  },
+  passwordWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  passwordInput: {
+    padding: '15px',
+    paddingLeft: '45px',
+    fontSize: '16px',
+    border: '2px solid #e0e0e0',
+    borderRadius: '10px',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+    textAlign: 'center',
+    width: '100%'
+  },
+  toggleButton: {
+    position: 'absolute',
+    left: '10px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '18px',
+    padding: '5px'
   },
   error: {
     color: '#e74c3c',
