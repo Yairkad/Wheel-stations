@@ -419,54 +419,168 @@ export default function CallCenterPage() {
 
   return (
     <div style={styles.pageWrapper}>
+      {/* Responsive styles */}
+      <style>{`
+        /* Tablet breakpoint (768px) */
+        @media (max-width: 768px) {
+          .cc-header-content {
+            flex-direction: column !important;
+            gap: 12px !important;
+            align-items: stretch !important;
+          }
+          .cc-header-buttons {
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+          }
+          .cc-stats-row {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px !important;
+            padding: 10px !important;
+          }
+          .cc-stat-card {
+            padding: 10px !important;
+          }
+          .cc-stat-value {
+            font-size: 1rem !important;
+          }
+          .cc-tabs {
+            flex-wrap: wrap !important;
+          }
+          .cc-tab {
+            flex: 1 1 45% !important;
+          }
+          .cc-list-item {
+            flex-direction: column !important;
+            gap: 10px !important;
+            align-items: stretch !important;
+          }
+          .cc-code-box {
+            align-self: flex-start !important;
+          }
+        }
+
+        /* Mobile breakpoint (480px) */
+        @media (max-width: 480px) {
+          .cc-header-logo {
+            flex-direction: column !important;
+            text-align: center !important;
+            gap: 8px !important;
+          }
+          .cc-logo-icon {
+            margin: 0 auto !important;
+          }
+          .cc-header-title {
+            font-size: 1rem !important;
+          }
+          .cc-header-subtitle {
+            font-size: 0.75rem !important;
+          }
+          .cc-stats-row {
+            grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 6px !important;
+          }
+          .cc-stat-card {
+            padding: 8px !important;
+            gap: 6px !important;
+          }
+          .cc-stat-icon {
+            width: 28px !important;
+            height: 28px !important;
+            font-size: 0.8rem !important;
+          }
+          .cc-stat-label {
+            font-size: 0.6rem !important;
+          }
+          .cc-stat-value {
+            font-size: 0.9rem !important;
+          }
+          .cc-tab {
+            flex: 1 1 100% !important;
+            padding: 10px !important;
+            font-size: 0.85rem !important;
+          }
+          .cc-section {
+            padding: 15px !important;
+          }
+          .cc-section-title {
+            font-size: 0.95rem !important;
+          }
+          .cc-btn-add {
+            padding: 6px 10px !important;
+            font-size: 0.75rem !important;
+          }
+          .cc-btn-primary {
+            padding: 8px 14px !important;
+            font-size: 0.8rem !important;
+          }
+          .cc-btn-logout, .cc-btn-settings {
+            padding: 6px 10px !important;
+            font-size: 0.8rem !important;
+          }
+          .cc-modal {
+            max-width: calc(100% - 30px) !important;
+            padding: 15px !important;
+          }
+          .cc-history-item {
+            flex-direction: column !important;
+            gap: 8px !important;
+          }
+          .cc-history-datetime {
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            gap: 8px !important;
+          }
+        }
+      `}</style>
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.headerContent}>
-          <div style={styles.headerLogo}>
-            <div style={styles.logoIcon}>🎧</div>
+        <div style={styles.headerContent} className="cc-header-content">
+          <div style={styles.headerLogo} className="cc-header-logo">
+            <div style={styles.logoIcon} className="cc-logo-icon">🎧</div>
             <div>
-              <h1 style={styles.headerTitle}>{manager.call_center_name}</h1>
-              <p style={styles.headerSubtitle}>{manager.title} - {manager.full_name}</p>
+              <h1 style={styles.headerTitle} className="cc-header-title">{manager.call_center_name}</h1>
+              <p style={styles.headerSubtitle} className="cc-header-subtitle">{manager.title} - {manager.full_name}</p>
             </div>
           </div>
-          <div style={styles.headerButtons}>
-            <button style={styles.btnPrimary} onClick={handleWorkAsOperator}>🔍 חיפוש גלגלים</button>
-            <button style={styles.btnSettings} onClick={() => setShowChangePassword(true)}>⚙️</button>
-            <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+          <div style={styles.headerButtons} className="cc-header-buttons">
+            <button style={styles.btnPrimary} className="cc-btn-primary" onClick={handleWorkAsOperator}>🔍 חיפוש גלגלים</button>
+            <button style={styles.btnSettings} className="cc-btn-settings" onClick={() => setShowChangePassword(true)}>⚙️</button>
+            <button style={styles.btnLogout} className="cc-btn-logout" onClick={handleLogout}>יציאה</button>
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div style={styles.statsRow}>
-        <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}}>👤</div>
+      <div style={styles.statsRow} className="cc-stats-row">
+        <div style={styles.statCard} className="cc-stat-card">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="cc-stat-icon">👤</div>
           <div>
-            <div style={styles.statLabel}>מוקדנים</div>
-            <div style={{...styles.statValue, color: '#22c55e'}}>{operators.length}</div>
+            <div style={styles.statLabel} className="cc-stat-label">מוקדנים</div>
+            <div style={{...styles.statValue, color: '#22c55e'}} className="cc-stat-value">{operators.length}</div>
           </div>
         </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}}>👔</div>
+        <div style={styles.statCard} className="cc-stat-card">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="cc-stat-icon">👔</div>
           <div>
-            <div style={styles.statLabel}>מנהלים</div>
-            <div style={{...styles.statValue, color: '#3b82f6'}}>{managers.length}</div>
+            <div style={styles.statLabel} className="cc-stat-label">מנהלים</div>
+            <div style={{...styles.statValue, color: '#3b82f6'}} className="cc-stat-value">{managers.length}</div>
           </div>
         </div>
-        <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>📋</div>
+        <div style={styles.statCard} className="cc-stat-card">
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} className="cc-stat-icon">📋</div>
           <div>
-            <div style={styles.statLabel}>הפניות</div>
-            <div style={{...styles.statValue, color: '#8b5cf6'}}>{history.length}</div>
+            <div style={styles.statLabel} className="cc-stat-label">הפניות</div>
+            <div style={{...styles.statValue, color: '#8b5cf6'}} className="cc-stat-value">{history.length}</div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={styles.container}>
-        <div style={styles.tabs}>
+        <div style={styles.tabs} className="cc-tabs">
           <button
             style={{...styles.tab, ...(activeTab === 'operators' ? styles.tabActive : {})}}
+            className="cc-tab"
             onClick={() => setActiveTab('operators')}
           >
             👤 מוקדנים
@@ -474,6 +588,7 @@ export default function CallCenterPage() {
           {manager.is_primary && (
             <button
               style={{...styles.tab, ...(activeTab === 'managers' ? styles.tabActive : {})}}
+              className="cc-tab"
               onClick={() => setActiveTab('managers')}
             >
               👔 מנהלים
@@ -481,6 +596,7 @@ export default function CallCenterPage() {
           )}
           <button
             style={{...styles.tab, ...(activeTab === 'history' ? styles.tabActive : {})}}
+            className="cc-tab"
             onClick={() => setActiveTab('history')}
           >
             📋 היסטוריה
@@ -488,13 +604,13 @@ export default function CallCenterPage() {
         </div>
 
         {/* Content */}
-        <div style={styles.section}>
+        <div style={styles.section} className="cc-section">
           {/* Operators Tab */}
           {activeTab === 'operators' && (
             <>
               <div style={styles.sectionHeader}>
-                <h3 style={styles.sectionTitle}>רשימת מוקדנים</h3>
-                <button style={styles.btnAdd} onClick={() => setShowAddOperator(true)}>+ הוסף מוקדן</button>
+                <h3 style={styles.sectionTitle} className="cc-section-title">רשימת מוקדנים</h3>
+                <button style={styles.btnAdd} className="cc-btn-add" onClick={() => setShowAddOperator(true)}>+ הוסף מוקדן</button>
               </div>
 
               {loading ? (
@@ -504,7 +620,7 @@ export default function CallCenterPage() {
               ) : (
                 <div style={styles.list}>
                   {operators.map(op => (
-                    <div key={op.id} style={{...styles.listItem, ...(op.is_active ? {} : styles.listItemBlocked)}}>
+                    <div key={op.id} style={{...styles.listItem, ...(op.is_active ? {} : styles.listItemBlocked)}} className="cc-list-item">
                       <div style={styles.listItemInfo}>
                         <div style={styles.listItemName}>
                           {op.full_name}
@@ -512,7 +628,7 @@ export default function CallCenterPage() {
                         </div>
                         <div style={styles.listItemMeta}>{op.phone}</div>
                       </div>
-                      <div style={styles.codeBox}>
+                      <div style={styles.codeBox} className="cc-code-box">
                         <span style={styles.codeLabel}>קוד:</span>
                         <span style={styles.codeValue}>{op.code}</span>
                       </div>
@@ -554,13 +670,13 @@ export default function CallCenterPage() {
           {activeTab === 'managers' && manager.is_primary && (
             <>
               <div style={styles.sectionHeader}>
-                <h3 style={styles.sectionTitle}>רשימת מנהלים</h3>
-                <button style={styles.btnAdd} onClick={() => setShowAddManager(true)}>+ הוסף מנהל</button>
+                <h3 style={styles.sectionTitle} className="cc-section-title">רשימת מנהלים</h3>
+                <button style={styles.btnAdd} className="cc-btn-add" onClick={() => setShowAddManager(true)}>+ הוסף מנהל</button>
               </div>
 
               <div style={styles.list}>
                 {managers.map(m => (
-                  <div key={m.id} style={styles.listItem}>
+                  <div key={m.id} style={styles.listItem} className="cc-list-item">
                     <div style={styles.listItemInfo}>
                       <div style={styles.listItemName}>
                         {m.full_name}
@@ -581,7 +697,7 @@ export default function CallCenterPage() {
           {activeTab === 'history' && (
             <>
               <div style={styles.sectionHeader}>
-                <h3 style={styles.sectionTitle}>היסטוריית הפניות</h3>
+                <h3 style={styles.sectionTitle} className="cc-section-title">היסטוריית הפניות</h3>
               </div>
 
               {history.length === 0 ? (
@@ -589,8 +705,8 @@ export default function CallCenterPage() {
               ) : (
                 <div style={styles.list}>
                   {history.map(item => (
-                    <div key={item.id} style={styles.historyItem}>
-                      <div style={styles.historyDateTime}>
+                    <div key={item.id} style={styles.historyItem} className="cc-history-item">
+                      <div style={styles.historyDateTime} className="cc-history-datetime">
                         <div style={styles.historyDate}>
                           {new Date(item.created_at).toLocaleDateString('he-IL')}
                         </div>
@@ -625,7 +741,7 @@ export default function CallCenterPage() {
       {/* Add Operator Modal */}
       {showAddOperator && (
         <div style={styles.modalOverlay} onClick={() => setShowAddOperator(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+          <div style={styles.modal} className="cc-modal" onClick={e => e.stopPropagation()}>
             <h3 style={styles.modalTitle}>➕ הוספת מוקדן</h3>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>שם מלא</label>
@@ -658,7 +774,7 @@ export default function CallCenterPage() {
       {/* Edit Operator Modal */}
       {showEditOperator && (
         <div style={styles.modalOverlay} onClick={() => setShowEditOperator(null)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+          <div style={styles.modal} className="cc-modal" onClick={e => e.stopPropagation()}>
             <h3 style={styles.modalTitle}>✏️ עריכת מוקדן</h3>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>שם מלא</label>
@@ -691,7 +807,7 @@ export default function CallCenterPage() {
       {/* Add Manager Modal */}
       {showAddManager && (
         <div style={styles.modalOverlay} onClick={() => setShowAddManager(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+          <div style={styles.modal} className="cc-modal" onClick={e => e.stopPropagation()}>
             <h3 style={styles.modalTitle}>➕ הוספת מנהל</h3>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>שם מלא</label>
@@ -757,7 +873,7 @@ export default function CallCenterPage() {
       {/* Change Password Modal */}
       {showChangePassword && (
         <div style={styles.modalOverlay} onClick={() => setShowChangePassword(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+          <div style={styles.modal} className="cc-modal" onClick={e => e.stopPropagation()}>
             <h3 style={styles.modalTitle}>🔐 שינוי סיסמה</h3>
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>סיסמה נוכחית</label>

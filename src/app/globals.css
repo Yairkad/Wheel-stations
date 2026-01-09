@@ -128,10 +128,10 @@ html {
   display: none;  /* Chrome, Safari and Opera */
 }
 
-/* Responsive typography - smaller on mobile */
-@media (max-width: 640px) {
+/* Responsive typography - tablet breakpoint (768px) */
+@media (max-width: 768px) {
   body {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   h1 {
@@ -144,6 +144,25 @@ html {
 
   h3 {
     font-size: 1.1rem !important;
+  }
+}
+
+/* Responsive typography - mobile breakpoint (480px) */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  h1 {
+    font-size: 1.25rem !important;
+  }
+
+  h2 {
+    font-size: 1.1rem !important;
+  }
+
+  h3 {
+    font-size: 1rem !important;
   }
 
   button {

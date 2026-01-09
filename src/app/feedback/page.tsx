@@ -186,14 +186,14 @@ export default function FeedbackPage() {
       <div className="max-w-2xl mx-auto py-8">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">📣 שליחת פידבק</h1>
-              <p className="text-gray-600">דווח על באג או שלח הצעה לשיפור מערכת הגלגלים</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">📣 שליחת פידבק</h1>
+              <p className="text-sm sm:text-base text-gray-600">דווח על באג או שלח הצעה לשיפור מערכת הגלגלים</p>
             </div>
             <Link
               href="/"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium text-sm sm:text-base"
             >
               <span>סגור</span>
               <span>✕</span>
@@ -206,7 +206,7 @@ export default function FeedbackPage() {
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 סוג הפידבק *
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {typeOptions.map((option) => (
                   <button
                     key={option.value}

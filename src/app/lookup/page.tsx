@@ -97,8 +97,8 @@ export default function VehicleLookupPage() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
               חיפוש גלגל לפי מספר רישוי
             </h1>
             <Link

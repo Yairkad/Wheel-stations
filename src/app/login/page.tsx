@@ -117,32 +117,111 @@ export default function LoginPage() {
     }
   }
 
+  // Responsive CSS
+  const responsiveStyles = `
+    @media (max-width: 768px) {
+      .login-card-responsive {
+        padding: 30px 25px !important;
+        margin: 10px !important;
+      }
+      .login-logo-responsive {
+        font-size: 50px !important;
+      }
+      .login-title-responsive {
+        font-size: 1.4rem !important;
+      }
+      .select-button-responsive {
+        padding: 20px !important;
+      }
+      .button-icon-responsive {
+        font-size: 32px !important;
+      }
+      .button-text-responsive {
+        font-size: 16px !important;
+      }
+      .form-input-responsive {
+        padding: 14px !important;
+      }
+      .submit-button-responsive {
+        padding: 14px !important;
+        font-size: 16px !important;
+      }
+    }
+    @media (max-width: 480px) {
+      .login-card-responsive {
+        padding: 25px 20px !important;
+        border-radius: 16px !important;
+      }
+      .login-logo-responsive {
+        font-size: 45px !important;
+        margin-bottom: 8px !important;
+      }
+      .login-title-responsive {
+        font-size: 1.25rem !important;
+      }
+      .login-subtitle-responsive {
+        font-size: 13px !important;
+        margin-bottom: 20px !important;
+      }
+      .select-button-responsive {
+        padding: 18px !important;
+        border-radius: 12px !important;
+      }
+      .button-icon-responsive {
+        font-size: 28px !important;
+        margin-bottom: 8px !important;
+      }
+      .button-text-responsive {
+        font-size: 15px !important;
+      }
+      .button-desc-responsive {
+        font-size: 11px !important;
+      }
+      .form-input-responsive {
+        padding: 12px !important;
+        font-size: 15px !important;
+      }
+      .submit-button-responsive {
+        padding: 12px !important;
+        font-size: 15px !important;
+      }
+      .back-button-responsive {
+        font-size: 14px !important;
+        top: 10px !important;
+        right: 10px !important;
+      }
+    }
+  `
+
   // Selection screen
   if (mode === 'select') {
     return (
       <div style={styles.container}>
-        <div style={styles.card}>
-          <div style={styles.logo}>🛞</div>
-          <h1 style={styles.title}>מערכת גלגלים</h1>
-          <p style={styles.subtitle}>בחר סוג כניסה</p>
+        <style>{responsiveStyles}</style>
+        <div style={styles.card} className="login-card-responsive">
+          <div style={styles.logo} className="login-logo-responsive">🛞</div>
+          <h1 style={styles.title} className="login-title-responsive">מערכת גלגלים</h1>
+          <p style={styles.subtitle} className="login-subtitle-responsive">בחר סוג כניסה</p>
 
           <div style={styles.buttonGroup}>
             <button
               style={styles.selectButton}
               onClick={() => setMode('station')}
+              className="select-button-responsive"
             >
-              <span style={styles.buttonIcon}>🏪</span>
-              <span style={styles.buttonText}>ניהול תחנה</span>
-              <span style={styles.buttonDesc}>למנהלי תחנות השאלה</span>
+              <span style={styles.buttonIcon} className="button-icon-responsive">🏪</span>
+              <span style={styles.buttonText} className="button-text-responsive">ניהול תחנה</span>
+              <span style={styles.buttonDesc} className="button-desc-responsive">למנהלי תחנות השאלה</span>
             </button>
 
             <button
               style={styles.selectButton}
               onClick={() => setMode('operator')}
+              className="select-button-responsive"
             >
-              <span style={styles.buttonIcon}>🎧</span>
-              <span style={styles.buttonText}>ממשק מוקדן</span>
-              <span style={styles.buttonDesc}>למוקדנים ומנהלי מוקד</span>
+              <span style={styles.buttonIcon} className="button-icon-responsive">🎧</span>
+              <span style={styles.buttonText} className="button-text-responsive">ממשק מוקדן</span>
+              <span style={styles.buttonDesc} className="button-desc-responsive">למוקדנים ומנהלי מוקד</span>
             </button>
           </div>
         </div>
@@ -153,21 +232,23 @@ export default function LoginPage() {
   // Login form
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
+      <style>{responsiveStyles}</style>
+      <div style={styles.card} className="login-card-responsive">
         <button
           style={styles.backButton}
           onClick={() => { setMode('select'); setError(''); setPhone(''); setPassword('') }}
+          className="back-button-responsive"
         >
           ← חזרה
         </button>
 
-        <div style={styles.logo}>
+        <div style={styles.logo} className="login-logo-responsive">
           {mode === 'station' ? '🏪' : '🎧'}
         </div>
-        <h1 style={styles.title}>
+        <h1 style={styles.title} className="login-title-responsive">
           {mode === 'station' ? 'כניסת מנהל תחנה' : 'כניסת מוקדן'}
         </h1>
-        <p style={styles.subtitle}>הזן שם משתמש וסיסמה</p>
+        <p style={styles.subtitle} className="login-subtitle-responsive">הזן שם משתמש וסיסמה</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
@@ -176,6 +257,7 @@ export default function LoginPage() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             style={styles.input}
+            className="form-input-responsive"
             dir="ltr"
           />
           <div style={styles.passwordWrapper}>
@@ -185,6 +267,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={styles.passwordInput}
+              className="form-input-responsive"
               dir="ltr"
             />
             <button
@@ -202,6 +285,7 @@ export default function LoginPage() {
           <button
             type="submit"
             style={styles.submitButton}
+            className="submit-button-responsive"
             disabled={loading}
           >
             {loading ? 'מתחבר...' : 'כניסה'}

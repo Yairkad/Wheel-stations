@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
-import { verifyAdminPasswordClient } from '@/lib/admin-auth'
+import { useAdminAuth } from '@/hooks/useAdminAuth'
 
 interface Operator {
   id: string
@@ -35,10 +35,7 @@ interface CallCenter {
 }
 
 export default function CallCentersAdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
 
   const [callCenters, setCallCenters] = useState<CallCenter[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,43 +62,10 @@ export default function CallCentersAdminPage() {
   } | null>(null)
 
   useEffect(() => {
-    const savedAuth = localStorage.getItem('wheels_admin_auth')
-    if (savedAuth) {
-      try {
-        const { expiry, pwd } = JSON.parse(savedAuth)
-        if (expiry && new Date().getTime() < expiry) {
-          setIsAuthenticated(true)
-          setPassword(pwd || '')
-        } else {
-          localStorage.removeItem('wheels_admin_auth')
-        }
-      } catch {
-        localStorage.removeItem('wheels_admin_auth')
-      }
-    }
-  }, [])
-
-  useEffect(() => {
     if (isAuthenticated) {
       fetchCallCenters()
     }
   }, [isAuthenticated])
-
-  const handleLogin = () => {
-    if (verifyAdminPasswordClient(password)) {
-      setIsAuthenticated(true)
-      const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000)
-      localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd: password }))
-      setPasswordError('')
-    } else {
-      setPasswordError('סיסמא שגויה')
-    }
-  }
-
-  const handleLogout = () => {
-    setIsAuthenticated(false)
-    localStorage.removeItem('wheels_admin_auth')
-  }
 
   const fetchCallCenters = async () => {
     try {
@@ -202,34 +166,12 @@ export default function CallCentersAdminPage() {
   const totalManagers = callCenters.reduce((sum, c) => sum + (c.call_center_managers?.length || 0), 0)
   const totalOperators = callCenters.reduce((sum, c) => sum + (c.operators?.length || 0), 0)
 
-  if (!isAuthenticated) {
+  // Show loading while checking auth
+  if (authLoading || !isAuthenticated) {
     return (
-      <div style={styles.loginContainer}>
-        <div style={styles.loginBox}>
-          <div style={styles.loginLogoIcon}>🎧</div>
-          <h1 style={styles.loginTitle}>ניהול מוקדים</h1>
-          <p style={styles.loginSubtitle}>הזן סיסמת מנהל</p>
-          <div style={{ position: 'relative' }}>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="סיסמא"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              style={{...styles.formInput, paddingLeft: '40px'}}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              style={styles.eyeButton}
-            >
-              {showPassword ? '🙈' : '👁️'}
-            </button>
-          </div>
-          {passwordError && <div style={styles.errorText}>{passwordError}</div>}
-          <button style={styles.loginBtn} onClick={handleLogin}>כניסה</button>
-          <Link href="/admin" style={styles.backLink}>← חזרה לניהול תחנות</Link>
-        </div>
+      <div style={styles.loadingContainer}>
+        <div style={styles.loadingSpinner}>🎧</div>
+        <p>טוען...</p>
       </div>
     )
   }
@@ -293,7 +235,7 @@ export default function CallCentersAdminPage() {
             <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
             <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
-            <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+            <button style={styles.btnLogout} onClick={logout}>יציאה</button>
           </div>
         </div>
       </div>
@@ -979,82 +921,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     fontSize: '0.95rem',
   },
-  loginContainer: {
+  loadingContainer: {
     minHeight: '100vh',
     background: '#0f172a',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '20px',
+    color: '#64748b',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    direction: 'rtl',
   },
-  loginBox: {
-    maxWidth: '400px',
-    width: '100%',
-    background: '#1e293b',
-    border: '1px solid #334155',
-    borderRadius: '20px',
-    padding: '40px',
-    textAlign: 'center',
-  },
-  loginLogoIcon: {
-    width: '70px',
-    height: '70px',
-    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    borderRadius: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '2rem',
-    margin: '0 auto 20px',
-    boxShadow: '0 8px 25px rgba(139, 92, 246, 0.3)',
-  },
-  loginTitle: {
-    fontSize: '1.5rem',
-    color: 'white',
-    fontWeight: 800,
-    margin: '0 0 8px 0',
-  },
-  loginSubtitle: {
-    color: '#64748b',
-    margin: '0 0 25px 0',
-  },
-  loginBtn: {
-    width: '100%',
-    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    color: 'white',
-    border: 'none',
-    padding: '14px',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    fontWeight: 700,
-    fontSize: '1rem',
-    marginTop: '15px',
-  },
-  backLink: {
-    display: 'block',
-    color: '#64748b',
-    textDecoration: 'none',
-    marginTop: '20px',
-    fontSize: '0.9rem',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: '0.9rem',
-    marginTop: '8px',
-  },
-  eyeButton: {
-    position: 'absolute',
-    left: '10px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '4px',
-    fontSize: '16px',
-    opacity: 0.7,
+  loadingSpinner: {
+    fontSize: '3rem',
+    marginBottom: '16px',
   },
   footer: {
     padding: '20px',

@@ -107,6 +107,7 @@ function SearchPageContent() {
       rim_sizes_allowed?: number[]
       source_url?: string
     } | null
+    source?: string // 'regular' | 'personal_import' | 'find_car_scrape' | 'local_db'
     is_personal_import?: boolean
     personal_import_warning?: string
   } | null>(null)
@@ -429,7 +430,8 @@ function SearchPageContent() {
             color: '',
             front_tire: model.tire_size_front || ''
           },
-          wheel_fitment: wheelFitment
+          wheel_fitment: wheelFitment,
+          source: 'local_db' // From our local database
         })
       }
 
@@ -958,7 +960,8 @@ function SearchPageContent() {
           animation: spin 0.8s linear infinite;
           display: inline-block;
         }
-        @media (max-width: 600px) {
+        /* Tablet breakpoint (768px) */
+        @media (max-width: 768px) {
           .wheels-search-btn {
             padding: 12px 20px !important;
             font-size: 0.9rem !important;
@@ -975,8 +978,39 @@ function SearchPageContent() {
           }
           .wheels-vehicle-modal {
             max-width: calc(100vw - 30px) !important;
-            padding: 15px !important;
+            padding: 18px !important;
             max-height: 90vh !important;
+          }
+          .wheels-search-modal {
+            padding: 18px !important;
+            max-width: calc(100vw - 30px) !important;
+            max-height: 90vh !important;
+          }
+          .wheels-add-model-modal {
+            padding: 18px !important;
+            max-width: calc(100vw - 30px) !important;
+            max-height: 90vh !important;
+          }
+          .wheels-modal-title {
+            font-size: 1.15rem !important;
+          }
+        }
+        /* Mobile breakpoint (480px) */
+        @media (max-width: 480px) {
+          .wheels-search-btn {
+            padding: 10px 16px !important;
+            font-size: 0.85rem !important;
+          }
+          .wheels-header-title {
+            font-size: 1.5rem !important;
+          }
+          .wheels-header-icon {
+            width: 70px !important;
+            height: 70px !important;
+          }
+          .wheels-vehicle-modal {
+            padding: 15px !important;
+            max-width: calc(100vw - 20px) !important;
           }
           .wheels-vehicle-modal .wheels-fitment-badges {
             flex-direction: column !important;
@@ -992,16 +1026,14 @@ function SearchPageContent() {
           }
           .wheels-search-modal {
             padding: 15px !important;
-            max-width: calc(100vw - 30px) !important;
-            max-height: 90vh !important;
+            max-width: calc(100vw - 20px) !important;
           }
           .wheels-add-model-modal {
             padding: 15px !important;
-            max-width: calc(100vw - 30px) !important;
-            max-height: 90vh !important;
+            max-width: calc(100vw - 20px) !important;
           }
           .wheels-modal-title {
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
           }
         }
       `}</style>
@@ -1589,9 +1621,9 @@ function SearchPageContent() {
                 {/* Wheel Fitment */}
                 {vehicleResult.wheel_fitment ? (
                   <div style={styles.vehicleFitmentCard}>
-                    {/* Source indicator */}
-                    <div style={styles.sourceIndicator} title={vehicleResult.wheel_fitment.source_url ? 'מידע ממקור חיצוני' : 'מידע מהמאגר הפנימי'}>
-                      {vehicleResult.wheel_fitment.source_url ? (
+                    {/* Source indicator - external only when scraped live (find_car_scrape) */}
+                    <div style={styles.sourceIndicator} title={vehicleResult.source === 'find_car_scrape' ? 'מידע נגרד כעת ממקור חיצוני' : 'מידע מהמאגר הפנימי'}>
+                      {vehicleResult.source === 'find_car_scrape' ? (
                         <span style={styles.sourceVerified}>🌐 מקור חיצוני</span>
                       ) : (
                         <span style={styles.sourceInternal}>📊 מאגר פנימי</span>

@@ -1437,7 +1437,8 @@ ${formUrl}`
     <AppHeader currentStationId={stationId} />
     <div style={styles.container}>
       <style>{`
-        @media (max-width: 600px) {
+        /* Tablet breakpoint (768px) */
+        @media (max-width: 768px) {
           .station-header-title {
             font-size: 1.4rem !important;
           }
@@ -1451,11 +1452,8 @@ ${formUrl}`
             justify-content: flex-end;
           }
           .station-manager-btn {
-            padding: 6px 10px !important;
-            font-size: 0.75rem !important;
-          }
-          .station-manager-btn .btn-text {
-            display: none;
+            padding: 7px 12px !important;
+            font-size: 0.8rem !important;
           }
           .station-login-btn {
             padding: 8px 14px !important;
@@ -1468,6 +1466,44 @@ ${formUrl}`
           .station-filter-group {
             min-width: 100% !important;
           }
+          .station-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+            gap: 10px !important;
+          }
+          .station-stats {
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+          .station-stat {
+            min-width: 85px !important;
+            padding: 12px 15px !important;
+          }
+          .tracking-filter-tabs {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+          }
+          .tracking-stats {
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+          }
+          .tracking-stat {
+            flex: 1 !important;
+            min-width: 100px !important;
+          }
+        }
+
+        /* Mobile breakpoint (480px) */
+        @media (max-width: 480px) {
+          .station-header-title {
+            font-size: 1.2rem !important;
+          }
+          .station-manager-btn {
+            padding: 6px 10px !important;
+            font-size: 0.75rem !important;
+          }
+          .station-manager-btn .btn-text {
+            display: none;
+          }
           .station-card-actions {
             flex-direction: column;
             gap: 6px !important;
@@ -1476,16 +1512,12 @@ ${formUrl}`
             width: 100% !important;
           }
           .station-grid {
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
-            gap: 10px !important;
-          }
-          .station-stats {
-            flex-wrap: wrap;
-            justify-content: center;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+            gap: 8px !important;
           }
           .station-stat {
-            min-width: 80px !important;
-            padding: 12px 15px !important;
+            min-width: 70px !important;
+            padding: 10px 12px !important;
           }
           .station-contact-buttons {
             flex-direction: column;
@@ -1502,22 +1534,13 @@ ${formUrl}`
           .tracking-table-container .mobile-cards {
             display: flex !important;
           }
-          .tracking-filter-tabs {
-            flex-wrap: wrap !important;
-            gap: 6px !important;
-          }
           .tracking-filter-btn {
             padding: 8px 12px !important;
             font-size: 0.8rem !important;
           }
-          .tracking-stats {
-            flex-wrap: wrap !important;
-            gap: 10px !important;
-          }
           .tracking-stat {
-            flex: 1 !important;
-            min-width: 90px !important;
-            padding: 12px !important;
+            min-width: 80px !important;
+            padding: 10px !important;
           }
           .tracking-stat-value {
             font-size: 1.3rem !important;
@@ -1530,7 +1553,8 @@ ${formUrl}`
             font-size: 20px !important;
           }
         }
-        @media (min-width: 601px) {
+
+        @media (min-width: 481px) {
           .tracking-table-container .mobile-cards {
             display: none !important;
           }

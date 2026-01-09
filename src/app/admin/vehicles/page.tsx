@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
-import { verifyAdminPasswordClient } from '@/lib/admin-auth'
+import { useAdminAuth } from '@/hooks/useAdminAuth'
 
 interface VehicleModel {
   id: string
@@ -68,10 +68,7 @@ export default function VehiclesAdminPageWrapper() {
 
 function VehiclesAdminPage() {
   const searchParams = useSearchParams()
-
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [password, setPassword] = useState('')
-  const [passwordError, setPasswordError] = useState('')
+  const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
 
   const [vehicles, setVehicles] = useState<VehicleModel[]>([])
   const [loading, setLoading] = useState(true)
@@ -334,24 +331,6 @@ function VehiclesAdminPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  useEffect(() => {
-    // Check if already logged in (with 30-day expiry)
-    const savedAuth = localStorage.getItem('wheels_admin_auth')
-    if (savedAuth) {
-      try {
-        const { expiry, pwd } = JSON.parse(savedAuth)
-        if (expiry && new Date().getTime() < expiry) {
-          setIsAuthenticated(true)
-          setPassword(pwd || '')
-        } else {
-          localStorage.removeItem('wheels_admin_auth')
-        }
-      } catch {
-        localStorage.removeItem('wheels_admin_auth')
-      }
-    }
-  }, [])
-
   // Read URL params for error report integration
   useEffect(() => {
     const make = searchParams.get('make')
@@ -397,23 +376,6 @@ function VehiclesAdminPage() {
       fetchVehicles()
     }
   }, [isAuthenticated])
-
-  const handleLogin = () => {
-    if (verifyAdminPasswordClient(password)) {
-      setIsAuthenticated(true)
-      // Save with 30-day expiry
-      const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000)
-      localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd: password }))
-      setPasswordError('')
-    } else {
-      setPasswordError('סיסמא שגויה')
-    }
-  }
-
-  const handleLogout = () => {
-    setIsAuthenticated(false)
-    localStorage.removeItem('wheels_admin_auth')
-  }
 
   const fetchVehicles = async () => {
     try {
@@ -1284,26 +1246,12 @@ function VehiclesAdminPage() {
     return true
   })
 
-  // Login screen
-  if (!isAuthenticated) {
+  // Show loading while checking auth
+  if (authLoading || !isAuthenticated) {
     return (
-      <div style={styles.loginContainer}>
-        <div style={styles.loginBox}>
-          <div style={styles.loginLogoIcon}>🚗</div>
-          <h1 style={styles.loginTitle}>ניהול מאגר רכבים</h1>
-          <p style={styles.loginSubtitle}>הזן סיסמת מנהל</p>
-          <input
-            type="password"
-            placeholder="סיסמא"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            style={styles.formInput}
-          />
-          {passwordError && <div style={styles.errorText}>{passwordError}</div>}
-          <button style={styles.loginBtn} onClick={handleLogin}>כניסה</button>
-          <Link href="/admin" style={styles.backLink}>← חזרה לניהול תחנות</Link>
-        </div>
+      <div style={styles.loadingContainer}>
+        <div style={styles.loadingSpinner}>🚗</div>
+        <p>טוען...</p>
       </div>
     )
   }
@@ -1376,7 +1324,7 @@ function VehiclesAdminPage() {
             <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
             <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
             <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
-            <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+            <button style={styles.btnLogout} onClick={logout}>יציאה</button>
           </div>
         </div>
       </div>
@@ -3062,70 +3010,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1rem',
     marginTop: '10px',
   },
-  // Login
-  loginContainer: {
+  // Loading
+  loadingContainer: {
     minHeight: '100vh',
     background: '#0f172a',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '20px',
-    direction: 'rtl',
-  },
-  loginBox: {
-    maxWidth: '400px',
-    width: '100%',
-    background: '#1e293b',
-    border: '1px solid #334155',
-    borderRadius: '16px',
-    padding: '40px',
-    textAlign: 'center',
-  },
-  loginLogoIcon: {
-    width: '60px',
-    height: '60px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-    borderRadius: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.8rem',
-    margin: '0 auto 20px',
-  },
-  loginTitle: {
-    fontSize: '1.4rem',
-    color: 'white',
-    fontWeight: 700,
-    marginBottom: '8px',
-    margin: '0 0 8px 0',
-  },
-  loginSubtitle: {
     color: '#64748b',
-    marginBottom: '20px',
-    margin: '0 0 20px 0',
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
-  loginBtn: {
-    width: '100%',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-    color: 'white',
-    border: 'none',
-    padding: '14px',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    fontWeight: 600,
-    marginTop: '15px',
-  },
-  backLink: {
-    display: 'block',
-    color: '#64748b',
-    textDecoration: 'none',
-    marginTop: '20px',
-    fontSize: '0.9rem',
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: '0.9rem',
-    marginTop: '8px',
+  loadingSpinner: {
+    fontSize: '3rem',
+    marginBottom: '16px',
   },
   suggestionsList: {
     position: 'absolute',

@@ -660,49 +660,13 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Login screen
+  // If no session, useEffect will redirect to /login
   if (!operator) {
     return (
       <div style={styles.loginContainer}>
-        <div style={styles.loginBox}>
-          <div style={styles.loginLogoIcon}>🎧</div>
-          <h1 style={styles.loginTitle}>מערכת מוקדים</h1>
-          <p style={styles.loginSubtitle}>הזן שם משתמש וסיסמה</p>
-
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>שם משתמש</label>
-            <input
-              type="text"
-              placeholder="שם משתמש"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              style={styles.formInput}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>סיסמה / קוד</label>
-            <input
-              type="password"
-              placeholder="הסיסמה או הקוד שקיבלת"
-              value={code}
-              onChange={e => setCode(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              style={styles.formInput}
-              dir="ltr"
-            />
-          </div>
-
-          {loginError && <div style={styles.errorText}>{loginError}</div>}
-
-          <button
-            style={styles.loginBtn}
-            onClick={handleLogin}
-            disabled={loginLoading}
-          >
-            {loginLoading ? 'מתחבר...' : 'כניסה'}
-          </button>
-          <Link href="/" style={styles.backLink}>← חזרה לדף הראשי</Link>
+        <div style={{color: '#94a3b8', textAlign: 'center'}}>
+          <div style={{fontSize: '2rem', marginBottom: '10px'}}>🔄</div>
+          מעביר לדף ההתחברות...
         </div>
       </div>
     )
@@ -711,54 +675,132 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
   // Main interface
   return (
     <div style={styles.pageWrapper}>
-      {/* Keyframes for spinner animation */}
+      {/* Keyframes for spinner animation + responsive styles */}
       <style>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
+
+        /* Tablet breakpoint (768px) */
+        @media (max-width: 768px) {
+          .operator-header-content {
+            flex-direction: column !important;
+            gap: 12px !important;
+            align-items: stretch !important;
+          }
+          .operator-user-info {
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+          }
+          .operator-header-title {
+            font-size: 1.1rem !important;
+          }
+          .operator-search-tabs {
+            flex-wrap: wrap !important;
+          }
+          .operator-search-tab {
+            flex: 1 1 45% !important;
+            min-width: 100px !important;
+          }
+          .operator-filter-grid-row {
+            grid-template-columns: 1fr !important;
+          }
+          .operator-vehicle-specs-row {
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+          }
+          .operator-wheels-grid {
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)) !important;
+          }
+          .operator-station-header {
+            flex-direction: column !important;
+            gap: 8px !important;
+            align-items: flex-start !important;
+          }
+        }
+
+        /* Mobile breakpoint (480px) */
+        @media (max-width: 480px) {
+          .operator-header-logo {
+            flex-direction: column !important;
+            text-align: center !important;
+            gap: 8px !important;
+          }
+          .operator-logo-icon {
+            margin: 0 auto !important;
+          }
+          .operator-search-tab {
+            flex: 1 1 100% !important;
+            padding: 8px !important;
+            font-size: 0.8rem !important;
+          }
+          .operator-section {
+            padding: 15px !important;
+          }
+          .operator-section-title {
+            font-size: 1rem !important;
+          }
+          .operator-btn-logout, .operator-btn-back {
+            padding: 6px 12px !important;
+            font-size: 0.75rem !important;
+          }
+          .operator-user-name {
+            font-size: 0.8rem !important;
+          }
+          .operator-modal {
+            max-width: calc(100% - 30px) !important;
+            padding: 15px !important;
+          }
+          .operator-footer-text {
+            font-size: 0.7rem !important;
+          }
+        }
       `}</style>
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.headerContent}>
-          <div style={styles.headerLogo}>
-            <div style={styles.logoIcon}>🎧</div>
+        <div style={styles.headerContent} className="operator-header-content">
+          <div style={styles.headerLogo} className="operator-header-logo">
+            <div style={styles.logoIcon} className="operator-logo-icon">🎧</div>
             <div>
-              <h1 style={styles.headerTitle}>ממשק מוקדן</h1>
+              <h1 style={styles.headerTitle} className="operator-header-title">ממשק מוקדן</h1>
               <p style={styles.headerSubtitle}>{operator.call_center_name}</p>
             </div>
           </div>
-          <div style={styles.userInfo}>
-            <span style={styles.userName}>{operator.full_name}</span>
+          <div style={styles.userInfo} className="operator-user-info">
+            <span style={styles.userName} className="operator-user-name">{operator.full_name}</span>
             {isManager && (
-              <button style={styles.btnBackToManagement} onClick={handleBackToManagement}>← חזרה לניהול</button>
+              <button style={styles.btnBackToManagement} className="operator-btn-back" onClick={handleBackToManagement}>← חזרה לניהול</button>
             )}
-            <button style={styles.btnLogout} onClick={handleLogout}>יציאה</button>
+            <button style={styles.btnLogout} className="operator-btn-logout" onClick={handleLogout}>יציאה</button>
           </div>
         </div>
       </div>
 
       <div style={styles.container}>
         {/* Search Section */}
-        <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>🔍 חיפוש גלגל לרכב</h3>
+        <div style={styles.section} className="operator-section">
+          <h3 style={styles.sectionTitle} className="operator-section-title">🔍 חיפוש גלגל לרכב</h3>
 
           {/* Search Tabs - 3 options */}
-          <div style={styles.searchTabs}>
+          <div style={styles.searchTabs} className="operator-search-tabs">
             <button
               style={{...styles.searchTab, ...(searchTab === 'plate' ? styles.searchTabActive : {})}}
+              className="operator-search-tab"
               onClick={() => { setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
               🔢 מספר רכב
             </button>
             <button
               style={{...styles.searchTab, ...(searchTab === 'model' ? styles.searchTabActive : {})}}
+              className="operator-search-tab"
               onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
               🚘 יצרן ודגם
             </button>
             <button
               style={{...styles.searchTab, ...(searchTab === 'spec' ? styles.searchTabActive : {})}}
+              className="operator-search-tab"
               onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
               🔧 לפי מפרט
@@ -897,7 +939,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           {searchTab === 'spec' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* First row - 2 columns */}
-              <div style={styles.filterGridRow}>
+              <div style={styles.filterGridRow} className="operator-filter-grid-row">
                 <div style={styles.filterGroup}>
                   <label style={styles.filterLabel}>כמות ברגים</label>
                   <select
@@ -928,7 +970,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
               </div>
 
               {/* Second row - 2 columns */}
-              <div style={styles.filterGridRow}>
+              <div style={styles.filterGridRow} className="operator-filter-grid-row">
                 <div style={styles.filterGroup}>
                   <label style={styles.filterLabel}>גודל ג&apos;אנט</label>
                   <select
@@ -993,7 +1035,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                   </a>
                 )}
               </div>
-              <div style={styles.vehicleSpecsRow}>
+              <div style={styles.vehicleSpecsRow} className="operator-vehicle-specs-row">
                 <div style={styles.specBox}>
                   <span style={styles.specLabel}>PCD</span>
                   <span style={styles.specValue}>{vehicleInfo.bolt_count}×{vehicleInfo.bolt_spacing}</span>
@@ -1039,7 +1081,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
 
             {results.map(result => (
               <div key={result.station.id} style={styles.stationCard}>
-                <div style={styles.stationHeader}>
+                <div style={styles.stationHeader} className="operator-station-header">
                   <div>
                     <div style={styles.stationName}>{result.station.name}</div>
                     <div style={styles.stationAddress}>{result.station.address || 'כתובת לא הוגדרה'}</div>
@@ -1052,7 +1094,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                     }).length} גלגלים
                   </span>
                 </div>
-                <div style={styles.wheelsGrid}>
+                <div style={styles.wheelsGrid} className="operator-wheels-grid">
                   {result.wheels
                     .filter(wheel => {
                       // Filter out wheels larger than vehicle rim size
@@ -1107,7 +1149,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
       {/* Modal */}
       {selectedWheel && (
         <div style={styles.modalOverlay} onClick={closeModal}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+          <div style={styles.modal} className="operator-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>יצירת הודעה לפונה</h3>
               <button style={styles.closeBtn} onClick={closeModal}>×</button>
@@ -1159,7 +1201,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
       {/* Footer */}
       <footer style={styles.footer}>
         <div style={styles.footerInfo}>
-          <p style={styles.footerText}>
+          <p style={styles.footerText} className="operator-footer-text">
             מערכת גלגלים ידידים •{' '}
             <Link href="/feedback" style={styles.footerLink}>
               דווח על בעיה או הצע שיפור
@@ -1191,6 +1233,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#e2e8f0',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+    display: 'flex',
+    flexDirection: 'column',
   },
   loginContainer: {
     minHeight: '100vh',
@@ -1323,6 +1367,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: '900px',
     margin: '0 auto',
     padding: '20px',
+    flex: 1,
   },
   section: {
     background: '#1e293b',
