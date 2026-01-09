@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { verifyAdminPasswordClient } from '@/lib/admin-auth'
 
 export default function AdminLoginPage() {
@@ -94,6 +95,7 @@ export default function AdminLoginPage() {
         </div>
         {passwordError && <div style={styles.errorText}>{passwordError}</div>}
         <button style={styles.loginBtn} onClick={handleLogin}>כניסה</button>
+        <Link href="/login" style={styles.backLink}>← חזרה ללוגין ראשי</Link>
       </div>
     </div>
   )
@@ -171,5 +173,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ef4444',
     fontSize: '0.9rem',
     marginTop: '8px',
+  },
+  backLink: {
+    display: 'block',
+    marginTop: '20px',
+    color: '#64748b',
+    fontSize: '0.9rem',
+    textDecoration: 'none',
+    transition: 'color 0.2s',
   },
 }
