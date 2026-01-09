@@ -38,9 +38,10 @@ export async function GET() {
     }
 
     // Get unique filter options from wheels in active stations
+    // Using select('*') to handle case where center_bore column might not exist yet
     const { data: allWheels, error } = await supabase
       .from('wheels')
-      .select('rim_size, bolt_count, bolt_spacing, center_bore')
+      .select('*')
       .in('station_id', activeStationIds)
 
     if (error) {

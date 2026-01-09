@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import toast from 'react-hot-toast'
 
 type LoginMode = 'select' | 'station' | 'operator'
@@ -53,7 +54,7 @@ export default function LoginPage() {
 
       toast.success(`שלום ${data.manager.full_name}`)
       router.push(`/${stationId}`)
-    } catch (err) {
+    } catch {
       setError('שגיאה בכניסה')
       setLoading(false)
     }
@@ -103,7 +104,7 @@ export default function LoginPage() {
       } else {
         router.push('/operator')
       }
-    } catch (err) {
+    } catch {
       setError('שגיאה בהתחברות')
       setLoading(false)
     }
@@ -118,125 +119,180 @@ export default function LoginPage() {
     }
   }
 
-  // Responsive CSS
+  // Responsive CSS + animations
   const responsiveStyles = `
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .admin-btn {
+      opacity: 0 !important;
+      background: transparent !important;
+      border-color: transparent !important;
+    }
+
+    .admin-btn:hover {
+      opacity: 1 !important;
+      background: rgba(255,255,255,0.15) !important;
+      border-color: rgba(255,255,255,0.2) !important;
+      transform: rotate(45deg);
+    }
+
+    .login-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+
+    .login-card:hover .card-icon {
+      background: rgba(255,255,255,0.3) !important;
+      transform: scale(1.1);
+    }
+
     @media (max-width: 768px) {
-      .login-card-responsive {
-        padding: 30px 25px !important;
-        margin: 10px !important;
+      .login-cards-container {
+        gap: 15px !important;
       }
-      .login-logo-responsive {
-        font-size: 50px !important;
+      .login-card {
+        width: 180px !important;
+        padding: 28px 22px !important;
       }
-      .login-title-responsive {
-        font-size: 1.4rem !important;
+      .card-icon {
+        width: 60px !important;
+        height: 60px !important;
+        font-size: 28px !important;
       }
-      .select-button-responsive {
-        padding: 20px !important;
+      .card-title {
+        font-size: 1.1rem !important;
       }
-      .button-icon-responsive {
-        font-size: 32px !important;
+      .card-desc {
+        font-size: 0.8rem !important;
       }
-      .button-text-responsive {
-        font-size: 16px !important;
+      .main-title {
+        font-size: 1.8rem !important;
       }
-      .form-input-responsive {
-        padding: 14px !important;
+      .main-logo {
+        width: 85px !important;
+        height: 85px !important;
       }
-      .submit-button-responsive {
-        padding: 14px !important;
+    }
+
+    @media (max-width: 480px) {
+      .login-cards-container {
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      .login-card {
+        width: 100% !important;
+        max-width: 280px !important;
+        padding: 24px 20px !important;
+      }
+      .main-title {
+        font-size: 1.5rem !important;
+      }
+      .main-subtitle {
+        font-size: 0.9rem !important;
+      }
+      .main-logo {
+        width: 75px !important;
+        height: 75px !important;
+      }
+      .admin-btn {
+        width: 36px !important;
+        height: 36px !important;
         font-size: 16px !important;
       }
     }
+
+    /* Form responsive */
+    @media (max-width: 768px) {
+      .form-card {
+        padding: 30px 25px !important;
+        max-width: 380px !important;
+      }
+    }
     @media (max-width: 480px) {
-      .login-card-responsive {
+      .form-card {
         padding: 25px 20px !important;
-        border-radius: 16px !important;
+        margin: 10px !important;
       }
-      .login-logo-responsive {
-        font-size: 45px !important;
-        margin-bottom: 8px !important;
-      }
-      .login-title-responsive {
-        font-size: 1.25rem !important;
-      }
-      .login-subtitle-responsive {
-        font-size: 13px !important;
-        margin-bottom: 20px !important;
-      }
-      .select-button-responsive {
-        padding: 18px !important;
-        border-radius: 12px !important;
-      }
-      .button-icon-responsive {
-        font-size: 28px !important;
-        margin-bottom: 8px !important;
-      }
-      .button-text-responsive {
+      .form-input {
+        padding: 14px !important;
         font-size: 15px !important;
       }
-      .button-desc-responsive {
-        font-size: 11px !important;
+      .form-submit {
+        padding: 14px !important;
+        font-size: 16px !important;
       }
-      .form-input-responsive {
-        padding: 12px !important;
-        font-size: 15px !important;
+      .form-logo {
+        width: 70px !important;
+        height: 70px !important;
+        font-size: 32px !important;
       }
-      .submit-button-responsive {
-        padding: 12px !important;
-        font-size: 15px !important;
-      }
-      .back-button-responsive {
-        font-size: 14px !important;
-        top: 10px !important;
-        right: 10px !important;
+      .form-title {
+        font-size: 1.3rem !important;
       }
     }
   `
 
-  // Selection screen
+  // Selection screen - new design
   if (mode === 'select') {
     return (
       <div style={styles.container}>
         <style>{responsiveStyles}</style>
-        <div style={styles.card} className="login-card-responsive">
-          <div style={styles.logo} className="login-logo-responsive">🛞</div>
-          <h1 style={styles.title} className="login-title-responsive">מערכת גלגלים</h1>
-          <p style={styles.subtitle} className="login-subtitle-responsive">בחר סוג כניסה</p>
 
-          <div style={styles.buttonGroup}>
+        {/* Admin button - hidden */}
+        <Link href="/admin" style={styles.adminBtn} className="admin-btn">
+          ⚙️
+        </Link>
+
+        <div style={styles.mainContainer}>
+          {/* Logo */}
+          <div style={styles.mainLogo} className="main-logo">
+            <Image
+              src="/logo.wheels.png"
+              alt="לוגו מערכת גלגלים"
+              width={80}
+              height={80}
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
+
+          <h1 style={styles.mainTitle} className="main-title">מערכת גלגלים</h1>
+          <p style={styles.mainSubtitle} className="main-subtitle">בחרו את סוג הכניסה למערכת</p>
+
+          {/* Cards */}
+          <div style={styles.cardsContainer} className="login-cards-container">
             <button
-              style={styles.selectButton}
+              style={styles.loginCard}
               onClick={() => setMode('station')}
-              className="select-button-responsive"
+              className="login-card"
             >
-              <span style={styles.buttonIcon} className="button-icon-responsive">🏪</span>
-              <span style={styles.buttonText} className="button-text-responsive">ניהול תחנה</span>
-              <span style={styles.buttonDesc} className="button-desc-responsive">למנהלי תחנות השאלה</span>
+              <div style={styles.cardIcon} className="card-icon">🏪</div>
+              <div style={styles.cardTitle} className="card-title">ניהול תחנה</div>
+              <div style={styles.cardDesc} className="card-desc">למנהלי תחנות השאלה</div>
             </button>
 
             <button
-              style={styles.selectButton}
+              style={styles.loginCard}
               onClick={() => setMode('operator')}
-              className="select-button-responsive"
+              className="login-card"
             >
-              <span style={styles.buttonIcon} className="button-icon-responsive">🎧</span>
-              <span style={styles.buttonText} className="button-text-responsive">ממשק מוקדן</span>
-              <span style={styles.buttonDesc} className="button-desc-responsive">למוקדנים ומנהלי מוקד</span>
+              <div style={styles.cardIcon} className="card-icon">🎧</div>
+              <div style={styles.cardTitle} className="card-title">ממשק מוקדן</div>
+              <div style={styles.cardDesc} className="card-desc">למוקדנים ומנהלי מוקד</div>
             </button>
           </div>
-        </div>
 
-        {/* Footer */}
-        <footer style={styles.footer}>
-          <p style={styles.footerLinks}>
+          {/* Footer */}
+          <div style={styles.mainFooter}>
             <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
             {' • '}
             <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
             {' • '}
             <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
-          </p>
-        </footer>
+          </div>
+        </div>
       </div>
     )
   }
@@ -245,22 +301,22 @@ export default function LoginPage() {
   return (
     <div style={styles.container}>
       <style>{responsiveStyles}</style>
-      <div style={styles.card} className="login-card-responsive">
+
+      <div style={styles.formCard} className="form-card">
         <button
           style={styles.backButton}
           onClick={() => { setMode('select'); setError(''); setPhone(''); setPassword('') }}
-          className="back-button-responsive"
         >
           ← חזרה
         </button>
 
-        <div style={styles.logo} className="login-logo-responsive">
+        <div style={styles.formLogo} className="form-logo">
           {mode === 'station' ? '🏪' : '🎧'}
         </div>
-        <h1 style={styles.title} className="login-title-responsive">
+        <h1 style={styles.formTitle} className="form-title">
           {mode === 'station' ? 'כניסת מנהל תחנה' : 'כניסת מוקדן'}
         </h1>
-        <p style={styles.subtitle} className="login-subtitle-responsive">הזן שם משתמש וסיסמה</p>
+        <p style={styles.formSubtitle}>הזן שם משתמש וסיסמה</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
@@ -268,8 +324,8 @@ export default function LoginPage() {
             placeholder="שם משתמש"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            style={styles.input}
-            className="form-input-responsive"
+            style={styles.formInput}
+            className="form-input"
             dir="ltr"
           />
           <div style={styles.passwordWrapper}>
@@ -279,7 +335,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={styles.passwordInput}
-              className="form-input-responsive"
+              className="form-input"
               dir="ltr"
             />
             <button
@@ -296,8 +352,8 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            style={styles.submitButton}
-            className="submit-button-responsive"
+            style={styles.formSubmit}
+            className="form-submit"
             disabled={loading}
           >
             {loading ? 'מתחבר...' : 'כניסה'}
@@ -326,15 +382,125 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%)',
     padding: '20px',
-    direction: 'rtl'
+    direction: 'rtl',
+    position: 'relative',
+    overflow: 'hidden'
   },
-  card: {
-    background: 'white',
+  adminBtn: {
+    position: 'absolute',
+    top: '20px',
+    left: '20px',
+    width: '40px',
+    height: '40px',
+    background: 'rgba(255,255,255,0.1)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '18px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    zIndex: 10,
+    backdropFilter: 'blur(10px)',
+    textDecoration: 'none'
+  },
+  mainContainer: {
+    textAlign: 'center',
+    width: '100%',
+    maxWidth: '550px',
+    position: 'relative',
+    zIndex: 1
+  },
+  mainLogo: {
+    width: '100px',
+    height: '100px',
+    background: 'rgba(255,255,255,0.1)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 24px',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+    animation: 'float 3s ease-in-out infinite',
+    overflow: 'hidden'
+  },
+  mainTitle: {
+    fontSize: '2.2rem',
+    fontWeight: 800,
+    color: 'white',
+    marginBottom: '8px',
+    textShadow: '0 2px 10px rgba(0,0,0,0.1)'
+  },
+  mainSubtitle: {
+    color: '#7dd3fc',
+    marginBottom: '40px',
+    fontSize: '1rem'
+  },
+  cardsContainer: {
+    display: 'flex',
+    gap: '20px',
+    justifyContent: 'center',
+    flexWrap: 'wrap'
+  },
+  loginCard: {
+    background: 'rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '24px',
+    padding: '35px 30px',
+    width: '220px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
+    textAlign: 'center'
+  },
+  cardIcon: {
+    width: '70px',
+    height: '70px',
+    background: 'linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%)',
     borderRadius: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '32px',
+    margin: '0 auto 18px',
+    transition: 'all 0.3s ease'
+  },
+  cardTitle: {
+    fontSize: '1.2rem',
+    fontWeight: 700,
+    color: 'white',
+    marginBottom: '10px'
+  },
+  cardDesc: {
+    fontSize: '0.85rem',
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 1.5
+  },
+  mainFooter: {
+    marginTop: '40px',
+    fontSize: '0.8rem',
+    color: 'rgba(255,255,255,0.6)'
+  },
+  footerLink: {
+    color: 'rgba(255,255,255,0.8)',
+    textDecoration: 'none',
+    margin: '0 10px',
+    transition: 'color 0.2s'
+  },
+  // Form styles
+  formCard: {
+    background: 'rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: '24px',
     padding: '40px',
-    maxWidth: '400px',
+    maxWidth: '420px',
     width: '100%',
     boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
     textAlign: 'center',
@@ -344,72 +510,53 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'absolute',
     top: '15px',
     right: '15px',
-    background: 'none',
-    border: 'none',
-    fontSize: '16px',
-    color: '#666',
-    cursor: 'pointer',
-    padding: '5px 10px'
-  },
-  logo: {
-    fontSize: '60px',
-    marginBottom: '10px'
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: '5px'
-  },
-  subtitle: {
+    background: 'rgba(255,255,255,0.1)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '8px',
     fontSize: '14px',
-    color: '#666',
-    marginBottom: '30px'
-  },
-  buttonGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px'
-  },
-  selectButton: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '25px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    border: 'none',
-    borderRadius: '15px',
+    color: 'rgba(255,255,255,0.8)',
     cursor: 'pointer',
-    transition: 'transform 0.2s, box-shadow 0.2s',
-    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+    padding: '8px 12px',
+    transition: 'all 0.2s'
   },
-  buttonIcon: {
+  formLogo: {
+    width: '80px',
+    height: '80px',
+    background: 'linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%)',
+    borderRadius: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     fontSize: '40px',
-    marginBottom: '10px'
+    margin: '0 auto 20px',
+    boxShadow: '0 10px 30px rgba(0, 212, 255, 0.3)'
   },
-  buttonText: {
-    fontSize: '18px',
-    fontWeight: 'bold',
+  formTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 700,
     color: 'white',
-    marginBottom: '5px'
+    marginBottom: '8px'
   },
-  buttonDesc: {
-    fontSize: '12px',
-    color: 'rgba(255,255,255,0.8)'
+  formSubtitle: {
+    fontSize: '0.9rem',
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: '30px'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
     gap: '15px'
   },
-  input: {
-    padding: '15px',
+  formInput: {
+    padding: '16px',
     fontSize: '16px',
-    border: '2px solid #e0e0e0',
-    borderRadius: '10px',
+    background: 'rgba(255,255,255,0.1)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '12px',
     outline: 'none',
-    transition: 'border-color 0.2s',
-    textAlign: 'center'
+    transition: 'all 0.2s',
+    textAlign: 'center',
+    color: 'white'
   },
   passwordWrapper: {
     position: 'relative',
@@ -417,15 +564,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center'
   },
   passwordInput: {
-    padding: '15px',
+    padding: '16px',
     paddingLeft: '45px',
     fontSize: '16px',
-    border: '2px solid #e0e0e0',
-    borderRadius: '10px',
+    background: 'rgba(255,255,255,0.1)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '12px',
     outline: 'none',
-    transition: 'border-color 0.2s',
+    transition: 'all 0.2s',
     textAlign: 'center',
-    width: '100%'
+    width: '100%',
+    color: 'white'
   },
   toggleButton: {
     position: 'absolute',
@@ -437,23 +586,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '5px'
   },
   error: {
-    color: '#e74c3c',
+    color: '#ff6b6b',
     fontSize: '14px',
-    padding: '10px',
-    background: '#fdeaea',
-    borderRadius: '8px'
+    padding: '12px',
+    background: 'rgba(255, 107, 107, 0.1)',
+    borderRadius: '10px',
+    border: '1px solid rgba(255, 107, 107, 0.3)'
   },
-  submitButton: {
-    padding: '15px',
+  formSubmit: {
+    padding: '16px',
     fontSize: '18px',
     fontWeight: 'bold',
     color: 'white',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%)',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: '12px',
     cursor: 'pointer',
-    transition: 'transform 0.2s',
-    marginTop: '10px'
+    transition: 'all 0.3s',
+    marginTop: '10px',
+    boxShadow: '0 10px 30px rgba(0, 212, 255, 0.3)'
   },
   footer: {
     position: 'absolute',
@@ -464,11 +615,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   footerLinks: {
     fontSize: '12px',
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.6)',
     margin: 0
-  },
-  footerLink: {
-    color: 'rgba(255,255,255,0.9)',
-    textDecoration: 'none'
   }
 }

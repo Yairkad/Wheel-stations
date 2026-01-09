@@ -50,9 +50,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query for wheels
+    // Using select('*') to handle case where center_bore column might not exist yet
     let query = supabase
       .from('wheels')
-      .select('id, wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, category, is_donut, is_available, station_id')
+      .select('*')
       .in('station_id', activeStationIds)
 
     // Apply filters
@@ -126,9 +127,10 @@ export async function GET(request: NextRequest) {
     const results = Array.from(stationMap.values())
 
     // Get unique filter options from all wheels in active stations
+    // Using select('*') to handle case where center_bore column might not exist yet
     const { data: allWheels, error: filterError } = await supabase
       .from('wheels')
-      .select('rim_size, bolt_count, bolt_spacing, center_bore')
+      .select('*')
       .in('station_id', activeStationIds)
 
     if (filterError) {
