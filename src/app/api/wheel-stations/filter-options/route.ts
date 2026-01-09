@@ -32,8 +32,7 @@ export async function GET() {
           rim_sizes: [],
           bolt_counts: [],
           bolt_spacings: [],
-          center_bores: [],
-          offsets: []
+          center_bores: []
         }
       })
     }
@@ -41,7 +40,7 @@ export async function GET() {
     // Get unique filter options from wheels in active stations
     const { data: allWheels, error } = await supabase
       .from('wheels')
-      .select('rim_size, bolt_count, bolt_spacing, center_bore, offset')
+      .select('rim_size, bolt_count, bolt_spacing, center_bore')
       .in('station_id', activeStationIds)
 
     if (error) {
@@ -53,8 +52,7 @@ export async function GET() {
       rim_sizes: [...new Set(allWheels?.map(w => w.rim_size).filter(Boolean))].sort(),
       bolt_counts: [...new Set(allWheels?.map(w => w.bolt_count).filter(Boolean))].sort((a, b) => a - b),
       bolt_spacings: [...new Set(allWheels?.map(w => w.bolt_spacing).filter(Boolean))].sort((a, b) => a - b),
-      center_bores: [...new Set(allWheels?.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a - b),
-      offsets: [...new Set(allWheels?.map(w => w.offset).filter(Boolean))].sort((a, b) => a - b)
+      center_bores: [...new Set(allWheels?.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a - b)
     }
 
     return NextResponse.json({ filterOptions })

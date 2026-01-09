@@ -53,7 +53,6 @@ interface FilterOptions {
   bolt_counts: number[]
   bolt_spacings: number[]
   center_bores: number[]
-  offsets: number[]
 }
 
 function SearchPageContent() {
@@ -78,7 +77,6 @@ function SearchPageContent() {
     bolt_count: '',
     bolt_spacing: '',
     center_bore: '',
-    offset: '',
     district: '',
     available_only: true
   })
@@ -240,7 +238,7 @@ function SearchPageContent() {
 
   const handleSearch = async () => {
     // Need at least one filter
-    if (!searchFilters.rim_size && !searchFilters.bolt_count && !searchFilters.bolt_spacing && !searchFilters.center_bore && !searchFilters.offset) {
+    if (!searchFilters.rim_size && !searchFilters.bolt_count && !searchFilters.bolt_spacing && !searchFilters.center_bore) {
       toast.error('נא לבחור לפחות פילטר אחד')
       return
     }
@@ -252,7 +250,6 @@ function SearchPageContent() {
       if (searchFilters.bolt_count) params.append('bolt_count', searchFilters.bolt_count)
       if (searchFilters.bolt_spacing) params.append('bolt_spacing', searchFilters.bolt_spacing)
       if (searchFilters.center_bore) params.append('center_bore', searchFilters.center_bore)
-      if (searchFilters.offset) params.append('offset', searchFilters.offset)
       if (searchFilters.district) params.append('district', searchFilters.district)
       if (searchFilters.available_only) params.append('available_only', 'true')
 
@@ -294,7 +291,6 @@ function SearchPageContent() {
       bolt_count: '',
       bolt_spacing: '',
       center_bore: '',
-      offset: '',
       district: '',
       available_only: true
     })

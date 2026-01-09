@@ -58,6 +58,7 @@ interface FilterOptions {
   rim_sizes: string[]
   bolt_counts: number[]
   bolt_spacings: number[]
+  center_bores: number[]
 }
 
 // Common Hebrew to English car brand mappings
@@ -987,15 +988,16 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
 
                 <div style={styles.filterGroup}>
                   <label style={styles.filterLabel}>קדח מרכזי (CB)</label>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="לדוגמה: 57.1"
+                  <select
+                    style={styles.filterSelect}
                     value={specFilters.center_bore}
                     onChange={e => setSpecFilters({...specFilters, center_bore: e.target.value})}
-                    style={styles.filterInput}
-                    dir="ltr"
-                  />
+                  >
+                    <option value="">בחר...</option>
+                    {filterOptions?.center_bores.map(cb => (
+                      <option key={cb} value={cb}>{cb}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

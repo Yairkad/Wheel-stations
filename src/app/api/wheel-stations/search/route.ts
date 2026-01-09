@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
     const bolt_count = searchParams.get('bolt_count')
     const bolt_spacing = searchParams.get('bolt_spacing')
     const center_bore = searchParams.get('center_bore')
-    const offset = searchParams.get('offset')
     const district = searchParams.get('district')
     const available_only = searchParams.get('available_only') === 'true'
 
@@ -46,14 +45,14 @@ export async function GET(request: NextRequest) {
         results: [],
         totalWheels: 0,
         totalAvailable: 0,
-        filterOptions: { rim_sizes: [], bolt_counts: [], bolt_spacings: [], center_bores: [], offsets: [] }
+        filterOptions: { rim_sizes: [], bolt_counts: [], bolt_spacings: [], center_bores: [] }
       })
     }
 
     // Build query for wheels
     let query = supabase
       .from('wheels')
-      .select('id, wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, offset, category, is_donut, is_available, station_id')
+      .select('id, wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, category, is_donut, is_available, station_id')
       .in('station_id', activeStationIds)
 
     // Apply filters
@@ -68,9 +67,6 @@ export async function GET(request: NextRequest) {
     }
     if (center_bore) {
       query = query.eq('center_bore', parseFloat(center_bore))
-    }
-    if (offset) {
-      query = query.eq('offset', parseInt(offset))
     }
     if (available_only) {
       query = query.eq('is_available', true)
@@ -132,7 +128,7 @@ export async function GET(request: NextRequest) {
     // Get unique filter options from all wheels in active stations
     const { data: allWheels, error: filterError } = await supabase
       .from('wheels')
-      .select('rim_size, bolt_count, bolt_spacing, center_bore, offset')
+      .select('rim_size, bolt_count, bolt_spacing, center_bore')
       .in('station_id', activeStationIds)
 
     if (filterError) {
@@ -143,8 +139,7 @@ export async function GET(request: NextRequest) {
       rim_sizes: [...new Set(allWheels?.map(w => w.rim_size).filter(Boolean))].sort(),
       bolt_counts: [...new Set(allWheels?.map(w => w.bolt_count).filter(Boolean))].sort((a, b) => a - b),
       bolt_spacings: [...new Set(allWheels?.map(w => w.bolt_spacing).filter(Boolean))].sort((a, b) => a - b),
-      center_bores: [...new Set(allWheels?.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a - b),
-      offsets: [...new Set(allWheels?.map(w => w.offset).filter(Boolean))].sort((a, b) => a - b)
+      center_bores: [...new Set(allWheels?.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a - b)
     }
 
     return NextResponse.json({
