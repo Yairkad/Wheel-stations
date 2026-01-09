@@ -147,11 +147,14 @@ function VehiclesAdminPage() {
   })
   const [editLoading, setEditLoading] = useState(false)
 
-  // Duplicates modal state
-  const [showDuplicatesModal, setShowDuplicatesModal] = useState(false)
-  const [duplicateGroups, setDuplicateGroups] = useState<VehicleModel[][]>([])
-  const [duplicatesLoading, setDuplicatesLoading] = useState(false)
-  const [mergingIds, setMergingIds] = useState<Set<string>>(new Set())
+  // Merge modal state
+  const [showMergeModal, setShowMergeModal] = useState(false)
+  const [mergeTargetVehicle, setMergeTargetVehicle] = useState<VehicleModel | null>(null)
+  const [mergeSearchQuery, setMergeSearchQuery] = useState('')
+  const [mergeSearchResults, setMergeSearchResults] = useState<VehicleModel[]>([])
+  const [selectedMergeTarget, setSelectedMergeTarget] = useState<VehicleModel | null>(null)
+  const [mergeFieldSelections, setMergeFieldSelections] = useState<{[key: string]: 'source' | 'target'}>({})
+  const [mergeLoading, setMergeLoading] = useState(false)
 
   // Autocomplete state
   const [makeSuggestions, setMakeSuggestions] = useState<string[]>([])
@@ -859,70 +862,108 @@ function VehiclesAdminPage() {
     }
   }
 
-  // Find duplicates
-  const findDuplicates = async () => {
-    setDuplicatesLoading(true)
-    try {
-      const response = await fetch('/api/vehicle-models/merge')
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'שגיאה בחיפוש כפילויות')
-      }
-
-      setDuplicateGroups(data.duplicateGroups || [])
-      setShowDuplicatesModal(true)
-
-      if (data.totalGroups === 0) {
-        toast.success('לא נמצאו כפילויות במאגר!')
-      } else {
-        toast(`נמצאו ${data.totalGroups} קבוצות של כפילויות`, { icon: '⚠️' })
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'שגיאה בחיפוש כפילויות')
-    } finally {
-      setDuplicatesLoading(false)
-    }
+  // Open merge modal for a vehicle
+  const openMergeModal = (vehicle: VehicleModel) => {
+    setMergeTargetVehicle(vehicle)
+    setMergeSearchQuery('')
+    setMergeSearchResults([])
+    setSelectedMergeTarget(null)
+    setMergeFieldSelections({})
+    setShowMergeModal(true)
+    // Close edit modal
+    setEditingVehicle(null)
   }
 
-  // Merge duplicate group
-  const handleMergeGroup = async (ids: string[]) => {
-    if (ids.length < 2) return
+  // Search for vehicles to merge with
+  const searchMergeTargets = async (query: string) => {
+    if (query.length < 2) {
+      setMergeSearchResults([])
+      return
+    }
 
-    // Add all ids to merging set
-    setMergingIds(prev => new Set([...prev, ...ids]))
+    const results = vehicles.filter(v =>
+      v.id !== mergeTargetVehicle?.id &&
+      (v.make?.toLowerCase().includes(query.toLowerCase()) ||
+       v.model?.toLowerCase().includes(query.toLowerCase()) ||
+       v.make_he?.includes(query))
+    ).slice(0, 10)
 
+    setMergeSearchResults(results)
+  }
+
+  // Initialize field selections when target is selected
+  const selectMergeTarget = (target: VehicleModel) => {
+    setSelectedMergeTarget(target)
+    // Initialize selections - prefer non-empty values
+    const fields = ['make', 'make_he', 'model', 'variants', 'year_from', 'year_to',
+                    'bolt_count', 'bolt_spacing', 'center_bore', 'rim_size',
+                    'rim_sizes_allowed', 'tire_size_front', 'source_url']
+    const selections: {[key: string]: 'source' | 'target'} = {}
+
+    fields.forEach(field => {
+      const sourceVal = mergeTargetVehicle?.[field as keyof VehicleModel]
+      const targetVal = target[field as keyof VehicleModel]
+
+      // Prefer value that exists, if both exist prefer longer string or source
+      if (!sourceVal && targetVal) {
+        selections[field] = 'target'
+      } else if (sourceVal && !targetVal) {
+        selections[field] = 'source'
+      } else if (typeof sourceVal === 'string' && typeof targetVal === 'string') {
+        selections[field] = targetVal.length > sourceVal.length ? 'target' : 'source'
+      } else if (Array.isArray(sourceVal) && Array.isArray(targetVal)) {
+        selections[field] = (targetVal as any[]).length > (sourceVal as any[]).length ? 'target' : 'source'
+      } else {
+        selections[field] = 'source'
+      }
+    })
+
+    setMergeFieldSelections(selections)
+  }
+
+  // Execute the merge
+  const executeMerge = async () => {
+    if (!mergeTargetVehicle || !selectedMergeTarget) return
+
+    setMergeLoading(true)
     try {
-      const response = await fetch('/api/vehicle-models/merge', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids })
+      // Build merged data based on selections
+      const mergedData: any = {}
+      Object.entries(mergeFieldSelections).forEach(([field, choice]) => {
+        const value = choice === 'source'
+          ? mergeTargetVehicle[field as keyof VehicleModel]
+          : selectedMergeTarget[field as keyof VehicleModel]
+        mergedData[field] = value
       })
 
-      const data = await response.json()
+      // Update the source vehicle with merged data
+      const response = await fetch(`/api/vehicle-models/${mergeTargetVehicle.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mergedData)
+      })
 
       if (!response.ok) {
-        throw new Error(data.error || 'שגיאה במיזוג')
+        const data = await response.json()
+        throw new Error(data.error || 'שגיאה בעדכון')
       }
 
-      toast.success(data.message || 'הרשומות מוזגו בהצלחה!')
+      // Delete the target vehicle
+      const deleteResponse = await fetch(`/api/vehicle-models/${selectedMergeTarget.id}`, {
+        method: 'DELETE'
+      })
 
-      // Remove merged group from list
-      setDuplicateGroups(prev => prev.filter(group =>
-        !group.some(v => ids.includes(v.id))
-      ))
+      if (!deleteResponse.ok) {
+        throw new Error('שגיאה במחיקת הרשומה הכפולה')
+      }
 
-      // Refresh vehicles list
+      toast.success('הרשומות מוזגו בהצלחה!')
+      setShowMergeModal(false)
       fetchVehicles()
     } catch (err: any) {
       toast.error(err.message || 'שגיאה במיזוג')
     } finally {
-      // Remove from merging set
-      setMergingIds(prev => {
-        const newSet = new Set(prev)
-        ids.forEach(id => newSet.delete(id))
-        return newSet
-      })
+      setMergeLoading(false)
     }
   }
 
@@ -1355,13 +1396,6 @@ function VehiclesAdminPage() {
           </button>
           <button style={styles.btnExport} onClick={exportToExcel}>
             📥 ייצוא לאקסל
-          </button>
-          <button
-            style={{...styles.btnSecondary, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}}
-            onClick={findDuplicates}
-            disabled={duplicatesLoading}
-          >
-            {duplicatesLoading ? '🔄 מחפש...' : '🔍 מיזוג כפילויות'}
           </button>
         </div>
 
@@ -2371,118 +2405,208 @@ function VehiclesAdminPage() {
                 </div>
               </div>
 
-              <button
-                style={styles.btnSubmit}
-                onClick={handleUpdateVehicle}
-                disabled={editLoading}
-              >
-                {editLoading ? 'מעדכן...' : '✅ עדכן'}
-              </button>
+              <div style={{display: 'flex', gap: '10px', marginTop: '15px'}}>
+                <button
+                  style={styles.btnSubmit}
+                  onClick={handleUpdateVehicle}
+                  disabled={editLoading}
+                >
+                  {editLoading ? 'מעדכן...' : '✅ עדכן'}
+                </button>
+                <button
+                  style={{...styles.btnSecondary, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', flex: 1}}
+                  onClick={() => editingVehicle && openMergeModal(editingVehicle)}
+                >
+                  🔗 מזג עם דגם אחר
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Duplicates Modal */}
-      {showDuplicatesModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowDuplicatesModal(false)}>
-          <div style={{...styles.modal, maxWidth: '900px', maxHeight: '80vh', overflowY: 'auto'}} onClick={e => e.stopPropagation()}>
+      {/* Merge Modal */}
+      {showMergeModal && mergeTargetVehicle && (
+        <div style={styles.modalOverlay} onClick={() => setShowMergeModal(false)}>
+          <div style={{...styles.modal, maxWidth: '900px', maxHeight: '85vh', overflowY: 'auto'}} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🔍 כפילויות במאגר ({duplicateGroups.length} קבוצות)</h3>
-              <button style={styles.closeBtn} onClick={() => setShowDuplicatesModal(false)}>✕</button>
+              <h3 style={styles.modalTitle}>🔗 מיזוג דגם: {mergeTargetVehicle.make} {mergeTargetVehicle.model}</h3>
+              <button style={styles.closeBtn} onClick={() => setShowMergeModal(false)}>✕</button>
             </div>
 
             <div style={styles.modalBody}>
-              {duplicateGroups.length === 0 ? (
-                <div style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>
-                  <div style={{fontSize: '3rem', marginBottom: '15px'}}>✅</div>
-                  <p>לא נמצאו כפילויות במאגר!</p>
+              {/* Step 1: Search for target vehicle */}
+              {!selectedMergeTarget ? (
+                <div>
+                  <p style={{color: '#94a3b8', marginBottom: '15px'}}>חפש את הדגם שברצונך למזג אליו:</p>
+                  <input
+                    type="text"
+                    placeholder="חפש לפי יצרן או דגם..."
+                    value={mergeSearchQuery}
+                    onChange={e => {
+                      setMergeSearchQuery(e.target.value)
+                      searchMergeTargets(e.target.value)
+                    }}
+                    style={{...styles.formInput, marginBottom: '15px'}}
+                  />
+
+                  {mergeSearchResults.length > 0 && (
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                      {mergeSearchResults.map(v => (
+                        <button
+                          key={v.id}
+                          onClick={() => selectMergeTarget(v)}
+                          style={{
+                            background: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                            padding: '12px 15px',
+                            textAlign: 'right',
+                            cursor: 'pointer',
+                            color: '#e2e8f0',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          <div style={{fontWeight: 600}}>{v.make} {v.model}</div>
+                          <div style={{fontSize: '0.85rem', color: '#94a3b8'}}>
+                            {v.year_from || '?'}-{v.year_to || '?'} | {v.bolt_count}×{v.bolt_spacing} | CB: {v.center_bore || '-'}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {mergeSearchQuery.length >= 2 && mergeSearchResults.length === 0 && (
+                    <p style={{color: '#64748b', textAlign: 'center', padding: '20px'}}>לא נמצאו תוצאות</p>
+                  )}
                 </div>
               ) : (
-                <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
-                  {duplicateGroups.map((group, groupIndex) => {
-                    const isMerging = group.some(v => mergingIds.has(v.id))
-                    return (
-                      <div key={groupIndex} style={{
-                        background: '#1e293b',
-                        border: '1px solid #334155',
-                        borderRadius: '12px',
-                        padding: '15px',
-                        opacity: isMerging ? 0.6 : 1
-                      }}>
-                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
-                          <h4 style={{margin: 0, color: '#f59e0b'}}>
-                            {group[0]?.make} {group[0]?.model} ({group.length} רשומות)
-                          </h4>
+                /* Step 2: Field selection */
+                <div>
+                  <button
+                    onClick={() => setSelectedMergeTarget(null)}
+                    style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', marginBottom: '15px'}}
+                  >
+                    ← חזור לחיפוש
+                  </button>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr auto 1fr',
+                    gap: '10px',
+                    marginBottom: '20px',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{textAlign: 'center', padding: '10px', background: '#1e3a5f', borderRadius: '8px'}}>
+                      <div style={{color: '#3b82f6', fontWeight: 600, marginBottom: '5px'}}>רשומה נוכחית</div>
+                      <div style={{fontSize: '0.9rem'}}>{mergeTargetVehicle.make} {mergeTargetVehicle.model}</div>
+                      <div style={{fontSize: '0.8rem', color: '#94a3b8'}}>{mergeTargetVehicle.year_from}-{mergeTargetVehicle.year_to}</div>
+                    </div>
+                    <div style={{fontSize: '1.5rem'}}>➡️</div>
+                    <div style={{textAlign: 'center', padding: '10px', background: '#1e293b', borderRadius: '8px', border: '1px solid #f59e0b'}}>
+                      <div style={{color: '#f59e0b', fontWeight: 600, marginBottom: '5px'}}>למיזוג (יימחק)</div>
+                      <div style={{fontSize: '0.9rem'}}>{selectedMergeTarget.make} {selectedMergeTarget.model}</div>
+                      <div style={{fontSize: '0.8rem', color: '#94a3b8'}}>{selectedMergeTarget.year_from}-{selectedMergeTarget.year_to}</div>
+                    </div>
+                  </div>
+
+                  <p style={{color: '#94a3b8', marginBottom: '15px', fontSize: '0.9rem'}}>בחר איזה ערך לשמור עבור כל שדה:</p>
+
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '400px', overflowY: 'auto'}}>
+                    {[
+                      {key: 'make', label: 'יצרן (אנגלית)'},
+                      {key: 'make_he', label: 'יצרן (עברית)'},
+                      {key: 'model', label: 'דגם'},
+                      {key: 'variants', label: 'וריאנט'},
+                      {key: 'year_from', label: 'משנה'},
+                      {key: 'year_to', label: 'עד שנה'},
+                      {key: 'bolt_count', label: 'ברגים'},
+                      {key: 'bolt_spacing', label: 'PCD'},
+                      {key: 'center_bore', label: 'Center Bore'},
+                      {key: 'rim_size', label: 'חישוק'},
+                      {key: 'rim_sizes_allowed', label: 'קטרים מתאימים'},
+                      {key: 'tire_size_front', label: 'צמיג'},
+                      {key: 'source_url', label: 'מקור'}
+                    ].map(({key, label}) => {
+                      const sourceVal = mergeTargetVehicle[key as keyof VehicleModel]
+                      const targetVal = selectedMergeTarget[key as keyof VehicleModel]
+                      const displaySource = Array.isArray(sourceVal) ? sourceVal.join(', ') : String(sourceVal || '')
+                      const displayTarget = Array.isArray(targetVal) ? targetVal.join(', ') : String(targetVal || '')
+
+                      return (
+                        <div key={key} style={{
+                          display: 'grid',
+                          gridTemplateColumns: '120px 1fr auto 1fr',
+                          gap: '10px',
+                          alignItems: 'center',
+                          padding: '8px',
+                          background: '#0f172a',
+                          borderRadius: '6px'
+                        }}>
+                          <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>{label}</span>
                           <button
+                            onClick={() => setMergeFieldSelections({...mergeFieldSelections, [key]: 'source'})}
                             style={{
-                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 16px',
-                              borderRadius: '8px',
-                              cursor: isMerging ? 'not-allowed' : 'pointer',
-                              fontWeight: 600
+                              padding: '8px',
+                              background: mergeFieldSelections[key] === 'source' ? '#1e3a5f' : '#1e293b',
+                              border: mergeFieldSelections[key] === 'source' ? '2px solid #3b82f6' : '1px solid #334155',
+                              borderRadius: '6px',
+                              color: displaySource ? '#e2e8f0' : '#64748b',
+                              cursor: 'pointer',
+                              textAlign: 'right',
+                              fontSize: '0.85rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
                             }}
-                            onClick={() => handleMergeGroup(group.map(v => v.id))}
-                            disabled={isMerging}
+                            title={displaySource || '(ריק)'}
                           >
-                            {isMerging ? '🔄 ממזג...' : '🔗 מזג הכל'}
+                            {displaySource || '(ריק)'}
+                          </button>
+                          <span style={{color: '#64748b'}}>או</span>
+                          <button
+                            onClick={() => setMergeFieldSelections({...mergeFieldSelections, [key]: 'target'})}
+                            style={{
+                              padding: '8px',
+                              background: mergeFieldSelections[key] === 'target' ? '#422006' : '#1e293b',
+                              border: mergeFieldSelections[key] === 'target' ? '2px solid #f59e0b' : '1px solid #334155',
+                              borderRadius: '6px',
+                              color: displayTarget ? '#e2e8f0' : '#64748b',
+                              cursor: 'pointer',
+                              textAlign: 'right',
+                              fontSize: '0.85rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                            title={displayTarget || '(ריק)'}
+                          >
+                            {displayTarget || '(ריק)'}
                           </button>
                         </div>
-                        <div style={{display: 'grid', gap: '10px'}}>
-                          {group.map((vehicle, vIndex) => (
-                            <div key={vehicle.id} style={{
-                              background: '#0f172a',
-                              padding: '10px 15px',
-                              borderRadius: '8px',
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                              gap: '10px',
-                              fontSize: '0.85rem'
-                            }}>
-                              <div>
-                                <span style={{color: '#64748b'}}>שנים: </span>
-                                <span style={{color: vehicle.year_from ? '#22c55e' : '#64748b'}}>
-                                  {vehicle.year_from || '?'}-{vehicle.year_to || '?'}
-                                </span>
-                              </div>
-                              <div>
-                                <span style={{color: '#64748b'}}>עברית: </span>
-                                <span style={{color: vehicle.make_he ? '#22c55e' : '#64748b'}}>
-                                  {vehicle.make_he || '❌'}
-                                </span>
-                              </div>
-                              <div>
-                                <span style={{color: '#64748b'}}>PCD: </span>
-                                <span style={{color: vehicle.bolt_count ? '#22c55e' : '#64748b'}}>
-                                  {vehicle.bolt_count ? `${vehicle.bolt_count}×${vehicle.bolt_spacing}` : '❌'}
-                                </span>
-                              </div>
-                              <div>
-                                <span style={{color: '#64748b'}}>CB: </span>
-                                <span style={{color: vehicle.center_bore ? '#22c55e' : '#64748b'}}>
-                                  {vehicle.center_bore || '❌'}
-                                </span>
-                              </div>
-                              <div>
-                                <span style={{color: '#64748b'}}>מידות: </span>
-                                <span style={{color: vehicle.rim_sizes_allowed?.length ? '#22c55e' : '#64748b'}}>
-                                  {vehicle.rim_sizes_allowed?.join(', ') || '❌'}
-                                </span>
-                              </div>
-                              <div>
-                                <span style={{color: '#64748b'}}>מקור: </span>
-                                <span style={{color: vehicle.source_url ? '#22c55e' : '#64748b'}}>
-                                  {vehicle.source_url ? '✅' : '❌'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
+
+                  <div style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
+                    <button
+                      style={{
+                        ...styles.btnSubmit,
+                        background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                        flex: 1
+                      }}
+                      onClick={executeMerge}
+                      disabled={mergeLoading}
+                    >
+                      {mergeLoading ? '🔄 ממזג...' : '✅ בצע מיזוג'}
+                    </button>
+                    <button
+                      style={{...styles.btnSecondary, flex: 1}}
+                      onClick={() => setShowMergeModal(false)}
+                    >
+                      ביטול
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
