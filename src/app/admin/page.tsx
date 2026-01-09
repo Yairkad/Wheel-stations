@@ -621,6 +621,7 @@ export default function WheelsAdminPage() {
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
             <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
             <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
+            <Link href="/login" style={styles.btnGhost}>← לוגין ראשי</Link>
             <button style={styles.btnLogout} onClick={logout}>יציאה</button>
           </div>
         </div>

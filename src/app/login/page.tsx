@@ -181,6 +181,7 @@ export default function LoginPage() {
       .login-cards-container {
         flex-direction: column !important;
         gap: 12px !important;
+        align-items: center !important;
       }
       .login-card {
         width: 100% !important;
