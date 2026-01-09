@@ -275,7 +275,7 @@ function SearchPageContent() {
     // Fetch filter options
     if (!filterOptions) {
       try {
-        const response = await fetch('/api/wheel-stations/search?')
+        const response = await fetch('/api/wheel-stations/filter-options')
         if (response.ok) {
           const data = await response.json()
           setFilterOptions(data.filterOptions)

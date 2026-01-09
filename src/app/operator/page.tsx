@@ -234,7 +234,7 @@ export default function OperatorPage() {
     // Fetch filter options for spec search
     const fetchFilterOptions = async () => {
       try {
-        const response = await fetch('/api/wheel-stations/search?')
+        const response = await fetch('/api/wheel-stations/filter-options')
         if (response.ok) {
           const data = await response.json()
           setFilterOptions(data.filterOptions)

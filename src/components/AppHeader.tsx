@@ -174,8 +174,11 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
             padding: 6px 10px !important;
             font-size: 12px !important;
           }
-          .app-header-btn span:last-child {
+          .app-header-btn .btn-text-full {
             display: none !important;
+          }
+          .app-header-btn .btn-text-short {
+            display: inline !important;
           }
           .app-header-btn span:first-child {
             font-size: 16px !important;
@@ -234,8 +237,8 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
               <div id="profile-menu" role="menu" style={styles.dropdownMenu}>
                 {/* User info section */}
                 <div style={styles.menuUserInfo}>
-                  <div style={styles.menuStationNameLarge}>{userSession.stationName || userSession.manager.station_name || 'התחנה שלי'}</div>
-                  <div style={styles.menuUserPhone}>{userSession.manager.phone}</div>
+                  <div style={styles.menuStationNameLarge}>{userSession.manager.full_name}</div>
+                  <div style={styles.menuUserPhone}>{userSession.stationName || userSession.manager.station_name || 'התחנה שלי'}</div>
                 </div>
 
                 <div style={styles.dropdownDivider} />
@@ -395,14 +398,16 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
 
           {/* All Stations Button */}
           <Link href="/" className="app-header-btn" style={{...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {})}}>
-            <span>📍</span>
-            <span>כל התחנות</span>
+            <span>🏪</span>
+            <span className="btn-text-full">כל התחנות</span>
+            <span className="btn-text-short" style={{display: 'none'}}>תחנות</span>
           </Link>
 
           {/* Search Button */}
           <Link href="/search" className="app-header-btn" style={{...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {})}}>
             <span>🔍</span>
-            <span>חיפוש רכב</span>
+            <span className="btn-text-full">חיפוש רכב</span>
+            <span className="btn-text-short" style={{display: 'none'}}>חיפוש</span>
           </Link>
         </div>
       </header>
