@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
+import { verifyAdminPasswordClient } from '@/lib/admin-auth'
 
 interface ErrorReport {
   id: string
@@ -31,9 +32,6 @@ interface MissingVehicleReport {
   created_at: string
   updated_at: string | null
 }
-
-// Super admin password - stored in environment variable
-const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
 export default function ErrorReportsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -103,7 +101,7 @@ export default function ErrorReportsPage() {
   }, [selectedReport, selectedMissingReport, showConfirmDialog])
 
   const handleLogin = () => {
-    if (password === WHEELS_ADMIN_PASSWORD) {
+    if (verifyAdminPasswordClient(password)) {
       setIsAuthenticated(true)
       // Save with 30-day expiry
       const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000)

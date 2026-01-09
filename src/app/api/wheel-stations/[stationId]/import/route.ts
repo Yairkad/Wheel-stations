@@ -206,11 +206,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Normalize Hebrew column names to English
     const wheels = wheelsData.map(normalizeWheelData)
 
-    // Debug: Log first row for troubleshooting
-    console.log('Import debug - First raw row:', wheelsData[0])
-    console.log('Import debug - First normalized wheel:', wheels[0])
-    console.log('Import debug - Total wheels:', wheels.length)
-
     // Validate each wheel
     const validationErrors: string[] = []
     wheels.forEach((wheel, index) => {

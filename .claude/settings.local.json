@@ -27,7 +27,10 @@
       "Bash(set:*)",
       "Bash(git push:*)",
       "Bash(cd:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(ls \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\api\\\\admin\"\" 2>/dev/null || echo \"Directory listing \")"
     ]
   }
 }

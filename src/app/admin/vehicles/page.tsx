@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
+import { verifyAdminPasswordClient } from '@/lib/admin-auth'
 
 interface VehicleModel {
   id: string
@@ -55,7 +56,6 @@ interface ScrapeResult {
   source: string
 }
 
-const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
 // Wrapper component for Suspense
 export default function VehiclesAdminPageWrapper() {
@@ -399,7 +399,7 @@ function VehiclesAdminPage() {
   }, [isAuthenticated])
 
   const handleLogin = () => {
-    if (password === WHEELS_ADMIN_PASSWORD) {
+    if (verifyAdminPasswordClient(password)) {
       setIsAuthenticated(true)
       // Save with 30-day expiry
       const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000)
@@ -443,7 +443,9 @@ function VehiclesAdminPage() {
 
     try {
       // Admin lookup includes find-car.co.il fallback
-      const response = await fetch(`/api/vehicle/lookup?plate=${plateNumber}&admin=true&admin_password=${encodeURIComponent(password)}`)
+      const response = await fetch(`/api/vehicle/lookup?plate=${plateNumber}&admin=true`, {
+        headers: { 'x-admin-password': password }
+      })
       const data = await response.json()
 
       if (!response.ok || !data.success) {

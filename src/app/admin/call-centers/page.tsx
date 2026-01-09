@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
+import { verifyAdminPasswordClient } from '@/lib/admin-auth'
 
 interface Operator {
   id: string
@@ -32,8 +33,6 @@ interface CallCenter {
   call_center_managers: Manager[]
   operators: Operator[]
 }
-
-const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
 export default function CallCentersAdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -89,7 +88,7 @@ export default function CallCentersAdminPage() {
   }, [isAuthenticated])
 
   const handleLogin = () => {
-    if (password === WHEELS_ADMIN_PASSWORD) {
+    if (verifyAdminPasswordClient(password)) {
       setIsAuthenticated(true)
       const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000)
       localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd: password }))

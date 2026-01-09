@@ -13,12 +13,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { extractMakeFromHebrew } from '@/lib/pcd-database'
 import { createClient } from '@supabase/supabase-js'
+import { WHEELS_ADMIN_PASSWORD_CLIENT } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-// Admin password for extended lookup (find-car.co.il fallback)
-const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
 // data.gov.il resource IDs for vehicle databases
 const RESOURCE_ID_REGULAR = '053cea08-09bc-40ec-8f7a-156f0677aff3'
@@ -458,10 +456,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const plate = searchParams.get('plate')
     const isAdmin = searchParams.get('admin') === 'true'
-    const adminPassword = searchParams.get('admin_password')
+    // Get admin password from header (more secure) or URL (backwards compatibility)
+    const adminPassword = request.headers.get('x-admin-password') || searchParams.get('admin_password')
 
     // Validate admin access for extended lookup
-    const hasAdminAccess = isAdmin && adminPassword === WHEELS_ADMIN_PASSWORD
+    const hasAdminAccess = isAdmin && WHEELS_ADMIN_PASSWORD_CLIENT && adminPassword === WHEELS_ADMIN_PASSWORD_CLIENT
 
     if (!plate) {
       return NextResponse.json(

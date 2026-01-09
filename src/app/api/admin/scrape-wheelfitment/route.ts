@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { WHEELS_ADMIN_PASSWORD_CLIENT } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -212,9 +213,8 @@ export async function POST(request: NextRequest) {
     // Auth check
     const { searchParams } = new URL(request.url)
     const adminKey = searchParams.get('key')
-    const WHEELS_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
-    if (adminKey !== WHEELS_ADMIN_PASSWORD) {
+    if (!WHEELS_ADMIN_PASSWORD_CLIENT || adminKey !== WHEELS_ADMIN_PASSWORD_CLIENT) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

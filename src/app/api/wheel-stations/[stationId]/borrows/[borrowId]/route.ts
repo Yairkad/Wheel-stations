@@ -56,11 +56,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json()
     const { manager_phone, manager_password, action } = body
 
-    console.log('Borrow action request:', { stationId, borrowId, action, hasPhone: !!manager_phone, hasPassword: !!manager_password, passwordLength: manager_password?.length })
-
     // Verify manager credentials
     if (!manager_phone || !manager_password) {
-      console.log('Missing credentials:', { phone: manager_phone, password: manager_password })
       return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
     }
 

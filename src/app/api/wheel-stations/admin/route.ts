@@ -6,13 +6,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAdminPassword } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-const WHEELS_ADMIN_PASSWORD = process.env.WHEELS_ADMIN_PASSWORD || 'wheels2024'
 
 // GET - List all stations with full details (no auth needed for listing)
 export async function GET() {
@@ -72,8 +71,12 @@ export async function POST(request: NextRequest) {
     const { admin_password, name, address, city_id, district, managers } = body
 
     // Verify admin password
-    if (admin_password !== WHEELS_ADMIN_PASSWORD) {
-      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    try {
+      if (!verifyAdminPassword(admin_password)) {
+        return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+      }
+    } catch {
+      return NextResponse.json({ error: 'שגיאת הגדרות שרת' }, { status: 500 })
     }
 
     if (!name) {

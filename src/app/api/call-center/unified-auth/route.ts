@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -8,6 +9,17 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 // First tries to find a manager, then an operator
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 attempts per minute per IP
+    const clientIp = getClientIp(request)
+    const rateLimit = checkRateLimit(`auth:${clientIp}`, { maxRequests: 5, windowMs: 60 * 1000 })
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'יותר מדי ניסיונות. נסה שוב בעוד דקה.' },
+        { status: 429 }
+      )
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 

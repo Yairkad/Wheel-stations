@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 5 attempts per minute per IP
+    const clientIp = getClientIp(request)
+    const rateLimit = checkRateLimit(`auth:${clientIp}`, { maxRequests: 5, windowMs: 60 * 1000 })
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: 'יותר מדי ניסיונות. נסה שוב בעוד דקה.' },
+        { status: 429 }
+      )
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const { phone, password } = await request.json()
 
@@ -22,7 +34,6 @@ export async function POST(request: NextRequest) {
       .from('wheel_station_managers')
       .select('*, wheel_stations(id, name)')
 
-    console.log('Wheel managers search:', { phone, wheelManagers, wheelError })
 
     if (wheelManagers && wheelManagers.length > 0) {
       // Find manager by phone
@@ -62,7 +73,6 @@ export async function POST(request: NextRequest) {
       .eq('phone', phone)
       .limit(1)
 
-    console.log('City managers search:', { phone, cityManagers, cityError })
 
     if (cityManagers && cityManagers.length > 0) {
       const manager = cityManagers[0]
