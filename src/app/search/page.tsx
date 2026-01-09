@@ -1255,6 +1255,9 @@ function SearchPageContent() {
               border: '1px solid #4b5563'
             }}>
               <button
+                role="tab"
+                aria-selected={vehicleSearchTab === 'plate'}
+                aria-controls="plate-search-panel"
                 onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
                   flex: 1,
@@ -1271,6 +1274,9 @@ function SearchPageContent() {
                 🔢 מספר רכב
               </button>
               <button
+                role="tab"
+                aria-selected={vehicleSearchTab === 'model'}
+                aria-controls="model-search-panel"
                 onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
                   flex: 1,
@@ -1291,7 +1297,7 @@ function SearchPageContent() {
 
             {/* Tab Content: Plate Search */}
             {vehicleSearchTab === 'plate' && (
-              <div style={styles.vehicleInputRow}>
+              <div id="plate-search-panel" role="tabpanel" style={styles.vehicleInputRow}>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1317,7 +1323,7 @@ function SearchPageContent() {
 
             {/* Tab Content: Model Search */}
             {vehicleSearchTab === 'model' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div id="model-search-panel" role="tabpanel" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {/* Make Input with Autocomplete */}
                 <div style={{ position: 'relative', width: '100%' }}>
                   <input

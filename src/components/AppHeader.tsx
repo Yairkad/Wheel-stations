@@ -215,6 +215,10 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
             <button
               style={styles.profileBtn}
               onClick={() => setShowProfileMenu(!showProfileMenu)}
+              aria-haspopup="menu"
+              aria-expanded={showProfileMenu}
+              aria-controls="profile-menu"
+              aria-label={`תפריט פרופיל - ${userSession.manager.full_name}`}
             >
               <div className="profile-avatar" style={styles.profileAvatar}>
                 {getStationInitials(userSession.stationName)}
@@ -227,7 +231,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
             </button>
 
             {showProfileMenu && (
-              <div style={styles.dropdownMenu}>
+              <div id="profile-menu" role="menu" style={styles.dropdownMenu}>
                 {/* User info section */}
                 <div style={styles.menuUserInfo}>
                   <div style={styles.menuStationNameLarge}>{userSession.stationName || userSession.manager.station_name || 'התחנה שלי'}</div>

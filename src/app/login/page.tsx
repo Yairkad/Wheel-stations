@@ -191,6 +191,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               style={styles.toggleButton}
+              aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
             >
               {showPassword ? '🙈' : '👁️'}
             </button>

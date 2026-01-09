@@ -2120,18 +2120,20 @@ ${formUrl}`
 
       {/* View Toggle */}
       <div style={styles.toolbar}>
-        <div style={styles.viewToggle}>
+        <div style={styles.viewToggle} role="group" aria-label="בחירת תצוגה">
           <button
             style={{...styles.viewBtn, ...(viewMode === 'cards' ? styles.viewBtnActive : {})}}
             onClick={() => setViewMode('cards')}
-            title="תצוגת כרטיסים"
+            aria-label="תצוגת כרטיסים"
+            aria-pressed={viewMode === 'cards'}
           >
             🎴
           </button>
           <button
             style={{...styles.viewBtn, ...(viewMode === 'table' ? styles.viewBtnActive : {})}}
             onClick={() => setViewMode('table')}
-            title="תצוגת טבלה"
+            aria-label="תצוגת טבלה"
+            aria-pressed={viewMode === 'table'}
           >
             📋
           </button>
@@ -2472,7 +2474,7 @@ ${formUrl}`
             fontSize: '24px',
             zIndex: 100,
           }}
-          title="צור קשר עם מנהל"
+          aria-label="צור קשר עם מנהל"
         >
           📞
         </button>
@@ -2480,9 +2482,9 @@ ${formUrl}`
 
       {/* Contacts Modal */}
       {showContactsModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowContactsModal(false)}>
-          <div style={{...styles.modal, maxWidth: '350px'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>📞 צור קשר עם מנהל</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowContactsModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="contacts-modal-title" style={{...styles.modal, maxWidth: '350px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="contacts-modal-title" style={styles.modalTitle}>📞 צור קשר עם מנהל</h3>
             <div style={{display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px'}}>
               {station.wheel_station_managers.map(manager => {
                 const cleanPhone = manager.phone.replace(/\D/g, '')
@@ -2515,7 +2517,7 @@ ${formUrl}`
                           textDecoration: 'none',
                           fontSize: '16px',
                         }}
-                        title="התקשר"
+                        aria-label={`התקשר ל${manager.full_name}`}
                       >
                         📞
                       </a>
@@ -2534,7 +2536,7 @@ ${formUrl}`
                           textDecoration: 'none',
                           fontSize: '16px',
                         }}
-                        title="וואטסאפ"
+                        aria-label={`שלח וואטסאפ ל${manager.full_name}`}
                       >
                         💬
                       </a>
@@ -2552,8 +2554,8 @@ ${formUrl}`
 
       {/* Manual Borrow Modal */}
       {showManualBorrowModal && manualBorrowWheel && (
-        <div style={styles.modalOverlay} onClick={() => !actionLoading && setShowManualBorrowModal(false)}>
-          <div style={{...styles.modal, maxWidth: '450px', position: 'relative'}} onClick={e => e.stopPropagation()}>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => !actionLoading && setShowManualBorrowModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="manual-borrow-modal-title" style={{...styles.modal, maxWidth: '450px', position: 'relative'}} onClick={e => e.stopPropagation()}>
             {/* Submitting Overlay */}
             {actionLoading && (
               <div style={{
@@ -2588,7 +2590,7 @@ ${formUrl}`
                 </div>
               </div>
             )}
-            <h3 style={styles.modalTitle}>✍️ הזנת השאלה ידנית</h3>
+            <h3 id="manual-borrow-modal-title" style={styles.modalTitle}>✍️ הזנת השאלה ידנית</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
               רישום השאלה ללא טופס דיגיטלי (לשימוש כשהפונה לא יכול למלא טופס)
             </p>
@@ -2758,9 +2760,9 @@ ${formUrl}`
 
       {/* WhatsApp Share Modal */}
       {showWhatsAppModal && whatsAppWheel && (
-        <div style={styles.modalOverlay} onClick={() => setShowWhatsAppModal(false)}>
-          <div style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>💬 שליחת קישור לטופס בוואטסאפ</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowWhatsAppModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="whatsapp-modal-title" style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="whatsapp-modal-title" style={styles.modalTitle}>💬 שליחת קישור לטופס בוואטסאפ</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
               שלח הודעת וואטסאפ עם קישור לטופס השאלה. הגלגל ומספר הטלפון יהיו מוגדרים מראש.
             </p>
@@ -2850,9 +2852,9 @@ ${formUrl}`
 
       {/* Mark Wheel as Unavailable Modal */}
       {showUnavailableModal && selectedWheelForUnavailable && (
-        <div style={styles.modalOverlay} onClick={() => setShowUnavailableModal(false)}>
-          <div style={{...styles.modal, maxWidth: '450px'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>⚠️ סימון גלגל כלא זמין זמנית</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowUnavailableModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="unavailable-modal-title" style={{...styles.modal, maxWidth: '450px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="unavailable-modal-title" style={styles.modalTitle}>⚠️ סימון גלגל כלא זמין זמנית</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
               הגלגל יסומן כלא זמין להשאלה עד שתחזיר אותו לזמין
             </p>
@@ -2968,9 +2970,9 @@ ${formUrl}`
 
       {/* Login Modal */}
       {showLoginModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowLoginModal(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>🔐 כניסת מנהל</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowLoginModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="login-modal-title" style={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3 id="login-modal-title" style={styles.modalTitle}>🔐 כניסת מנהל</h3>
             <p style={styles.modalSubtitle}>הזן את פרטי ההתחברות שלך</p>
             <div style={styles.formGroup}>
               <label style={styles.label}>שם משתמש</label>
@@ -2996,6 +2998,7 @@ ${formUrl}`
                 <button
                   type="button"
                   onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  aria-label={showLoginPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                   style={{
                     position: 'absolute',
                     left: '10px',
@@ -3026,9 +3029,9 @@ ${formUrl}`
 
       {/* Add Wheel Modal */}
       {showAddWheelModal && (
-        <div style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false) }}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>➕ הוספת גלגל חדש</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false) }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()}>
+            <h3 id="add-wheel-modal-title" style={styles.modalTitle}>➕ הוספת גלגל חדש</h3>
             <div style={styles.formRow}>
               <div style={styles.formGroup}>
                 <label style={styles.label}>מספר גלגל *</label>
@@ -3156,8 +3159,8 @@ ${formUrl}`
 
       {/* Edit Wheel Modal */}
       {showEditWheelModal && selectedWheel && (
-        <div style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
+          <div role="dialog" aria-modal="true" aria-label={`עריכת גלגל ${selectedWheel.wheel_number}`} style={styles.modal} onClick={e => e.stopPropagation()}>
             <h3 style={styles.modalTitle}>✏️ עריכת גלגל #{selectedWheel.wheel_number}</h3>
             <div style={styles.formRow}>
               <div style={styles.formGroup}>
@@ -3286,9 +3289,9 @@ ${formUrl}`
 
       {/* Edit Details Modal */}
       {showEditDetailsModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowEditDetailsModal(false)}>
-          <div style={{...styles.modal, maxWidth: '550px'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>⚙️ עריכת פרטי תחנה</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowEditDetailsModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="edit-details-modal-title" style={{...styles.modal, maxWidth: '550px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="edit-details-modal-title" style={styles.modalTitle}>⚙️ עריכת פרטי תחנה</h3>
 
             {/* Section: Address */}
             <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
@@ -3609,9 +3612,9 @@ ${formUrl}`
 
       {/* Change Password Modal */}
       {showChangePasswordModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowChangePasswordModal(false)}>
-          <div style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>🔑 שינוי סיסמא אישית</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowChangePasswordModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="change-password-modal-title" style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="change-password-modal-title" style={styles.modalTitle}>🔑 שינוי סיסמא אישית</h3>
             <p style={{fontSize: '0.9rem', color: '#9ca3af', marginBottom: '20px', textAlign: 'center'}}>
               שנה את הסיסמא האישית שלך
             </p>
@@ -3628,6 +3631,7 @@ ${formUrl}`
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  aria-label={showCurrentPassword ? 'הסתר סיסמה נוכחית' : 'הצג סיסמה נוכחית'}
                   style={{
                     position: 'absolute',
                     left: '10px',
@@ -3659,6 +3663,7 @@ ${formUrl}`
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
+                    aria-label={showNewPassword ? 'הסתר סיסמה חדשה' : 'הצג סיסמה חדשה'}
                     style={{
                       position: 'absolute',
                       left: '10px',
@@ -3688,6 +3693,7 @@ ${formUrl}`
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'הסתר אימות סיסמה' : 'הצג אימות סיסמה'}
                     style={{
                       position: 'absolute',
                       left: '10px',
@@ -3728,9 +3734,9 @@ ${formUrl}`
 
       {/* Excel Import/Export Modal */}
       {showExcelModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowExcelModal(false)}>
-          <div style={{...styles.modal, maxWidth: '400px', textAlign: 'center'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>📊 ייבוא / ייצוא נתונים</h3>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowExcelModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="excel-modal-title" style={{...styles.modal, maxWidth: '400px', textAlign: 'center'}} onClick={e => e.stopPropagation()}>
+            <h3 id="excel-modal-title" style={styles.modalTitle}>📊 ייבוא / ייצוא נתונים</h3>
             <p style={styles.modalSubtitle}>בחר את הפעולה הרצויה</p>
 
             <div style={{display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px'}}>
@@ -3865,16 +3871,16 @@ ${formUrl}`
 
       {/* Confirm Dialog Modal */}
       {showConfirmDialog && confirmDialogData && (
-        <div style={styles.modalOverlay} onClick={closeConfirmDialog}>
-          <div style={styles.confirmDialog} onClick={e => e.stopPropagation()}>
-            <h3 style={{
+        <div role="presentation" style={styles.modalOverlay} onClick={closeConfirmDialog}>
+          <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message" style={styles.confirmDialog} onClick={e => e.stopPropagation()}>
+            <h3 id="confirm-dialog-title" style={{
               ...styles.confirmTitle,
               color: confirmDialogData.variant === 'danger' ? '#ef4444' :
                      confirmDialogData.variant === 'warning' ? '#f59e0b' : '#3b82f6'
             }}>
               {confirmDialogData.title}
             </h3>
-            <p style={{...styles.confirmMessage, whiteSpace: 'pre-line'}}>{confirmDialogData.message}</p>
+            <p id="confirm-dialog-message" style={{...styles.confirmMessage, whiteSpace: 'pre-line'}}>{confirmDialogData.message}</p>
             <div style={styles.confirmButtons}>
               <button style={styles.cancelBtn} onClick={closeConfirmDialog}>
                 {confirmDialogData.cancelText || 'ביטול'}
