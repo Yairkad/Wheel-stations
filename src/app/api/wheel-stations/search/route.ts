@@ -22,31 +22,39 @@ export async function GET(request: NextRequest) {
     const district = searchParams.get('district')
     const available_only = searchParams.get('available_only') === 'true'
 
-    // Build query - join with active stations only
+    // First get active stations (optionally filtered by district)
+    let stationsQuery = supabase
+      .from('wheel_stations')
+      .select('id, name, address, district, city_id, cities (name)')
+      .eq('is_active', true)
+
+    if (district) {
+      stationsQuery = stationsQuery.eq('district', district)
+    }
+
+    const { data: activeStations, error: stationsError } = await stationsQuery
+
+    if (stationsError) {
+      console.error('Error fetching stations:', stationsError)
+      return NextResponse.json({ error: 'Failed to search wheels' }, { status: 500 })
+    }
+
+    const activeStationIds = activeStations?.map(s => s.id) || []
+
+    if (activeStationIds.length === 0) {
+      return NextResponse.json({
+        results: [],
+        totalWheels: 0,
+        totalAvailable: 0,
+        filterOptions: { rim_sizes: [], bolt_counts: [], bolt_spacings: [], center_bores: [], offsets: [] }
+      })
+    }
+
+    // Build query for wheels
     let query = supabase
       .from('wheels')
-      .select(`
-        id,
-        wheel_number,
-        rim_size,
-        bolt_count,
-        bolt_spacing,
-        center_bore,
-        offset,
-        category,
-        is_donut,
-        is_available,
-        station_id,
-        wheel_stations!inner (
-          id,
-          name,
-          address,
-          district,
-          is_active,
-          cities (name)
-        )
-      `)
-      .filter('wheel_stations.is_active', 'eq', true)
+      .select('id, wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, offset, category, is_donut, is_available, station_id')
+      .in('station_id', activeStationIds)
 
     // Apply filters
     if (rim_size) {
@@ -64,9 +72,6 @@ export async function GET(request: NextRequest) {
     if (offset) {
       query = query.eq('offset', parseInt(offset))
     }
-    if (district) {
-      query = query.filter('wheel_stations.district', 'eq', district)
-    }
     if (available_only) {
       query = query.eq('is_available', true)
     }
@@ -77,6 +82,9 @@ export async function GET(request: NextRequest) {
       console.error('Error searching wheels:', error)
       return NextResponse.json({ error: 'Failed to search wheels' }, { status: 500 })
     }
+
+    // Create station lookup map
+    const stationsById = new Map(activeStations?.map(s => [s.id, s]) || [])
 
     // Group results by station for better display
     const stationMap = new Map<string, {
@@ -93,22 +101,17 @@ export async function GET(request: NextRequest) {
     }>()
 
     wheels?.forEach(wheel => {
-      const station = wheel.wheel_stations as unknown as {
-        id: string
-        name: string
-        address: string
-        district: string | null
-        cities: { name: string } | null
-      }
+      const stationData = stationsById.get(wheel.station_id)
+      if (!stationData) return
 
-      if (!stationMap.has(station.id)) {
-        stationMap.set(station.id, {
+      if (!stationMap.has(wheel.station_id)) {
+        stationMap.set(wheel.station_id, {
           station: {
-            id: station.id,
-            name: station.name,
-            address: station.address,
-            city: station.cities?.name || null,
-            district: station.district || null
+            id: stationData.id,
+            name: stationData.name,
+            address: stationData.address,
+            city: (stationData.cities as any)?.name || null,
+            district: stationData.district || null
           },
           wheels: [],
           availableCount: 0,
@@ -116,7 +119,7 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      const entry = stationMap.get(station.id)!
+      const entry = stationMap.get(wheel.station_id)!
       entry.wheels.push(wheel)
       entry.totalCount++
       if (wheel.is_available) {
@@ -126,18 +129,11 @@ export async function GET(request: NextRequest) {
 
     const results = Array.from(stationMap.values())
 
-    // Get unique filter options from all wheels (for dropdown suggestions)
+    // Get unique filter options from all wheels in active stations
     const { data: allWheels, error: filterError } = await supabase
       .from('wheels')
-      .select(`
-        rim_size,
-        bolt_count,
-        bolt_spacing,
-        center_bore,
-        offset,
-        wheel_stations!inner (is_active)
-      `)
-      .filter('wheel_stations.is_active', 'eq', true)
+      .select('rim_size, bolt_count, bolt_spacing, center_bore, offset')
+      .in('station_id', activeStationIds)
 
     if (filterError) {
       console.error('Error fetching filter options:', filterError)

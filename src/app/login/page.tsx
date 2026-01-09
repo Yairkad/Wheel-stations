@@ -323,6 +323,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     minHeight: '100vh',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -455,7 +456,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '10px'
   },
   footer: {
-    marginTop: '20px',
+    position: 'absolute',
+    bottom: '20px',
+    left: 0,
+    right: 0,
     textAlign: 'center'
   },
   footerLinks: {

@@ -13,18 +13,36 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    // Get unique filter options from all wheels in active stations
+    // First get active station IDs
+    const { data: activeStations, error: stationsError } = await supabase
+      .from('wheel_stations')
+      .select('id')
+      .eq('is_active', true)
+
+    if (stationsError) {
+      console.error('Error fetching active stations:', stationsError)
+      return NextResponse.json({ error: 'Failed to fetch filter options' }, { status: 500 })
+    }
+
+    const activeStationIds = activeStations?.map(s => s.id) || []
+
+    if (activeStationIds.length === 0) {
+      return NextResponse.json({
+        filterOptions: {
+          rim_sizes: [],
+          bolt_counts: [],
+          bolt_spacings: [],
+          center_bores: [],
+          offsets: []
+        }
+      })
+    }
+
+    // Get unique filter options from wheels in active stations
     const { data: allWheels, error } = await supabase
       .from('wheels')
-      .select(`
-        rim_size,
-        bolt_count,
-        bolt_spacing,
-        center_bore,
-        offset,
-        wheel_stations!inner (is_active)
-      `)
-      .filter('wheel_stations.is_active', 'eq', true)
+      .select('rim_size, bolt_count, bolt_spacing, center_bore, offset')
+      .in('station_id', activeStationIds)
 
     if (error) {
       console.error('Error fetching filter options:', error)
