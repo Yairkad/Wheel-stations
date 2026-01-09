@@ -39,6 +39,12 @@ export async function PUT(
 
     if (error) {
       console.error('Update error:', error)
+      // Handle unique constraint violation
+      if (error.code === '23505' || error.message?.includes('unique constraint')) {
+        return NextResponse.json({
+          error: 'כבר קיימת רשומה עם אותו יצרן/דגם/שנים. ניתן למזג רשומות כפולות מתפריט "מיזוג כפילויות".'
+        }, { status: 409 })
+      }
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 

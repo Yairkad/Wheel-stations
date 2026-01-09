@@ -147,6 +147,12 @@ function VehiclesAdminPage() {
   })
   const [editLoading, setEditLoading] = useState(false)
 
+  // Duplicates modal state
+  const [showDuplicatesModal, setShowDuplicatesModal] = useState(false)
+  const [duplicateGroups, setDuplicateGroups] = useState<VehicleModel[][]>([])
+  const [duplicatesLoading, setDuplicatesLoading] = useState(false)
+  const [mergingIds, setMergingIds] = useState<Set<string>>(new Set())
+
   // Autocomplete state
   const [makeSuggestions, setMakeSuggestions] = useState<string[]>([])
   const [modelSuggestions, setModelSuggestions] = useState<string[]>([])
@@ -853,6 +859,73 @@ function VehiclesAdminPage() {
     }
   }
 
+  // Find duplicates
+  const findDuplicates = async () => {
+    setDuplicatesLoading(true)
+    try {
+      const response = await fetch('/api/vehicle-models/merge')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'שגיאה בחיפוש כפילויות')
+      }
+
+      setDuplicateGroups(data.duplicateGroups || [])
+      setShowDuplicatesModal(true)
+
+      if (data.totalGroups === 0) {
+        toast.success('לא נמצאו כפילויות במאגר!')
+      } else {
+        toast(`נמצאו ${data.totalGroups} קבוצות של כפילויות`, { icon: '⚠️' })
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'שגיאה בחיפוש כפילויות')
+    } finally {
+      setDuplicatesLoading(false)
+    }
+  }
+
+  // Merge duplicate group
+  const handleMergeGroup = async (ids: string[]) => {
+    if (ids.length < 2) return
+
+    // Add all ids to merging set
+    setMergingIds(prev => new Set([...prev, ...ids]))
+
+    try {
+      const response = await fetch('/api/vehicle-models/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'שגיאה במיזוג')
+      }
+
+      toast.success(data.message || 'הרשומות מוזגו בהצלחה!')
+
+      // Remove merged group from list
+      setDuplicateGroups(prev => prev.filter(group =>
+        !group.some(v => ids.includes(v.id))
+      ))
+
+      // Refresh vehicles list
+      fetchVehicles()
+    } catch (err: any) {
+      toast.error(err.message || 'שגיאה במיזוג')
+    } finally {
+      // Remove from merging set
+      setMergingIds(prev => {
+        const newSet = new Set(prev)
+        ids.forEach(id => newSet.delete(id))
+        return newSet
+      })
+    }
+  }
+
   // Open edit modal
   const openEditModal = (vehicle: VehicleModel) => {
     setEditForm({
@@ -1282,6 +1355,13 @@ function VehiclesAdminPage() {
           </button>
           <button style={styles.btnExport} onClick={exportToExcel}>
             📥 ייצוא לאקסל
+          </button>
+          <button
+            style={{...styles.btnSecondary, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}}
+            onClick={findDuplicates}
+            disabled={duplicatesLoading}
+          >
+            {duplicatesLoading ? '🔄 מחפש...' : '🔍 מיזוג כפילויות'}
           </button>
         </div>
 
@@ -2298,6 +2378,113 @@ function VehiclesAdminPage() {
               >
                 {editLoading ? 'מעדכן...' : '✅ עדכן'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Duplicates Modal */}
+      {showDuplicatesModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowDuplicatesModal(false)}>
+          <div style={{...styles.modal, maxWidth: '900px', maxHeight: '80vh', overflowY: 'auto'}} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>🔍 כפילויות במאגר ({duplicateGroups.length} קבוצות)</h3>
+              <button style={styles.closeBtn} onClick={() => setShowDuplicatesModal(false)}>✕</button>
+            </div>
+
+            <div style={styles.modalBody}>
+              {duplicateGroups.length === 0 ? (
+                <div style={{textAlign: 'center', padding: '40px', color: '#94a3b8'}}>
+                  <div style={{fontSize: '3rem', marginBottom: '15px'}}>✅</div>
+                  <p>לא נמצאו כפילויות במאגר!</p>
+                </div>
+              ) : (
+                <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+                  {duplicateGroups.map((group, groupIndex) => {
+                    const isMerging = group.some(v => mergingIds.has(v.id))
+                    return (
+                      <div key={groupIndex} style={{
+                        background: '#1e293b',
+                        border: '1px solid #334155',
+                        borderRadius: '12px',
+                        padding: '15px',
+                        opacity: isMerging ? 0.6 : 1
+                      }}>
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                          <h4 style={{margin: 0, color: '#f59e0b'}}>
+                            {group[0]?.make} {group[0]?.model} ({group.length} רשומות)
+                          </h4>
+                          <button
+                            style={{
+                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                              color: 'white',
+                              border: 'none',
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              cursor: isMerging ? 'not-allowed' : 'pointer',
+                              fontWeight: 600
+                            }}
+                            onClick={() => handleMergeGroup(group.map(v => v.id))}
+                            disabled={isMerging}
+                          >
+                            {isMerging ? '🔄 ממזג...' : '🔗 מזג הכל'}
+                          </button>
+                        </div>
+                        <div style={{display: 'grid', gap: '10px'}}>
+                          {group.map((vehicle, vIndex) => (
+                            <div key={vehicle.id} style={{
+                              background: '#0f172a',
+                              padding: '10px 15px',
+                              borderRadius: '8px',
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                              gap: '10px',
+                              fontSize: '0.85rem'
+                            }}>
+                              <div>
+                                <span style={{color: '#64748b'}}>שנים: </span>
+                                <span style={{color: vehicle.year_from ? '#22c55e' : '#64748b'}}>
+                                  {vehicle.year_from || '?'}-{vehicle.year_to || '?'}
+                                </span>
+                              </div>
+                              <div>
+                                <span style={{color: '#64748b'}}>עברית: </span>
+                                <span style={{color: vehicle.make_he ? '#22c55e' : '#64748b'}}>
+                                  {vehicle.make_he || '❌'}
+                                </span>
+                              </div>
+                              <div>
+                                <span style={{color: '#64748b'}}>PCD: </span>
+                                <span style={{color: vehicle.bolt_count ? '#22c55e' : '#64748b'}}>
+                                  {vehicle.bolt_count ? `${vehicle.bolt_count}×${vehicle.bolt_spacing}` : '❌'}
+                                </span>
+                              </div>
+                              <div>
+                                <span style={{color: '#64748b'}}>CB: </span>
+                                <span style={{color: vehicle.center_bore ? '#22c55e' : '#64748b'}}>
+                                  {vehicle.center_bore || '❌'}
+                                </span>
+                              </div>
+                              <div>
+                                <span style={{color: '#64748b'}}>מידות: </span>
+                                <span style={{color: vehicle.rim_sizes_allowed?.length ? '#22c55e' : '#64748b'}}>
+                                  {vehicle.rim_sizes_allowed?.join(', ') || '❌'}
+                                </span>
+                              </div>
+                              <div>
+                                <span style={{color: '#64748b'}}>מקור: </span>
+                                <span style={{color: vehicle.source_url ? '#22c55e' : '#64748b'}}>
+                                  {vehicle.source_url ? '✅' : '❌'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

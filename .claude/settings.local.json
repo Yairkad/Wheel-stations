@@ -25,7 +25,9 @@
       "Bash(start \"\" \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\header-demo.html\")",
       "Bash($env:NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1)",
       "Bash(set:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(cd:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
