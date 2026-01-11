@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { verifyAdminPasswordClient } from '@/lib/admin-auth'
+import { VERSION } from '@/lib/version'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -96,6 +97,7 @@ export default function AdminLoginPage() {
         {passwordError && <div style={styles.errorText}>{passwordError}</div>}
         <button style={styles.loginBtn} onClick={handleLogin}>כניסה</button>
         <Link href="/login" style={styles.backLink}>← חזרה ללוגין ראשי</Link>
+        <div style={styles.versionText}>גרסה {VERSION}</div>
       </div>
     </div>
   )
@@ -181,5 +183,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
     textDecoration: 'none',
     transition: 'color 0.2s',
+  },
+  versionText: {
+    marginTop: '20px',
+    fontSize: '0.75rem',
+    color: '#475569',
   },
 }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
-import { SESSION_VERSION } from '@/lib/version'
+import { SESSION_VERSION, VERSION } from '@/lib/version'
 
 type LoginMode = 'select' | 'station' | 'operator'
 
@@ -296,6 +296,7 @@ export default function LoginPage() {
             {' • '}
             <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
           </div>
+          <div style={styles.versionText}>גרסה {VERSION}</div>
         </div>
       </div>
     )
@@ -374,6 +375,7 @@ export default function LoginPage() {
           {' • '}
           <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
         </p>
+        <p style={styles.versionText}>גרסה {VERSION}</p>
       </footer>
     </div>
   )
@@ -490,6 +492,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '40px',
     fontSize: '0.8rem',
     color: 'rgba(255,255,255,0.6)'
+  },
+  versionText: {
+    marginTop: '15px',
+    fontSize: '0.75rem',
+    color: 'rgba(255,255,255,0.4)'
   },
   footerLink: {
     color: 'rgba(255,255,255,0.8)',
