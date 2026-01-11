@@ -1559,6 +1559,38 @@ ${formUrl}`
             display: none !important;
           }
         }
+
+        /* Add Wheel Modal responsive styles */
+        @media (max-width: 480px) {
+          .add-wheel-form-row {
+            flex-direction: column !important;
+            gap: 0 !important;
+          }
+          .add-wheel-form-row .form-group-item {
+            width: 100% !important;
+            margin-bottom: 12px !important;
+          }
+          .add-wheel-modal {
+            padding: 20px !important;
+            max-height: 90vh !important;
+          }
+          .add-wheel-modal-title {
+            font-size: 1.1rem !important;
+          }
+          .add-wheel-modal input,
+          .add-wheel-modal select {
+            padding: 12px !important;
+            font-size: 16px !important; /* Prevents iOS zoom */
+          }
+          .add-wheel-modal-buttons {
+            flex-direction: column-reverse !important;
+            gap: 10px !important;
+          }
+          .add-wheel-modal-buttons button {
+            width: 100% !important;
+            padding: 14px !important;
+          }
+        }
       `}</style>
       {/* Station Info Section */}
       <div style={styles.stationInfoSection}>
@@ -3054,10 +3086,10 @@ ${formUrl}`
       {/* Add Wheel Modal */}
       {showAddWheelModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false) }}>
-          <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 id="add-wheel-modal-title" style={styles.modalTitle}>➕ הוספת גלגל חדש</h3>
-            <div style={styles.formRow}>
-              <div style={styles.formGroup}>
+          <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
+            <h3 id="add-wheel-modal-title" style={styles.modalTitle} className="add-wheel-modal-title">➕ הוספת גלגל חדש</h3>
+            <div style={styles.formRow} className="add-wheel-form-row">
+              <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>מספר גלגל *</label>
                 <input
                   type="text"
@@ -3067,7 +3099,7 @@ ${formUrl}`
                   style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
                 />
               </div>
-              <div style={styles.formGroup}>
+              <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>גודל ג'אנט *</label>
                 <input
                   type="text"
@@ -3078,8 +3110,8 @@ ${formUrl}`
                 />
               </div>
             </div>
-            <div style={styles.formRow}>
-              <div style={styles.formGroup}>
+            <div style={styles.formRow} className="add-wheel-form-row">
+              <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>כמות ברגים</label>
                 <select
                   value={wheelForm.bolt_count}
@@ -3091,7 +3123,7 @@ ${formUrl}`
                   <option value="6">6</option>
                 </select>
               </div>
-              <div style={styles.formGroup}>
+              <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>מרווח ברגים *</label>
                 <input
                   type="text"
@@ -3101,7 +3133,7 @@ ${formUrl}`
                   style={{...styles.input, ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})}}
                 />
               </div>
-              <div style={styles.formGroup}>
+              <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>CB (קוטר מרכז)</label>
                 <input
                   type="text"
@@ -3171,7 +3203,7 @@ ${formUrl}`
                 style={styles.input}
               />
             </div>
-            <div style={styles.modalButtons}>
+            <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => setShowAddWheelModal(false)}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleAddWheel} disabled={actionLoading}>
                 {actionLoading ? 'שומר...' : 'הוסף'}

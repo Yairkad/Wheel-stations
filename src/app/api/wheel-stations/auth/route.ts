@@ -60,6 +60,8 @@ export async function POST(request: NextRequest) {
             phone: manager.phone,
             station_id: station.id,
             station_name: station.name,
+            role: manager.role || 'מנהל תחנה',
+            is_primary: manager.is_primary || false,
             type: 'wheel_station'
           }
         })

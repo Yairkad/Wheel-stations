@@ -132,14 +132,14 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
   const isOnStationsPage = pathname === '/' || pathname === '/stations'
   const isOnSearchPage = pathname === '/search'
 
-  // Get station initials for avatar
-  const getStationInitials = (stationName: string | undefined) => {
-    if (!stationName) return '🏠'
-    const parts = stationName.split(' ')
+  // Get user initials for avatar
+  const getUserInitials = (fullName: string | undefined) => {
+    if (!fullName) return '👤'
+    const parts = fullName.trim().split(' ').filter(p => p.length > 0)
     if (parts.length >= 2) {
       return parts[0][0] + parts[1][0]
     }
-    return stationName.substring(0, 2)
+    return fullName.substring(0, 2)
   }
 
   const getRoleDisplay = (role: string) => {
@@ -224,7 +224,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
               aria-label={`תפריט פרופיל - ${userSession.manager.full_name}`}
             >
               <div className="profile-avatar" style={styles.profileAvatar}>
-                {getStationInitials(userSession.stationName)}
+                {getUserInitials(userSession.manager.full_name)}
               </div>
               <div className="profile-info" style={styles.profileInfo}>
                 <div className="profile-name" style={styles.profileName}>{userSession.manager.full_name}</div>
