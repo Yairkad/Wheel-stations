@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import { SESSION_VERSION } from '@/lib/version'
 
 interface Manager {
   id: string
@@ -237,7 +238,8 @@ export default function CallCenterPage() {
         call_center_name: manager.call_center_name,
       },
       expiry,
-      is_manager: true // Flag to show "back to management" button
+      is_manager: true, // Flag to show "back to management" button
+      version: SESSION_VERSION
     }))
 
     window.location.href = '/operator'

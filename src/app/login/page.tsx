@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
+import { SESSION_VERSION } from '@/lib/version'
 
 type LoginMode = 'select' | 'station' | 'operator'
 
@@ -48,7 +49,8 @@ export default function LoginPage() {
         stationId: stationId,
         stationName: data.manager.station_name,
         password: password,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        version: SESSION_VERSION
       }
       localStorage.setItem(`station_session_${stationId}`, JSON.stringify(session))
 
@@ -92,7 +94,8 @@ export default function LoginPage() {
         callCenterId: data.call_center_id,
         callCenterName: data.call_center_name,
         password: password,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        version: SESSION_VERSION
       }
       localStorage.setItem('operator_session', JSON.stringify(session))
 

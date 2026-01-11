@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { SESSION_VERSION } from '@/lib/version'
 
 interface Operator {
   id: string
@@ -366,7 +367,8 @@ export default function OperatorPage() {
         localStorage.setItem('call_center_session', JSON.stringify({
           role: 'manager',
           user: data.user,
-          expiry
+          expiry,
+          version: SESSION_VERSION
         }))
         toast.success(`שלום ${data.user.full_name}!`)
         window.location.href = '/call-center'
@@ -377,7 +379,8 @@ export default function OperatorPage() {
       const expiry = new Date().getTime() + (12 * 60 * 60 * 1000)
       localStorage.setItem('operator_session', JSON.stringify({
         operator: data.user,
-        expiry
+        expiry,
+        version: SESSION_VERSION
       }))
 
       setOperator(data.user)

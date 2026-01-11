@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { SESSION_VERSION } from '@/lib/version'
 
 interface UserSession {
   manager: {
@@ -16,6 +17,7 @@ interface UserSession {
   }
   stationId: string
   stationName: string
+  version?: number
 }
 
 interface AppHeaderProps {
@@ -31,11 +33,32 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Helper to clear all sessions and redirect to login
+    const forceLogout = (reason: string) => {
+      console.log(`Force logout: ${reason}`)
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('station_session_') || key.startsWith('wheel_manager_') || key === 'operator_session') {
+          localStorage.removeItem(key)
+        }
+      })
+      // Redirect to login if not already there
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login'
+      }
+    }
+
     // Find user session from localStorage
     const sessionKeys = Object.keys(localStorage).filter(key => key.startsWith('station_session_'))
     if (sessionKeys.length > 0) {
       try {
         const session = JSON.parse(localStorage.getItem(sessionKeys[0]) || '{}')
+
+        // Check session version - force logout if outdated
+        if (!session.version || session.version < SESSION_VERSION) {
+          forceLogout('Session version outdated')
+          return
+        }
+
         if (session.manager) {
           // Make sure stationId is set correctly from the session key or manager data
           const stationIdFromKey = sessionKeys[0].replace('station_session_', '')
@@ -50,6 +73,8 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
         }
       } catch {
         // Invalid session
+        forceLogout('Invalid session data')
+        return
       }
     }
 
@@ -58,6 +83,13 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
     if (operatorSession) {
       try {
         const session = JSON.parse(operatorSession)
+
+        // Check session version for operator too
+        if (!session.version || session.version < SESSION_VERSION) {
+          forceLogout('Operator session version outdated')
+          return
+        }
+
         if (session.operator) {
           setUserSession({
             manager: {
@@ -74,6 +106,8 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
         }
       } catch {
         // Invalid session
+        forceLogout('Invalid operator session data')
+        return
       }
     }
 
