@@ -139,10 +139,11 @@ export default function FeedbackPage() {
         setSuccess(true)
         toast.success('הפידבק נשלח בהצלחה!')
       } else {
-        toast.error(data.error || 'שגיאה בשליחת הפידבק')
+        toast.error(`שליחת הפידבק נכשלה: ${data.error || 'שגיאה לא ידועה'}`)
       }
-    } catch {
-      toast.error('שגיאה בתקשורת עם השרת')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'בעיה בחיבור לשרת'
+      toast.error(`שליחת הפידבק נכשלה: ${errorMessage}`)
     } finally {
       setSending(false)
     }

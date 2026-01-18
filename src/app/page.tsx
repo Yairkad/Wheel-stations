@@ -355,8 +355,9 @@ export default function WheelStationsPage() {
           setVehicleSearchResults(searchData.results)
         }
       }
-    } catch {
-      setVehicleError('שגיאה בחיבור לשרת')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'בעיה בתקשורת עם השרת'
+      setVehicleError(`שגיאה בחיבור לשרת: ${errorMessage}`)
     } finally {
       setVehicleLoading(false)
     }
@@ -711,8 +712,9 @@ export default function WheelStationsPage() {
         setShowAddModelModal(true)
         setPendingVehicleData(null)
       }
-    } catch (error: any) {
-      toast.error(error.message || 'שגיאה בהתחברות')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'בעיה בתקשורת עם השרת'
+      toast.error(`התחברות נכשלה: ${errorMessage}`)
     } finally {
       setLoginLoading(false)
     }
@@ -777,14 +779,17 @@ export default function WheelStationsPage() {
         })
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('שגיאה בשליחת הדיווח')
+        throw new Error(data.error || 'שגיאה לא ידועה בשליחת הדיווח')
       }
 
       toast.success('הדיווח נשלח בהצלחה! תודה על העזרה')
       setShowErrorReportModal(false)
-    } catch (error) {
-      toast.error('שגיאה בשליחת הדיווח')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'שגיאה בתקשורת עם השרת'
+      toast.error(`שליחת הדיווח נכשלה: ${errorMessage}`)
     } finally {
       setErrorReportLoading(false)
     }
@@ -849,8 +854,9 @@ export default function WheelStationsPage() {
         variants: ''
       })
       setModelSearchTechnicalCode('') // Reset technical code
-    } catch (error: any) {
-      toast.error(error.message || 'שגיאה בהוספת הדגם')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'בעיה בתקשורת עם השרת'
+      toast.error(`הוספת הדגם נכשלה: ${errorMessage}`)
     } finally {
       setAddModelLoading(false)
     }

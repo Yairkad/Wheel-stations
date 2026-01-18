@@ -283,12 +283,13 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.error || 'שגיאה בשליחת הטופס')
+        throw new Error(data.error || 'שגיאה לא ידועה בשליחת הטופס')
       }
 
       setSubmitted(true)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'שגיאה בשליחת הטופס')
+      const errorMessage = err instanceof Error ? err.message : 'בעיה בתקשורת עם השרת'
+      toast.error(`שליחת הטופס נכשלה: ${errorMessage}`)
     } finally {
       setSubmitting(false)
     }

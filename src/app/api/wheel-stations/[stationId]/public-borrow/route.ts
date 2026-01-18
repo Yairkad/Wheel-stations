@@ -9,9 +9,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Validate environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL')
+}
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('Missing SUPABASE_SERVICE_ROLE_KEY')
+}
+
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 )
 
 interface RouteParams {
@@ -124,7 +132,25 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (borrowError) {
       console.error('Error creating borrow request:', borrowError)
-      return NextResponse.json({ error: 'שגיאה ביצירת בקשת השאלה' }, { status: 500 })
+
+      // Provide more specific error messages based on the error
+      let errorMessage = 'שגיאה ביצירת בקשת השאלה'
+
+      if (borrowError.code === '23505') {
+        // Unique constraint violation - possibly duplicate borrow
+        errorMessage = 'קיימת כבר בקשת השאלה פעילה עבור גלגל זה'
+      } else if (borrowError.code === '23503') {
+        // Foreign key violation
+        errorMessage = 'הגלגל או התחנה לא נמצאו במערכת'
+      } else if (borrowError.code === '23502') {
+        // Not null violation
+        errorMessage = 'חסרים שדות חובה בטופס'
+      } else if (borrowError.message) {
+        // Include the actual error message for debugging
+        errorMessage = `שגיאה ביצירת בקשת השאלה: ${borrowError.message}`
+      }
+
+      return NextResponse.json({ error: errorMessage }, { status: 500 })
     }
 
     // Note: Wheel availability is NOT updated here

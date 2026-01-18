@@ -226,6 +226,7 @@ async function scrapeWheelfitmentForLookup(make: string, model: string, year: nu
     const rowRegex = /<tr[^>]*>[\s\S]*?<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>[\s\S]*?<td[^>]*>\(([^)]*)\)<\/td>[\s\S]*?<\/tr>/gi
 
     let bestMatch: { url: string; yearFrom: number; yearTo: number | null } | null = null
+    let fallbackMatch: { url: string; yearFrom: number; yearTo: number | null } | null = null
     let match
 
     while ((match = rowRegex.exec(makeHtml)) !== null) {
@@ -238,14 +239,22 @@ async function scrapeWheelfitmentForLookup(make: string, model: string, year: nu
       const modelNameClean = modelName.toLowerCase().replace(/[\s\-]/g, '')
 
       if (modelNameClean.includes(modelLower) || modelLower.includes(modelNameClean)) {
+        // Check if year is within range
         if (yearFrom <= year && (yearTo === null || yearTo >= year)) {
           bestMatch = { url: modelUrl, yearFrom, yearTo }
-          break
+          break // Found exact match with correct year range - stop searching
         }
-        if (!bestMatch) {
-          bestMatch = { url: modelUrl, yearFrom, yearTo }
+        // Save as fallback only if we don't have one yet, preferring newer models
+        if (!fallbackMatch || yearFrom > fallbackMatch.yearFrom) {
+          fallbackMatch = { url: modelUrl, yearFrom, yearTo }
         }
       }
+    }
+
+    // Use exact match if found, otherwise use fallback (but log warning)
+    if (!bestMatch && fallbackMatch) {
+      console.warn(`Wheelfitment: No exact year match for ${model} ${year}, using fallback from ${fallbackMatch.yearFrom}-${fallbackMatch.yearTo || 'present'}`)
+      bestMatch = fallbackMatch
     }
 
     if (!bestMatch) return null
