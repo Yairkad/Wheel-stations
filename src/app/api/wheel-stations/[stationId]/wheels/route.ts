@@ -112,11 +112,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (error) {
-      if (error.code === '23505') { // Unique constraint violation
-        return NextResponse.json({ error: 'Wheel number already exists in this station' }, { status: 400 })
-      }
       console.error('Error creating wheel:', error)
-      return NextResponse.json({ error: 'Failed to create wheel' }, { status: 500 })
+
+      let errorMessage = 'שגיאה ביצירת גלגל'
+
+      if (error.code === '23505') {
+        errorMessage = 'מספר הגלגל כבר קיים בתחנה זו'
+      } else if (error.code === '23502') {
+        errorMessage = 'חסרים שדות חובה'
+      } else if (error.code === '42703') {
+        // Column does not exist
+        errorMessage = `עמודה חסרה בטבלה: ${error.message}`
+      } else if (error.message) {
+        errorMessage = `שגיאה ביצירת גלגל: ${error.message}`
+      }
+
+      return NextResponse.json({ error: errorMessage }, { status: error.code === '23505' ? 400 : 500 })
     }
 
     return NextResponse.json({ wheel }, { status: 201 })
