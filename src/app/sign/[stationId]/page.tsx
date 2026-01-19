@@ -15,6 +15,7 @@ interface Wheel {
   is_donut: boolean
   is_available: boolean
   notes?: string
+  custom_deposit?: number | null
 }
 
 interface PaymentMethods {
@@ -62,6 +63,10 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const [depositType, setDepositType] = useState('')
   const [notes, setNotes] = useState('')
   const [agreedTerms, setAgreedTerms] = useState(false)
+
+  // Calculate effective deposit (custom wheel deposit or station default)
+  const selectedWheel = wheels.find(w => w.id === selectedWheelId)
+  const effectiveDeposit = selectedWheel?.custom_deposit || station?.deposit_amount || 200
 
   // Validation errors
   const [fieldErrors, setFieldErrors] = useState<string[]>([])
@@ -580,7 +585,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                   checked={depositType === 'cash'}
                   onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                 />
-                <span>💵 ₪{station.deposit_amount || 200} מזומן</span>
+                <span>💵 ₪{effectiveDeposit} מזומן</span>
               </label>
             )}
 
@@ -595,13 +600,13 @@ function SignFormContent({ stationId }: { stationId: string }) {
                     checked={depositType === 'bit'}
                     onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                   />
-                  <span>📱 ₪{station.deposit_amount || 200} בביט ל-{station.payment_methods.bit.phone}</span>
+                  <span>📱 ₪{effectiveDeposit} בביט ל-{station.payment_methods.bit.phone}</span>
                 </label>
                 {depositType === 'bit' && (
                   <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={styles.paymentInfo}>
                       <strong>מספר לתשלום:</strong> {station.payment_methods.bit.phone}<br/>
-                      <strong>סכום:</strong> ₪{station.deposit_amount || 200}
+                      <strong>סכום:</strong> ₪{effectiveDeposit}
                     </div>
                     <a
                       href={`bit://pay?phone=${station.payment_methods.bit.phone.replace(/\D/g, '')}`}
@@ -636,13 +641,13 @@ function SignFormContent({ stationId }: { stationId: string }) {
                     checked={depositType === 'paybox'}
                     onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                   />
-                  <span>📦 ₪{station.deposit_amount || 200} בפייבוקס ל-{station.payment_methods.paybox.phone}</span>
+                  <span>📦 ₪{effectiveDeposit} בפייבוקס ל-{station.payment_methods.paybox.phone}</span>
                 </label>
                 {depositType === 'paybox' && (
                   <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={styles.paymentInfo}>
                       <strong>מספר לתשלום:</strong> {station.payment_methods.paybox.phone}<br/>
-                      <strong>סכום:</strong> ₪{station.deposit_amount || 200}<br/>
+                      <strong>סכום:</strong> ₪{effectiveDeposit}<br/>
                       <span style={{ color: '#f59e0b', fontSize: '14px', marginTop: '4px', display: 'block' }}>
                         ⚠️ אפליקציית PayBox לא תומכת בפתיחה אוטומטית מטעמי אבטחה. יש לפתוח את האפליקציה באופן ידני.
                       </span>
@@ -674,7 +679,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                     checked={depositType === 'bank_transfer'}
                     onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                   />
-                  <span>🏦 ₪{station.deposit_amount || 200} העברה בנקאית</span>
+                  <span>🏦 ₪{effectiveDeposit} העברה בנקאית</span>
                 </label>
                 {depositType === 'bank_transfer' && (
                   <div style={styles.bankDetails}>
@@ -739,7 +744,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
         >
           <p><strong>תקנון השאלת גלגל:</strong></p>
           <ul style={styles.termsList}>
-            <li>הפונה מתחייב להחזיר את הגלגל בתוך <strong>72 שעות</strong>, ולהשאיר כפקדון {station.deposit_amount || 200} ש"ח באמצעי התשלום הזמין.</li>
+            <li>הפונה מתחייב להחזיר את הגלגל בתוך <strong>72 שעות</strong>, ולהשאיר כפקדון {effectiveDeposit} ש"ח באמצעי התשלום הזמין.</li>
             <li>הפונה יקבל חזרה את הפקדון בעת החזרת הגלגל. במידה והגלגל לא יוחזר בתוך 72 שעות, סכום הכסף יועבר כתרומה לידידים.</li>
             <li><strong>הפונה מבין שזהו תיקון חירום בלבד!</strong> והגלגל עשוי להיות במידה מעט שונה/לפגוע ביציבות הרכב ולכן מתחייב לא לנהוג במהירות מעל 80 קמ"ש וכן שלא תהיה לו שום תלונה על הסיוע שקיבל.</li>
             <li>במקרים חריגים ניתן להאריך את זמן ההשאלה עד 5 ימים, באישור מנהל התחנה או סג"מ התחנה.</li>

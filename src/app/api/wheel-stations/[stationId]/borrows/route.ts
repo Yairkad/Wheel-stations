@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         signature_data,
         signed_at,
         created_at,
-        wheels (wheel_number, rim_size, bolt_count, bolt_spacing),
+        wheels (wheel_number, rim_size, bolt_count, bolt_spacing, custom_deposit),
         signed_forms (id, referred_by)
       `)
       .eq('station_id', stationId)

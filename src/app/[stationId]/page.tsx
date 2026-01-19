@@ -21,6 +21,7 @@ interface Wheel {
   is_donut: boolean
   notes: string | null
   is_available: boolean
+  custom_deposit?: number | null
   temporarily_unavailable?: boolean
   unavailable_reason?: string | null
   unavailable_notes?: string | null
@@ -68,6 +69,7 @@ interface BorrowRecord {
     rim_size: string
     bolt_count: number
     bolt_spacing: number
+    custom_deposit?: number | null
   }
 }
 
@@ -111,6 +113,7 @@ interface WheelForm {
   category: string
   is_donut: boolean
   notes: string
+  custom_deposit: string
 }
 
 type ViewMode = 'cards' | 'table'
@@ -170,7 +173,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     center_bore: '',
     category: '',
     is_donut: false,
-    notes: ''
+    notes: '',
+    custom_deposit: ''
   })
 
   // Form validation errors (highlight missing fields)
@@ -912,6 +916,7 @@ ${signFormUrl}
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
+          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,
           manager_phone: currentManager?.phone,
           manager_password: sessionPassword
         })
@@ -931,7 +936,8 @@ ${signFormUrl}
         center_bore: '',
         category: '',
         is_donut: false,
-        notes: ''
+        notes: '',
+        custom_deposit: ''
       })
       toast.success('הגלגל נוסף בהצלחה!')
     } catch (err: unknown) {
@@ -970,6 +976,7 @@ ${signFormUrl}
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
+          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,
           manager_phone: currentManager?.phone,
           manager_password: sessionPassword
         })
@@ -990,7 +997,8 @@ ${signFormUrl}
         center_bore: '',
         category: '',
         is_donut: false,
-        notes: ''
+        notes: '',
+        custom_deposit: ''
       })
       toast.success('הגלגל עודכן בהצלחה!')
     } catch (err: unknown) {
@@ -1313,12 +1321,15 @@ ${formUrl}`
           'מספר גלגל': borrow.wheels?.wheel_number || '',
           'תאריך השאלה': borrow.borrow_date ? new Date(borrow.borrow_date).toLocaleDateString('he-IL') : '',
           'תאריך החזרה': borrow.actual_return_date ? new Date(borrow.actual_return_date).toLocaleDateString('he-IL') : '',
-          'סוג פיקדון': borrow.deposit_type === 'cash' ? `₪${station?.deposit_amount || 200} מזומן` :
-                        borrow.deposit_type === 'bit' ? `₪${station?.deposit_amount || 200} ביט` :
-                        borrow.deposit_type === 'paybox' ? `₪${station?.deposit_amount || 200} פייבוקס` :
-                        borrow.deposit_type === 'bank_transfer' ? `₪${station?.deposit_amount || 200} העברה` :
-                        borrow.deposit_type === 'id' ? 'ת.ז.' :
-                        borrow.deposit_type === 'license' ? 'רישיון' : '',
+          'סוג פיקדון': (() => {
+            const depositAmount = borrow.wheels?.custom_deposit || station?.deposit_amount || 200
+            return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
+                   borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
+                   borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
+                   borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
+                   borrow.deposit_type === 'id' ? 'ת.ז.' :
+                   borrow.deposit_type === 'license' ? 'רישיון' : ''
+          })(),
           'סטטוס': borrow.status === 'pending' ? 'ממתין' :
                    borrow.status === 'borrowed' ? 'מושאל' :
                    borrow.status === 'returned' ? 'הוחזר' :
@@ -1784,12 +1795,15 @@ ${formUrl}`
                             ...(borrow.deposit_type === 'cash' || borrow.deposit_type === 'bit' ? styles.depositBadgeMoney :
                                 borrow.deposit_type === 'id' || borrow.deposit_type === 'license' ? styles.depositBadgeDoc : {})
                           }}>
-                            {borrow.deposit_type === 'cash' ? `₪${station.deposit_amount || 200} מזומן` :
-                             borrow.deposit_type === 'bit' ? `₪${station.deposit_amount || 200} ביט` :
-                             borrow.deposit_type === 'paybox' ? `₪${station.deposit_amount || 200} פייבוקס` :
-                             borrow.deposit_type === 'bank_transfer' ? `₪${station.deposit_amount || 200} העברה` :
-                             borrow.deposit_type === 'id' ? 'ת.ז.' :
-                             borrow.deposit_type === 'license' ? 'רישיון' : '-'}
+                            {(() => {
+                              const depositAmount = borrow.wheels?.custom_deposit || station.deposit_amount || 200
+                              return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
+                                     borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
+                                     borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
+                                     borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
+                                     borrow.deposit_type === 'id' ? 'ת.ז.' :
+                                     borrow.deposit_type === 'license' ? 'רישיון' : '-'
+                            })()}
                           </span>
                         </td>
                         <td style={styles.trackingTd}>
@@ -1948,12 +1962,15 @@ ${formUrl}`
                                 ...(borrow.deposit_type === 'cash' || borrow.deposit_type === 'bit' ? styles.depositBadgeMoney :
                                     borrow.deposit_type === 'id' || borrow.deposit_type === 'license' ? styles.depositBadgeDoc : {})
                               }}>
-                                {borrow.deposit_type === 'cash' ? `₪${station.deposit_amount || 200} מזומן` :
-                                 borrow.deposit_type === 'bit' ? `₪${station.deposit_amount || 200} ביט` :
-                                 borrow.deposit_type === 'paybox' ? `₪${station.deposit_amount || 200} פייבוקס` :
-                                 borrow.deposit_type === 'bank_transfer' ? `₪${station.deposit_amount || 200} העברה` :
-                                 borrow.deposit_type === 'id' ? 'ת.ז.' :
-                                 borrow.deposit_type === 'license' ? 'רישיון' : '-'}
+                                {(() => {
+                                  const depositAmount = borrow.wheels?.custom_deposit || station.deposit_amount || 200
+                                  return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
+                                         borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
+                                         borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
+                                         borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
+                                         borrow.deposit_type === 'id' ? 'ת.ז.' :
+                                         borrow.deposit_type === 'license' ? 'רישיון' : '-'
+                                })()}
                               </span>
                             </div>
                             {borrow.vehicle_model && (
@@ -2447,7 +2464,8 @@ ${formUrl}`
                                 center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
                                 category: wheel.category || '',
                                 is_donut: wheel.is_donut,
-                                notes: wheel.notes || ''
+                                notes: wheel.notes || '',
+                                custom_deposit: wheel.custom_deposit ? String(wheel.custom_deposit) : ''
                               })
                               setShowEditWheelModal(true)
                               setOpenOptionsMenu(null)
@@ -3235,6 +3253,16 @@ ${formUrl}`
                 style={styles.input}
               />
             </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>פיקדון חריג (ריק = ברירת מחדל ₪{station?.deposit_amount || 200})</label>
+              <input
+                type="number"
+                placeholder={`ברירת מחדל: ₪${station?.deposit_amount || 200}`}
+                value={wheelForm.custom_deposit}
+                onChange={e => setWheelForm({...wheelForm, custom_deposit: e.target.value})}
+                style={styles.input}
+              />
+            </div>
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => setShowAddWheelModal(false)}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleAddWheel} disabled={actionLoading}>
@@ -3362,6 +3390,16 @@ ${formUrl}`
                 type="text"
                 value={wheelForm.notes}
                 onChange={e => setWheelForm({...wheelForm, notes: e.target.value})}
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>פיקדון חריג (ריק = ברירת מחדל ₪{station?.deposit_amount || 200})</label>
+              <input
+                type="number"
+                placeholder={`ברירת מחדל: ₪${station?.deposit_amount || 200}`}
+                value={wheelForm.custom_deposit}
+                onChange={e => setWheelForm({...wheelForm, custom_deposit: e.target.value})}
                 style={styles.input}
               />
             </div>
