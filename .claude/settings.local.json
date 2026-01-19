@@ -30,7 +30,9 @@
       "Bash(git checkout:*)",
       "Bash(rm:*)",
       "Bash(rmdir:*)",
-      "Bash(ls \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\api\\\\admin\"\" 2>/dev/null || echo \"Directory listing \")"
+      "Bash(ls \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\api\\\\admin\"\" 2>/dev/null || echo \"Directory listing \")",
+      "Bash(npm install:*)",
+      "Bash(npm run test:run:*)"
     ]
   }
 }

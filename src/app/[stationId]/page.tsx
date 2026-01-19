@@ -1437,6 +1437,38 @@ ${formUrl}`
     <AppHeader currentStationId={stationId} />
     <div style={styles.container}>
       <style>{`
+        /* Desktop styles for Add Wheel Modal */
+        .add-wheel-modal {
+          max-width: 520px !important;
+        }
+        .add-wheel-form-row {
+          display: grid !important;
+          gap: 16px !important;
+        }
+        .add-wheel-form-row:has(.form-group-item:nth-child(3)) {
+          grid-template-columns: 1fr 1fr 1fr !important;
+        }
+        .add-wheel-form-row:not(:has(.form-group-item:nth-child(3))) {
+          grid-template-columns: 1fr 1fr !important;
+        }
+        .form-group-item {
+          min-width: 0 !important;
+        }
+        .form-group-item input,
+        .form-group-item select {
+          width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        .add-wheel-modal-buttons {
+          display: flex !important;
+          gap: 12px !important;
+          margin-top: 20px !important;
+        }
+        .add-wheel-modal-buttons button {
+          flex: 1 !important;
+          padding: 12px 20px !important;
+        }
+
         /* Tablet breakpoint (768px) */
         @media (max-width: 768px) {
           .station-header-title {
