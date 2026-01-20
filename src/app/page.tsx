@@ -176,7 +176,13 @@ export default function WheelStationsPage() {
       return
     }
 
-    // User is logged in - load stations
+    // If only operator session exists (no station session), redirect to operator page
+    if (hasOperatorSession && !hasStationSession && !hasOldSession) {
+      window.location.href = '/operator'
+      return
+    }
+
+    // User is logged in as station manager - load stations
     fetchStations()
     fetchDistrictsData()
     // Check if manager is logged in from localStorage

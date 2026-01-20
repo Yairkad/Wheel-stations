@@ -3279,8 +3279,8 @@ ${formUrl}`
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
           <div role="dialog" aria-modal="true" aria-label={`עריכת גלגל ${selectedWheel.wheel_number}`} style={styles.modal} onClick={e => e.stopPropagation()}>
             <h3 style={styles.modalTitle}>✏️ עריכת גלגל #{selectedWheel.wheel_number}</h3>
-            <div style={styles.formRow}>
-              <div style={styles.formGroup}>
+            <div className="add-wheel-form-row" style={styles.formRow}>
+              <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>מספר גלגל *</label>
                 <input
                   type="text"
@@ -3290,7 +3290,7 @@ ${formUrl}`
                   style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
                 />
               </div>
-              <div style={styles.formGroup}>
+              <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>גודל ג'אנט *</label>
                 <input
                   type="text"
@@ -3301,8 +3301,8 @@ ${formUrl}`
                 />
               </div>
             </div>
-            <div style={styles.formRow}>
-              <div style={styles.formGroup}>
+            <div className="add-wheel-form-row" style={styles.formRow}>
+              <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>כמות ברגים</label>
                 <select
                   value={wheelForm.bolt_count}
@@ -3314,7 +3314,7 @@ ${formUrl}`
                   <option value="6">6</option>
                 </select>
               </div>
-              <div style={styles.formGroup}>
+              <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>מרווח ברגים *</label>
                 <input
                   type="text"
@@ -3324,7 +3324,7 @@ ${formUrl}`
                   style={{...styles.input, ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})}}
                 />
               </div>
-              <div style={styles.formGroup}>
+              <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>CB (קוטר מרכז)</label>
                 <input
                   type="text"

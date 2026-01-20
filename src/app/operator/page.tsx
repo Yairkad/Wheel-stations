@@ -199,8 +199,16 @@ export default function OperatorPage() {
     if (saved) {
       try {
         const data = JSON.parse(saved)
+
+        // Check session version - if outdated, clear and redirect
+        if (data.version !== undefined && data.version !== SESSION_VERSION) {
+          localStorage.removeItem('operator_session')
+          window.location.href = '/login'
+          return
+        }
+
         // Check both old format (expiry) and new format from login page (timestamp)
-        const hasValidOldFormat = data.expiry && new Date().getTime() < data.expiry
+        const hasValidOldFormat = data.expiry && new Date().getTime() < data.expiry && data.operator
         const hasValidNewFormat = data.timestamp && data.user && (Date.now() - data.timestamp < SESSION_EXPIRY_MS)
 
         if (hasValidOldFormat) {
@@ -217,7 +225,7 @@ export default function OperatorPage() {
           })
           setIsManager(data.role === 'manager')
         } else {
-          // Session expired
+          // Session expired or invalid format
           localStorage.removeItem('operator_session')
           window.location.href = '/login'
           return
