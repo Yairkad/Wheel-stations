@@ -1457,7 +1457,7 @@ ${formUrl}`
           gap: 16px !important;
         }
         .add-wheel-form-row:has(.form-group-item:nth-child(3)) {
-          grid-template-columns: 1fr 1fr 1fr !important;
+          grid-template-columns: 80px 1fr 1fr !important;
         }
         .add-wheel-form-row:not(:has(.form-group-item:nth-child(3))) {
           grid-template-columns: 1fr 1fr !important;
