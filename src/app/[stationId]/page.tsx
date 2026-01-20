@@ -1606,7 +1606,8 @@ ${formUrl}`
         /* Add Wheel Modal responsive styles */
         @media (max-width: 480px) {
           .add-wheel-form-row {
-            flex-direction: column !important;
+            display: grid !important;
+            grid-template-columns: 1fr !important;
             gap: 0 !important;
           }
           .add-wheel-form-row .form-group-item {
