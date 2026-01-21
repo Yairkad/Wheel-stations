@@ -2709,12 +2709,16 @@ ${formUrl}`
               padding: '12px',
               marginBottom: '16px',
             }}>
-              <div style={{color: '#60a5fa', fontWeight: 'bold', marginBottom: '4px'}}>
-                גלגל #{manualBorrowWheel.wheel_number}
-              </div>
-              <div style={{color: '#a0aec0', fontSize: '0.85rem'}}>
-                {manualBorrowWheel.rim_size}" | {manualBorrowWheel.bolt_count}×{manualBorrowWheel.bolt_spacing}
-                {manualBorrowWheel.is_donut && ' | דונאט'}
+              <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
+                <span style={{background: '#3b82f6', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
+                  גלגל {manualBorrowWheel.wheel_number}
+                </span>
+                <span style={{color: '#a0aec0', fontSize: '0.85rem'}}>
+                  {manualBorrowWheel.rim_size}" | {manualBorrowWheel.bolt_count}×{manualBorrowWheel.bolt_spacing}
+                </span>
+                {manualBorrowWheel.is_donut && (
+                  <span style={{background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem'}}>דונאט</span>
+                )}
               </div>
             </div>
 
@@ -2881,12 +2885,16 @@ ${formUrl}`
               padding: '12px',
               marginBottom: '16px',
             }}>
-              <div style={{color: '#60a5fa', fontWeight: 'bold', marginBottom: '4px'}}>
-                גלגל #{whatsAppWheel.wheel_number}
-              </div>
-              <div style={{color: '#a0aec0', fontSize: '0.85rem'}}>
-                {whatsAppWheel.rim_size}" | {whatsAppWheel.bolt_count}×{whatsAppWheel.bolt_spacing}
-                {whatsAppWheel.is_donut && ' | דונאט'}
+              <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
+                <span style={{background: '#3b82f6', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
+                  גלגל {whatsAppWheel.wheel_number}
+                </span>
+                <span style={{color: '#a0aec0', fontSize: '0.85rem'}}>
+                  {whatsAppWheel.rim_size}" | {whatsAppWheel.bolt_count}×{whatsAppWheel.bolt_spacing}
+                </span>
+                {whatsAppWheel.is_donut && (
+                  <span style={{background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem'}}>דונאט</span>
+                )}
               </div>
             </div>
 
@@ -2973,12 +2981,16 @@ ${formUrl}`
               padding: '12px',
               marginBottom: '16px',
             }}>
-              <div style={{color: '#f59e0b', fontWeight: 'bold', marginBottom: '4px'}}>
-                גלגל #{selectedWheelForUnavailable.wheel_number}
-              </div>
-              <div style={{color: '#a0aec0', fontSize: '0.85rem'}}>
-                {selectedWheelForUnavailable.rim_size}" | {selectedWheelForUnavailable.bolt_count}×{selectedWheelForUnavailable.bolt_spacing}
-                {selectedWheelForUnavailable.is_donut && ' | דונאט'}
+              <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
+                <span style={{background: '#f59e0b', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
+                  גלגל {selectedWheelForUnavailable.wheel_number}
+                </span>
+                <span style={{color: '#a0aec0', fontSize: '0.85rem'}}>
+                  {selectedWheelForUnavailable.rim_size}" | {selectedWheelForUnavailable.bolt_count}×{selectedWheelForUnavailable.bolt_spacing}
+                </span>
+                {selectedWheelForUnavailable.is_donut && (
+                  <span style={{background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem'}}>דונאט</span>
+                )}
               </div>
             </div>
 

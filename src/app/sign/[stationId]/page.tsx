@@ -83,6 +83,10 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const [isDrawing, setIsDrawing] = useState(false)
   const [hasSigned, setHasSigned] = useState(false)
 
+  // Custom wheel dropdown
+  const [isWheelDropdownOpen, setIsWheelDropdownOpen] = useState(false)
+  const wheelDropdownRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     // Set today's date as default
     const today = new Date().toISOString().split('T')[0]
@@ -124,6 +128,17 @@ function SignFormContent({ stationId }: { stationId: string }) {
     window.addEventListener('resize', resizeCanvas)
     return () => window.removeEventListener('resize', resizeCanvas)
   }, [loading])
+
+  // Close wheel dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wheelDropdownRef.current && !wheelDropdownRef.current.contains(event.target as Node)) {
+        setIsWheelDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Track terms scroll to enable checkbox
   const handleTermsScroll = () => {
@@ -505,38 +520,121 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
         <div style={styles.formGroup}>
           <label style={styles.label}>בחר גלגל <span style={styles.required}>*</span></label>
-          <select
-            value={selectedWheelId}
-            onChange={e => { setSelectedWheelId(e.target.value); setFieldErrors(f => f.filter(x => x !== 'wheelId')) }}
-            style={{
-              ...getInputStyle('wheelId'),
-              ...((isPrefilledMode || referredBy) && selectedWheelId ? { background: '#e2e8f0', cursor: 'not-allowed' } : {})
-            }}
-            disabled={(isPrefilledMode || !!referredBy) && !!selectedWheelId}
-          >
-            <option value="">-- בחר גלגל --</option>
-            {wheels.map(wheel => (
-              <option key={wheel.id} value={wheel.id}>
-                גלגל #{wheel.wheel_number} ┃ {wheel.bolt_count}×{wheel.bolt_spacing} ┃ "{wheel.rim_size}{wheel.is_donut ? ' ┃ דונאט' : ''}
-              </option>
-            ))}
-          </select>
+          {/* Custom Wheel Dropdown */}
+          <div ref={wheelDropdownRef} style={{ position: 'relative' }}>
+            <div
+              onClick={() => {
+                if (!((isPrefilledMode || !!referredBy) && !!selectedWheelId)) {
+                  setIsWheelDropdownOpen(!isWheelDropdownOpen)
+                }
+              }}
+              style={{
+                ...styles.input,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: (isPrefilledMode || !!referredBy) && !!selectedWheelId ? 'not-allowed' : 'pointer',
+                background: (isPrefilledMode || !!referredBy) && !!selectedWheelId ? '#e2e8f0' : '#fff',
+                ...(fieldErrors.includes('wheelId') ? styles.inputError : {}),
+              }}
+            >
+              {selectedWheelId ? (() => {
+                const wheel = wheels.find(w => w.id === selectedWheelId)
+                if (!wheel) return <span style={{ color: '#9ca3af' }}>-- בחר גלגל --</span>
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      background: '#3b82f6',
+                      color: 'white',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                    }}>גלגל {wheel.wheel_number}</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                      {wheel.rim_size}" | {wheel.bolt_count}×{wheel.bolt_spacing}
+                    </span>
+                    {wheel.is_donut && (
+                      <span style={{
+                        background: '#fef3c7',
+                        color: '#92400e',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.8rem',
+                      }}>דונאט</span>
+                    )}
+                  </div>
+                )
+              })() : (
+                <span style={{ color: '#9ca3af' }}>-- בחר גלגל --</span>
+              )}
+              <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>▼</span>
+            </div>
+
+            {/* Dropdown Options */}
+            {isWheelDropdownOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                left: 0,
+                background: '#fff',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                marginTop: '4px',
+                zIndex: 100,
+                maxHeight: '280px',
+                overflowY: 'auto',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}>
+                {wheels.map(wheel => (
+                  <div
+                    key={wheel.id}
+                    onClick={() => {
+                      setSelectedWheelId(wheel.id)
+                      setFieldErrors(f => f.filter(x => x !== 'wheelId'))
+                      setIsWheelDropdownOpen(false)
+                    }}
+                    style={{
+                      padding: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      borderBottom: '1px solid #f3f4f6',
+                      background: selectedWheelId === wheel.id ? '#f0f9ff' : 'transparent',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#f9fafb')}
+                    onMouseLeave={e => (e.currentTarget.style.background = selectedWheelId === wheel.id ? '#f0f9ff' : 'transparent')}
+                  >
+                    <span style={{
+                      background: '#3b82f6',
+                      color: 'white',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontWeight: 'bold',
+                      fontSize: '0.85rem',
+                    }}>גלגל {wheel.wheel_number}</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                      {wheel.rim_size}" | {wheel.bolt_count}×{wheel.bolt_spacing}
+                    </span>
+                    {wheel.is_donut && (
+                      <span style={{
+                        background: '#fef3c7',
+                        color: '#92400e',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.8rem',
+                      }}>דונאט</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           {(isPrefilledMode || referredBy) && selectedWheelId && (
             <span style={styles.helpText}>🔒 הגלגל נבחר מראש{referredBy && !isPrefilledMode ? ' על ידי המוקד' : ' על ידי מנהל התחנה'}</span>
           )}
-          {/* Show selected wheel details as badges */}
-          {selectedWheelId && (() => {
-            const wheel = wheels.find(w => w.id === selectedWheelId)
-            if (!wheel) return null
-            return (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                <span style={styles.badge}>{wheel.bolt_count}×{wheel.bolt_spacing}</span>
-                <span style={styles.badge}>"{wheel.rim_size}</span>
-                {wheel.is_donut && <span style={{...styles.badge, background: '#fef3c7', color: '#92400e'}}>דונאט</span>}
-                {wheel.notes && <span style={{...styles.badge, background: '#f3f4f6', color: '#374151'}}>{wheel.notes}</span>}
-              </div>
-            )
-          })()}
           {wheels.length === 0 && (
             <p style={{ ...styles.helpText, color: '#ef4444' }}>אין גלגלים זמינים כרגע בתחנה זו</p>
           )}
