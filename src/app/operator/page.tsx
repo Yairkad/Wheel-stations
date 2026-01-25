@@ -48,6 +48,24 @@ interface VehicleInfo {
   source_url?: string | null
 }
 
+interface VehicleModelRecord {
+  id: string
+  make: string
+  make_he?: string | null
+  model: string
+  variants?: string | null
+  year_from?: number | null
+  year_to?: number | null
+  bolt_count: number
+  bolt_spacing: number
+  center_bore?: number | null
+  rim_size?: string | null
+  rim_sizes_allowed?: number[] | null
+  tire_size_front?: string | null
+  source_url?: string | null
+  source?: string | null
+}
+
 // Extract rim size from tire string (e.g., "205/55R16" -> 16)
 const extractRimSize = (tire: string | null | undefined): number | null => {
   if (!tire) return null
@@ -163,6 +181,10 @@ export default function OperatorPage() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null)
   const [searchError, setSearchError] = useState('')
+
+  // Multiple matching models state
+  const [matchingModels, setMatchingModels] = useState<VehicleModelRecord[]>([])
+  const [showModelSelection, setShowModelSelection] = useState(false)
 
   // Autocomplete state
   const [makeSuggestions, setMakeSuggestions] = useState<string[]>([])
@@ -555,11 +577,31 @@ export default function OperatorPage() {
           return
         }
 
-        const vehicleModel = modelsData.models[0]
+        // Check for multiple models with different specs
+        const models = modelsData.models as VehicleModelRecord[]
+
+        // Group by unique PCD (bolt_count x bolt_spacing) + center_bore
+        const uniqueSpecs = new Map<string, VehicleModelRecord>()
+        models.forEach(m => {
+          const specKey = `${m.bolt_count}x${m.bolt_spacing}-${m.center_bore || 'null'}`
+          if (!uniqueSpecs.has(specKey)) {
+            uniqueSpecs.set(specKey, m)
+          }
+        })
+
+        // If more than one unique spec, show selection modal
+        if (uniqueSpecs.size > 1) {
+          setMatchingModels(Array.from(uniqueSpecs.values()))
+          setShowModelSelection(true)
+          setSearchLoading(false)
+          return
+        }
+
+        const vehicleModel = models[0]
         pcdInfo = {
           manufacturer: vehicleModel.make_he || vehicleModel.make,
           model: vehicleModel.model,
-          year: parseInt(year) || vehicleModel.year_from,
+          year: parseInt(year) || vehicleModel.year_from || 0,
           bolt_count: vehicleModel.bolt_count,
           bolt_spacing: vehicleModel.bolt_spacing,
           rim_size: vehicleModel.rim_size || '',
@@ -635,6 +677,126 @@ export default function OperatorPage() {
       setSearchError('שגיאה בחיפוש')
     } finally {
       setSearchLoading(false)
+    }
+  }
+
+  // Handle model selection when multiple models match
+  const handleModelSelect = async (selectedModel: VehicleModelRecord) => {
+    setShowModelSelection(false)
+    setMatchingModels([])
+    setSearchLoading(true)
+
+    try {
+      const pcdInfo: VehicleInfo = {
+        manufacturer: selectedModel.make_he || selectedModel.make,
+        model: selectedModel.model,
+        year: parseInt(year) || selectedModel.year_from || 0,
+        bolt_count: selectedModel.bolt_count,
+        bolt_spacing: selectedModel.bolt_spacing,
+        rim_size: selectedModel.rim_size || '',
+        front_tire: selectedModel.tire_size_front || null,
+        center_bore: selectedModel.center_bore || null,
+        rim_sizes_allowed: selectedModel.rim_sizes_allowed || null,
+        source_url: selectedModel.source_url || null
+      }
+
+      setVehicleInfo(pcdInfo)
+
+      // Search for wheels
+      const wheelParams = new URLSearchParams({
+        bolt_count: pcdInfo.bolt_count.toString(),
+        bolt_spacing: pcdInfo.bolt_spacing.toString(),
+        available_only: 'true'
+      })
+
+      const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
+      const wheelsData = await wheelsRes.json()
+
+      if (!wheelsRes.ok) {
+        setSearchError('שגיאה בחיפוש גלגלים')
+        return
+      }
+
+      // Get station managers
+      const stationIds = wheelsData.results?.map((r: { station: { id: string } }) => r.station.id) || []
+      let managersMap: Record<string, StationManager[]> = {}
+
+      if (stationIds.length > 0) {
+        const managersRes = await fetch(`/api/wheel-stations/managers?station_ids=${stationIds.join(',')}`)
+        if (managersRes.ok) {
+          const managersData = await managersRes.json()
+          managersMap = managersData.managers || {}
+        }
+      }
+
+      // Transform results
+      const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
+        station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
+        wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; is_available: boolean; is_donut?: boolean }[]
+        availableCount: number
+        totalCount: number
+      }) => ({
+        station: {
+          ...result.station,
+          managers: managersMap[result.station.id] || []
+        },
+        wheels: result.wheels.map(w => ({
+          ...w,
+          pcd: `${w.bolt_count}×${w.bolt_spacing}`,
+          is_donut: w.is_donut
+        })),
+        availableCount: result.availableCount,
+        totalCount: result.totalCount
+      }))
+
+      setResults(transformedResults)
+
+      if (transformedResults.length === 0) {
+        toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
+      } else {
+        const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
+        toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      setSearchError('שגיאה בחיפוש')
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  // Delete incorrect vehicle model (managers only)
+  const handleDeleteModel = async (modelId: string) => {
+    if (!isManager) {
+      toast.error('רק מנהלים יכולים למחוק רשומות')
+      return
+    }
+
+    if (!confirm('האם למחוק רשומה זו? פעולה זו אינה ניתנת לביטול.')) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/vehicle-models/${modelId}`, {
+        method: 'DELETE'
+      })
+
+      if (res.ok) {
+        toast.success('הרשומה נמחקה')
+        // Remove from list
+        setMatchingModels(prev => prev.filter(m => m.id !== modelId))
+        // If only one left, auto-select it
+        if (matchingModels.length === 2) {
+          const remaining = matchingModels.find(m => m.id !== modelId)
+          if (remaining) {
+            handleModelSelect(remaining)
+          }
+        }
+      } else {
+        toast.error('שגיאה במחיקה')
+      }
+    } catch {
+      toast.error('שגיאה במחיקה')
     }
   }
 
@@ -1158,6 +1320,86 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           </div>
         )}
       </div>
+
+      {/* Model Selection Modal - When multiple specs found */}
+      {showModelSelection && matchingModels.length > 0 && (
+        <div style={styles.modalOverlay} onClick={() => setShowModelSelection(false)}>
+          <div style={{...styles.modal, maxWidth: '500px'}} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>נמצאו מספר מפרטים לרכב זה</h3>
+              <button style={styles.closeBtn} onClick={() => setShowModelSelection(false)}>×</button>
+            </div>
+
+            <div style={{padding: '15px'}}>
+              <p style={{color: '#64748b', marginBottom: '15px', fontSize: '14px'}}>
+                נמצאו {matchingModels.length} רשומות שונות. בחר את המפרט הנכון:
+              </p>
+
+              {matchingModels.map((m, idx) => (
+                <div
+                  key={m.id}
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginBottom: '10px',
+                    background: '#f8fafc'
+                  }}
+                >
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                    <span style={{fontWeight: 600, color: '#1e293b'}}>
+                      אפשרות {idx + 1}
+                    </span>
+                    <div style={{display: 'flex', gap: '8px'}}>
+                      <button
+                        onClick={() => handleModelSelect(m)}
+                        style={{
+                          background: '#2563eb',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        בחר
+                      </button>
+                      {isManager && (
+                        <button
+                          onClick={() => handleDeleteModel(m.id)}
+                          style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '13px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          🗑️ מחק
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{fontSize: '14px', color: '#475569'}}>
+                    <div><strong>PCD:</strong> {m.bolt_count}×{m.bolt_spacing}</div>
+                    {m.center_bore && <div><strong>CB:</strong> {m.center_bore}</div>}
+                    {m.rim_size && <div><strong>גודל ג&apos;אנט:</strong> {m.rim_size}&quot;</div>}
+                    {m.year_from && <div><strong>שנים:</strong> {m.year_from}{m.year_to ? `-${m.year_to}` : '+'}</div>}
+                    {m.source && <div style={{fontSize: '12px', color: '#94a3b8', marginTop: '4px'}}>מקור: {m.source}</div>}
+                  </div>
+                </div>
+              ))}
+
+              <p style={{color: '#94a3b8', fontSize: '12px', marginTop: '10px'}}>
+                💡 {isManager ? 'כמנהל, תוכל למחוק רשומות שגויות' : 'רק מנהלים יכולים למחוק רשומות שגויות'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {selectedWheel && (
