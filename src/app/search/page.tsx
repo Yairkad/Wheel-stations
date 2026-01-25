@@ -55,6 +55,24 @@ interface FilterOptions {
   center_bores: number[]
 }
 
+interface VehicleModelRecord {
+  id: string
+  make: string
+  make_he?: string | null
+  model: string
+  variants?: string | null
+  year_from?: number | null
+  year_to?: number | null
+  bolt_count: number
+  bolt_spacing: number
+  center_bore?: number | null
+  rim_size?: string | null
+  rim_sizes_allowed?: number[] | null
+  tire_size_front?: string | null
+  source_url?: string | null
+  source?: string | null
+}
+
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const fromStationId = searchParams.get('from')
@@ -124,6 +142,10 @@ function SearchPageContent() {
   const [showModelMakeSuggestions, setShowModelMakeSuggestions] = useState(false)
   const [showModelModelSuggestions, setShowModelModelSuggestions] = useState(false)
   const [modelSearchErrors, setModelSearchErrors] = useState<{make: boolean, model: boolean, year: boolean}>({make: false, model: false, year: false})
+
+  // Multiple matching models state
+  const [matchingModels, setMatchingModels] = useState<VehicleModelRecord[]>([])
+  const [showModelSelectionModal, setShowModelSelectionModal] = useState(false)
 
   // Add vehicle model modal state
   const [showAddModelModal, setShowAddModelModal] = useState(false)
@@ -409,15 +431,34 @@ function SearchPageContent() {
       let wheelFitment = null
 
       if (localData.models && localData.models.length > 0) {
-        // Found in local DB
-        const model = localData.models[0]
+        const models = localData.models as VehicleModelRecord[]
+
+        // Group by unique PCD (bolt_count x bolt_spacing) + center_bore
+        const uniqueSpecs = new Map<string, VehicleModelRecord>()
+        models.forEach(m => {
+          const specKey = `${m.bolt_count}x${m.bolt_spacing}-${m.center_bore || 'null'}`
+          if (!uniqueSpecs.has(specKey)) {
+            uniqueSpecs.set(specKey, m)
+          }
+        })
+
+        // If more than one unique spec, show selection modal
+        if (uniqueSpecs.size > 1) {
+          setMatchingModels(Array.from(uniqueSpecs.values()))
+          setShowModelSelectionModal(true)
+          setModelSearchLoading(false)
+          return
+        }
+
+        // Found in local DB - single result
+        const model = models[0]
         wheelFitment = {
           pcd: `${model.bolt_count}×${model.bolt_spacing}`,
           bolt_count: model.bolt_count,
           bolt_spacing: model.bolt_spacing,
-          center_bore: model.center_bore,
-          rim_sizes_allowed: model.rim_sizes_allowed,
-          source_url: model.source_url
+          center_bore: model.center_bore || undefined,
+          rim_sizes_allowed: model.rim_sizes_allowed || undefined,
+          source_url: model.source_url || undefined
         }
         setVehicleResult({
           vehicle: {
@@ -451,6 +492,77 @@ function SearchPageContent() {
       setVehicleError('שגיאה בחיפוש')
     } finally {
       setModelSearchLoading(false)
+    }
+  }
+
+  // Handle model selection when multiple models match
+  const handleVehicleModelSelect = async (selectedModel: VehicleModelRecord) => {
+    setShowModelSelectionModal(false)
+    setMatchingModels([])
+    setModelSearchLoading(true)
+
+    try {
+      const wheelFitment = {
+        pcd: `${selectedModel.bolt_count}×${selectedModel.bolt_spacing}`,
+        bolt_count: selectedModel.bolt_count,
+        bolt_spacing: selectedModel.bolt_spacing,
+        center_bore: selectedModel.center_bore || undefined,
+        rim_sizes_allowed: selectedModel.rim_sizes_allowed || undefined,
+        source_url: selectedModel.source_url || undefined
+      }
+
+      setVehicleResult({
+        vehicle: {
+          manufacturer: selectedModel.make,
+          model: selectedModel.model,
+          year: parseInt(modelSearchYear) || selectedModel.year_from || 0,
+          color: '',
+          front_tire: selectedModel.tire_size_front || ''
+        },
+        wheel_fitment: wheelFitment,
+        source: 'local_db'
+      })
+
+      // Search for matching wheels
+      const params = new URLSearchParams()
+      params.set('bolt_count', wheelFitment.bolt_count.toString())
+      params.set('bolt_spacing', wheelFitment.bolt_spacing.toString())
+      params.set('available_only', 'true')
+
+      const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json()
+        setVehicleSearchResults(searchData.results)
+      }
+    } catch {
+      setVehicleError('שגיאה בחיפוש')
+    } finally {
+      setModelSearchLoading(false)
+    }
+  }
+
+  // Report error for incorrect vehicle model
+  const handleReportVehicleModelError = async (model: VehicleModelRecord) => {
+    try {
+      const res = await fetch('/api/error-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicle_model_id: model.id,
+          make: model.make,
+          model: model.model,
+          year_from: model.year_from,
+          notes: `דיווח על מידע שגוי/כפול. PCD: ${model.bolt_count}×${model.bolt_spacing}, CB: ${model.center_bore || 'לא צוין'}`
+        })
+      })
+
+      if (res.ok) {
+        toast.success('הדיווח נשלח בהצלחה')
+      } else {
+        toast.error('שגיאה בשליחת הדיווח')
+      }
+    } catch {
+      toast.error('שגיאה בשליחת הדיווח')
     }
   }
 
@@ -1257,6 +1369,84 @@ function SearchPageContent() {
                 )}
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Model Selection Modal - When multiple specs found */}
+      {showModelSelectionModal && matchingModels.length > 0 && (
+        <div style={styles.modalOverlay} onClick={() => setShowModelSelectionModal(false)}>
+          <div style={{...styles.modal, maxWidth: '500px', background: '#1e293b'}} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>נמצאו מספר מפרטים לרכב זה</h3>
+              <button style={styles.closeBtn} onClick={() => setShowModelSelectionModal(false)}>✕</button>
+            </div>
+
+            <div style={{padding: '15px'}}>
+              <p style={{color: '#94a3b8', marginBottom: '15px', fontSize: '14px'}}>
+                נמצאו {matchingModels.length} רשומות שונות. בחר את המפרט הנכון:
+              </p>
+
+              {matchingModels.map((m, idx) => (
+                <div
+                  key={m.id}
+                  style={{
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginBottom: '10px',
+                    background: '#0f172a'
+                  }}
+                >
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                    <span style={{fontWeight: 600, color: '#e2e8f0'}}>
+                      אפשרות {idx + 1}
+                    </span>
+                    <div style={{display: 'flex', gap: '8px'}}>
+                      <button
+                        onClick={() => handleVehicleModelSelect(m)}
+                        style={{
+                          background: '#2563eb',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        בחר
+                      </button>
+                      <button
+                        onClick={() => handleReportVehicleModelError(m)}
+                        style={{
+                          background: '#f59e0b',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ⚠️ דווח שגיאה
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{fontSize: '14px', color: '#94a3b8'}}>
+                    <div><strong>PCD:</strong> {m.bolt_count}×{m.bolt_spacing}</div>
+                    {m.center_bore && <div><strong>CB:</strong> {m.center_bore}</div>}
+                    {m.rim_size && <div><strong>גודל ג&apos;אנט:</strong> {m.rim_size}&quot;</div>}
+                    {m.year_from && <div><strong>שנים:</strong> {m.year_from}{m.year_to ? `-${m.year_to}` : '+'}</div>}
+                    {m.source && <div style={{fontSize: '12px', color: '#64748b', marginTop: '4px'}}>מקור: {m.source}</div>}
+                  </div>
+                </div>
+              ))}
+
+              <p style={{color: '#64748b', fontSize: '12px', marginTop: '10px'}}>
+                💡 בחר את המפרט הנכון. אם יש מידע שגוי - לחץ &quot;דווח שגיאה&quot; והאדמין יטפל
+              </p>
+            </div>
           </div>
         </div>
       )}
