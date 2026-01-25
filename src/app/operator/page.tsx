@@ -765,38 +765,28 @@ export default function OperatorPage() {
     }
   }
 
-  // Delete incorrect vehicle model (managers only)
-  const handleDeleteModel = async (modelId: string) => {
-    if (!isManager) {
-      toast.error('רק מנהלים יכולים למחוק רשומות')
-      return
-    }
-
-    if (!confirm('האם למחוק רשומה זו? פעולה זו אינה ניתנת לביטול.')) {
-      return
-    }
-
+  // Report error for incorrect vehicle model
+  const handleReportError = async (model: VehicleModelRecord) => {
     try {
-      const res = await fetch(`/api/vehicle-models/${modelId}`, {
-        method: 'DELETE'
+      const res = await fetch('/api/error-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicle_model_id: model.id,
+          make: model.make,
+          model: model.model,
+          year_from: model.year_from,
+          notes: `דיווח על מידע שגוי/כפול. PCD: ${model.bolt_count}×${model.bolt_spacing}, CB: ${model.center_bore || 'לא צוין'}`
+        })
       })
 
       if (res.ok) {
-        toast.success('הרשומה נמחקה')
-        // Remove from list
-        setMatchingModels(prev => prev.filter(m => m.id !== modelId))
-        // If only one left, auto-select it
-        if (matchingModels.length === 2) {
-          const remaining = matchingModels.find(m => m.id !== modelId)
-          if (remaining) {
-            handleModelSelect(remaining)
-          }
-        }
+        toast.success('הדיווח נשלח בהצלחה')
       } else {
-        toast.error('שגיאה במחיקה')
+        toast.error('שגיאה בשליחת הדיווח')
       }
     } catch {
-      toast.error('שגיאה במחיקה')
+      toast.error('שגיאה בשליחת הדיווח')
     }
   }
 
@@ -1365,22 +1355,20 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                       >
                         בחר
                       </button>
-                      {isManager && (
-                        <button
-                          onClick={() => handleDeleteModel(m.id)}
-                          style={{
-                            background: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontSize: '13px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          🗑️ מחק
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleReportError(m)}
+                        style={{
+                          background: '#f59e0b',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ⚠️ דווח שגיאה
+                      </button>
                     </div>
                   </div>
                   <div style={{fontSize: '14px', color: '#475569'}}>
@@ -1394,7 +1382,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
               ))}
 
               <p style={{color: '#94a3b8', fontSize: '12px', marginTop: '10px'}}>
-                💡 {isManager ? 'כמנהל, תוכל למחוק רשומות שגויות' : 'רק מנהלים יכולים למחוק רשומות שגויות'}
+                💡 בחר את המפרט הנכון. אם יש מידע שגוי - לחץ &quot;דווח שגיאה&quot; והאדמין יטפל
               </p>
             </div>
           </div>
