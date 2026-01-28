@@ -209,7 +209,11 @@ function SearchPageContent() {
     fetchStations()
     fetchDistrictsData()
     // Check if manager is logged in from localStorage
+    // Check multiple session types: vehicle_db_manager, call_center_session, operator_session
     const savedManager = localStorage.getItem('vehicle_db_manager')
+    const callCenterSession = localStorage.getItem('call_center_session')
+    const operatorSession = localStorage.getItem('operator_session')
+
     if (savedManager) {
       try {
         const { phone } = JSON.parse(savedManager)
@@ -217,6 +221,33 @@ function SearchPageContent() {
         setManagerPhone(phone)
       } catch {
         localStorage.removeItem('vehicle_db_manager')
+      }
+    } else if (callCenterSession) {
+      // Manager logged in via call center page
+      try {
+        const { user, role } = JSON.parse(callCenterSession)
+        if (role === 'manager' && user?.phone) {
+          setIsManagerLoggedIn(true)
+          setManagerPhone(user.phone)
+        }
+      } catch {
+        // Invalid session, ignore
+      }
+    } else if (operatorSession) {
+      // Check if operator is actually a manager
+      try {
+        const data = JSON.parse(operatorSession)
+        // Check for new format from login page (managers can also work as operators)
+        if (data.role === 'manager' && data.user?.phone) {
+          setIsManagerLoggedIn(true)
+          setManagerPhone(data.user.phone)
+        } else if (data.is_manager && data.operator?.phone) {
+          // Old format
+          setIsManagerLoggedIn(true)
+          setManagerPhone(data.operator.phone)
+        }
+      } catch {
+        // Invalid session, ignore
       }
     }
   }, [])
@@ -1101,7 +1132,6 @@ function SearchPageContent() {
             max-height: 90vh !important;
           }
           .wheels-add-model-modal {
-            padding: 18px !important;
             max-width: calc(100vw - 30px) !important;
             max-height: 90vh !important;
           }
@@ -1143,8 +1173,8 @@ function SearchPageContent() {
             max-width: calc(100vw - 20px) !important;
           }
           .wheels-add-model-modal {
-            padding: 15px !important;
             max-width: calc(100vw - 20px) !important;
+            border-radius: 16px !important;
           }
           .wheels-modal-title {
             font-size: 1rem !important;
@@ -2220,15 +2250,54 @@ function SearchPageContent() {
       {showAddModelModal && (
         <div style={styles.modalOverlay} onClick={() => setShowAddModelModal(false)}>
           <div style={styles.addModelModal} className="wheels-add-model-modal" onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle} className="wheels-modal-title">➕ הוסף דגם רכב למאגר</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowAddModelModal(false)} aria-label="סגור הוספת דגם">✕</button>
+            {/* Styled Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              padding: '20px 24px',
+              borderRadius: '20px 20px 0 0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.4rem' }}>➕</span> הוסף דגם רכב למאגר
+              </h3>
+              <button
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  width: '36px',
+                  height: '36px',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onClick={() => setShowAddModelModal(false)}
+                aria-label="סגור הוספת דגם"
+              >
+                ✕
+              </button>
             </div>
 
             <div style={styles.addModelForm}>
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>יצרן (עברית) <span style={{ color: '#ef4444' }}>*</span></label>
+              {/* Section: Vehicle Info */}
+              <div style={{
+                background: 'rgba(16, 185, 129, 0.05)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '4px'
+              }}>
+                <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase' }}>
+                  פרטי רכב
+                </div>
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>יצרן (עברית) <span style={{ color: '#ef4444' }}>*</span></label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="text"
@@ -2369,6 +2438,18 @@ function SearchPageContent() {
                   />
                 </div>
               </div>
+              </div>
+
+              {/* Section: Wheel Specs */}
+              <div style={{
+                background: 'rgba(59, 130, 246, 0.05)',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                borderRadius: '12px',
+                padding: '16px'
+              }}>
+                <div style={{ fontSize: '0.8rem', color: '#3b82f6', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase' }}>
+                  מפרט גלגלים
+                </div>
 
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
@@ -2430,6 +2511,7 @@ function SearchPageContent() {
                   placeholder="195/60R15"
                   style={styles.formInput}
                 />
+              </div>
               </div>
 
               <div style={styles.formActions}>
@@ -3261,19 +3343,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
   },
   addModelModal: {
-    background: '#1f2937',
-    borderRadius: '12px',
-    padding: '14px',
-    maxWidth: '480px',
+    background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+    borderRadius: '20px',
+    padding: '0',
+    maxWidth: '520px',
     width: '100%',
     maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
+    border: '1px solid #334155',
   },
   addModelForm: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    gap: '20px',
+    padding: '20px 24px 24px',
   },
   formRow: {
     display: 'grid',
@@ -3283,46 +3367,54 @@ const styles: { [key: string]: React.CSSProperties } = {
   formGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
+    gap: '8px',
   },
   formLabel: {
     fontSize: '0.9rem',
-    color: '#d1d5db',
-    fontWeight: '500',
+    color: '#94a3b8',
+    fontWeight: '600',
+    letterSpacing: '0.3px',
   },
   formInput: {
-    padding: '10px',
-    background: '#374151',
-    border: '1px solid #4b5563',
-    borderRadius: '8px',
-    color: '#fff',
+    padding: '12px 14px',
+    background: '#0f172a',
+    border: '2px solid #334155',
+    borderRadius: '10px',
+    color: '#f1f5f9',
     fontSize: '1rem',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
   },
   formActions: {
     display: 'flex',
     gap: '12px',
-    marginTop: '10px',
+    marginTop: '16px',
+    paddingTop: '16px',
+    borderTop: '1px solid #334155',
   },
   submitBtn: {
-    flex: 1,
-    padding: '12px',
-    background: '#10b981',
+    flex: 2,
+    padding: '14px 20px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#fff',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: '10px',
     fontSize: '1rem',
     cursor: 'pointer',
     fontWeight: 'bold',
+    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+    transition: 'transform 0.2s, box-shadow 0.2s',
   },
   cancelBtn: {
     flex: 1,
-    padding: '12px',
-    background: '#6b7280',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
+    padding: '14px 20px',
+    background: 'transparent',
+    color: '#94a3b8',
+    border: '2px solid #475569',
+    borderRadius: '10px',
     fontSize: '1rem',
     cursor: 'pointer',
+    fontWeight: '500',
+    transition: 'all 0.2s',
   },
   suggestionsList: {
     position: 'absolute',

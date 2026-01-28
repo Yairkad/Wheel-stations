@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function GET(request: NextRequest) {
   try {
@@ -92,7 +93,8 @@ export async function GET(request: NextRequest) {
 // POST - Add new vehicle model
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    // Use service role key to bypass RLS for inserting vehicle models
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
     const {
