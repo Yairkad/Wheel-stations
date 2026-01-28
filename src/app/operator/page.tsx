@@ -824,6 +824,22 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // Get just the link for driver
+  const getFormLink = () => {
+    if (!selectedWheel || !operator) return ''
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://wheel-stations.vercel.app'
+    return `${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
+  }
+
+  const [copiedLink, setCopiedLink] = useState(false)
+
+  const copyLinkForDriver = () => {
+    navigator.clipboard.writeText(getFormLink())
+    setCopiedLink(true)
+    toast.success('הלינק הועתק - שלח לכונן!')
+    setTimeout(() => setCopiedLink(false), 2000)
+  }
+
   // If no session, useEffect will redirect to /login
   if (!operator) {
     return (
@@ -1431,12 +1447,27 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
             <h4 style={styles.previewTitle}>תצוגה מקדימה:</h4>
             <div style={styles.messagePreview}>{getMessage()}</div>
 
-            <button
-              style={{...styles.copyBtn, ...(copied ? styles.copyBtnCopied : {})}}
-              onClick={copyMessage}
-            >
-              {copied ? '✓ הועתק!' : '📋 העתק הודעה'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                style={{...styles.copyBtn, ...(copied ? styles.copyBtnCopied : {})}}
+                onClick={copyMessage}
+              >
+                {copied ? '✓ הועתק!' : '📋 העתק הודעה'}
+              </button>
+
+              <button
+                style={{
+                  ...styles.copyBtn,
+                  background: copiedLink
+                    ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                    : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  fontSize: '0.9rem'
+                }}
+                onClick={copyLinkForDriver}
+              >
+                {copiedLink ? '✓ הלינק הועתק!' : '🚗 העתק לינק לכונן (ללא ווצאפ)'}
+              </button>
+            </div>
           </div>
         </div>
       )}
