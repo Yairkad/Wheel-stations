@@ -1135,6 +1135,13 @@ function SearchPageContent() {
             max-width: calc(100vw - 30px) !important;
             max-height: 90vh !important;
           }
+          .wheels-add-model-modal .wheels-form-row {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .wheels-add-model-modal .wheels-form-section {
+            padding: 14px !important;
+          }
           .wheels-modal-title {
             font-size: 1.15rem !important;
           }
@@ -1175,6 +1182,26 @@ function SearchPageContent() {
           .wheels-add-model-modal {
             max-width: calc(100vw - 20px) !important;
             border-radius: 16px !important;
+          }
+          .wheels-add-model-modal .wheels-form-row {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+          .wheels-add-model-modal .wheels-modal-header {
+            padding: 16px 18px !important;
+          }
+          .wheels-add-model-modal .wheels-form-content {
+            padding: 16px 18px 20px !important;
+            gap: 16px !important;
+          }
+          .wheels-add-model-modal .wheels-form-section {
+            padding: 12px !important;
+          }
+          .wheels-add-model-modal .wheels-form-actions {
+            flex-direction: column !important;
+          }
+          .wheels-add-model-modal .wheels-form-actions button {
+            width: 100% !important;
           }
           .wheels-modal-title {
             font-size: 1rem !important;
@@ -2251,7 +2278,7 @@ function SearchPageContent() {
         <div style={styles.modalOverlay} onClick={() => setShowAddModelModal(false)}>
           <div style={styles.addModelModal} className="wheels-add-model-modal" onClick={e => e.stopPropagation()}>
             {/* Styled Header */}
-            <div style={{
+            <div className="wheels-modal-header" style={{
               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               padding: '20px 24px',
               borderRadius: '20px 20px 0 0',
@@ -2283,9 +2310,9 @@ function SearchPageContent() {
               </button>
             </div>
 
-            <div style={styles.addModelForm}>
+            <div style={styles.addModelForm} className="wheels-form-content">
               {/* Section: Vehicle Info */}
-              <div style={{
+              <div className="wheels-form-section" style={{
                 background: 'rgba(16, 185, 129, 0.05)',
                 border: '1px solid rgba(16, 185, 129, 0.2)',
                 borderRadius: '12px',
@@ -2441,7 +2468,7 @@ function SearchPageContent() {
               </div>
 
               {/* Section: Wheel Specs */}
-              <div style={{
+              <div className="wheels-form-section" style={{
                 background: 'rgba(59, 130, 246, 0.05)',
                 border: '1px solid rgba(59, 130, 246, 0.2)',
                 borderRadius: '12px',
@@ -2514,7 +2541,7 @@ function SearchPageContent() {
               </div>
               </div>
 
-              <div style={styles.formActions}>
+              <div style={styles.formActions} className="wheels-form-actions">
                 <button
                   onClick={handleAddVehicleModel}
                   disabled={addModelLoading}
@@ -3360,9 +3387,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px 24px 24px',
   },
   formRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
   },
   formGroup: {
     display: 'flex',
