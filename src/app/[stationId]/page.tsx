@@ -941,15 +941,23 @@ ${signFormUrl}
       reader.onload = () => {
         img.onload = () => {
           const canvas = document.createElement('canvas')
-          canvas.width = img.width
-          canvas.height = img.height
+          const maxSize = 1024
+          let w = img.width
+          let h = img.height
+          if (w > maxSize || h > maxSize) {
+            const ratio = Math.min(maxSize / w, maxSize / h)
+            w = Math.round(w * ratio)
+            h = Math.round(h * ratio)
+          }
+          canvas.width = w
+          canvas.height = h
           const ctx = canvas.getContext('2d')
           if (!ctx) {
             setForgotError('שגיאה בעיבוד התמונה')
             setActionLoading(false)
             return
           }
-          ctx.drawImage(img, 0, 0)
+          ctx.drawImage(img, 0, 0, w, h)
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
           const qrCode = jsQR(imageData.data, imageData.width, imageData.height)
 
