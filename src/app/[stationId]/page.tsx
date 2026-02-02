@@ -141,6 +141,19 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
 
+  // Recovery certificate state
+  const [showRecoveryCertModal, setShowRecoveryCertModal] = useState(false)
+  const [recoveryData, setRecoveryData] = useState<{ recovery_key: string; manager_name: string; station_name: string; role: string } | null>(null)
+  const [recoveryLoading, setRecoveryLoading] = useState(false)
+
+  // Forgot password state
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
+  const [forgotPhone, setForgotPhone] = useState('')
+  const [forgotNewPassword, setForgotNewPassword] = useState('')
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('')
+  const [forgotError, setForgotError] = useState('')
+  const [forgotSuccess, setForgotSuccess] = useState(false)
+
   // Password visibility toggles
   const [showLoginPassword, setShowLoginPassword] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -478,6 +491,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           setPasswordForm({ current: '', new: '', confirm: '' })
           setShowChangePasswordModal(true)
           break
+        case 'recovery':
+          handleShowRecoveryCert()
+          break
         case 'notifications':
           // Trigger push notification toggle
           handleTogglePush()
@@ -786,6 +802,136 @@ ${signFormUrl}
       setPasswordForm({ current: '', new: '', confirm: '' })
     } catch {
       toast.error('שגיאה בשינוי סיסמא')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Show recovery certificate
+  const handleShowRecoveryCert = async () => {
+    setRecoveryLoading(true)
+    setShowRecoveryCertModal(true)
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/recovery?phone=${encodeURIComponent(currentManager?.phone || '')}&password=${encodeURIComponent(sessionPassword)}`)
+      const data = await response.json()
+      if (!response.ok) {
+        toast.error(data.error || 'שגיאה בטעינת תעודת שחזור')
+        setShowRecoveryCertModal(false)
+        return
+      }
+      setRecoveryData(data)
+    } catch {
+      toast.error('שגיאה בטעינת תעודת שחזור')
+      setShowRecoveryCertModal(false)
+    } finally {
+      setRecoveryLoading(false)
+    }
+  }
+
+  // Download recovery certificate as image
+  const handleDownloadCertificate = async () => {
+    const certElement = document.getElementById('recovery-certificate')
+    if (!certElement) return
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(certElement, { backgroundColor: '#1a1a2e', scale: 2 })
+      const link = document.createElement('a')
+      link.download = `תעודת-שחזור-${recoveryData?.manager_name || 'manager'}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+      toast.success('התעודה הורדה בהצלחה! שמור אותה במקום בטוח')
+    } catch {
+      toast.error('שגיאה בהורדת התעודה')
+    }
+  }
+
+  // Handle forgot password with QR image upload
+  const handleForgotPasswordUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setForgotError('')
+    setActionLoading(true)
+
+    try {
+      const jsQR = (await import('jsqr')).default
+      const img = new Image()
+      const reader = new FileReader()
+
+      reader.onload = () => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          if (!ctx) {
+            setForgotError('שגיאה בעיבוד התמונה')
+            setActionLoading(false)
+            return
+          }
+          ctx.drawImage(img, 0, 0)
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const qrCode = jsQR(imageData.data, imageData.width, imageData.height)
+
+          if (!qrCode) {
+            setForgotError('לא נמצא קוד QR בתמונה. נסה תמונה ברורה יותר.')
+            setActionLoading(false)
+            return
+          }
+
+          // We have the recovery key from QR
+          handleResetWithKey(qrCode.data)
+        }
+        img.src = reader.result as string
+      }
+      reader.readAsDataURL(file)
+    } catch {
+      setForgotError('שגיאה בקריאת הקובץ')
+      setActionLoading(false)
+    }
+  }
+
+  const handleResetWithKey = async (recoveryKey: string) => {
+    if (!forgotPhone) {
+      setForgotError('נא להזין מספר טלפון')
+      setActionLoading(false)
+      return
+    }
+    if (!forgotNewPassword || !forgotConfirmPassword) {
+      setForgotError('נא למלא סיסמא חדשה ואימות')
+      setActionLoading(false)
+      return
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('הסיסמאות לא תואמות')
+      setActionLoading(false)
+      return
+    }
+    if (forgotNewPassword.length < 4) {
+      setForgotError('הסיסמא חייבת להכיל לפחות 4 תווים')
+      setActionLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/recovery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: forgotPhone,
+          recovery_key: recoveryKey,
+          new_password: forgotNewPassword
+        })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        setForgotError(data.error || 'שגיאה באיפוס הסיסמא')
+        return
+      }
+      setForgotSuccess(true)
+      toast.success('הסיסמא אופסה בהצלחה!')
+    } catch {
+      setForgotError('שגיאה באיפוס הסיסמא')
     } finally {
       setActionLoading(false)
     }
@@ -3142,6 +3288,30 @@ ${formUrl}`
                 {actionLoading ? 'מתחבר...' : 'כניסה'}
               </button>
             </div>
+            <button
+              onClick={() => {
+                setShowLoginModal(false)
+                setForgotPhone(loginPhone)
+                setForgotNewPassword('')
+                setForgotConfirmPassword('')
+                setForgotError('')
+                setForgotSuccess(false)
+                setShowForgotPasswordModal(true)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#60a5fa',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                marginTop: '10px',
+                textDecoration: 'underline',
+                width: '100%',
+                textAlign: 'center'
+              }}
+            >
+              שכחתי סיסמא
+            </button>
           </div>
         </div>
       )}
@@ -3867,6 +4037,206 @@ ${formUrl}`
                 ביטול
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recovery Certificate Modal */}
+      {showRecoveryCertModal && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowRecoveryCertModal(false)}>
+          <div role="dialog" aria-modal="true" style={{...styles.modal, maxWidth: '440px'}} onClick={e => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>📄 תעודת שחזור</h3>
+            {recoveryLoading ? (
+              <p style={{textAlign: 'center', color: '#9ca3af'}}>טוען...</p>
+            ) : recoveryData ? (
+              <>
+                <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '16px', textAlign: 'center'}}>
+                  שמור את התעודה הזו במקום בטוח. היא המפתח היחיד לאיפוס הסיסמא שלך.
+                </p>
+                <div
+                  id="recovery-certificate"
+                  style={{
+                    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+                    borderRadius: '16px',
+                    padding: '28px 24px',
+                    border: '2px solid #f59e0b',
+                    textAlign: 'center',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '4px',
+                    background: 'linear-gradient(90deg, #f59e0b, #d97706, #f59e0b)'
+                  }} />
+                  <div style={{fontSize: '1.4rem', fontWeight: 'bold', color: '#f59e0b', marginBottom: '4px'}}>
+                    תעודת שחזור
+                  </div>
+                  <div style={{fontSize: '0.75rem', color: '#9ca3af', marginBottom: '16px'}}>
+                    Recovery Certificate
+                  </div>
+                  <div style={{fontSize: '1.1rem', fontWeight: 'bold', color: '#fff', marginBottom: '4px'}}>
+                    {recoveryData.manager_name}
+                  </div>
+                  <div style={{fontSize: '0.85rem', color: '#60a5fa', marginBottom: '2px'}}>
+                    {recoveryData.role}
+                  </div>
+                  <div style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '20px'}}>
+                    {recoveryData.station_name}
+                  </div>
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    display: 'inline-block',
+                    marginBottom: '16px'
+                  }}>
+                    <canvas
+                      id="recovery-qr-canvas"
+                      ref={(canvas) => {
+                        if (canvas && recoveryData.recovery_key) {
+                          import('qrcode').then(QRCode => {
+                            QRCode.toCanvas(canvas, recoveryData.recovery_key, {
+                              width: 220,
+                              margin: 1,
+                              color: { dark: '#1a1a2e', light: '#ffffff' }
+                            })
+                          })
+                        }
+                      }}
+                    />
+                  </div>
+                  <div style={{
+                    fontSize: '0.7rem',
+                    color: '#6b7280',
+                    marginTop: '8px',
+                    direction: 'rtl'
+                  }}>
+                    Wheels App - אין לשתף תעודה זו
+                  </div>
+                </div>
+                <div style={{display: 'flex', gap: '10px', marginTop: '16px'}}>
+                  <button
+                    style={{...styles.submitBtn, flex: 1, background: 'linear-gradient(135deg, #f59e0b, #d97706)'}}
+                    onClick={handleDownloadCertificate}
+                  >
+                    📥 הורד תעודה
+                  </button>
+                  <button
+                    style={{...styles.cancelBtn, flex: 1}}
+                    onClick={() => setShowRecoveryCertModal(false)}
+                  >
+                    סגור
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotPasswordModal && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowForgotPasswordModal(false)}>
+          <div role="dialog" aria-modal="true" style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>🔓 איפוס סיסמא</h3>
+            {forgotSuccess ? (
+              <>
+                <p style={{textAlign: 'center', color: '#10b981', fontSize: '1rem', marginBottom: '16px'}}>
+                  הסיסמא אופסה בהצלחה!
+                </p>
+                <p style={{textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', marginBottom: '20px'}}>
+                  יש להתחבר עם הסיסמא החדשה ולהוריד תעודת שחזור חדשה.
+                </p>
+                <button
+                  style={{...styles.submitBtn, width: '100%'}}
+                  onClick={() => {
+                    setShowForgotPasswordModal(false)
+                    setShowLoginModal(true)
+                  }}
+                >
+                  חזור להתחברות
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '16px', textAlign: 'center'}}>
+                  העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא
+                </p>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>מספר טלפון</label>
+                  <input
+                    type="text"
+                    placeholder="הזן מספר טלפון"
+                    value={forgotPhone}
+                    onChange={e => setForgotPhone(e.target.value)}
+                    style={styles.input}
+                  />
+                </div>
+                <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+                  <div style={{...styles.formGroup, flex: 1, minWidth: '120px'}}>
+                    <label style={styles.label}>סיסמא חדשה</label>
+                    <input
+                      type="password"
+                      value={forgotNewPassword}
+                      onChange={e => setForgotNewPassword(e.target.value)}
+                      style={styles.input}
+                    />
+                  </div>
+                  <div style={{...styles.formGroup, flex: 1, minWidth: '120px'}}>
+                    <label style={styles.label}>אימות סיסמא</label>
+                    <input
+                      type="password"
+                      value={forgotConfirmPassword}
+                      onChange={e => setForgotConfirmPassword(e.target.value)}
+                      style={styles.input}
+                    />
+                  </div>
+                </div>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    padding: '14px',
+                    borderRadius: '10px',
+                    border: '2px dashed #4a5568',
+                    background: '#2d3748',
+                    color: '#60a5fa',
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                    marginTop: '8px',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  📷 העלה תמונת תעודת שחזור
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{display: 'none'}}
+                    onChange={handleForgotPasswordUpload}
+                    disabled={actionLoading}
+                  />
+                </label>
+                {actionLoading && (
+                  <p style={{textAlign: 'center', color: '#f59e0b', fontSize: '0.85rem', marginTop: '10px'}}>
+                    סורק קוד QR...
+                  </p>
+                )}
+                {forgotError && <div style={{...styles.errorText, marginTop: '10px'}}>{forgotError}</div>}
+                <button
+                  style={{...styles.cancelBtn, width: '100%', marginTop: '16px'}}
+                  onClick={() => setShowForgotPasswordModal(false)}
+                >
+                  ביטול
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -123,19 +123,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Fetch existing managers to preserve passwords
+    // Fetch existing managers to preserve passwords and recovery keys
     const { data: existingManagers } = await supabase
       .from('wheel_station_managers')
-      .select('phone, password')
+      .select('phone, password, recovery_key')
       .eq('station_id', stationId)
 
-    // Build a map of phone -> password for preservation
+    // Build maps of phone -> password/recovery_key for preservation
     const passwordMap = new Map<string, string>()
+    const recoveryKeyMap = new Map<string, string>()
     if (existingManagers) {
       for (const m of existingManagers) {
-        if (m.password) {
-          passwordMap.set(m.phone.replace(/\D/g, ''), m.password)
-        }
+        const cleanPhone = m.phone.replace(/\D/g, '')
+        if (m.password) passwordMap.set(cleanPhone, m.password)
+        if (m.recovery_key) recoveryKeyMap.set(cleanPhone, m.recovery_key)
       }
     }
 
@@ -153,7 +154,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         phone: m.phone,
         role: m.role || 'מנהל תחנה',
         is_primary: m.is_primary || false,
-        password: passwordMap.get(m.phone.replace(/\D/g, '')) || null
+        password: passwordMap.get(m.phone.replace(/\D/g, '')) || null,
+        recovery_key: recoveryKeyMap.get(m.phone.replace(/\D/g, '')) || null
       }))
 
       const { error: insertError } = await supabase

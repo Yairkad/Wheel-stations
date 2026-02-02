@@ -391,6 +391,14 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
                           <span>🔑</span>
                           <span>שינוי סיסמא</span>
                         </Link>
+                        <Link
+                          href={`/${userSession.stationId}?action=recovery`}
+                          style={styles.dropdownItem}
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <span>📄</span>
+                          <span>תעודת שחזור</span>
+                        </Link>
                       </>
                     )}
                   </>
