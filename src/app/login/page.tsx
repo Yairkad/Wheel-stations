@@ -18,6 +18,61 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  // Forgot password state
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [forgotPhone, setForgotPhone] = useState('')
+  const [forgotNewPassword, setForgotNewPassword] = useState('')
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('')
+  const [forgotError, setForgotError] = useState('')
+  const [forgotSuccess, setForgotSuccess] = useState(false)
+  const [forgotLoading, setForgotLoading] = useState(false)
+
+  const handleForgotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!forgotPhone) { setForgotError('נא להזין מספר טלפון'); return }
+    if (!forgotNewPassword || !forgotConfirmPassword) { setForgotError('נא למלא סיסמא חדשה ואימות'); return }
+    if (forgotNewPassword !== forgotConfirmPassword) { setForgotError('הסיסמאות לא תואמות'); return }
+    if (forgotNewPassword.length < 4) { setForgotError('הסיסמא חייבת להכיל לפחות 4 תווים'); return }
+
+    setForgotError('')
+    setForgotLoading(true)
+
+    try {
+      const jsQR = (await import('jsqr')).default
+      const img = new window.Image()
+      const reader = new FileReader()
+      reader.onload = () => {
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          if (!ctx) { setForgotError('שגיאה בעיבוד התמונה'); setForgotLoading(false); return }
+          ctx.drawImage(img, 0, 0)
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const qrCode = jsQR(imageData.data, imageData.width, imageData.height)
+          if (!qrCode) { setForgotError('לא נמצא קוד QR בתמונה. נסה תמונה ברורה יותר.'); setForgotLoading(false); return }
+
+          try {
+            const response = await fetch('/api/wheel-stations/recovery', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ phone: forgotPhone, recovery_key: qrCode.data, new_password: forgotNewPassword })
+            })
+            const data = await response.json()
+            if (!response.ok) { setForgotError(data.error || 'שגיאה באיפוס הסיסמא'); return }
+            setForgotSuccess(true)
+            toast.success('הסיסמא אופסה בהצלחה!')
+          } catch { setForgotError('שגיאה באיפוס הסיסמא') }
+          finally { setForgotLoading(false) }
+        }
+        img.src = reader.result as string
+      }
+      reader.readAsDataURL(file)
+    } catch { setForgotError('שגיאה בקריאת הקובץ'); setForgotLoading(false) }
+  }
+
   const handleStationLogin = async () => {
     if (!phone || !password) {
       setError('יש למלא טלפון וסיסמה')
@@ -363,8 +418,79 @@ export default function LoginPage() {
           >
             {loading ? 'מתחבר...' : 'כניסה'}
           </button>
+          {mode === 'station' && (
+            <button
+              type="button"
+              onClick={() => {
+                setForgotPhone(phone)
+                setForgotNewPassword('')
+                setForgotConfirmPassword('')
+                setForgotError('')
+                setForgotSuccess(false)
+                setShowForgotPassword(true)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#60a5fa',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                marginTop: '12px',
+                textDecoration: 'underline',
+                width: '100%',
+                textAlign: 'center'
+              }}
+            >
+              שכחתי סיסמא
+            </button>
+          )}
         </form>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={() => setShowForgotPassword(false)}>
+          <div style={{background:'#1e293b',borderRadius:'16px',padding:'24px',maxWidth:'400px',width:'100%',border:'1px solid #334155'}} onClick={e => e.stopPropagation()}>
+            <h3 style={{color:'#fff',textAlign:'center',marginBottom:'8px',fontSize:'1.2rem'}}>🔓 איפוס סיסמא</h3>
+            {forgotSuccess ? (
+              <>
+                <p style={{textAlign:'center',color:'#10b981',fontSize:'1rem',marginBottom:'16px'}}>הסיסמא אופסה בהצלחה!</p>
+                <p style={{textAlign:'center',color:'#9ca3af',fontSize:'0.85rem',marginBottom:'20px'}}>יש להתחבר עם הסיסמא החדשה ולהוריד תעודת שחזור חדשה.</p>
+                <button onClick={() => setShowForgotPassword(false)} style={{width:'100%',padding:'12px',borderRadius:'10px',border:'none',background:'linear-gradient(135deg,#06b6d4,#8b5cf6)',color:'#fff',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>
+                  חזור להתחברות
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{fontSize:'0.85rem',color:'#9ca3af',marginBottom:'16px',textAlign:'center'}}>העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא</p>
+                <div style={{marginBottom:'12px'}}>
+                  <label style={{display:'block',color:'#d1d5db',fontSize:'0.85rem',marginBottom:'6px'}}>מספר טלפון</label>
+                  <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{width:'100%',padding:'10px 12px',borderRadius:'8px',border:'1px solid #4a5568',background:'#2d3748',color:'#fff',fontSize:'0.95rem',boxSizing:'border-box'}} />
+                </div>
+                <div style={{display:'flex',gap:'10px',marginBottom:'12px'}}>
+                  <div style={{flex:1}}>
+                    <label style={{display:'block',color:'#d1d5db',fontSize:'0.85rem',marginBottom:'6px'}}>סיסמא חדשה</label>
+                    <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{width:'100%',padding:'10px 12px',borderRadius:'8px',border:'1px solid #4a5568',background:'#2d3748',color:'#fff',fontSize:'0.95rem',boxSizing:'border-box'}} />
+                  </div>
+                  <div style={{flex:1}}>
+                    <label style={{display:'block',color:'#d1d5db',fontSize:'0.85rem',marginBottom:'6px'}}>אימות סיסמא</label>
+                    <input type="password" value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)} dir="ltr" style={{width:'100%',padding:'10px 12px',borderRadius:'8px',border:'1px solid #4a5568',background:'#2d3748',color:'#fff',fontSize:'0.95rem',boxSizing:'border-box'}} />
+                  </div>
+                </div>
+                <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',padding:'14px',borderRadius:'10px',border:'2px dashed #4a5568',background:'#2d3748',color:'#60a5fa',cursor:'pointer',fontSize:'0.95rem',marginTop:'8px'}}>
+                  📷 העלה תמונת תעודת שחזור
+                  <input type="file" accept="image/*" style={{display:'none'}} onChange={handleForgotUpload} disabled={forgotLoading} />
+                </label>
+                {forgotLoading && <p style={{textAlign:'center',color:'#f59e0b',fontSize:'0.85rem',marginTop:'10px'}}>סורק קוד QR...</p>}
+                {forgotError && <p style={{textAlign:'center',color:'#ef4444',fontSize:'0.85rem',marginTop:'10px'}}>{forgotError}</p>}
+                <button onClick={() => setShowForgotPassword(false)} style={{width:'100%',padding:'10px',borderRadius:'8px',border:'1px solid #4a5568',background:'transparent',color:'#9ca3af',cursor:'pointer',fontSize:'0.9rem',marginTop:'16px'}}>
+                  ביטול
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer style={styles.footer}>

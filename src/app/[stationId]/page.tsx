@@ -4095,16 +4095,18 @@ ${formUrl}`
                     display: 'inline-block',
                     marginBottom: '16px'
                   }}>
-                    <canvas
-                      id="recovery-qr-canvas"
-                      ref={(canvas) => {
-                        if (canvas && recoveryData.recovery_key) {
+                    <img
+                      id="recovery-qr-img"
+                      alt="QR Code"
+                      style={{width: 220, height: 220, display: 'block'}}
+                      ref={(img) => {
+                        if (img && recoveryData.recovery_key && !img.src.startsWith('data:')) {
                           import('qrcode').then(QRCode => {
-                            QRCode.toCanvas(canvas, recoveryData.recovery_key, {
+                            QRCode.toDataURL(recoveryData.recovery_key, {
                               width: 220,
                               margin: 1,
                               color: { dark: '#1a1a2e', light: '#ffffff' }
-                            })
+                            }).then(url => { img.src = url })
                           })
                         }
                       }}
