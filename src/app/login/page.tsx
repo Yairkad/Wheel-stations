@@ -40,37 +40,60 @@ export default function LoginPage() {
 
     try {
       const jsQR = (await import('jsqr')).default
-      const img = new window.Image()
-      const reader = new FileReader()
-      reader.onload = () => {
-        img.onload = async () => {
-          const canvas = document.createElement('canvas')
-          canvas.width = img.width
-          canvas.height = img.height
-          const ctx = canvas.getContext('2d')
-          if (!ctx) { setForgotError('שגיאה בעיבוד התמונה'); setForgotLoading(false); return }
-          ctx.drawImage(img, 0, 0)
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const qrCode = jsQR(imageData.data, imageData.width, imageData.height)
-          if (!qrCode) { setForgotError('לא נמצא קוד QR בתמונה. נסה תמונה ברורה יותר.'); setForgotLoading(false); return }
 
-          try {
-            const response = await fetch('/api/wheel-stations/recovery', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ phone: forgotPhone, recovery_key: qrCode.data, new_password: forgotNewPassword })
-            })
-            const data = await response.json()
-            if (!response.ok) { setForgotError(data.error || 'שגיאה באיפוס הסיסמא'); return }
-            setForgotSuccess(true)
-            toast.success('הסיסמא אופסה בהצלחה!')
-          } catch { setForgotError('שגיאה באיפוס הסיסמא') }
-          finally { setForgotLoading(false) }
-        }
-        img.src = reader.result as string
+      // Read file as data URL
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = () => reject(new Error('Failed to read file'))
+        reader.readAsDataURL(file)
+      })
+
+      // Load image
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new window.Image()
+        image.onload = () => resolve(image)
+        image.onerror = () => reject(new Error('Failed to load image'))
+        image.src = dataUrl
+      })
+
+      // Scan QR
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { setForgotError('שגיאה בעיבוד התמונה'); setForgotLoading(false); return }
+      ctx.drawImage(img, 0, 0)
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const qrCode = jsQR(imageData.data, imageData.width, imageData.height)
+
+      if (!qrCode) {
+        setForgotError('לא נמצא קוד QR בתמונה. נסה תמונה ברורה יותר.')
+        setForgotLoading(false)
+        return
       }
-      reader.readAsDataURL(file)
-    } catch { setForgotError('שגיאה בקריאת הקובץ'); setForgotLoading(false) }
+
+      // Reset password with recovery key
+      const response = await fetch('/api/wheel-stations/recovery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: forgotPhone, recovery_key: qrCode.data, new_password: forgotNewPassword })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        setForgotError(data.error || 'שגיאה באיפוס הסיסמא')
+        setForgotLoading(false)
+        return
+      }
+      setForgotSuccess(true)
+      toast.success('הסיסמא אופסה בהצלחה!')
+    } catch {
+      setForgotError('שגיאה באיפוס הסיסמא')
+    } finally {
+      setForgotLoading(false)
+    }
+    // Reset file input
+    e.target.value = ''
   }
 
   const handleStationLogin = async () => {
@@ -449,8 +472,8 @@ export default function LoginPage() {
 
       {/* Forgot Password Modal */}
       {showForgotPassword && (
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={() => setShowForgotPassword(false)}>
-          <div style={{background:'#1e293b',borderRadius:'16px',padding:'24px',maxWidth:'400px',width:'100%',border:'1px solid #334155'}} onClick={e => e.stopPropagation()}>
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
+          <div style={{background:'#1e293b',borderRadius:'16px',padding:'24px',maxWidth:'400px',width:'100%',border:'1px solid #334155',position:'relative'}} onClick={e => e.stopPropagation()}>
             <h3 style={{color:'#fff',textAlign:'center',marginBottom:'8px',fontSize:'1.2rem'}}>🔓 איפוס סיסמא</h3>
             {forgotSuccess ? (
               <>
@@ -481,9 +504,15 @@ export default function LoginPage() {
                   📷 העלה תמונת תעודת שחזור
                   <input type="file" accept="image/*" style={{display:'none'}} onChange={handleForgotUpload} disabled={forgotLoading} />
                 </label>
-                {forgotLoading && <p style={{textAlign:'center',color:'#f59e0b',fontSize:'0.85rem',marginTop:'10px'}}>סורק קוד QR...</p>}
+                {forgotLoading && (
+                  <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.8)',borderRadius:'16px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',zIndex:10}}>
+                    <div style={{width:'50px',height:'50px',border:'3px solid #334155',borderTopColor:'#f59e0b',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
+                    <p style={{color:'#f59e0b',fontSize:'1rem',marginTop:'16px'}}>סורק קוד QR...</p>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                  </div>
+                )}
                 {forgotError && <p style={{textAlign:'center',color:'#ef4444',fontSize:'0.85rem',marginTop:'10px'}}>{forgotError}</p>}
-                <button onClick={() => setShowForgotPassword(false)} style={{width:'100%',padding:'10px',borderRadius:'8px',border:'1px solid #4a5568',background:'transparent',color:'#9ca3af',cursor:'pointer',fontSize:'0.9rem',marginTop:'16px'}}>
+                <button onClick={() => setShowForgotPassword(false)} disabled={forgotLoading} style={{width:'100%',padding:'10px',borderRadius:'8px',border:'1px solid #4a5568',background:'transparent',color:'#9ca3af',cursor:'pointer',fontSize:'0.9rem',marginTop:'16px',opacity:forgotLoading?0.5:1}}>
                   ביטול
                 </button>
               </>
