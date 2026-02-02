@@ -828,18 +828,98 @@ ${signFormUrl}
     }
   }
 
-  // Download recovery certificate as image
+  // Download recovery certificate as image - draw directly on canvas
   const handleDownloadCertificate = async () => {
-    const certElement = document.getElementById('recovery-certificate')
-    if (!certElement) return
+    if (!recoveryData) return
     try {
-      const html2canvas = (await import('html2canvas')).default
-      const canvas = await html2canvas(certElement, { backgroundColor: '#1a1a2e', scale: 2 })
-      const link = document.createElement('a')
-      link.download = `תעודת-שחזור-${recoveryData?.manager_name || 'manager'}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
-      toast.success('התעודה הורדה בהצלחה! שמור אותה במקום בטוח')
+      const QRCode = await import('qrcode')
+      const qrDataUrl = await QRCode.toDataURL(recoveryData.recovery_key, {
+        width: 440,
+        margin: 2,
+        color: { dark: '#1a1a2e', light: '#ffffff' }
+      })
+
+      const canvas = document.createElement('canvas')
+      const scale = 2
+      const w = 400 * scale
+      const h = 520 * scale
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')!
+      ctx.scale(scale, scale)
+
+      // Background gradient
+      const grad = ctx.createLinearGradient(0, 0, 400, 520)
+      grad.addColorStop(0, '#1a1a2e')
+      grad.addColorStop(0.5, '#16213e')
+      grad.addColorStop(1, '#0f3460')
+      ctx.fillStyle = grad
+      ctx.beginPath()
+      ctx.roundRect(0, 0, 400, 520, 16)
+      ctx.fill()
+
+      // Gold border
+      ctx.strokeStyle = '#f59e0b'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.roundRect(0, 0, 400, 520, 16)
+      ctx.stroke()
+
+      // Top gold bar
+      ctx.fillStyle = '#f59e0b'
+      ctx.fillRect(0, 0, 400, 4)
+
+      // Title
+      ctx.textAlign = 'center'
+      ctx.fillStyle = '#f59e0b'
+      ctx.font = 'bold 24px Arial'
+      ctx.fillText('תעודת שחזור', 200, 42)
+
+      ctx.fillStyle = '#9ca3af'
+      ctx.font = '12px Arial'
+      ctx.fillText('Recovery Certificate', 200, 60)
+
+      // Manager info
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 18px Arial'
+      ctx.fillText(recoveryData.manager_name, 200, 90)
+
+      ctx.fillStyle = '#60a5fa'
+      ctx.font = '14px Arial'
+      ctx.fillText(recoveryData.role, 200, 110)
+
+      ctx.fillStyle = '#9ca3af'
+      ctx.font = '14px Arial'
+      ctx.fillText(recoveryData.station_name, 200, 130)
+
+      // QR code
+      const qrImg = new Image()
+      qrImg.onload = () => {
+        const qrSize = 240
+        const qrX = (400 - qrSize) / 2
+        const qrY = 150
+
+        // White background for QR
+        ctx.fillStyle = '#ffffff'
+        ctx.beginPath()
+        ctx.roundRect(qrX - 16, qrY - 16, qrSize + 32, qrSize + 32, 12)
+        ctx.fill()
+
+        ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
+
+        // Footer text
+        ctx.fillStyle = '#6b7280'
+        ctx.font = '11px Arial'
+        ctx.fillText('Wheels App - אין לשתף תעודה זו', 200, 465)
+
+        // Download
+        const link = document.createElement('a')
+        link.download = `תעודת-שחזור-${recoveryData.manager_name}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+        toast.success('התעודה הורדה בהצלחה! שמור אותה במקום בטוח')
+      }
+      qrImg.src = qrDataUrl
     } catch {
       toast.error('שגיאה בהורדת התעודה')
     }
