@@ -2010,7 +2010,8 @@ function SearchPageContent() {
                                   {result.wheels.map(wheel => {
                                     const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
                                     const wheelCB = wheel.center_bore
-                                    const cbMismatch = vehicleCB && wheelCB && vehicleCB < wheelCB
+                                    const cbTooSmall = vehicleCB && wheelCB && wheelCB < vehicleCB
+                                    const cbNeedsRing = vehicleCB && wheelCB && !cbTooSmall && (wheelCB - vehicleCB) >= 2
                                     return (
                                     <Link
                                       key={wheel.id}
@@ -2019,7 +2020,8 @@ function SearchPageContent() {
                                         ...styles.resultWheelCard,
                                         // Only show warning style if no allowed sizes and wheel is smaller than vehicle size
                                         ...(!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {}),
-                                        ...(cbMismatch ? {border: '2px solid #ef4444'} : {})
+                                        ...(cbTooSmall ? {border: '2px solid #ef4444'} : {}),
+                                        ...(cbNeedsRing ? {border: '2px solid #f59e0b'} : {})
                                       }}
                                       className="wheels-result-wheel-card"
                                       onClick={closeVehicleModal}
@@ -2032,9 +2034,14 @@ function SearchPageContent() {
                                         {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
-                                      {cbMismatch && (
+                                      {cbTooSmall && (
                                         <div style={{color: '#ef4444', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <span style={{fontSize: '14px'}}>⚠️</span> CB גלגל ({wheelCB}) גדול מהרכב ({vehicleCB})
+                                          <span style={{fontSize: '14px'}}>⚠️</span> CB גלגל ({wheelCB}) קטן מהרכב ({vehicleCB})
+                                        </div>
+                                      )}
+                                      {cbNeedsRing && (
+                                        <div style={{color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <span style={{fontSize: '14px'}}>⚠️</span> יתכן ונדרש טבעת מירכוז
                                         </div>
                                       )}
                                     </Link>

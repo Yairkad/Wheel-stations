@@ -30,7 +30,7 @@ interface Station {
 
 interface WheelResult {
   station: Station
-  wheels: { wheel_number: number; rim_size: string; pcd: string; is_available: boolean; is_donut?: boolean }[]
+  wheels: { wheel_number: number; rim_size: string; pcd: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
   availableCount: number
   totalCount: number
 }
@@ -502,7 +502,7 @@ export default function OperatorPage() {
         // Transform results
         const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
           station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; is_available: boolean; is_donut?: boolean }[]
+          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
           availableCount: number
           totalCount: number
         }) => ({
@@ -513,6 +513,7 @@ export default function OperatorPage() {
           wheels: result.wheels.map(w => ({
             ...w,
             pcd: `${w.bolt_count}×${w.bolt_spacing}`,
+            center_bore: w.center_bore,
             is_donut: w.is_donut
           })),
           availableCount: result.availableCount,
@@ -647,7 +648,7 @@ export default function OperatorPage() {
       // Transform results to our format
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
         station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-        wheels: { wheel_number: number; rim_size: string; is_available: boolean; is_donut?: boolean }[]
+        wheels: { wheel_number: number; rim_size: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
         availableCount: number
         totalCount: number
       }) => ({
@@ -658,6 +659,7 @@ export default function OperatorPage() {
         wheels: result.wheels.map(w => ({
           ...w,
           pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`,
+          center_bore: (w as any).center_bore,
           is_donut: w.is_donut
         })),
         availableCount: result.availableCount,
@@ -732,7 +734,7 @@ export default function OperatorPage() {
       // Transform results
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
         station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-        wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; is_available: boolean; is_donut?: boolean }[]
+        wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
         availableCount: number
         totalCount: number
       }) => ({
@@ -743,6 +745,7 @@ export default function OperatorPage() {
         wheels: result.wheels.map(w => ({
           ...w,
           pcd: `${w.bolt_count}×${w.bolt_spacing}`,
+          center_bore: w.center_bore,
           is_donut: w.is_donut
         })),
         availableCount: result.availableCount,
@@ -1304,7 +1307,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                         onClick={() => openModal(result.station, wheel.wheel_number, wheel.pcd)}
                       >
                         <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
-                        <div style={styles.wheelSpecs}>{wheel.pcd} | {wheel.rim_size}&quot;</div>
+                        <div style={styles.wheelSpecs}>{wheel.pcd} | {wheel.rim_size}&quot;{wheel.center_bore ? ` | CB ${wheel.center_bore}` : ''}</div>
                         {wheel.is_donut && (
                           <div style={styles.donutBadge}>🍩 דונאט</div>
                         )}
@@ -1317,6 +1320,22 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                             {sizeMatch === 'exact' ? '✓ מתאים' : '↓ קטן יותר'}
                           </div>
                         )}
+                        {(() => {
+                          const vCB = vehicleInfo?.center_bore
+                          const wCB = wheel.center_bore
+                          if (!vCB || !wCB) return null
+                          if (wCB < vCB) return (
+                            <div style={{fontSize: '0.7rem', marginTop: '4px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '2px'}}>
+                              ⚠️ CB גלגל ({wCB}) קטן מהרכב ({vCB})
+                            </div>
+                          )
+                          if ((wCB - vCB) >= 2) return (
+                            <div style={{fontSize: '0.7rem', marginTop: '4px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '2px'}}>
+                              ⚠️ יתכן ונדרש טבעת מירכוז
+                            </div>
+                          )
+                          return null
+                        })()}
                       </div>
                     )
                   })}
