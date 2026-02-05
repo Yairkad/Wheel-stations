@@ -41,6 +41,7 @@ interface SearchResult {
     rim_size: string
     bolt_count: number
     bolt_spacing: number
+    center_bore?: number | null
     is_donut: boolean
     is_available: boolean
   }[]
@@ -1409,6 +1410,7 @@ function SearchPageContent() {
                               <div style={styles.resultWheelSpecs}>
                                 <span>{wheel.rim_size}"</span>
                                 <span>{wheel.bolt_count}×{wheel.bolt_spacing}</span>
+                                {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
                                 {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                               </div>
                               <div style={{
@@ -2005,14 +2007,19 @@ function SearchPageContent() {
                                   <div style={styles.resultStationName}>{result.station.name}</div>
                                 </div>
                                 <div style={styles.resultWheelsList}>
-                                  {result.wheels.map(wheel => (
+                                  {result.wheels.map(wheel => {
+                                    const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
+                                    const wheelCB = wheel.center_bore
+                                    const cbMismatch = vehicleCB && wheelCB && vehicleCB < wheelCB
+                                    return (
                                     <Link
                                       key={wheel.id}
                                       href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
                                       style={{
                                         ...styles.resultWheelCard,
                                         // Only show warning style if no allowed sizes and wheel is smaller than vehicle size
-                                        ...(!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {})
+                                        ...(!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {}),
+                                        ...(cbMismatch ? {border: '2px solid #ef4444'} : {})
                                       }}
                                       className="wheels-result-wheel-card"
                                       onClick={closeVehicleModal}
@@ -2022,10 +2029,17 @@ function SearchPageContent() {
                                         <span>{wheel.rim_size}"</span>
                                         {/* Only show "smaller" label if no allowed sizes data */}
                                         {!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize && <span style={{fontSize: '10px', color: '#b45309'}}>קטן יותר</span>}
+                                        {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
+                                      {cbMismatch && (
+                                        <div style={{color: '#ef4444', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <span style={{fontSize: '14px'}}>⚠️</span> CB גלגל ({wheelCB}) גדול מהרכב ({vehicleCB})
+                                        </div>
+                                      )}
                                     </Link>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
                               </div>
                             ))}

@@ -1521,6 +1521,7 @@ ${formUrl}`
           'גודל ג\'אנט': wheel.rim_size,
           'כמות ברגים': wheel.bolt_count,
           'מרווח ברגים': wheel.bolt_spacing,
+          'CB': wheel.center_bore || '',
           'קטגוריה': wheel.category || '',
           'דונאט': wheel.is_donut ? 'כן' : 'לא',
           'הערות': wheel.notes || '',
@@ -2538,6 +2539,7 @@ ${formUrl}`
                 <div style={styles.cardSpecs}>
                   <span style={styles.spec}>{wheel.rim_size}"</span>
                   <span style={styles.spec}>{wheel.bolt_count}×{wheel.bolt_spacing}</span>
+                  {wheel.center_bore && <span style={styles.spec}>CB {wheel.center_bore}</span>}
                 </div>
                 {wheel.category && <div style={styles.cardCategory}>{wheel.category}</div>}
                 {wheel.notes && <div style={styles.cardNotes}>{wheel.notes}</div>}
@@ -2745,6 +2747,7 @@ ${formUrl}`
                 <th style={styles.th}>#</th>
                 <th style={styles.th}>ג'אנט</th>
                 <th style={styles.th}>ברגים</th>
+                <th style={styles.th}>CB</th>
                 <th style={styles.th}>קטגוריה</th>
                 <th style={styles.th}>סוג</th>
                 <th style={styles.th}>הערות</th>
@@ -2754,7 +2757,7 @@ ${formUrl}`
             <tbody>
               {filteredWheels.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{padding: '40px'}}>
+                  <td colSpan={8} style={{padding: '40px'}}>
                     <div style={styles.emptyState}>
                       <div style={styles.emptyIcon}>🛞</div>
                       <div style={styles.emptyTitle}>לא נמצאו גלגלים</div>
@@ -2768,6 +2771,7 @@ ${formUrl}`
                   <td style={styles.td}><strong>{wheel.wheel_number}</strong></td>
                   <td style={styles.td}>{wheel.rim_size}"</td>
                   <td style={styles.td}>{wheel.bolt_count}×{wheel.bolt_spacing}</td>
+                  <td style={styles.td}>{wheel.center_bore || '-'}</td>
                   <td style={styles.td}>{wheel.category || '-'}</td>
                   <td style={styles.td}>
                     {wheel.is_donut ? (
