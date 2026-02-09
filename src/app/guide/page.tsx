@@ -3,12 +3,12 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-type GuideType = 'user' | 'manager';
+type GuideType = 'operator' | 'manager';
 
 function GuideContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeGuide, setActiveGuide] = useState<GuideType>('user');
+  const [activeGuide, setActiveGuide] = useState<GuideType>('operator');
   const [isManagerMode, setIsManagerMode] = useState(false);
 
   // Read tab from URL on mount - manager tab only accessible via URL param
@@ -26,7 +26,7 @@ function GuideContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
-            {isManagerMode ? 'מדריך למנהלי תחנות' : 'מדריך למשתמש'}
+            {isManagerMode ? 'מדריך למנהלי תחנות' : 'מדריך למוקדנים'}
           </h1>
           <button
             onClick={() => {
@@ -47,14 +47,14 @@ function GuideContent() {
         {isManagerMode && (
           <div className="flex gap-2 mb-6">
             <button
-              onClick={() => setActiveGuide('user')}
+              onClick={() => setActiveGuide('operator')}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${
-                activeGuide === 'user'
+                activeGuide === 'operator'
                   ? 'bg-green-600 text-white shadow-lg'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
-              👤 מדריך לשואלים
+              🎧 מדריך למוקדנים
             </button>
             <button
               onClick={() => setActiveGuide('manager')}
@@ -71,7 +71,7 @@ function GuideContent() {
 
         {/* Guide Content */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          {activeGuide === 'user' ? <UserGuide /> : <ManagerGuide />}
+          {activeGuide === 'operator' ? <OperatorGuide /> : <ManagerGuide />}
         </div>
       </div>
     </div>
@@ -90,155 +90,174 @@ export default function GuidePage() {
   );
 }
 
-function UserGuide() {
+function OperatorGuide() {
   return (
     <div className="space-y-8">
       <section>
         <h2 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🎯</span>
-          ברוכים הבאים למערכת השאלת גלגלים
+          <span className="text-2xl">🎧</span>
+          ברוכים הבאים לממשק המוקדן
         </h2>
         <p className="text-gray-700 leading-relaxed">
-          מערכת השאלת הגלגלים מאפשרת לך למצוא ולשאול גלגל חילוף זמני בקלות ובמהירות.
-          השירות מופעל על ידי מתנדבים ומיועד לסייע בעת תקר או צורך בגלגל חילוף.
+          ממשק המוקדן מאפשר לכם לחפש גלגלים זמינים בתחנות ולסייע לפונים למצוא גלגל חילוף מתאים לרכב שלהם.
+          לאחר מציאת גלגל מתאים, תוכלו לשלוח לפונה את פרטי התחנה וקישור למילוי טופס השאלה.
         </p>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔍</span>
-          שלב 1: מציאת גלגל מתאים
-        </h2>
-        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-          <h3 className="font-semibold text-gray-800">אפשרות א&apos; - חיפוש לפי מספר רכב:</h3>
-          <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
-            <li>לחצו על &quot;חיפוש לפי מספר רכב&quot; בעמוד הראשי</li>
-            <li>הזינו את מספר הרכב שלכם (7-8 ספרות)</li>
-            <li>המערכת תציג את סוג הרכב ומידות הגלגל המתאימות</li>
-            <li>תוצגנה התחנות עם גלגלים זמינים התואמים לרכב שלכם</li>
-          </ol>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-4 space-y-3 mt-3">
-          <h3 className="font-semibold text-gray-800">אפשרות ב&apos; - חיפוש לפי דגם רכב:</h3>
-          <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
-            <li>לחצו על &quot;חיפוש לפי דגם רכב&quot;</li>
-            <li>בחרו יצרן, דגם ושנה</li>
-            <li>המערכת תציג את מידות הגלגל הנדרשות</li>
-          </ol>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-4 space-y-3 mt-3">
-          <h3 className="font-semibold text-gray-800">אפשרות ג&apos; - חיפוש לפי מידות:</h3>
-          <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
-            <li>לחצו על &quot;חיפוש מתקדם&quot;</li>
-            <li>סננו לפי: גודל חישוק, מספר ברגים, מרווח ברגים (PCD)</li>
-            <li>ניתן לסנן גם לפי מחוז ולפי זמינות</li>
-          </ol>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📋</span>
-          שלב 2: מילוי טופס השאלה
-        </h2>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p className="text-blue-800 font-medium">💡 טיפ: ודאו שאתם פונים לתחנה בשעות הפעילות שלה</p>
-        </div>
-        <ol className="list-decimal list-inside text-gray-700 space-y-3 mr-4">
-          <li>לחצו על כפתור &quot;השאלת גלגל&quot; בתחנה הרצויה</li>
-          <li>
-            מלאו את הפרטים האישיים:
-            <ul className="list-disc list-inside mr-6 mt-1 text-gray-600">
-              <li>שם פרטי ומשפחה</li>
-              <li>תעודת זהות (9 ספרות)</li>
-              <li>מספר טלפון</li>
-              <li>כתובת מגורים</li>
-            </ul>
-          </li>
-          <li>בחרו את הגלגל הרצוי מהרשימה</li>
-          <li>הזינו את דגם הרכב שלכם</li>
-          <li>
-            בחרו אמצעי פיקדון:
-            <ul className="list-disc list-inside mr-6 mt-1 text-gray-600">
-              <li><strong>מזומן</strong> - פיקדון במזומן בתחנה</li>
-              <li><strong>ביט / פייבוקס</strong> - העברה באפליקציה</li>
-              <li><strong>העברה בנקאית</strong> - העברה לחשבון</li>
-              <li><strong>פיקדון תעודה</strong> - הפקדת ת.ז. או רישיון (באישור מנהל)</li>
-            </ul>
-          </li>
-        </ol>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">✍️</span>
-          שלב 3: חתימה ואישור
+          <span className="text-2xl">🔐</span>
+          התחברות למערכת
         </h2>
         <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
-          <li>קראו את תנאי ההשאלה בקפידה</li>
-          <li>גללו את התנאים עד הסוף כדי להפעיל את תיבת האישור</li>
-          <li>סמנו את תיבת האישור</li>
-          <li>חתמו בשדה החתימה הדיגיטלית (באמצעות אצבע או עכבר)</li>
-          <li>לחצו על &quot;שלח בקשה&quot;</li>
+          <li>גשו לדף ההתחברות ובחרו &quot;מוקדן&quot;</li>
+          <li>הזינו את מספר הטלפון שלכם</li>
+          <li>הזינו את הסיסמה שקיבלתם ממנהל המוקד</li>
+          <li>לחצו על &quot;התחבר&quot;</li>
         </ol>
-        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mt-4">
-          <p className="text-yellow-800">
-            <strong>⚠️ שימו לב:</strong> הבקשה תישלח למנהל התחנה לאישור.
-            תקבלו הודעה כאשר הבקשה תאושר.
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+          <p className="text-blue-800">
+            <strong>💡 טיפ:</strong> ההתחברות נשמרת במכשיר למשך 12 שעות - לא תצטרכו להתחבר שוב בכל שיחה.
           </p>
         </div>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">⏰</span>
-          תנאי ההשאלה
+          <span className="text-2xl">🔍</span>
+          חיפוש גלגל - 3 דרכים
         </h2>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <ul className="text-red-800 space-y-2">
-            <li>• <strong>זמן החזרה:</strong> עד 72 שעות (3 ימים) מרגע ההשאלה</li>
-            <li>• <strong>הארכה:</strong> ניתן להאריך עד 5 ימים באישור מנהל התחנה</li>
-            <li>• <strong>מהירות:</strong> בגלגל דונאט (חירום) יש לנסוע עד 80 קמ&quot;ש בלבד</li>
-            <li>• <strong>פיקדון:</strong> יוחזר עם החזרת הגלגל במצב תקין</li>
-            <li>• <strong>אי החזרה:</strong> אי החזרה בזמן עלולה לגרום לחילוט הפיקדון</li>
-          </ul>
+        <p className="text-gray-700 mb-4">בממשק המוקדן יש 3 טאבים לחיפוש. בחרו את הדרך המתאימה לפי המידע שקיבלתם מהפונה:</p>
+
+        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+          <h3 className="font-semibold text-gray-800">🔢 טאב מספר רכב (מומלץ):</h3>
+          <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
+            <li>בקשו מהפונה את מספר הרכב (7-8 ספרות)</li>
+            <li>הזינו את המספר ולחצו חיפוש</li>
+            <li>המערכת תמשוך אוטומטית את נתוני הרכב: יצרן, דגם, שנה, PCD (מרווח ברגים) ו-CB (קדח מרכזי)</li>
+            <li>יוצגו גלגלים זמינים התואמים לרכב</li>
+          </ol>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-4 space-y-3 mt-3">
+          <h3 className="font-semibold text-gray-800">🚘 טאב יצרן ודגם:</h3>
+          <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
+            <li>הקלידו יצרן (בעברית או אנגלית) - תופיע השלמה אוטומטית</li>
+            <li>בחרו דגם מהרשימה</li>
+            <li>הזינו שנת ייצור</li>
+            <li>לחצו חיפוש</li>
+          </ol>
+          <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mt-2">
+            <p className="text-yellow-800 text-sm">
+              <strong>⚠️ שימו לב:</strong> אם יש כמה מפרטים אפשריים לאותו דגם, יופיע מודאל לבחירת המפרט הנכון (PCD, CB שונים).
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-4 space-y-3 mt-3">
+          <h3 className="font-semibold text-gray-800">🔧 טאב לפי מפרט:</h3>
+          <p className="text-gray-600 mb-2">כשהפונה יודע את מידות הגלגל שלו:</p>
+          <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
+            <li>סננו לפי: כמות ברגים, מרווח ברגים (PCD), גודל ג&apos;אנט, קדח מרכזי (CB)</li>
+            <li>יש לבחור לפחות פילטר אחד</li>
+            <li>לחצו חיפוש</li>
+          </ol>
         </div>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔄</span>
-          החזרת הגלגל
+          <span className="text-2xl">📊</span>
+          קריאת תוצאות החיפוש
         </h2>
-        <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
-          <li>החזירו את הגלגל לתחנה ממנה שאלתם</li>
-          <li>צרו קשר עם מנהל התחנה לתיאום</li>
-          <li>וודאו שהגלגל תקין ונקי</li>
-          <li>קבלו את הפיקדון חזרה</li>
+        <p className="text-gray-700 mb-4">
+          התוצאות מוצגות לפי תחנות. כל גלגל מופיע ככרטיס עם המפרט שלו (PCD, גודל, CB).
+        </p>
+
+        <h3 className="font-semibold text-gray-800 mb-2">תגיות צבעוניות:</h3>
+        <div className="space-y-2 mr-4">
+          <div className="flex items-center gap-2">
+            <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">✓ מתאים</span>
+            <span className="text-gray-600">- גודל החישוק תואם בדיוק לרכב</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block px-2 py-1 bg-orange-100 text-orange-800 rounded text-sm font-medium">↓ קטן יותר</span>
+            <span className="text-gray-600">- חישוק קטן יותר מהמקורי (ניתן לשימוש זמני)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm font-medium">🍩 דונאט</span>
+            <span className="text-gray-600">- גלגל חירום (נסיעה עד 80 קמ&quot;ש בלבד)</span>
+          </div>
+        </div>
+
+        <h3 className="font-semibold text-gray-800 mt-4 mb-2">אזהרות CB (קדח מרכזי):</h3>
+        <div className="space-y-2 mr-4">
+          <div className="flex items-start gap-2">
+            <span className="text-red-600 font-bold">⚠️ אדום</span>
+            <span className="text-gray-600">- קדח הגלגל קטן מקדח הרכב - הגלגל לא יתאים פיזית</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-orange-600 font-bold">⚠️ כתום</span>
+            <span className="text-gray-600">- הפרש של 2 מ&quot;מ ומעלה - ייתכן צורך בטבעת מרכוז</span>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="text-2xl">📤</span>
+          שליחת פרטים לפונה
+        </h2>
+        <ol className="list-decimal list-inside text-gray-700 space-y-3 mr-4">
+          <li>לחצו על הגלגל המתאים - ייפתח מודאל</li>
+          <li>בחרו את איש הקשר בתחנה (מנהל התחנה)</li>
+          <li>
+            בחרו אחת משתי האפשרויות:
+            <ul className="list-disc list-inside mr-6 mt-2 text-gray-600 space-y-2">
+              <li>
+                <strong>&quot;העתק הודעה&quot;</strong> - מעתיק הודעה מלאה הכוללת: הוראות לפונה, כתובת התחנה, שם וטלפון של מנהל התחנה, וקישור למילוי טופס ההשאלה
+              </li>
+              <li>
+                <strong>&quot;העתק לינק לכונן&quot;</strong> - מעתיק רק את הקישור לטופס ההשאלה. מיועד לפונים עם מכשיר כשר (ללא וואטסאפ) - ניתן לשלוח את הלינק ב-SMS
+              </li>
+            </ul>
+          </li>
+          <li>שלחו את ההודעה או הלינק לפונה</li>
         </ol>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+          <p className="text-blue-800">
+            <strong>💡 טיפ:</strong> הלינק כולל אוטומטית את מספר הגלגל ואת מזהה המוקדן שלכם למעקב.
+          </p>
+        </div>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <span className="text-2xl">❓</span>
-          שאלות נפוצות
+          שאלות נפוצות למוקדנים
         </h2>
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">מה עושים אם אין גלגל מתאים?</h4>
-            <p className="text-gray-600">נסו לחפש בתחנות אחרות באזור, או התקשרו למנהל התחנה - יתכן שיש גלגל שלא מופיע במערכת.</p>
+            <h4 className="font-semibold text-gray-800 mb-2">הרכב לא נמצא לפי מספר רכב - מה עושים?</h4>
+            <p className="text-gray-600">נסו חיפוש בטאב &quot;יצרן ודגם&quot; - הזינו את פרטי הרכב ידנית. אם גם זה לא עוזר, נסו חיפוש לפי מפרט אם הפונה יודע את מידות הגלגל.</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">כמה עולה השירות?</h4>
-            <p className="text-gray-600">השירות הוא בהתנדבות וללא עלות. הפיקדון מוחזר במלואו עם החזרת הגלגל.</p>
+            <h4 className="font-semibold text-gray-800 mb-2">אין גלגלים תואמים בתוצאות - מה עושים?</h4>
+            <p className="text-gray-600">נסו חיפוש לפי מפרט עם מידות קרובות (למשל חישוק קטן יותר ב-1 אינץ&apos;). ניתן גם להציע לפונה גלגל דונאט כפתרון זמני.</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">איך יודעים אם הגלגל מתאים לרכב שלי?</h4>
-            <p className="text-gray-600">השתמשו בחיפוש לפי מספר רכב - המערכת תציג רק גלגלים תואמים. אם אתם לא בטוחים, התייעצו עם מנהל התחנה.</p>
+            <h4 className="font-semibold text-gray-800 mb-2">מה זה CB (קדח מרכזי) ולמה זה חשוב?</h4>
+            <p className="text-gray-600">
+              CB (Center Bore) הוא קוטר החור המרכזי של הג&apos;אנט. הקדח של הגלגל חייב להיות שווה או גדול מקדח הרכב.
+              אם הקדח קטן מדי - הגלגל פשוט לא ייכנס. אם הקדח גדול מדי ב-2 מ&quot;מ ומעלה - ייתכן צורך בטבעת מרכוז.
+            </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-2">מה קורה אם לא אחזיר בזמן?</h4>
-            <p className="text-gray-600">צרו קשר עם מנהל התחנה מראש לבקשת הארכה. אי החזרה ללא תיאום עלולה לגרום לחילוט הפיקדון.</p>
+            <h4 className="font-semibold text-gray-800 mb-2">מה ההבדל בין &quot;מתאים&quot; ל&quot;קטן יותר&quot;?</h4>
+            <p className="text-gray-600">
+              &quot;מתאים&quot; (ירוק) - גודל החישוק זהה לגלגל המקורי של הרכב.
+              &quot;קטן יותר&quot; (כתום) - חישוק קטן יותר, שעדיין ניתן להרכבה זמנית כגלגל חילוף. יש ליידע את הפונה שמדובר במידה קטנה יותר.
+            </p>
           </div>
         </div>
       </section>
@@ -277,6 +296,19 @@ function ManagerGuide() {
             <strong>💡 טיפ:</strong> ההתחברות נשמרת במכשיר - לא תצטרכו להתחבר שוב בכל כניסה.
           </p>
         </div>
+
+        <h3 className="font-semibold text-gray-800 mt-4 mb-2">שחזור סיסמה באמצעות תעודת שחזור:</h3>
+        <p className="text-gray-700 mb-2">אם שכחתם את הסיסמה וברשותכם תעודת שחזור (QR):</p>
+        <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
+          <li>לחצו על &quot;שכחתי סיסמה&quot; בדף ההתחברות</li>
+          <li>העלו תמונה של תעודת השחזור או סרקו את קוד ה-QR</li>
+          <li>הזינו סיסמה חדשה ואשרו</li>
+        </ol>
+        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mt-2">
+          <p className="text-yellow-800 text-sm">
+            <strong>⚠️ חשוב:</strong> אם אין לכם תעודת שחזור, פנו למנהל המערכת. ראו בהמשך כיצד להוריד תעודת שחזור מההגדרות.
+          </p>
+        </div>
       </section>
 
       <section>
@@ -295,8 +327,11 @@ function ManagerGuide() {
               <li>גודל חישוק (15&quot;, 16&quot; וכו&apos;)</li>
               <li>מספר ברגים (4 או 5)</li>
               <li>מרווח ברגים (PCD)</li>
+              <li>קדח מרכזי (CB) - קוטר החור המרכזי במ&quot;מ</li>
               <li>קטגוריה (גרמני, צרפתי, יפני/קוריאני)</li>
               <li>האם זה גלגל דונאט (חירום)</li>
+              <li>פיקדון מותאם אישית (אופציונלי) - סכום שונה מברירת המחדל של התחנה</li>
+              <li>הערות (אופציונלי) - הערות חופשיות על הגלגל</li>
             </ul>
           </li>
           <li>לחצו על &quot;שמור&quot;</li>
@@ -319,8 +354,11 @@ function ManagerGuide() {
             <li>לחצו על &quot;סמן כלא זמין&quot;</li>
             <li>בחרו סיבה (תיקון, אחסון וכו&apos;)</li>
             <li>הוסיפו הערה במידת הצורך</li>
-            <li>הגלגל יישאר במערכת אך לא יוצג לשואלים</li>
+            <li>הגלגל יישאר במערכת אך לא יוצג למוקדנים ולפונים</li>
           </ol>
+          <p className="text-yellow-800 mt-2 text-sm">
+            המערכת מתעדת אוטומטית מי סימן את הגלגל כלא זמין ומתי. ניתן להחזיר את הגלגל לזמינות בכל עת.
+          </p>
         </div>
       </section>
 
@@ -335,7 +373,7 @@ function ManagerGuide() {
           <li>בקשות חדשות יופיעו בלשונית &quot;ממתינים&quot;</li>
           <li>תקבלו התראה על כל בקשה חדשה</li>
           <li>לחצו על הבקשה לצפייה בפרטים המלאים</li>
-          <li>בדקו את פרטי השואל והגלגל המבוקש</li>
+          <li>בדקו את פרטי השואל, מספר הרכב (לוחית רישוי) והגלגל המבוקש</li>
           <li>
             <strong>לאישור:</strong> לחצו על &quot;אשר בקשה&quot;
           </li>
@@ -415,6 +453,22 @@ function ManagerGuide() {
           <li>הזינו סיסמה חדשה (לפחות 4 תווים)</li>
           <li>לחצו &quot;שמור&quot;</li>
         </ol>
+
+        <h3 className="font-semibold text-gray-800 mt-4 mb-2">תעודת שחזור סיסמה:</h3>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <p className="text-green-800 mb-2">
+            תעודת שחזור מאפשרת לאפס סיסמה בעצמכם, ללא צורך בפנייה למנהל מערכת.
+          </p>
+          <ol className="list-decimal list-inside text-green-800 space-y-1">
+            <li>גשו להגדרות התחנה</li>
+            <li>לחצו על &quot;הצג תעודת שחזור&quot;</li>
+            <li>לחצו &quot;הורד תעודה&quot; - תישמר כתמונה עם קוד QR</li>
+            <li>שמרו את התעודה במקום בטוח (הדפסה או שמירה בטלפון)</li>
+          </ol>
+          <p className="text-green-800 mt-2 text-sm">
+            <strong>💡 מומלץ:</strong> הורידו את התעודה מיד לאחר הגדרת התחנה ושמרו אותה במקום נגיש.
+          </p>
+        </div>
       </section>
 
       <section>
@@ -453,7 +507,7 @@ function ManagerGuide() {
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-4">
             <h4 className="font-semibold text-gray-800 mb-2">מה עושים אם שכחתי את הסיסמה?</h4>
-            <p className="text-gray-600">פנו למנהל המערכת לאיפוס הסיסמה.</p>
+            <p className="text-gray-600">אם יש לכם תעודת שחזור (QR) - לחצו &quot;שכחתי סיסמה&quot; בדף ההתחברות, העלו את התעודה והגדירו סיסמה חדשה. אם אין לכם תעודה - פנו למנהל המערכת.</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <h4 className="font-semibold text-gray-800 mb-2">איך מוסיפים מנהל חדש?</h4>
@@ -470,6 +524,10 @@ function ManagerGuide() {
           <div className="bg-gray-50 rounded-lg p-4">
             <h4 className="font-semibold text-gray-800 mb-2">איך מייבאים גלגלים מאקסל?</h4>
             <p className="text-gray-600">לחצו על &quot;ייבוא מאקסל&quot;, בחרו קובץ בפורמט המתאים, והמערכת תייבא את הגלגלים אוטומטית.</p>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">מה זה פיקדון מותאם אישית?</h4>
+            <p className="text-gray-600">ניתן לקבוע סכום פיקדון שונה לגלגל ספציפי (למשל גלגל יקר יותר). הסכום המותאם יחליף את ברירת המחדל של התחנה עבור אותו גלגל בלבד.</p>
           </div>
         </div>
       </section>
