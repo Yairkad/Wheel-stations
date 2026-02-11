@@ -98,6 +98,9 @@ export default function SuperManagerPage() {
   // Borrow filter
   const [borrowFilter, setBorrowFilter] = useState<'all' | 'borrowed' | 'returned'>('all')
 
+  // Districts lookup (code → Hebrew name)
+  const [districtNames, setDistrictNames] = useState<Record<string, string>>({})
+
   // Session validation
   useEffect(() => {
     const raw = localStorage.getItem('super_manager_session')
@@ -136,7 +139,15 @@ export default function SuperManagerPage() {
   }, [])
 
   useEffect(() => {
-    if (superManager) fetchStations()
+    if (superManager) {
+      fetchStations()
+      // Fetch districts for Hebrew names
+      fetch('/api/districts').then(r => r.json()).then(data => {
+        const map: Record<string, string> = {}
+        for (const d of (data.districts || [])) map[d.code] = d.name
+        setDistrictNames(map)
+      }).catch(() => {})
+    }
   }, [superManager, fetchStations])
 
   // Fetch station details
@@ -579,7 +590,7 @@ export default function SuperManagerPage() {
                 </div>
                 <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{station.address}</div>
                 {station.district && (
-                  <div style={{ fontSize: '0.8rem', color: '#7c3aed', marginTop: '4px' }}>מחוז: {station.district}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#7c3aed', marginTop: '4px' }}>מחוז: {districtNames[station.district] || station.district}</div>
                 )}
               </button>
             ))}
