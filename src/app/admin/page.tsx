@@ -781,7 +781,6 @@ export default function WheelsAdminPage() {
             </div>
           </div>
           <div style={styles.headerButtons} className="header-buttons-responsive">
-            <Link href="/super-manager" style={styles.btnGhost}>👑 מנהל עליון</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
             <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
             <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>

@@ -7,7 +7,7 @@ import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION, VERSION } from '@/lib/version'
 
-type LoginMode = 'select' | 'station' | 'operator' | 'super-manager'
+type LoginMode = 'select' | 'station' | 'operator'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -123,6 +123,31 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        // Station manager auth failed - try super manager auth as fallback
+        try {
+          const smResponse = await fetch('/api/super-manager/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password })
+          })
+          const smData = await smResponse.json()
+
+          if (smResponse.ok) {
+            const session = {
+              superManager: smData.super_manager,
+              password: password,
+              timestamp: Date.now(),
+              version: SESSION_VERSION
+            }
+            localStorage.setItem('super_manager_session', JSON.stringify(session))
+            toast.success(`שלום ${smData.super_manager.full_name}`)
+            router.push('/super-manager')
+            return
+          }
+        } catch {
+          // Super manager auth also failed, show original error
+        }
+
         setError(data.error || 'שגיאה בכניסה')
         setLoading(false)
         return
@@ -199,54 +224,12 @@ export default function LoginPage() {
     }
   }
 
-  const handleSuperManagerLogin = async () => {
-    if (!phone || !password) {
-      setError('יש למלא טלפון וסיסמה')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      const response = await fetch('/api/super-manager/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'שגיאה בהתחברות')
-        setLoading(false)
-        return
-      }
-
-      const session = {
-        superManager: data.super_manager,
-        password: password,
-        timestamp: Date.now(),
-        version: SESSION_VERSION
-      }
-      localStorage.setItem('super_manager_session', JSON.stringify(session))
-
-      toast.success(`שלום ${data.super_manager.full_name}`)
-      router.push('/super-manager')
-    } catch {
-      setError('שגיאה בהתחברות')
-      setLoading(false)
-    }
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (mode === 'station') {
       handleStationLogin()
     } else if (mode === 'operator') {
       handleOperatorLogin()
-    } else if (mode === 'super-manager') {
-      handleSuperManagerLogin()
     }
   }
 
@@ -415,15 +398,6 @@ export default function LoginPage() {
               <div style={styles.cardDesc} className="card-desc">למוקדנים ומנהלי מוקד</div>
             </button>
 
-            <button
-              style={styles.loginCard}
-              onClick={() => setMode('super-manager')}
-              className="login-card"
-            >
-              <div style={styles.cardIcon} className="card-icon">👑</div>
-              <div style={styles.cardTitle} className="card-title">מנהל עליון</div>
-              <div style={styles.cardDesc} className="card-desc">צפייה וניהול כלל התחנות</div>
-            </button>
           </div>
 
           {/* Footer */}
@@ -454,10 +428,10 @@ export default function LoginPage() {
         </button>
 
         <div style={styles.formLogo} className="form-logo">
-          {mode === 'station' ? '🏪' : mode === 'operator' ? '🎧' : '👑'}
+          {mode === 'station' ? '🏪' : '🎧'}
         </div>
         <h1 style={styles.formTitle} className="form-title">
-          {mode === 'station' ? 'כניסת מנהל תחנה' : mode === 'operator' ? 'כניסת מוקדן' : 'כניסת מנהל עליון'}
+          {mode === 'station' ? 'כניסת מנהל תחנה' : 'כניסת מוקדן'}
         </h1>
         <p style={styles.formSubtitle}>הזן שם משתמש וסיסמה</p>
 
