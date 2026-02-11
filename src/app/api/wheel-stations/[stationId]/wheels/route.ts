@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifySuperManager } from '@/lib/super-manager-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -78,16 +79,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, category, is_donut, notes, custom_deposit, manager_phone, manager_password } = body
+    const { wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, category, is_donut, notes, custom_deposit, manager_phone, manager_password, sm_phone, sm_password } = body
 
-    // Verify manager credentials
-    if (!manager_phone || !manager_password) {
+    // Verify credentials - super manager or station manager
+    if (sm_phone && sm_password) {
+      const smAuth = await verifySuperManager(sm_phone, sm_password)
+      if (!smAuth.success) {
+        return NextResponse.json({ error: smAuth.error }, { status: 401 })
+      }
+    } else if (manager_phone && manager_password) {
+      const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+      if (!auth.success) {
+        return NextResponse.json({ error: auth.error }, { status: 401 })
+      }
+    } else {
       return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
-    }
-
-    const auth = await verifyStationManager(stationId, manager_phone, manager_password)
-    if (!auth.success) {
-      return NextResponse.json({ error: auth.error }, { status: 401 })
     }
 
     if (!wheel_number || !rim_size || !bolt_count || !bolt_spacing) {

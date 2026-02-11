@@ -35,6 +35,14 @@ interface District {
   updated_at?: string
 }
 
+interface SuperManager {
+  id: string
+  full_name: string
+  phone: string
+  is_active: boolean
+  created_at?: string
+}
+
 
 export default function WheelsAdminPage() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
@@ -104,10 +112,23 @@ export default function WheelsAdminPage() {
   })
   const [addManagerLoading, setAddManagerLoading] = useState(false)
 
+  // Super managers state
+  const [superManagers, setSuperManagers] = useState<SuperManager[]>([])
+  const [showSuperManagerSection, setShowSuperManagerSection] = useState(false)
+  const [showAddSuperManager, setShowAddSuperManager] = useState(false)
+  const [editingSuperManager, setEditingSuperManager] = useState<SuperManager | null>(null)
+  const [superManagerForm, setSuperManagerForm] = useState({
+    full_name: '',
+    phone: '',
+    password: '',
+  })
+  const [superManagerLoading, setSuperManagerLoading] = useState(false)
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchStations()
       fetchDistricts()
+      fetchSuperManagers()
     }
   }, [isAuthenticated])
 
@@ -119,12 +140,14 @@ export default function WheelsAdminPage() {
         else if (showAddStation) setShowAddStation(false)
         else if (editingDistrict) setEditingDistrict(null)
         else if (showAddDistrict) setShowAddDistrict(false)
+        else if (showAddSuperManager) setShowAddSuperManager(false)
+        else if (editingSuperManager) setEditingSuperManager(null)
         else if (showConfirmDialog) setShowConfirmDialog(false)
       }
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [editingStation, showAddStation, editingDistrict, showAddDistrict, showConfirmDialog])
+  }, [editingStation, showAddStation, editingDistrict, showAddDistrict, showAddSuperManager, editingSuperManager, showConfirmDialog])
 
   const fetchStations = async () => {
     try {
@@ -152,6 +175,146 @@ export default function WheelsAdminPage() {
     }
   }
 
+
+  const fetchSuperManagers = async () => {
+    try {
+      const response = await fetch('/api/admin/super-managers')
+      if (response.ok) {
+        const data = await response.json()
+        setSuperManagers(data.superManagers || [])
+      }
+    } catch (err) {
+      console.error('Error fetching super managers:', err)
+    }
+  }
+
+  const resetSuperManagerForm = () => {
+    setSuperManagerForm({ full_name: '', phone: '', password: '' })
+  }
+
+  const handleAddSuperManager = async () => {
+    if (!superManagerForm.full_name || !superManagerForm.phone || !superManagerForm.password) {
+      toast.error('נא למלא שם, טלפון וסיסמא')
+      return
+    }
+    if (superManagerForm.password.length < 4) {
+      toast.error('הסיסמא חייבת להכיל לפחות 4 תווים')
+      return
+    }
+    setSuperManagerLoading(true)
+    try {
+      const response = await fetch('/api/admin/super-managers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...superManagerForm, admin_password: password })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create super manager')
+      }
+      await fetchSuperManagers()
+      setShowAddSuperManager(false)
+      resetSuperManagerForm()
+      toast.success('מנהל עליון נוצר בהצלחה!')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת מנהל עליון')
+    } finally {
+      setSuperManagerLoading(false)
+    }
+  }
+
+  const handleUpdateSuperManager = async () => {
+    if (!editingSuperManager) return
+    if (!superManagerForm.full_name || !superManagerForm.phone) {
+      toast.error('נא למלא שם וטלפון')
+      return
+    }
+    setSuperManagerLoading(true)
+    try {
+      const response = await fetch('/api/admin/super-managers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingSuperManager.id,
+          ...superManagerForm,
+          admin_password: password
+        })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update super manager')
+      }
+      await fetchSuperManagers()
+      setEditingSuperManager(null)
+      resetSuperManagerForm()
+      toast.success('מנהל עליון עודכן בהצלחה!')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון מנהל עליון')
+    } finally {
+      setSuperManagerLoading(false)
+    }
+  }
+
+  const handleToggleSuperManagerActive = async (sm: SuperManager) => {
+    setSuperManagerLoading(true)
+    try {
+      const response = await fetch('/api/admin/super-managers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: sm.id,
+          is_active: !sm.is_active,
+          admin_password: password
+        })
+      })
+      if (!response.ok) throw new Error('Failed to update')
+      await fetchSuperManagers()
+      toast.success(sm.is_active ? `${sm.full_name} הושבת` : `${sm.full_name} הופעל`)
+    } catch {
+      toast.error('שגיאה בעדכון סטטוס')
+    } finally {
+      setSuperManagerLoading(false)
+    }
+  }
+
+  const handleDeleteSuperManager = async (sm: SuperManager) => {
+    setConfirmDialogData({
+      title: 'מחיקת מנהל עליון',
+      message: `האם למחוק את "${sm.full_name}"?`,
+      onConfirm: async () => {
+        setShowConfirmDialog(false)
+        setConfirmDialogData(null)
+        setSuperManagerLoading(true)
+        try {
+          const response = await fetch('/api/admin/super-managers', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: sm.id, admin_password: password })
+          })
+          const data = await response.json()
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to delete')
+          }
+          await fetchSuperManagers()
+          toast.success('מנהל עליון נמחק!')
+        } catch (err: unknown) {
+          toast.error(err instanceof Error ? err.message : 'שגיאה במחיקת מנהל עליון')
+        } finally {
+          setSuperManagerLoading(false)
+        }
+      }
+    })
+    setShowConfirmDialog(true)
+  }
+
+  const openEditSuperManager = (sm: SuperManager) => {
+    setSuperManagerForm({
+      full_name: sm.full_name,
+      phone: sm.phone,
+      password: '',
+    })
+    setEditingSuperManager(sm)
+  }
 
   const resetForm = () => {
     setStationForm({
@@ -618,6 +781,7 @@ export default function WheelsAdminPage() {
             </div>
           </div>
           <div style={styles.headerButtons} className="header-buttons-responsive">
+            <Link href="/super-manager" style={styles.btnGhost}>👑 מנהל עליון</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
             <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
             <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
@@ -1099,6 +1263,156 @@ export default function WheelsAdminPage() {
                 disabled={addManagerLoading}
               >
                 {addManagerLoading ? 'מוסיף...' : 'הוסף מנהל'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Super Managers Section */}
+      <div style={styles.container}>
+        <div style={styles.section}>
+          <div style={styles.sectionHeader} className="section-header-responsive">
+            <div
+              style={{...styles.sectionTitle, cursor: 'pointer'}}
+              onClick={() => setShowSuperManagerSection(!showSuperManagerSection)}
+            >
+              <div style={{...styles.sectionTitleIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>👑</div>
+              מנהלים עליונים
+              <span style={{...styles.sectionCount, background: 'rgba(139, 92, 246, 0.2)', color: '#8b5cf6'}}>
+                {superManagers.length} מנהלים
+              </span>
+              <span style={{...styles.expandIcon, transform: showSuperManagerSection ? 'rotate(180deg)' : 'none'}}>▼</span>
+            </div>
+            {showSuperManagerSection && (
+              <div style={styles.sectionButtons} className="section-buttons">
+                <button style={{...styles.btnPrimary, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} onClick={() => { resetSuperManagerForm(); setShowAddSuperManager(true) }}>+ מנהל עליון</button>
+              </div>
+            )}
+          </div>
+
+          {showSuperManagerSection && (
+            <div style={styles.sectionContent}>
+              {superManagers.length === 0 ? (
+                <div style={styles.loading}>אין מנהלים עליונים</div>
+              ) : (
+                <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                  {superManagers.map(sm => (
+                    <div key={sm.id} style={{
+                      background: '#0f172a',
+                      border: '1px solid #334155',
+                      borderRadius: '12px',
+                      padding: '14px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      flexWrap: 'wrap',
+                    }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: sm.is_active ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' : '#334155',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.1rem',
+                        flexShrink: 0,
+                      }}>👑</div>
+                      <div style={{flex: 1, minWidth: '150px'}}>
+                        <div style={{fontWeight: 600, color: 'white', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                          {sm.full_name}
+                          <div style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: sm.is_active ? '#22c55e' : '#f59e0b',
+                            boxShadow: sm.is_active ? '0 0 8px rgba(34, 197, 94, 0.5)' : 'none',
+                          }} />
+                        </div>
+                        <div style={{color: '#64748b', fontSize: '0.8rem', direction: 'ltr', textAlign: 'right'}}>{sm.phone}</div>
+                      </div>
+                      <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
+                        <button style={{...styles.btnCompact, ...styles.btnCompactEdit}} onClick={() => openEditSuperManager(sm)}>✏️ ערוך</button>
+                        <button
+                          style={{
+                            ...styles.btnCompact,
+                            ...(sm.is_active ? styles.btnCompactToggle : styles.btnCompactToggleActivate)
+                          }}
+                          onClick={() => handleToggleSuperManagerActive(sm)}
+                          disabled={superManagerLoading}
+                        >
+                          {sm.is_active ? '🔴 השבת' : '🟢 הפעל'}
+                        </button>
+                        <button style={{...styles.btnCompact, ...styles.btnCompactDelete}} onClick={() => handleDeleteSuperManager(sm)} disabled={superManagerLoading}>🗑️ מחק</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add/Edit Super Manager Modal */}
+      {(showAddSuperManager || editingSuperManager) && (
+        <div style={styles.modalOverlay} onClick={() => { setShowAddSuperManager(false); setEditingSuperManager(null) }}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={{...styles.modalTitle, color: '#8b5cf6'}}>
+                {editingSuperManager ? '✏️ עריכת מנהל עליון' : '👑 מנהל עליון חדש'}
+              </h3>
+            </div>
+
+            <div style={styles.modalBody}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>שם מלא *</label>
+                <input
+                  type="text"
+                  value={superManagerForm.full_name}
+                  onChange={e => setSuperManagerForm({...superManagerForm, full_name: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="ישראל ישראלי"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>טלפון *</label>
+                <input
+                  type="tel"
+                  value={superManagerForm.phone}
+                  onChange={e => setSuperManagerForm({...superManagerForm, phone: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="050-1234567"
+                  dir="ltr"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>
+                  {editingSuperManager ? 'סיסמא חדשה (השאר ריק לשמירת הקיימת)' : 'סיסמא *'}
+                </label>
+                <input
+                  type="text"
+                  value={superManagerForm.password}
+                  onChange={e => setSuperManagerForm({...superManagerForm, password: e.target.value})}
+                  style={styles.formInput}
+                  placeholder="לפחות 4 תווים"
+                />
+              </div>
+            </div>
+
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => { setShowAddSuperManager(false); setEditingSuperManager(null) }}>
+                ביטול
+              </button>
+              <button
+                style={{...styles.btnSubmit, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}
+                onClick={editingSuperManager ? handleUpdateSuperManager : handleAddSuperManager}
+                disabled={superManagerLoading}
+              >
+                {superManagerLoading ? 'שומר...' : (editingSuperManager ? 'עדכן' : 'צור מנהל עליון')}
               </button>
             </div>
           </div>
