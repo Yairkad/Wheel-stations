@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
       .from('wheels')
       .select('*')
       .in('station_id', activeStationIds)
+      .is('deleted_at', null)
 
     // Apply filters
     if (rim_size) {
@@ -132,6 +133,7 @@ export async function GET(request: NextRequest) {
       .from('wheels')
       .select('*')
       .in('station_id', activeStationIds)
+      .is('deleted_at', null)
 
     if (filterError) {
       console.error('Error fetching filter options:', filterError)

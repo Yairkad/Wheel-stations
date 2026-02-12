@@ -20,7 +20,7 @@ export async function GET() {
 
     const { data: superManagers, error } = await supabase
       .from('super_managers')
-      .select('id, full_name, phone, is_active, created_at')
+      .select('id, full_name, phone, is_active, created_at, allowed_districts')
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -39,7 +39,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { admin_password, full_name, phone, password } = body
+    const { admin_password, full_name, phone, password, allowed_districts } = body
 
     if (!verifyAdminPassword(admin_password)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -61,7 +61,8 @@ export async function POST(request: NextRequest) {
         full_name,
         phone: phone.replace(/\D/g, ''),
         password,
-        is_active: true
+        is_active: true,
+        allowed_districts: allowed_districts?.length ? allowed_districts : null
       })
 
     if (error) {
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { admin_password, id, full_name, phone, password, is_active } = body
+    const { admin_password, id, full_name, phone, password, is_active, allowed_districts } = body
 
     if (!verifyAdminPassword(admin_password)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -100,6 +101,7 @@ export async function PUT(request: NextRequest) {
     if (phone !== undefined) updateData.phone = phone.replace(/\D/g, '')
     if (password !== undefined && password !== '') updateData.password = password
     if (is_active !== undefined) updateData.is_active = is_active
+    if (allowed_districts !== undefined) updateData.allowed_districts = allowed_districts?.length ? allowed_districts : null
 
     const { error } = await supabase
       .from('super_managers')

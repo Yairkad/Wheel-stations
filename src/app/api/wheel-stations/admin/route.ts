@@ -36,7 +36,8 @@ export async function GET() {
         ),
         wheels (
           id,
-          is_available
+          is_available,
+          deleted_at
         )
       `)
       .order('name')
@@ -46,13 +47,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch stations' }, { status: 500 })
     }
 
-    // Calculate wheel stats for each station
+    // Calculate wheel stats for each station (exclude soft-deleted wheels)
     const stationsWithStats = stations?.map(station => {
-      const wheels = station.wheels || []
+      const activeWheels = (station.wheels || []).filter((w: { deleted_at: string | null }) => !w.deleted_at)
       return {
         ...station,
-        totalWheels: wheels.length,
-        availableWheels: wheels.filter((w: { is_available: boolean }) => w.is_available).length,
+        totalWheels: activeWheels.length,
+        availableWheels: activeWheels.filter((w: { is_available: boolean }) => w.is_available).length,
         wheels: undefined // Don't send individual wheels
       }
     })

@@ -41,6 +41,7 @@ interface SuperManager {
   phone: string
   is_active: boolean
   created_at?: string
+  allowed_districts?: string[] | null
 }
 
 
@@ -121,6 +122,7 @@ export default function WheelsAdminPage() {
     full_name: '',
     phone: '',
     password: '',
+    allowed_districts: [] as string[],
   })
   const [superManagerLoading, setSuperManagerLoading] = useState(false)
 
@@ -189,7 +191,7 @@ export default function WheelsAdminPage() {
   }
 
   const resetSuperManagerForm = () => {
-    setSuperManagerForm({ full_name: '', phone: '', password: '' })
+    setSuperManagerForm({ full_name: '', phone: '', password: '', allowed_districts: [] })
   }
 
   const handleAddSuperManager = async () => {
@@ -312,6 +314,7 @@ export default function WheelsAdminPage() {
       full_name: sm.full_name,
       phone: sm.phone,
       password: '',
+      allowed_districts: sm.allowed_districts || [],
     })
     setEditingSuperManager(sm)
   }
@@ -1330,6 +1333,13 @@ export default function WheelsAdminPage() {
                           }} />
                         </div>
                         <div style={{color: '#64748b', fontSize: '0.8rem', direction: 'ltr', textAlign: 'right'}}>{sm.phone}</div>
+                        {sm.allowed_districts?.length ? (
+                          <div style={{fontSize: '0.75rem', color: '#8b5cf6', marginTop: '2px'}}>
+                            מחוזות: {sm.allowed_districts.map(code => districts.find(d => d.code === code)?.name || code).join(', ')}
+                          </div>
+                        ) : (
+                          <div style={{fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px'}}>כל המחוזות</div>
+                        )}
                       </div>
                       <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
                         <button style={{...styles.btnCompact, ...styles.btnCompactEdit}} onClick={() => openEditSuperManager(sm)}>✏️ ערוך</button>
@@ -1399,6 +1409,41 @@ export default function WheelsAdminPage() {
                   style={styles.formInput}
                   placeholder="לפחות 4 תווים"
                 />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>הרשאות מחוזות (ריק = גישה לכל המחוזות)</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                  {districts.map(d => {
+                    const isSelected = superManagerForm.allowed_districts.includes(d.code)
+                    return (
+                      <button
+                        key={d.code}
+                        type="button"
+                        onClick={() => {
+                          const newDistricts = isSelected
+                            ? superManagerForm.allowed_districts.filter(c => c !== d.code)
+                            : [...superManagerForm.allowed_districts, d.code]
+                          setSuperManagerForm({...superManagerForm, allowed_districts: newDistricts})
+                        }}
+                        style={{
+                          padding: '6px 14px', borderRadius: '8px', fontSize: '0.85rem', cursor: 'pointer',
+                          border: isSelected ? '2px solid #7c3aed' : '1px solid #d1d5db',
+                          background: isSelected ? '#ede9fe' : 'white',
+                          color: isSelected ? '#7c3aed' : '#374151',
+                          fontWeight: isSelected ? 600 : 400
+                        }}
+                      >
+                        {isSelected ? '✓ ' : ''}{d.name}
+                      </button>
+                    )
+                  })}
+                </div>
+                {superManagerForm.allowed_districts.length === 0 && (
+                  <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px' }}>
+                    לא נבחרו מחוזות - למנהל תהיה גישה לכל התחנות
+                  </div>
+                )}
               </div>
             </div>
 

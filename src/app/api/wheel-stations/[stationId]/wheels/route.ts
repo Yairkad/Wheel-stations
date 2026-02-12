@@ -60,6 +60,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .from('wheels')
       .select('*')
       .eq('station_id', stationId)
+      .is('deleted_at', null)
       .order('wheel_number')
 
     if (error) {

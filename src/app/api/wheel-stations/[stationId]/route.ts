@@ -85,11 +85,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Station not found' }, { status: 404 })
     }
 
-    // Get wheels separately with availability status
+    // Get wheels separately with availability status (exclude soft-deleted)
     const { data: wheels } = await supabase
       .from('wheels')
       .select('*')
       .eq('station_id', stationId)
+      .is('deleted_at', null)
       .order('wheel_number')
 
     // Get active borrows to show borrower info (with signed_forms join)

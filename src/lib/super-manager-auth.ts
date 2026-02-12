@@ -6,13 +6,13 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 export async function verifySuperManager(
   phone: string,
   password: string
-): Promise<{ success: boolean; superManager?: { id: string; full_name: string; phone: string }; error?: string }> {
+): Promise<{ success: boolean; superManager?: { id: string; full_name: string; phone: string; allowed_districts: string[] | null }; error?: string }> {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   const cleanPhone = phone.replace(/\D/g, '')
 
   const { data, error } = await supabase
     .from('super_managers')
-    .select('id, phone, password, full_name, is_active')
+    .select('id, phone, password, full_name, is_active, allowed_districts')
     .limit(50)
 
   if (error || !data) {
@@ -37,6 +37,11 @@ export async function verifySuperManager(
 
   return {
     success: true,
-    superManager: { id: manager.id, full_name: manager.full_name, phone: manager.phone }
+    superManager: {
+      id: manager.id,
+      full_name: manager.full_name,
+      phone: manager.phone,
+      allowed_districts: manager.allowed_districts || null
+    }
   }
 }

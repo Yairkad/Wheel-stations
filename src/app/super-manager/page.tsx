@@ -11,6 +11,7 @@ interface SuperManager {
   id: string
   full_name: string
   phone: string
+  allowed_districts: string[] | null
 }
 
 interface Station {
@@ -97,6 +98,17 @@ export default function SuperManagerPage() {
 
   // Borrow filter
   const [borrowFilter, setBorrowFilter] = useState<'all' | 'borrowed' | 'returned'>('all')
+
+  // Confirm dialog
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [confirmDialogData, setConfirmDialogData] = useState<{
+    title: string
+    message: string
+    onConfirm: () => void
+    confirmText?: string
+    cancelText?: string
+    variant?: 'danger' | 'warning' | 'info'
+  } | null>(null)
 
   // Districts lookup (code → Hebrew name)
   const [districtNames, setDistrictNames] = useState<Record<string, string>>({})
@@ -267,36 +279,66 @@ export default function SuperManagerPage() {
     }
   }
 
+  const showConfirm = (options: {
+    title: string
+    message: string
+    onConfirm: () => void
+    confirmText?: string
+    cancelText?: string
+    variant?: 'danger' | 'warning' | 'info'
+  }) => {
+    setConfirmDialogData(options)
+    setShowConfirmDialog(true)
+  }
+
+  const closeConfirmDialog = () => {
+    setShowConfirmDialog(false)
+    setConfirmDialogData(null)
+  }
+
   const handleDeleteWheel = async (wheel: Wheel) => {
     if (!selectedStation || !superManager) return
     if (!wheel.is_available) {
       toast.error('לא ניתן למחוק גלגל מושאל')
       return
     }
-    if (!confirm(`למחוק את גלגל #${wheel.wheel_number}?`)) return
 
-    try {
-      const res = await fetch(`/api/wheel-stations/${selectedStation.id}/wheels/${wheel.id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sm_phone: superManager.phone, sm_password: sessionPassword })
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        toast.error(data.error || 'שגיאה במחיקה')
-        return
+    showConfirm({
+      title: 'מחיקת גלגל',
+      message: `למחוק את גלגל #${wheel.wheel_number}?\nפעולה זו תסמן את הגלגל כמחוק. למנהל התחנה תהיה אפשרות לשחזר תוך 14 יום.`,
+      confirmText: 'מחק',
+      variant: 'danger',
+      onConfirm: async () => {
+        closeConfirmDialog()
+        try {
+          const res = await fetch(`/api/wheel-stations/${selectedStation.id}/wheels/${wheel.id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sm_phone: superManager.phone, sm_password: sessionPassword })
+          })
+          if (!res.ok) {
+            const data = await res.json()
+            toast.error(data.error || 'שגיאה במחיקה')
+            return
+          }
+          toast.success('הגלגל נמחק')
+          fetchStationDetail(selectedStation.id)
+        } catch {
+          toast.error('שגיאה במחיקה')
+        }
       }
-      toast.success('הגלגל נמחק')
-      fetchStationDetail(selectedStation.id)
-    } catch {
-      toast.error('שגיאה במחיקה')
-    }
+    })
   }
 
   const filteredBorrows = borrows.filter(b => {
     if (borrowFilter === 'all') return true
     return b.status === borrowFilter
   })
+
+  // Filter stations by allowed districts
+  const filteredStations = superManager?.allowed_districts?.length
+    ? stations.filter(s => s.district && superManager.allowed_districts!.includes(s.district))
+    : stations
 
   if (!superManager) {
     return (
@@ -539,6 +581,34 @@ export default function SuperManagerPage() {
             </>
           )}
         </div>
+
+        {/* Confirm dialog */}
+        {showConfirmDialog && confirmDialogData && (
+          <div role="presentation" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px' }} onClick={closeConfirmDialog}>
+            <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message" style={{ background: '#1e293b', borderRadius: '16px', padding: '25px', width: '100%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+              <h3 id="confirm-dialog-title" style={{
+                fontSize: '1.3rem', marginBottom: '12px', fontWeight: 'bold',
+                color: confirmDialogData.variant === 'danger' ? '#ef4444' : confirmDialogData.variant === 'warning' ? '#f59e0b' : '#3b82f6'
+              }}>
+                {confirmDialogData.title}
+              </h3>
+              <p id="confirm-dialog-message" style={{ color: '#a0aec0', fontSize: '1rem', marginBottom: '25px', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                {confirmDialogData.message}
+              </p>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button style={{ flex: 1, color: '#d1d5db', background: '#374151', border: 'none', padding: '14px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }} onClick={closeConfirmDialog}>
+                  {confirmDialogData.cancelText || 'ביטול'}
+                </button>
+                <button style={{
+                  flex: 1, color: 'white', border: 'none', padding: '14px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem',
+                  background: confirmDialogData.variant === 'danger' ? '#ef4444' : confirmDialogData.variant === 'warning' ? '#f59e0b' : '#3b82f6'
+                }} onClick={confirmDialogData.onConfirm}>
+                  {confirmDialogData.confirmText || 'אישור'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -561,14 +631,14 @@ export default function SuperManagerPage() {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
-          כל התחנות ({stations.length})
+          {superManager.allowed_districts?.length ? 'תחנות במחוזות שלי' : 'כל התחנות'} ({filteredStations.length})
         </h2>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>טוען תחנות...</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
-            {stations.map(station => (
+            {filteredStations.map(station => (
               <button
                 key={station.id}
                 onClick={() => handleSelectStation(station)}

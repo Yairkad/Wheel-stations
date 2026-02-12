@@ -197,6 +197,19 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   // Mobile tracking cards - track which cards are expanded (collapsed by default)
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
 
+  // Deleted wheels (for restore banner)
+  const [deletedWheels, setDeletedWheels] = useState<{
+    id: string
+    wheel_number: number
+    rim_size: number
+    bolt_count: number
+    bolt_spacing: number
+    deleted_at: string
+    deleted_by_name: string
+    deleted_by_type: string
+  }[]>([])
+  const [restoringWheel, setRestoringWheel] = useState<string | null>(null)
+
   // WhatsApp share modal
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [whatsAppPhone, setWhatsAppPhone] = useState('')
@@ -342,6 +355,13 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
     validateSession()
   }, [stationId])
+
+  // Fetch deleted wheels when manager is logged in
+  useEffect(() => {
+    if (isManager) {
+      fetchDeletedWheels()
+    }
+  }, [isManager, stationId])
 
   // Scroll to wheel when hash is in URL (from search results)
   useEffect(() => {
@@ -711,6 +731,43 @@ ${signFormUrl}
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Fetch deleted wheels for restore banner (only for managers)
+  const fetchDeletedWheels = async () => {
+    try {
+      const res = await fetch(`/api/wheel-stations/${stationId}/deleted-wheels`)
+      if (res.ok) {
+        const data = await res.json()
+        setDeletedWheels(data.deletedWheels || [])
+      }
+    } catch {
+      // Silently fail - banner just won't show
+    }
+  }
+
+  const handleRestoreWheel = async (wheelId: string) => {
+    if (!currentManager || !sessionPassword) return
+    setRestoringWheel(wheelId)
+    try {
+      const res = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheelId}/restore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manager_phone: currentManager.phone, manager_password: sessionPassword })
+      })
+      if (res.ok) {
+        toast.success('הגלגל שוחזר בהצלחה!')
+        setDeletedWheels(prev => prev.filter(w => w.id !== wheelId))
+        await fetchStation()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'שגיאה בשחזור')
+      }
+    } catch {
+      toast.error('שגיאה בשחזור')
+    } finally {
+      setRestoringWheel(null)
     }
   }
 
@@ -1894,6 +1951,62 @@ ${formUrl}`
           )}
         </div>
         {station.address && <p style={styles.stationAddress}>📍 {station.address}</p>}
+
+        {/* Deleted wheels restore banner */}
+        {isManager && deletedWheels.length > 0 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fef2f2, #fff7ed)',
+            border: '2px solid #f87171',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+              <span style={{ fontWeight: 700, color: '#dc2626', fontSize: '1rem' }}>
+                {deletedWheels.length === 1 ? 'גלגל נמחק' : `${deletedWheels.length} גלגלים נמחקו`} על ידי מנהל עליון
+              </span>
+            </div>
+            {deletedWheels.map(wheel => {
+              const deletedDate = new Date(wheel.deleted_at)
+              const restoreDeadline = new Date(deletedDate)
+              restoreDeadline.setDate(restoreDeadline.getDate() + 14)
+              const daysLeft = Math.ceil((restoreDeadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+
+              return (
+                <div key={wheel.id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: 'white', borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
+                  border: '1px solid #fecaca'
+                }}>
+                  <div>
+                    <span style={{ fontWeight: 600, color: '#1f2937' }}>
+                      גלגל #{wheel.wheel_number}
+                    </span>
+                    <span style={{ color: '#6b7280', marginRight: '8px', fontSize: '0.85rem' }}>
+                      {wheel.bolt_count}x{wheel.bolt_spacing} R{wheel.rim_size}
+                    </span>
+                    <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '2px' }}>
+                      נמחק ע&quot;י {wheel.deleted_by_name} · {deletedDate.toLocaleDateString('he-IL')} · נותרו {daysLeft} ימים לשחזור
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRestoreWheel(wheel.id)}
+                    disabled={restoringWheel === wheel.id}
+                    style={{
+                      background: '#10b981', color: 'white', border: 'none',
+                      padding: '8px 16px', borderRadius: '8px', cursor: 'pointer',
+                      fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap',
+                      opacity: restoringWheel === wheel.id ? 0.6 : 1
+                    }}
+                  >
+                    {restoringWheel === wheel.id ? 'משחזר...' : '↩️ שחזר'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Tab Navigation - only show tracking tab for managers */}
         {isManager && (

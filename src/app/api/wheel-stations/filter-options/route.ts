@@ -43,6 +43,7 @@ export async function GET() {
       .from('wheels')
       .select('*')
       .in('station_id', activeStationIds)
+      .is('deleted_at', null)
 
     if (error) {
       console.error('Error fetching filter options:', error)
