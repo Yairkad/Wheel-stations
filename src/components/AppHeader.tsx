@@ -468,7 +468,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 1000,
     background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
     borderBottom: '1px solid #334155',
-    padding: '12px 20px',
+    paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
+    paddingBottom: '12px',
+    paddingLeft: '20px',
+    paddingRight: '20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -476,7 +479,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     direction: 'rtl',
   },
   headerSpacer: {
-    height: '70px',
+    height: 'calc(70px + env(safe-area-inset-top, 0px))',
   },
   headerRight: {
     display: 'flex',
