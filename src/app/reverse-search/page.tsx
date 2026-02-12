@@ -395,7 +395,7 @@ export default function ReverseSearchPage() {
                 disabled={isLoading}
                 style={styles.searchBtn}
               >
-                {isLoading ? <span className="spinning-wheel">&#x1F6DE;</span> : '&#x1F50D;'}
+                {isLoading ? <span className="spinning-wheel">🛞</span> : '🔍'}
               </button>
             </div>
           )}
@@ -494,7 +494,7 @@ export default function ReverseSearchPage() {
                 disabled={isLoading}
                 style={{ ...styles.searchBtn, width: '100%', padding: '12px', justifyContent: 'center' }}
               >
-                {isLoading ? <span className="spinning-wheel">&#x1F6DE;</span> : 'חפש רכבים תואמים'}
+                {isLoading ? <span className="spinning-wheel">🛞</span> : 'חפש רכבים תואמים'}
               </button>
             </div>
           )}
@@ -532,7 +532,7 @@ export default function ReverseSearchPage() {
           {/* Loading */}
           {reverseLoading && (
             <div style={styles.loadingBox}>
-              <span className="spinning-wheel" style={{ fontSize: '2rem' }}>&#x1F6DE;</span>
+              <span className="spinning-wheel" style={{ fontSize: '2rem' }}>🛞</span>
               <p>מחפש רכבים תואמים...</p>
             </div>
           )}
