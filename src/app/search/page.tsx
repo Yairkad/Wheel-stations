@@ -1262,6 +1262,10 @@ function SearchPageContent() {
             <Link href="/accessibility" style={styles.legalLink}>
               הצהרת נגישות
             </Link>
+            {' • '}
+            <Link href="/reverse-search" style={styles.legalLink}>
+              חיפוש הפוך (בטא)
+            </Link>
           </p>
           <p style={styles.versionText}>גירסה {VERSION}</p>
         </div>

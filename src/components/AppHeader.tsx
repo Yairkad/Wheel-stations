@@ -454,7 +454,7 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
         </div>
       </header>
       {/* Spacer to push content below fixed header */}
-      <div style={styles.headerSpacer} />
+      <div className="app-header-spacer" style={styles.headerSpacer} />
     </>
   )
 }
@@ -468,10 +468,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 1000,
     background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
     borderBottom: '1px solid #334155',
-    paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
-    paddingBottom: '12px',
-    paddingLeft: '20px',
-    paddingRight: '20px',
+    padding: '12px 20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -479,7 +476,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     direction: 'rtl',
   },
   headerSpacer: {
-    height: 'calc(70px + env(safe-area-inset-top, 0px))',
+    height: '70px',
   },
   headerRight: {
     display: 'flex',

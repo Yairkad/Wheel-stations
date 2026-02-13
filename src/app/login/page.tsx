@@ -407,6 +407,8 @@ export default function LoginPage() {
             <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
             {' • '}
             <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
+            {' • '}
+            <Link href="/reverse-search" style={styles.footerLink}>חיפוש הפוך (בטא)</Link>
           </div>
           <div style={styles.versionText}>גרסה {VERSION}</div>
         </div>
@@ -563,6 +565,8 @@ export default function LoginPage() {
           <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
           {' • '}
           <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
+          {' • '}
+          <Link href="/reverse-search" style={styles.footerLink}>חיפוש הפוך (בטא)</Link>
         </p>
         <p style={styles.versionText}>גרסה {VERSION}</p>
       </footer>

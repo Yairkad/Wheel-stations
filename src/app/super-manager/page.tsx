@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { SESSION_VERSION } from '@/lib/version'
+import Link from 'next/link'
+import { VERSION, SESSION_VERSION } from '@/lib/version'
 
 const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -667,6 +668,19 @@ export default function SuperManagerPage() {
           </div>
         )}
       </div>
+      {/* Footer */}
+      <footer style={{ textAlign: 'center', padding: '20px 0', marginTop: '20px', borderTop: '1px solid #e5e7eb' }}>
+        <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0 0 4px 0' }}>
+          <Link href="/guide" style={{ color: '#6b7280', textDecoration: 'none' }}>מדריך למשתמש</Link>
+          {' • '}
+          <Link href="/privacy" style={{ color: '#6b7280', textDecoration: 'none' }}>מדיניות פרטיות</Link>
+          {' • '}
+          <Link href="/accessibility" style={{ color: '#6b7280', textDecoration: 'none' }}>הצהרת נגישות</Link>
+          {' • '}
+          <Link href="/reverse-search" style={{ color: '#6b7280', textDecoration: 'none' }}>חיפוש הפוך (בטא)</Link>
+        </p>
+        <p style={{ color: '#9ca3af', fontSize: '0.65rem', margin: 0 }}>גירסה {VERSION}</p>
+      </footer>
     </div>
   )
 }
