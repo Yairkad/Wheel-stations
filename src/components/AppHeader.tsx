@@ -243,6 +243,14 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
             display: none !important;
           }
         }
+        @media all and (display-mode: standalone) {
+          .app-header {
+            padding-top: env(safe-area-inset-top, 12px) !important;
+          }
+          .app-header-spacer {
+            height: calc(70px + env(safe-area-inset-top, 0px)) !important;
+          }
+        }
       `}</style>
       <header className="app-header" style={styles.header}>
         {/* Right side - Profile (RTL) */}

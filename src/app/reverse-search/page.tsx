@@ -622,8 +622,8 @@ export default function ReverseSearchPage() {
       {/* Footer */}
       <div style={styles.footer}>
         <p style={styles.footerText}>
-          <Link href="/search" style={{ color: '#93c5fd', textDecoration: 'none' }}>
-            חיפוש גלגלים בתחנות
+          <Link href="/login" style={{ color: '#93c5fd', textDecoration: 'none' }}>
+            כניסה למערכת
           </Link>
           {' | '}
           <Link href="/" style={{ color: '#93c5fd', textDecoration: 'none' }}>

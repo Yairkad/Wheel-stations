@@ -80,6 +80,7 @@ function SearchPageContent() {
 
   const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [districts, setDistricts] = useState<District[]>([])
 
@@ -206,6 +207,7 @@ function SearchPageContent() {
       return
     }
 
+    setIsAuthenticated(true)
     // User is logged in - load stations
     fetchStations()
     fetchDistrictsData()
@@ -1016,7 +1018,10 @@ function SearchPageContent() {
     }
   }
 
-  // No loading screen needed - search page loads instantly
+  // Block rendering until auth check completes (prevents bfcache bypass)
+  if (!isAuthenticated) {
+    return null
+  }
 
   if (error) {
     return (

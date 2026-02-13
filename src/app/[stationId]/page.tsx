@@ -209,6 +209,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     deleted_by_type: string
   }[]>([])
   const [restoringWheel, setRestoringWheel] = useState<string | null>(null)
+  const [dismissedDeletedBanner, setDismissedDeletedBanner] = useState(false)
 
   // WhatsApp share modal
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
@@ -1953,7 +1954,7 @@ ${formUrl}`
         {station.address && <p style={styles.stationAddress}>📍 {station.address}</p>}
 
         {/* Deleted wheels restore banner */}
-        {isManager && deletedWheels.length > 0 && (
+        {isManager && deletedWheels.length > 0 && !dismissedDeletedBanner && (
           <div style={{
             background: 'linear-gradient(135deg, #fef2f2, #fff7ed)',
             border: '2px solid #f87171',
@@ -1961,11 +1962,25 @@ ${formUrl}`
             padding: '16px',
             marginBottom: '16px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              <span style={{ fontSize: '1.2rem' }}>⚠️</span>
-              <span style={{ fontWeight: 700, color: '#dc2626', fontSize: '1rem' }}>
-                {deletedWheels.length === 1 ? 'גלגל נמחק' : `${deletedWheels.length} גלגלים נמחקו`} על ידי מנהל עליון
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.2rem' }}>⚠️</span>
+                <span style={{ fontWeight: 700, color: '#dc2626', fontSize: '1rem' }}>
+                  {deletedWheels.length === 1 ? 'גלגל נמחק' : `${deletedWheels.length} גלגלים נמחקו`}
+                </span>
+              </div>
+              <button
+                onClick={() => setDismissedDeletedBanner(true)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: '1.2rem', color: '#9ca3af', padding: '4px',
+                  lineHeight: 1, minHeight: '32px', minWidth: '32px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+                title="הסתר"
+              >
+                ✕
+              </button>
             </div>
             {deletedWheels.map(wheel => {
               const deletedDate = new Date(wheel.deleted_at)
