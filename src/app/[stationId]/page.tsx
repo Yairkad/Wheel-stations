@@ -117,7 +117,7 @@ interface WheelForm {
 }
 
 type ViewMode = 'cards' | 'table'
-type PageTab = 'wheels' | 'tracking'
+type PageTab = 'wheels' | 'tracking' | 'alerts'
 
 export default function StationPage({ params }: { params: Promise<{ stationId: string }> }) {
   const { stationId } = use(params)
@@ -209,7 +209,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     deleted_by_type: string
   }[]>([])
   const [restoringWheel, setRestoringWheel] = useState<string | null>(null)
-  const [dismissedDeletedBanner, setDismissedDeletedBanner] = useState(false)
+  const [dismissedDeletedIds, setDismissedDeletedIds] = useState<Set<string>>(new Set())
+  const [dismissedLoanIds, setDismissedLoanIds] = useState<Set<string>>(new Set())
 
   // WhatsApp share modal
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
@@ -357,10 +358,23 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     validateSession()
   }, [stationId])
 
-  // Fetch deleted wheels when manager is logged in
+  // Fetch deleted wheels when manager is logged in + load dismissed IDs from localStorage
   useEffect(() => {
     if (isManager) {
       fetchDeletedWheels()
+      // Load dismissed IDs from localStorage
+      const dismissedDeleted = new Set<string>()
+      const dismissedLoans = new Set<string>()
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith(`dismissed_deleted_${stationId}_`)) {
+          dismissedDeleted.add(key.replace(`dismissed_deleted_${stationId}_`, ''))
+        }
+        if (key.startsWith(`dismissed_loan_${stationId}_`)) {
+          dismissedLoans.add(key.replace(`dismissed_loan_${stationId}_`, ''))
+        }
+      })
+      setDismissedDeletedIds(dismissedDeleted)
+      setDismissedLoanIds(dismissedLoans)
     }
   }, [isManager, stationId])
 
@@ -480,7 +494,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
 
   // Fetch borrows when tab changes or filter changes
   useEffect(() => {
-    if (activeTab === 'tracking' && isManager) {
+    if ((activeTab === 'tracking' || activeTab === 'alerts') && isManager) {
       fetchBorrows()
     }
   }, [activeTab, borrowFilter, isManager])
@@ -488,6 +502,13 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   // Handle URL action parameter to open modals from header menu
   useEffect(() => {
     if (!isManager) return
+
+    // Handle tab parameter (e.g., ?tab=alerts from bell icon)
+    const tab = searchParams.get('tab')
+    if (tab === 'alerts') {
+      setActiveTab('alerts')
+      router.replace(`/${stationId}`, { scroll: false })
+    }
 
     const action = searchParams.get('action')
     if (action) {
@@ -770,6 +791,28 @@ ${signFormUrl}
     } finally {
       setRestoringWheel(null)
     }
+  }
+
+  // Alert count computation
+  const overdueBorrows = borrows.filter(b => {
+    if (b.status !== 'borrowed') return false
+    const borrowDate = new Date(b.borrow_date || b.created_at)
+    const daysSince = Math.floor((Date.now() - borrowDate.getTime()) / (1000 * 60 * 60 * 24))
+    return daysSince >= 7
+  })
+
+  const undismissedDeletedCount = deletedWheels.filter(w => !dismissedDeletedIds.has(w.id)).length
+  const undismissedLoanCount = overdueBorrows.filter(b => !dismissedLoanIds.has(b.id)).length
+  const alertCount = undismissedDeletedCount + undismissedLoanCount
+
+  const handleDismissDeleted = (wheelId: string) => {
+    localStorage.setItem(`dismissed_deleted_${stationId}_${wheelId}`, '1')
+    setDismissedDeletedIds(prev => new Set(prev).add(wheelId))
+  }
+
+  const handleDismissLoan = (borrowId: string) => {
+    localStorage.setItem(`dismissed_loan_${stationId}_${borrowId}`, '1')
+    setDismissedLoanIds(prev => new Set(prev).add(borrowId))
   }
 
   // Manager login - verify phone + password via API
@@ -1739,7 +1782,7 @@ ${formUrl}`
 
   return (
     <>
-    <AppHeader currentStationId={stationId} />
+    <AppHeader currentStationId={stationId} notificationCount={alertCount} />
     <div style={styles.container}>
       <style>{`
         /* Desktop styles for Add Wheel Modal */
@@ -1953,74 +1996,22 @@ ${formUrl}`
         </div>
         {station.address && <p style={styles.stationAddress}>📍 {station.address}</p>}
 
-        {/* Deleted wheels restore banner */}
-        {isManager && deletedWheels.length > 0 && !dismissedDeletedBanner && (
-          <div style={{
-            background: 'linear-gradient(135deg, #fef2f2, #fff7ed)',
-            border: '2px solid #f87171',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1.2rem' }}>⚠️</span>
-                <span style={{ fontWeight: 700, color: '#dc2626', fontSize: '1rem' }}>
-                  {deletedWheels.length === 1 ? 'גלגל נמחק' : `${deletedWheels.length} גלגלים נמחקו`}
-                </span>
-              </div>
-              <button
-                onClick={() => setDismissedDeletedBanner(true)}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: '1.2rem', color: '#9ca3af', padding: '4px',
-                  lineHeight: 1, minHeight: '32px', minWidth: '32px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}
-                title="הסתר"
-              >
-                ✕
-              </button>
-            </div>
-            {deletedWheels.map(wheel => {
-              const deletedDate = new Date(wheel.deleted_at)
-              const restoreDeadline = new Date(deletedDate)
-              restoreDeadline.setDate(restoreDeadline.getDate() + 14)
-              const daysLeft = Math.ceil((restoreDeadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-
-              return (
-                <div key={wheel.id} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  background: 'white', borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
-                  border: '1px solid #fecaca'
-                }}>
-                  <div>
-                    <span style={{ fontWeight: 600, color: '#1f2937' }}>
-                      גלגל #{wheel.wheel_number}
-                    </span>
-                    <span style={{ color: '#6b7280', marginRight: '8px', fontSize: '0.85rem' }}>
-                      {wheel.bolt_count}x{wheel.bolt_spacing} R{wheel.rim_size}
-                    </span>
-                    <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '2px' }}>
-                      נמחק ע&quot;י {wheel.deleted_by_name} · {deletedDate.toLocaleDateString('he-IL')} · נותרו {daysLeft} ימים לשחזור
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRestoreWheel(wheel.id)}
-                    disabled={restoringWheel === wheel.id}
-                    style={{
-                      background: '#10b981', color: 'white', border: 'none',
-                      padding: '8px 16px', borderRadius: '8px', cursor: 'pointer',
-                      fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap',
-                      opacity: restoringWheel === wheel.id ? 0.6 : 1
-                    }}
-                  >
-                    {restoringWheel === wheel.id ? 'משחזר...' : '↩️ שחזר'}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
+        {/* Mini alert bar - replaces the old full banner */}
+        {isManager && alertCount > 0 && activeTab !== 'alerts' && (
+          <button
+            onClick={() => setActiveTab('alerts')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'linear-gradient(135deg, #fef2f2, #fff7ed)',
+              border: '1px solid #f87171', borderRadius: '10px',
+              padding: '10px 16px', marginBottom: '12px', cursor: 'pointer',
+              width: '100%', fontSize: '0.9rem', color: '#dc2626', fontWeight: 600
+            }}
+          >
+            <span>⚠️</span>
+            <span>{alertCount} התראות חדשות</span>
+            <span style={{ marginRight: 'auto', color: '#9ca3af', fontSize: '0.8rem' }}>עבור להתראות ←</span>
+          </button>
         )}
 
         {/* Tab Navigation - only show tracking tab for managers */}
@@ -2039,6 +2030,15 @@ ${formUrl}`
               📊 מעקב השאלות
               {borrowStats.pending > 0 && (
                 <span style={styles.pendingIndicator}>{borrowStats.pending}</span>
+              )}
+            </button>
+            <button
+              style={{...styles.tabBtn, ...(activeTab === 'alerts' ? styles.tabBtnActive : {}), position: 'relative'}}
+              onClick={() => setActiveTab('alerts')}
+            >
+              🔔 התראות
+              {alertCount > 0 && (
+                <span style={styles.pendingIndicator}>{alertCount}</span>
               )}
             </button>
           </div>
@@ -2414,6 +2414,153 @@ ${formUrl}`
             </div>
           )}
 
+        </div>
+      )}
+
+      {/* Alerts Tab Content */}
+      {activeTab === 'alerts' && isManager && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Deleted Wheels Section */}
+          {deletedWheels.length > 0 && (
+            <div style={{
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: '12px',
+              padding: '16px',
+              border: '1px solid rgba(248,113,113,0.3)'
+            }}>
+              <h3 style={{ color: '#f87171', margin: '0 0 12px 0', fontSize: '1rem' }}>
+                🗑️ גלגלים שנמחקו ({deletedWheels.length})
+              </h3>
+              {[...deletedWheels]
+                .sort((a, b) => {
+                  const aDismissed = dismissedDeletedIds.has(a.id) ? 1 : 0
+                  const bDismissed = dismissedDeletedIds.has(b.id) ? 1 : 0
+                  return aDismissed - bDismissed
+                })
+                .map(wheel => {
+                const isDismissed = dismissedDeletedIds.has(wheel.id)
+                const deletedDate = new Date(wheel.deleted_at)
+                const restoreDeadline = new Date(deletedDate)
+                restoreDeadline.setDate(restoreDeadline.getDate() + 14)
+                const daysLeft = Math.ceil((restoreDeadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+
+                return (
+                  <div key={wheel.id} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    background: isDismissed ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.08)',
+                    borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
+                    border: isDismissed ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(248,113,113,0.2)',
+                    opacity: isDismissed ? 0.5 : 1
+                  }}>
+                    <div>
+                      <span style={{ fontWeight: 600, color: '#e2e8f0' }}>
+                        גלגל #{wheel.wheel_number}
+                      </span>
+                      <span style={{ color: '#94a3b8', marginRight: '8px', fontSize: '0.85rem' }}>
+                        {wheel.bolt_count}x{wheel.bolt_spacing} R{wheel.rim_size}
+                      </span>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                        נמחק ע&quot;י {wheel.deleted_by_name} · {deletedDate.toLocaleDateString('he-IL')} · נותרו {daysLeft} ימים לשחזור
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                      <button
+                        onClick={() => handleRestoreWheel(wheel.id)}
+                        disabled={restoringWheel === wheel.id}
+                        style={{
+                          background: '#10b981', color: 'white', border: 'none',
+                          padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                          fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap',
+                          opacity: restoringWheel === wheel.id ? 0.6 : 1
+                        }}
+                      >
+                        {restoringWheel === wheel.id ? '...' : '↩️ שחזר'}
+                      </button>
+                      {!isDismissed && (
+                        <button
+                          onClick={() => handleDismissDeleted(wheel.id)}
+                          style={{
+                            background: 'rgba(255,255,255,0.1)', color: '#94a3b8', border: 'none',
+                            padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                            fontSize: '0.8rem', whiteSpace: 'nowrap'
+                          }}
+                        >
+                          ראיתי ✓
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Overdue Loans Section */}
+          {overdueBorrows.length > 0 && (
+            <div style={{
+              background: 'rgba(255,255,255,0.05)',
+              borderRadius: '12px',
+              padding: '16px',
+              border: '1px solid rgba(251,191,36,0.3)'
+            }}>
+              <h3 style={{ color: '#fbbf24', margin: '0 0 12px 0', fontSize: '1rem' }}>
+                ⏰ השאלות ארוכות ({overdueBorrows.length})
+              </h3>
+              {[...overdueBorrows]
+                .sort((a, b) => {
+                  const aDismissed = dismissedLoanIds.has(a.id) ? 1 : 0
+                  const bDismissed = dismissedLoanIds.has(b.id) ? 1 : 0
+                  return aDismissed - bDismissed
+                })
+                .map(borrow => {
+                const isDismissed = dismissedLoanIds.has(borrow.id)
+                const borrowDate = new Date(borrow.borrow_date || borrow.created_at)
+                const daysSince = Math.floor((Date.now() - borrowDate.getTime()) / (1000 * 60 * 60 * 24))
+
+                return (
+                  <div key={borrow.id} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    background: isDismissed ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.08)',
+                    borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
+                    border: isDismissed ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(251,191,36,0.2)',
+                    opacity: isDismissed ? 0.5 : 1
+                  }}>
+                    <div>
+                      <span style={{ fontWeight: 600, color: '#e2e8f0' }}>
+                        גלגל #{borrow.wheels?.wheel_number || '?'}
+                      </span>
+                      <span style={{ color: '#94a3b8', marginRight: '8px', fontSize: '0.85rem' }}>
+                        {borrow.wheels ? `${borrow.wheels.bolt_count}x${borrow.wheels.bolt_spacing} R${borrow.wheels.rim_size}` : ''}
+                      </span>
+                      <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                        מושאל ל{borrow.borrower_name} · {borrow.borrower_phone} · {daysSince} ימים
+                      </div>
+                    </div>
+                    {!isDismissed && (
+                      <button
+                        onClick={() => handleDismissLoan(borrow.id)}
+                        style={{
+                          background: 'rgba(255,255,255,0.1)', color: '#94a3b8', border: 'none',
+                          padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                          fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0
+                        }}
+                      >
+                        ראיתי ✓
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {deletedWheels.length === 0 && overdueBorrows.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
+              <span style={{ fontSize: '2rem', display: 'block', marginBottom: '10px' }}>✅</span>
+              <p>אין התראות כרגע</p>
+            </div>
+          )}
         </div>
       )}
 

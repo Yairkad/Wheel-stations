@@ -22,9 +22,10 @@ interface UserSession {
 
 interface AppHeaderProps {
   currentStationId?: string
+  notificationCount?: number
 }
 
-export default function AppHeader({ currentStationId }: AppHeaderProps) {
+export default function AppHeader({ currentStationId, notificationCount }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [userSession, setUserSession] = useState<UserSession | null>(null)
@@ -459,6 +460,20 @@ export default function AppHeader({ currentStationId }: AppHeaderProps) {
             <span className="btn-text-full">חיפוש רכב</span>
             <span className="btn-text-short" style={{display: 'none'}}>חיפוש</span>
           </Link>
+
+          {/* Alerts Bell - only when there are notifications */}
+          {notificationCount !== undefined && notificationCount > 0 && userSession?.stationId && (
+            <Link
+              href={`/${userSession.stationId}?tab=alerts`}
+              className="app-header-btn"
+              style={{...styles.btn, ...styles.btnAlerts, position: 'relative'}}
+            >
+              <span>🔔</span>
+              <span className="btn-text-full">התראות</span>
+              <span className="btn-text-short" style={{display: 'none'}}>התראות</span>
+              <span style={styles.alertBadge}>{notificationCount}</span>
+            </Link>
+          )}
         </div>
       </header>
       {/* Spacer to push content below fixed header */}
@@ -514,6 +529,25 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   btnStations: {
     background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+  },
+  btnAlerts: {
+    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+  },
+  alertBadge: {
+    position: 'absolute' as const,
+    top: '-6px',
+    left: '-6px',
+    background: '#ec4899',
+    color: 'white',
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    minWidth: '18px',
+    height: '18px',
+    borderRadius: '9px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0 4px',
   },
   btnActive: {
     boxShadow: '0 0 0 2px white',

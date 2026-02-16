@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Process results: calculate CB difference and match level
+    // Donor CB must be >= target CB (wheel hole must be at least as big as the hub)
     const results = (data || []).map(vehicle => {
       const vehicleCB = vehicle.center_bore
       let cb_difference: number | null = null
@@ -47,14 +48,19 @@ export async function GET(request: NextRequest) {
 
       if (targetCB != null && vehicleCB != null) {
         cb_difference = Math.round((vehicleCB - targetCB) * 10) / 10
-        const absDiff = Math.abs(cb_difference)
 
-        if (absDiff <= 0.5) {
-          match_level = 'exact'
-        } else if (absDiff <= 3) {
-          match_level = 'with_ring'
+        // Donor CB smaller than target = won't physically fit, skip entirely
+        if (cb_difference < -0.5) {
+          return null
         } else {
-          match_level = 'technical'
+          const absDiff = Math.abs(cb_difference)
+          if (absDiff <= 0.5) {
+            match_level = 'exact'
+          } else if (absDiff <= 3) {
+            match_level = 'with_ring'
+          } else {
+            match_level = 'technical'
+          }
         }
       }
       // If either CB is null, treat as exact (unknown = compatible)
@@ -64,16 +70,19 @@ export async function GET(request: NextRequest) {
         cb_difference,
         match_level
       }
-    })
+    }).filter(v => v !== null)
 
-    // Filter by rim size if provided
-    const filtered = rim_size
-      ? results.filter(v => {
-          if (v.rim_size === rim_size) return true
-          if (v.rim_sizes_allowed && v.rim_sizes_allowed.includes(parseInt(rim_size))) return true
-          return false
-        })
-      : results
+    // Filter by rim size - donors must have a compatible rim size
+    const targetRimSize = rim_size ? parseInt(rim_size) : null
+    const filtered = results.filter(v => {
+      // If no target rim size provided, skip rim filter
+      if (!targetRimSize) return true
+      // Check if donor's rim sizes include the target
+      const donorRimSize = v.rim_size ? parseInt(v.rim_size) : null
+      const donorRimSizes = v.rim_sizes_allowed || (donorRimSize ? [donorRimSize] : [])
+      // Target vehicle needs a wheel of its rim size - donor must support it
+      return donorRimSizes.includes(targetRimSize)
+    })
 
     // Sort: exact first, then with_ring, then technical. Within each level, sort by CB difference
     const levelOrder: Record<string, number> = { exact: 0, with_ring: 1, technical: 2 }
