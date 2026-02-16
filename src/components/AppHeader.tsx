@@ -246,7 +246,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
         }
         @media all and (display-mode: standalone) {
           .app-header {
-            padding-top: env(safe-area-inset-top, 12px) !important;
+            padding-top: max(12px, env(safe-area-inset-top, 12px)) !important;
           }
           .app-header-spacer {
             height: calc(70px + env(safe-area-inset-top, 0px)) !important;
