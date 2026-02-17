@@ -207,6 +207,12 @@ function SearchPageContent() {
       return
     }
 
+    // If only operator session exists (no station session), redirect to operator page
+    if (hasOperatorSession && !hasStationSession && !hasOldSession) {
+      window.location.href = '/operator'
+      return
+    }
+
     setIsAuthenticated(true)
     // User is logged in - load stations
     fetchStations()
