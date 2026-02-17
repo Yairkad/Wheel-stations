@@ -165,7 +165,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
   // Check if current page is user's own station
   const isOwnStation = currentStationId && userSession?.stationId === currentStationId
   const isOnStationsPage = pathname === '/' || pathname === '/stations'
-  const isOnSearchPage = pathname === '/search'
+  const isOnSearchPage = pathname === '/' || pathname === '/search'
 
   // Get user initials for avatar
   const getUserInitials = (fullName: string | undefined) => {
@@ -305,7 +305,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
                     {(isOwnStation || isOnStationsPage || isOnSearchPage) && (
                       <>
                         <Link
-                          href={`/search?from=${userSession.stationId}`}
+                          href={`/?from=${userSession.stationId}`}
                           style={styles.dropdownItem}
                           onClick={() => setShowProfileMenu(false)}
                         >
@@ -455,7 +455,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
           </Link>
 
           {/* Search Button */}
-          <Link href="/search" className="app-header-btn" style={{...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {})}}>
+          <Link href="/" className="app-header-btn" style={{...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {})}}>
             <span>🔍</span>
             <span className="btn-text-full">חיפוש רכב</span>
             <span className="btn-text-short" style={{display: 'none'}}>חיפוש</span>

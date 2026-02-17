@@ -3,7 +3,12 @@
  * Districts are now stored in the database and can be managed dynamically
  */
 
-import { supabase } from './supabase'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export interface District {
   id: string

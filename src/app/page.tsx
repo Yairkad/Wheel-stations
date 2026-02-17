@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
@@ -40,6 +41,7 @@ interface SearchResult {
     rim_size: string
     bolt_count: number
     bolt_spacing: number
+    center_bore?: number | null
     is_donut: boolean
     is_available: boolean
   }[]
@@ -51,11 +53,34 @@ interface FilterOptions {
   rim_sizes: string[]
   bolt_counts: number[]
   bolt_spacings: number[]
+  center_bores: number[]
 }
 
-export default function WheelStationsPage() {
+interface VehicleModelRecord {
+  id: string
+  make: string
+  make_he?: string | null
+  model: string
+  variants?: string | null
+  year_from?: number | null
+  year_to?: number | null
+  bolt_count: number
+  bolt_spacing: number
+  center_bore?: number | null
+  rim_size?: string | null
+  rim_sizes_allowed?: number[] | null
+  tire_size_front?: string | null
+  source_url?: string | null
+  source?: string | null
+}
+
+function SearchPageContent() {
+  const searchParams = useSearchParams()
+  const fromStationId = searchParams.get('from')
+
   const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [districts, setDistricts] = useState<District[]>([])
 
@@ -71,6 +96,7 @@ export default function WheelStationsPage() {
     rim_size: '',
     bolt_count: '',
     bolt_spacing: '',
+    center_bore: '',
     district: '',
     available_only: true
   })
@@ -99,6 +125,7 @@ export default function WheelStationsPage() {
       rim_sizes_allowed?: number[]
       source_url?: string
     } | null
+    source?: string // 'regular' | 'personal_import' | 'find_car_scrape' | 'local_db'
     is_personal_import?: boolean
     personal_import_warning?: string
   } | null>(null)
@@ -117,6 +144,10 @@ export default function WheelStationsPage() {
   const [showModelMakeSuggestions, setShowModelMakeSuggestions] = useState(false)
   const [showModelModelSuggestions, setShowModelModelSuggestions] = useState(false)
   const [modelSearchErrors, setModelSearchErrors] = useState<{make: boolean, model: boolean, year: boolean}>({make: false, model: false, year: false})
+
+  // Multiple matching models state
+  const [matchingModels, setMatchingModels] = useState<VehicleModelRecord[]>([])
+  const [showModelSelectionModal, setShowModelSelectionModal] = useState(false)
 
   // Add vehicle model modal state
   const [showAddModelModal, setShowAddModelModal] = useState(false)
@@ -176,17 +207,16 @@ export default function WheelStationsPage() {
       return
     }
 
-    // If only operator session exists (no station session), redirect to operator page
-    if (hasOperatorSession && !hasStationSession && !hasOldSession) {
-      window.location.href = '/operator'
-      return
-    }
-
-    // User is logged in as station manager - load stations
+    setIsAuthenticated(true)
+    // User is logged in - load stations
     fetchStations()
     fetchDistrictsData()
     // Check if manager is logged in from localStorage
+    // Check multiple session types: vehicle_db_manager, call_center_session, operator_session
     const savedManager = localStorage.getItem('vehicle_db_manager')
+    const callCenterSession = localStorage.getItem('call_center_session')
+    const operatorSession = localStorage.getItem('operator_session')
+
     if (savedManager) {
       try {
         const { phone } = JSON.parse(savedManager)
@@ -194,6 +224,33 @@ export default function WheelStationsPage() {
         setManagerPhone(phone)
       } catch {
         localStorage.removeItem('vehicle_db_manager')
+      }
+    } else if (callCenterSession) {
+      // Manager logged in via call center page
+      try {
+        const { user, role } = JSON.parse(callCenterSession)
+        if (role === 'manager' && user?.phone) {
+          setIsManagerLoggedIn(true)
+          setManagerPhone(user.phone)
+        }
+      } catch {
+        // Invalid session, ignore
+      }
+    } else if (operatorSession) {
+      // Check if operator is actually a manager
+      try {
+        const data = JSON.parse(operatorSession)
+        // Check for new format from login page (managers can also work as operators)
+        if (data.role === 'manager' && data.user?.phone) {
+          setIsManagerLoggedIn(true)
+          setManagerPhone(data.user.phone)
+        } else if (data.is_manager && data.operator?.phone) {
+          // Old format
+          setIsManagerLoggedIn(true)
+          setManagerPhone(data.operator.phone)
+        }
+      } catch {
+        // Invalid session, ignore
       }
     }
   }, [])
@@ -237,7 +294,7 @@ export default function WheelStationsPage() {
 
   const handleSearch = async () => {
     // Need at least one filter
-    if (!searchFilters.rim_size && !searchFilters.bolt_count && !searchFilters.bolt_spacing) {
+    if (!searchFilters.rim_size && !searchFilters.bolt_count && !searchFilters.bolt_spacing && !searchFilters.center_bore) {
       toast.error('נא לבחור לפחות פילטר אחד')
       return
     }
@@ -248,6 +305,7 @@ export default function WheelStationsPage() {
       if (searchFilters.rim_size) params.append('rim_size', searchFilters.rim_size)
       if (searchFilters.bolt_count) params.append('bolt_count', searchFilters.bolt_count)
       if (searchFilters.bolt_spacing) params.append('bolt_spacing', searchFilters.bolt_spacing)
+      if (searchFilters.center_bore) params.append('center_bore', searchFilters.center_bore)
       if (searchFilters.district) params.append('district', searchFilters.district)
       if (searchFilters.available_only) params.append('available_only', 'true')
 
@@ -288,6 +346,7 @@ export default function WheelStationsPage() {
       rim_size: '',
       bolt_count: '',
       bolt_spacing: '',
+      center_bore: '',
       district: '',
       available_only: true
     })
@@ -406,15 +465,34 @@ export default function WheelStationsPage() {
       let wheelFitment = null
 
       if (localData.models && localData.models.length > 0) {
-        // Found in local DB
-        const model = localData.models[0]
+        const models = localData.models as VehicleModelRecord[]
+
+        // Group by unique PCD (bolt_count x bolt_spacing) + center_bore
+        const uniqueSpecs = new Map<string, VehicleModelRecord>()
+        models.forEach(m => {
+          const specKey = `${m.bolt_count}x${m.bolt_spacing}-${m.center_bore || 'null'}`
+          if (!uniqueSpecs.has(specKey)) {
+            uniqueSpecs.set(specKey, m)
+          }
+        })
+
+        // If more than one unique spec, show selection modal
+        if (uniqueSpecs.size > 1) {
+          setMatchingModels(Array.from(uniqueSpecs.values()))
+          setShowModelSelectionModal(true)
+          setModelSearchLoading(false)
+          return
+        }
+
+        // Found in local DB - single result
+        const model = models[0]
         wheelFitment = {
           pcd: `${model.bolt_count}×${model.bolt_spacing}`,
           bolt_count: model.bolt_count,
           bolt_spacing: model.bolt_spacing,
-          center_bore: model.center_bore,
-          rim_sizes_allowed: model.rim_sizes_allowed,
-          source_url: model.source_url
+          center_bore: model.center_bore || undefined,
+          rim_sizes_allowed: model.rim_sizes_allowed || undefined,
+          source_url: model.source_url || undefined
         }
         setVehicleResult({
           vehicle: {
@@ -424,7 +502,8 @@ export default function WheelStationsPage() {
             color: '',
             front_tire: model.tire_size_front || ''
           },
-          wheel_fitment: wheelFitment
+          wheel_fitment: wheelFitment,
+          source: 'local_db' // From our local database
         })
       }
 
@@ -447,6 +526,77 @@ export default function WheelStationsPage() {
       setVehicleError('שגיאה בחיפוש')
     } finally {
       setModelSearchLoading(false)
+    }
+  }
+
+  // Handle model selection when multiple models match
+  const handleVehicleModelSelect = async (selectedModel: VehicleModelRecord) => {
+    setShowModelSelectionModal(false)
+    setMatchingModels([])
+    setModelSearchLoading(true)
+
+    try {
+      const wheelFitment = {
+        pcd: `${selectedModel.bolt_count}×${selectedModel.bolt_spacing}`,
+        bolt_count: selectedModel.bolt_count,
+        bolt_spacing: selectedModel.bolt_spacing,
+        center_bore: selectedModel.center_bore || undefined,
+        rim_sizes_allowed: selectedModel.rim_sizes_allowed || undefined,
+        source_url: selectedModel.source_url || undefined
+      }
+
+      setVehicleResult({
+        vehicle: {
+          manufacturer: selectedModel.make,
+          model: selectedModel.model,
+          year: parseInt(modelSearchYear) || selectedModel.year_from || 0,
+          color: '',
+          front_tire: selectedModel.tire_size_front || ''
+        },
+        wheel_fitment: wheelFitment,
+        source: 'local_db'
+      })
+
+      // Search for matching wheels
+      const params = new URLSearchParams()
+      params.set('bolt_count', wheelFitment.bolt_count.toString())
+      params.set('bolt_spacing', wheelFitment.bolt_spacing.toString())
+      params.set('available_only', 'true')
+
+      const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json()
+        setVehicleSearchResults(searchData.results)
+      }
+    } catch {
+      setVehicleError('שגיאה בחיפוש')
+    } finally {
+      setModelSearchLoading(false)
+    }
+  }
+
+  // Report error for incorrect vehicle model
+  const handleReportVehicleModelError = async (model: VehicleModelRecord) => {
+    try {
+      const res = await fetch('/api/error-reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicle_model_id: model.id,
+          make: model.make,
+          model: model.model,
+          year_from: model.year_from,
+          notes: `דיווח על מידע שגוי/כפול. PCD: ${model.bolt_count}×${model.bolt_spacing}, CB: ${model.center_bore || 'לא צוין'}`
+        })
+      })
+
+      if (res.ok) {
+        toast.success('הדיווח נשלח בהצלחה')
+      } else {
+        toast.error('שגיאה בשליחת הדיווח')
+      }
+    } catch {
+      toast.error('שגיאה בשליחת הדיווח')
     }
   }
 
@@ -868,51 +1018,9 @@ export default function WheelStationsPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <style>{`
-          @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-          }
-          .skeleton {
-            background: linear-gradient(90deg, #3d4a5c 25%, #4b5a6e 50%, #3d4a5c 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 8px;
-          }
-        `}</style>
-        <header style={styles.header}>
-          <img
-            src="/logo.wheels.png"
-            alt="טוען..."
-            style={styles.loadingLogo}
-          />
-          <h1 style={styles.title}>תחנות השאלת גלגלים</h1>
-          <p style={styles.subtitle}>טוען תחנות...</p>
-        </header>
-        <div style={styles.grid}>
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} style={{...styles.card, cursor: 'default'}}>
-              <div className="skeleton" style={{ height: '24px', width: '70%', marginBottom: '15px' }}></div>
-              <div className="skeleton" style={{ height: '16px', width: '90%', marginBottom: '10px' }}></div>
-              <div className="skeleton" style={{ height: '14px', width: '50%', marginBottom: '20px' }}></div>
-              <div style={{ display: 'flex', justifyContent: 'space-around', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div className="skeleton" style={{ height: '32px', width: '50px', margin: '0 auto 8px' }}></div>
-                  <div className="skeleton" style={{ height: '12px', width: '60px' }}></div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div className="skeleton" style={{ height: '32px', width: '50px', margin: '0 auto 8px' }}></div>
-                  <div className="skeleton" style={{ height: '12px', width: '60px' }}></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
+  // Block rendering until auth check completes (prevents bfcache bypass)
+  if (!isAuthenticated) {
+    return null
   }
 
   if (error) {
@@ -1003,7 +1111,8 @@ export default function WheelStationsPage() {
           animation: spin 0.8s linear infinite;
           display: inline-block;
         }
-        @media (max-width: 600px) {
+        /* Tablet breakpoint (768px) */
+        @media (max-width: 768px) {
           .wheels-search-btn {
             padding: 12px 20px !important;
             font-size: 0.9rem !important;
@@ -1020,8 +1129,45 @@ export default function WheelStationsPage() {
           }
           .wheels-vehicle-modal {
             max-width: calc(100vw - 30px) !important;
-            padding: 15px !important;
+            padding: 18px !important;
             max-height: 90vh !important;
+          }
+          .wheels-search-modal {
+            padding: 18px !important;
+            max-width: calc(100vw - 30px) !important;
+            max-height: 90vh !important;
+          }
+          .wheels-add-model-modal {
+            max-width: calc(100vw - 30px) !important;
+            max-height: 90vh !important;
+          }
+          .wheels-add-model-modal .wheels-form-row {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .wheels-add-model-modal .wheels-form-section {
+            padding: 14px !important;
+          }
+          .wheels-modal-title {
+            font-size: 1.15rem !important;
+          }
+        }
+        /* Mobile breakpoint (480px) */
+        @media (max-width: 480px) {
+          .wheels-search-btn {
+            padding: 10px 16px !important;
+            font-size: 0.85rem !important;
+          }
+          .wheels-header-title {
+            font-size: 1.5rem !important;
+          }
+          .wheels-header-icon {
+            width: 70px !important;
+            height: 70px !important;
+          }
+          .wheels-vehicle-modal {
+            padding: 15px !important;
+            max-width: calc(100vw - 20px) !important;
           }
           .wheels-vehicle-modal .wheels-fitment-badges {
             flex-direction: column !important;
@@ -1037,125 +1183,69 @@ export default function WheelStationsPage() {
           }
           .wheels-search-modal {
             padding: 15px !important;
-            max-width: calc(100vw - 30px) !important;
-            max-height: 90vh !important;
+            max-width: calc(100vw - 20px) !important;
           }
           .wheels-add-model-modal {
-            padding: 15px !important;
-            max-width: calc(100vw - 30px) !important;
-            max-height: 90vh !important;
+            max-width: calc(100vw - 20px) !important;
+            border-radius: 16px !important;
+          }
+          .wheels-add-model-modal .wheels-form-row {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+          .wheels-add-model-modal .wheels-modal-header {
+            padding: 16px 18px !important;
+          }
+          .wheels-add-model-modal .wheels-form-content {
+            padding: 16px 18px 20px !important;
+            gap: 16px !important;
+          }
+          .wheels-add-model-modal .wheels-form-section {
+            padding: 12px !important;
+          }
+          .wheels-add-model-modal .wheels-form-actions {
+            flex-direction: column !important;
+          }
+          .wheels-add-model-modal .wheels-form-actions button {
+            width: 100% !important;
           }
           .wheels-modal-title {
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
           }
         }
       `}</style>
-      <header style={styles.header}>
-        <img
-          src="/logo.wheels.png"
-          alt="לוגו גלגלים"
-          style={styles.headerLogo}
-          className="wheels-header-icon"
-        />
-        <h1 style={styles.title} className="wheels-header-title">תחנות השאלת גלגלים</h1>
-        <p style={styles.subtitle}>בחר תחנה כדי לראות את המלאי הזמין</p>
-      </header>
-
-      {/* Station Filter */}
-      <div style={styles.stationFilterContainer}>
-        <input
-          type="text"
-          placeholder="חיפוש תחנה לפי שם עיר או מנהל..."
-          value={stationFilter}
-          onChange={(e) => setStationFilter(e.target.value)}
-          style={styles.stationFilterInput}
-          className="wheels-station-filter"
-        />
-        {stationFilter && (
-          <button
-            onClick={() => setStationFilter('')}
-            style={styles.clearFilterBtn}
-            aria-label="נקה חיפוש"
-          >
-            ✕
-          </button>
-        )}
-      </div>
-
-      {stations.filter(station => {
-        if (!stationFilter.trim()) return true
-        const searchLower = stationFilter.toLowerCase()
-        const cityName = station.cities?.name?.toLowerCase() || ''
-        const stationName = station.name?.toLowerCase() || ''
-        const managerNames = station.wheel_station_managers?.map(m => m.full_name?.toLowerCase() || '').join(' ') || ''
-        return cityName.includes(searchLower) || stationName.includes(searchLower) || managerNames.includes(searchLower)
-      }).length === 0 ? (
-        <div style={styles.empty}>
-          <p>{stationFilter ? 'לא נמצאו תחנות התואמות לחיפוש' : 'אין תחנות זמינות כרגע'}</p>
-        </div>
-      ) : (
-        <div style={styles.grid}>
-          {stations.filter(station => {
-            if (!stationFilter.trim()) return true
-            const searchLower = stationFilter.toLowerCase()
-            const cityName = station.cities?.name?.toLowerCase() || ''
-            const stationName = station.name?.toLowerCase() || ''
-            const managerNames = station.wheel_station_managers?.map(m => m.full_name?.toLowerCase() || '').join(' ') || ''
-            return cityName.includes(searchLower) || stationName.includes(searchLower) || managerNames.includes(searchLower)
-          }).map(station => (
-            <Link
-              key={station.id}
-              href={`/${station.id}`}
-              style={styles.card}
-              className="wheels-card"
-              aria-label={`תחנת ${station.name} - ${station.availableWheels} גלגלים זמינים מתוך ${station.totalWheels}`}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <h3 style={{...styles.cardTitle, margin: 0}}>
-                  {station.name}
-                </h3>
-                {station.district && (
-                  <div style={{
-                    display: 'inline-block',
-                    padding: '2px 6px',
-                    border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
-                    borderRadius: '4px',
-                    fontSize: '0.7rem',
-                    fontWeight: '600',
-                    color: getDistrictColor(station.district, districts),
-                    backgroundColor: `${getDistrictColor(station.district, districts)}15`,
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0
-                  }}>
-                    {getDistrictName(station.district, districts)}
-                  </div>
-                )}
-              </div>
-              {station.address && (
-                <div style={styles.address}>📍 {station.address}</div>
-              )}
-              {station.cities?.name && (
-                <div style={styles.cityName}>{station.cities.name}</div>
-              )}
-              <div style={styles.stats}>
-                <div style={styles.stat}>
-                  <div style={styles.statValue}>{station.totalWheels}</div>
-                  <div style={styles.statLabel}>סה"כ גלגלים</div>
-                </div>
-                <div style={styles.stat}>
-                  <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
-                  <div style={styles.statLabel}>זמינים</div>
-                </div>
-              </div>
-              {station.wheel_station_managers.length > 0 && (
-                <div style={styles.managers}>
-                  📞 {station.wheel_station_managers.length} אנשי קשר
-                </div>
-              )}
-            </Link>
-          ))}
+      {/* Back to station button */}
+      {fromStationId && (
+        <div style={styles.backToStationContainer}>
+          <Link href={`/${fromStationId}`} style={styles.backToStationBtn}>
+            ← חזרה לתחנה
+          </Link>
         </div>
       )}
+
+      {/* Search Page Header */}
+      <header style={styles.searchPageHeader}>
+        <h1 style={styles.searchPageTitle}>🔍 חיפוש גלגל</h1>
+        <p style={styles.searchPageSubtitle}>מצא גלגל מתאים לפי מספר רכב או מפרט טכני</p>
+      </header>
+
+      {/* Search Type Selection */}
+      <div style={styles.searchTypeContainer}>
+        <button
+          style={{...styles.searchTypeBtn, ...(vehicleSearchTab === 'plate' || showVehicleModal ? styles.searchTypeBtnActive : {})}}
+          onClick={openVehicleModal}
+        >
+          <span style={styles.searchTypeIcon}>🚗</span>
+          <span>חיפוש לפי רכב</span>
+        </button>
+        <button
+          style={{...styles.searchTypeBtn, ...(showSearchModal ? styles.searchTypeBtnActive : {})}}
+          onClick={openSearchModal}
+        >
+          <span style={styles.searchTypeIcon}>🔧</span>
+          <span>חיפוש לפי מפרט</span>
+        </button>
+      </div>
 
       <footer style={styles.footer}>
         <div style={styles.footerInfo}>
@@ -1243,6 +1333,20 @@ export default function WheelStationsPage() {
                   </div>
 
                   <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>CB (קוטר מרכז)</label>
+                    <select
+                      style={styles.filterSelect}
+                      value={searchFilters.center_bore}
+                      onChange={e => setSearchFilters({...searchFilters, center_bore: e.target.value})}
+                    >
+                      <option value="">בחר...</option>
+                      {filterOptions?.center_bores?.map(cb => (
+                        <option key={cb} value={cb}>{cb}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={styles.filterGroup}>
                     <label style={styles.filterLabel}>מחוז</label>
                     <select
                       style={styles.filterSelect}
@@ -1315,6 +1419,7 @@ export default function WheelStationsPage() {
                               <div style={styles.resultWheelSpecs}>
                                 <span>{wheel.rim_size}"</span>
                                 <span>{wheel.bolt_count}×{wheel.bolt_spacing}</span>
+                                {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
                                 {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                               </div>
                               <div style={{
@@ -1332,6 +1437,84 @@ export default function WheelStationsPage() {
                 )}
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Model Selection Modal - When multiple specs found */}
+      {showModelSelectionModal && matchingModels.length > 0 && (
+        <div style={styles.modalOverlay} onClick={() => setShowModelSelectionModal(false)}>
+          <div style={{...styles.modal, maxWidth: '500px', background: '#1e293b'}} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>נמצאו מספר מפרטים לרכב זה</h3>
+              <button style={styles.closeBtn} onClick={() => setShowModelSelectionModal(false)}>✕</button>
+            </div>
+
+            <div style={{padding: '15px'}}>
+              <p style={{color: '#94a3b8', marginBottom: '15px', fontSize: '14px'}}>
+                נמצאו {matchingModels.length} רשומות שונות. בחר את המפרט הנכון:
+              </p>
+
+              {matchingModels.map((m, idx) => (
+                <div
+                  key={m.id}
+                  style={{
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginBottom: '10px',
+                    background: '#0f172a'
+                  }}
+                >
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                    <span style={{fontWeight: 600, color: '#e2e8f0'}}>
+                      אפשרות {idx + 1}
+                    </span>
+                    <div style={{display: 'flex', gap: '8px'}}>
+                      <button
+                        onClick={() => handleVehicleModelSelect(m)}
+                        style={{
+                          background: '#2563eb',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        בחר
+                      </button>
+                      <button
+                        onClick={() => handleReportVehicleModelError(m)}
+                        style={{
+                          background: '#f59e0b',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '13px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ⚠️ דווח שגיאה
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{fontSize: '14px', color: '#94a3b8'}}>
+                    <div><strong>PCD:</strong> {m.bolt_count}×{m.bolt_spacing}</div>
+                    {m.center_bore && <div><strong>CB:</strong> {m.center_bore}</div>}
+                    {m.rim_size && <div><strong>גודל ג&apos;אנט:</strong> {m.rim_size}&quot;</div>}
+                    {m.year_from && <div><strong>שנים:</strong> {m.year_from}{m.year_to ? `-${m.year_to}` : '+'}</div>}
+                    {m.source && <div style={{fontSize: '12px', color: '#64748b', marginTop: '4px'}}>מקור: {m.source}</div>}
+                  </div>
+                </div>
+              ))}
+
+              <p style={{color: '#64748b', fontSize: '12px', marginTop: '10px'}}>
+                💡 בחר את המפרט הנכון. אם יש מידע שגוי - לחץ &quot;דווח שגיאה&quot; והאדמין יטפל
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -1360,6 +1543,9 @@ export default function WheelStationsPage() {
               border: '1px solid #4b5563'
             }}>
               <button
+                role="tab"
+                aria-selected={vehicleSearchTab === 'plate'}
+                aria-controls="plate-search-panel"
                 onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
                   flex: 1,
@@ -1376,6 +1562,9 @@ export default function WheelStationsPage() {
                 🔢 מספר רכב
               </button>
               <button
+                role="tab"
+                aria-selected={vehicleSearchTab === 'model'}
+                aria-controls="model-search-panel"
                 onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
                   flex: 1,
@@ -1396,7 +1585,7 @@ export default function WheelStationsPage() {
 
             {/* Tab Content: Plate Search */}
             {vehicleSearchTab === 'plate' && (
-              <div style={styles.vehicleInputRow}>
+              <div id="plate-search-panel" role="tabpanel" style={styles.vehicleInputRow}>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1422,7 +1611,7 @@ export default function WheelStationsPage() {
 
             {/* Tab Content: Model Search */}
             {vehicleSearchTab === 'model' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div id="model-search-panel" role="tabpanel" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {/* Make Input with Autocomplete */}
                 <div style={{ position: 'relative', width: '100%' }}>
                   <input
@@ -1688,6 +1877,14 @@ export default function WheelStationsPage() {
                 {/* Wheel Fitment */}
                 {vehicleResult.wheel_fitment ? (
                   <div style={styles.vehicleFitmentCard}>
+                    {/* Source indicator - external only when scraped live (find_car_scrape) */}
+                    <div style={styles.sourceIndicator} title={vehicleResult.source === 'find_car_scrape' ? 'מידע נגרד כעת ממקור חיצוני' : 'מידע מהמאגר הפנימי'}>
+                      {vehicleResult.source === 'find_car_scrape' ? (
+                        <span style={styles.sourceVerified}>🌐 מקור חיצוני</span>
+                      ) : (
+                        <span style={styles.sourceInternal}>📊 מאגר פנימי</span>
+                      )}
+                    </div>
                     {/* Main specs row */}
                     <div style={styles.fitmentMainRow} className="wheels-fitment-badges">
                       <div style={styles.fitmentSpec}>
@@ -1819,14 +2016,21 @@ export default function WheelStationsPage() {
                                   <div style={styles.resultStationName}>{result.station.name}</div>
                                 </div>
                                 <div style={styles.resultWheelsList}>
-                                  {result.wheels.map(wheel => (
+                                  {result.wheels.map(wheel => {
+                                    const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
+                                    const wheelCB = wheel.center_bore
+                                    const cbTooSmall = vehicleCB && wheelCB && wheelCB < vehicleCB
+                                    const cbNeedsRing = vehicleCB && wheelCB && !cbTooSmall && (wheelCB - vehicleCB) >= 2
+                                    return (
                                     <Link
                                       key={wheel.id}
                                       href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
                                       style={{
                                         ...styles.resultWheelCard,
                                         // Only show warning style if no allowed sizes and wheel is smaller than vehicle size
-                                        ...(!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {})
+                                        ...(!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {}),
+                                        ...(cbTooSmall ? {border: '2px solid #ef4444'} : {}),
+                                        ...(cbNeedsRing ? {border: '2px solid #f59e0b'} : {})
                                       }}
                                       className="wheels-result-wheel-card"
                                       onClick={closeVehicleModal}
@@ -1836,10 +2040,22 @@ export default function WheelStationsPage() {
                                         <span>{wheel.rim_size}"</span>
                                         {/* Only show "smaller" label if no allowed sizes data */}
                                         {!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize && <span style={{fontSize: '10px', color: '#b45309'}}>קטן יותר</span>}
+                                        {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
+                                      {cbTooSmall && (
+                                        <div style={{color: '#ef4444', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <span style={{fontSize: '14px'}}>⚠️</span> CB גלגל ({wheelCB}) קטן מהרכב ({vehicleCB})
+                                        </div>
+                                      )}
+                                      {cbNeedsRing && (
+                                        <div style={{color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <span style={{fontSize: '14px'}}>⚠️</span> יתכן ונדרש טבעת מירכוז
+                                        </div>
+                                      )}
                                     </Link>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
                               </div>
                             ))}
@@ -2091,15 +2307,54 @@ export default function WheelStationsPage() {
       {showAddModelModal && (
         <div style={styles.modalOverlay} onClick={() => setShowAddModelModal(false)}>
           <div style={styles.addModelModal} className="wheels-add-model-modal" onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle} className="wheels-modal-title">➕ הוסף דגם רכב למאגר</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowAddModelModal(false)} aria-label="סגור הוספת דגם">✕</button>
+            {/* Styled Header */}
+            <div className="wheels-modal-header" style={{
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              padding: '20px 24px',
+              borderRadius: '20px 20px 0 0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.4rem' }}>➕</span> הוסף דגם רכב למאגר
+              </h3>
+              <button
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  width: '36px',
+                  height: '36px',
+                  cursor: 'pointer',
+                  fontSize: '1.2rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onClick={() => setShowAddModelModal(false)}
+                aria-label="סגור הוספת דגם"
+              >
+                ✕
+              </button>
             </div>
 
-            <div style={styles.addModelForm}>
-              <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>יצרן (עברית) <span style={{ color: '#ef4444' }}>*</span></label>
+            <div style={styles.addModelForm} className="wheels-form-content">
+              {/* Section: Vehicle Info */}
+              <div className="wheels-form-section" style={{
+                background: 'rgba(16, 185, 129, 0.05)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '4px'
+              }}>
+                <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase' }}>
+                  פרטי רכב
+                </div>
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>יצרן (עברית) <span style={{ color: '#ef4444' }}>*</span></label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="text"
@@ -2240,6 +2495,18 @@ export default function WheelStationsPage() {
                   />
                 </div>
               </div>
+              </div>
+
+              {/* Section: Wheel Specs */}
+              <div className="wheels-form-section" style={{
+                background: 'rgba(59, 130, 246, 0.05)',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                borderRadius: '12px',
+                padding: '16px'
+              }}>
+                <div style={{ fontSize: '0.8rem', color: '#3b82f6', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase' }}>
+                  מפרט גלגלים
+                </div>
 
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
@@ -2302,8 +2569,9 @@ export default function WheelStationsPage() {
                   style={styles.formInput}
                 />
               </div>
+              </div>
 
-              <div style={styles.formActions}>
+              <div style={styles.formActions} className="wheels-form-actions">
                 <button
                   onClick={handleAddVehicleModel}
                   disabled={addModelLoading}
@@ -2327,6 +2595,14 @@ export default function WheelStationsPage() {
   )
 }
 
+export default function WheelStationsPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #374151 0%, #4b5563 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>טוען...</div>}>
+      <SearchPageContent />
+    </Suspense>
+  )
+}
+
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     minHeight: '100vh',
@@ -2335,6 +2611,71 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  backToStationContainer: {
+    marginBottom: '10px',
+    textAlign: 'center',
+  },
+  backToStationBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 20px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    borderRadius: '8px',
+    color: 'white',
+    textDecoration: 'none',
+    fontWeight: 600,
+    fontSize: '0.95rem',
+    transition: 'transform 0.2s',
+  },
+  searchPageHeader: {
+    textAlign: 'center',
+    marginBottom: '30px',
+    padding: '20px',
+  },
+  searchPageTitle: {
+    fontSize: '2rem',
+    fontWeight: 700,
+    marginBottom: '10px',
+    color: 'white',
+  },
+  searchPageSubtitle: {
+    fontSize: '1rem',
+    color: '#9ca3af',
+    margin: 0,
+  },
+  searchTypeContainer: {
+    display: 'flex',
+    gap: '15px',
+    justifyContent: 'center',
+    marginBottom: '30px',
+    flexWrap: 'wrap' as const,
+  },
+  searchTypeBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '20px 30px',
+    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+    border: '2px solid #334155',
+    borderRadius: '16px',
+    color: 'white',
+    fontSize: '1.1rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.3s',
+    minWidth: '200px',
+    justifyContent: 'center',
+  },
+  searchTypeBtnActive: {
+    borderColor: '#22c55e',
+    boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)',
+  },
+  searchTypeIcon: {
+    fontSize: '1.5rem',
   },
   header: {
     textAlign: 'center',
@@ -2537,8 +2878,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   footer: {
     textAlign: 'center',
-    marginTop: '40px',
-    paddingTop: '20px',
+    marginTop: 'auto',
+    paddingTop: '40px',
+    paddingBottom: '20px',
     borderTop: '1px solid rgba(255,255,255,0.1)',
   },
   footerInfo: {
@@ -2873,6 +3215,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid rgba(16, 185, 129, 0.3)',
     borderRadius: '12px',
     padding: '15px',
+    position: 'relative' as const,
+  },
+  sourceIndicator: {
+    position: 'absolute' as const,
+    top: '8px',
+    left: '8px',
+    fontSize: '0.7rem',
+    cursor: 'help',
+  },
+  sourceVerified: {
+    color: '#10b981',
+    background: 'rgba(16, 185, 129, 0.2)',
+    padding: '2px 6px',
+    borderRadius: '4px',
+  },
+  sourceInternal: {
+    color: '#60a5fa',
+    background: 'rgba(96, 165, 250, 0.2)',
+    padding: '2px 6px',
+    borderRadius: '4px',
   },
   fitmentBadges: {
     display: 'flex',
@@ -3038,68 +3400,78 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
   },
   addModelModal: {
-    background: '#1f2937',
-    borderRadius: '12px',
-    padding: '14px',
-    maxWidth: '480px',
+    background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+    borderRadius: '20px',
+    padding: '0',
+    maxWidth: '520px',
     width: '100%',
     maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
+    border: '1px solid #334155',
   },
   addModelForm: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '16px',
+    gap: '20px',
+    padding: '20px 24px 24px',
   },
   formRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
   },
   formGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
+    gap: '8px',
   },
   formLabel: {
     fontSize: '0.9rem',
-    color: '#d1d5db',
-    fontWeight: '500',
+    color: '#94a3b8',
+    fontWeight: '600',
+    letterSpacing: '0.3px',
   },
   formInput: {
-    padding: '10px',
-    background: '#374151',
-    border: '1px solid #4b5563',
-    borderRadius: '8px',
-    color: '#fff',
+    padding: '12px 14px',
+    background: '#0f172a',
+    border: '2px solid #334155',
+    borderRadius: '10px',
+    color: '#f1f5f9',
     fontSize: '1rem',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
   },
   formActions: {
     display: 'flex',
     gap: '12px',
-    marginTop: '10px',
+    marginTop: '16px',
+    paddingTop: '16px',
+    borderTop: '1px solid #334155',
   },
   submitBtn: {
-    flex: 1,
-    padding: '12px',
-    background: '#10b981',
+    flex: 2,
+    padding: '14px 20px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     color: '#fff',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: '10px',
     fontSize: '1rem',
     cursor: 'pointer',
     fontWeight: 'bold',
+    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+    transition: 'transform 0.2s, box-shadow 0.2s',
   },
   cancelBtn: {
     flex: 1,
-    padding: '12px',
-    background: '#6b7280',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
+    padding: '14px 20px',
+    background: 'transparent',
+    color: '#94a3b8',
+    border: '2px solid #475569',
+    borderRadius: '10px',
     fontSize: '1rem',
     cursor: 'pointer',
+    fontWeight: '500',
+    transition: 'all 0.2s',
   },
   suggestionsList: {
     position: 'absolute',
