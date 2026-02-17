@@ -269,7 +269,7 @@ export default function VehicleLookupPage() {
                 {/* Search Link */}
                 <div className="mt-6 text-center">
                   <Link
-                    href={`/?bolt_count=${result.wheel_fitment.bolt_count}&bolt_spacing=${result.wheel_fitment.bolt_spacing}${extractRimSize(result.vehicle.front_tire) ? `&rim_size=${extractRimSize(result.vehicle.front_tire)}` : ''}${districtFilter ? `&district=${districtFilter}` : ''}`}
+                    href={`/search?bolt_count=${result.wheel_fitment.bolt_count}&bolt_spacing=${result.wheel_fitment.bolt_spacing}${extractRimSize(result.vehicle.front_tire) ? `&rim_size=${extractRimSize(result.vehicle.front_tire)}` : ''}${districtFilter ? `&district=${districtFilter}` : ''}`}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors"
                   >
                     <span>🔍</span>
