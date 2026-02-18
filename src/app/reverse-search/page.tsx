@@ -40,6 +40,26 @@ interface ReverseResult {
   match_level: 'exact' | 'with_ring' | 'technical'
 }
 
+interface CompareVehicleState {
+  tab: 'plate' | 'model'
+  plate: string
+  make: string
+  model: string
+  year: string
+  result: VehicleResult | null
+  loading: boolean
+  error: string | null
+}
+
+interface CompareOutcome {
+  pcdMatch: boolean
+  cbLevel: 'exact' | 'with_ring' | 'no_fit' | 'unknown'
+  cbDiff: number | null
+  rimOverlap: boolean
+  commonRimSizes: number[]
+  overall: 'compatible' | 'with_ring' | 'incompatible'
+}
+
 interface ReverseSearchResponse {
   results: ReverseResult[]
   grouped: Record<string, ReverseResult[]>
@@ -76,6 +96,14 @@ export default function ReverseSearchPage() {
   const [reverseResults, setReverseResults] = useState<ReverseSearchResponse | null>(null)
   const [reverseLoading, setReverseLoading] = useState(false)
   const [showTechnical, setShowTechnical] = useState(false)
+
+  // Page mode
+  const [pageMode, setPageMode] = useState<'reverse' | 'compare'>('reverse')
+
+  // Compare mode vehicles
+  const emptyVehicle: CompareVehicleState = { tab: 'plate', plate: '', make: '', model: '', year: '', result: null, loading: false, error: null }
+  const [cmpA, setCmpA] = useState<CompareVehicleState>(emptyVehicle)
+  const [cmpB, setCmpB] = useState<CompareVehicleState>(emptyVehicle)
 
   // Autocomplete functions
   const fetchMakeSuggestions = async (value: string) => {
@@ -279,6 +307,78 @@ export default function ReverseSearchPage() {
     }
   }
 
+  // Generic vehicle lookup helper (plate or model)
+  const lookupVehicleFitment = async (v: CompareVehicleState): Promise<VehicleResult> => {
+    if (v.tab === 'plate') {
+      const res = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(v.plate.trim())}`)
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'שגיאה בחיפוש')
+      if (!data.wheel_fitment) throw new Error('לא נמצאו מידות גלגל לרכב זה')
+      return data
+    } else {
+      const englishMake = v.make.includes('(') ? v.make.split(' (')[0] : (hebrewToEnglishMakes[v.make] || v.make)
+      const englishModel = v.model.includes('(') ? v.model.split(' (')[0] : (hebrewToEnglishModels[v.model] || v.model)
+      const res = await fetch(`/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}&year=${v.year}`)
+      const data = await res.json()
+      if (!data.models?.length) throw new Error('לא נמצאו מידות גלגל לדגם זה')
+      const m = data.models[0]
+      return {
+        vehicle: { manufacturer: m.make_he || m.make, model: m.model, year: parseInt(v.year), front_tire: m.tire_size_front || null },
+        wheel_fitment: {
+          pcd: `${m.bolt_count}×${m.bolt_spacing}`,
+          bolt_count: m.bolt_count, bolt_spacing: m.bolt_spacing,
+          center_bore: m.center_bore || undefined,
+          rim_sizes_allowed: m.rim_sizes_allowed || undefined,
+        },
+        source: 'local_db'
+      }
+    }
+  }
+
+  const handleLookupCompareVehicle = async (which: 'A' | 'B') => {
+    const v = which === 'A' ? cmpA : cmpB
+    const set = which === 'A' ? setCmpA : setCmpB
+    if (v.tab === 'plate' && !v.plate.trim()) { set(prev => ({...prev, error: 'נא להזין מספר רישוי'})); return }
+    if (v.tab === 'model' && (!v.make.trim() || !v.model.trim() || !v.year.trim())) { set(prev => ({...prev, error: 'נא למלא יצרן, דגם ושנה'})); return }
+    set(prev => ({...prev, loading: true, error: null, result: null}))
+    try {
+      const result = await lookupVehicleFitment(v)
+      set(prev => ({...prev, result}))
+    } catch (err) {
+      set(prev => ({...prev, error: err instanceof Error ? err.message : 'שגיאה בחיפוש'}))
+    } finally {
+      set(prev => ({...prev, loading: false}))
+    }
+  }
+
+  // Calculate compare outcome when both vehicles are loaded
+  const getCompareOutcome = (): CompareOutcome | null => {
+    const fitA = cmpA.result?.wheel_fitment
+    const fitB = cmpB.result?.wheel_fitment
+    if (!fitA || !fitB) return null
+
+    const pcdMatch = fitA.bolt_count === fitB.bolt_count && fitA.bolt_spacing === fitB.bolt_spacing
+    let cbLevel: CompareOutcome['cbLevel'] = 'unknown'
+    let cbDiff: number | null = null
+    if (fitA.center_bore && fitB.center_bore) {
+      cbDiff = Math.round((fitB.center_bore - fitA.center_bore) * 10) / 10
+      if (cbDiff < -0.5) cbLevel = 'no_fit'
+      else if (Math.abs(cbDiff) <= 0.5) cbLevel = 'exact'
+      else if (cbDiff <= 3) cbLevel = 'with_ring'
+      else cbLevel = 'no_fit'
+    }
+    const rimA = fitA.rim_sizes_allowed || []
+    const rimB = fitB.rim_sizes_allowed || []
+    const commonRimSizes = rimA.filter(r => rimB.includes(r))
+    const rimOverlap = rimA.length === 0 || rimB.length === 0 || commonRimSizes.length > 0
+
+    let overall: CompareOutcome['overall'] = 'incompatible'
+    if (pcdMatch && (cbLevel === 'exact' || cbLevel === 'unknown')) overall = 'compatible'
+    else if (pcdMatch && cbLevel === 'with_ring') overall = 'with_ring'
+
+    return { pcdMatch, cbLevel, cbDiff, rimOverlap, commonRimSizes, overall }
+  }
+
   const handleReset = () => {
     setVehicleResult(null)
     setReverseResults(null)
@@ -318,8 +418,151 @@ export default function ReverseSearchPage() {
         <div style={styles.betaBadge}>BETA</div>
       </div>
 
+      {/* Mode Switcher */}
+      <div style={{ display: 'flex', gap: '8px', maxWidth: '600px', margin: '0 auto 16px', width: '100%' }}>
+        <button
+          onClick={() => setPageMode('reverse')}
+          style={{
+            flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+            fontWeight: 600, fontSize: '0.9rem',
+            background: pageMode === 'reverse' ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+            color: pageMode === 'reverse' ? '#000' : '#9ca3af'
+          }}
+        >
+          🔍 חיפוש הפוך
+        </button>
+        <button
+          onClick={() => setPageMode('compare')}
+          style={{
+            flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+            fontWeight: 600, fontSize: '0.9rem',
+            background: pageMode === 'compare' ? '#f59e0b' : 'rgba(255,255,255,0.1)',
+            color: pageMode === 'compare' ? '#000' : '#9ca3af'
+          }}
+        >
+          ⚖️ השוואה מיידית
+        </button>
+      </div>
+
+      {/* Compare Mode */}
+      {pageMode === 'compare' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
+          {/* Vehicle A */}
+          {(['A', 'B'] as const).map(which => {
+            const v = which === 'A' ? cmpA : cmpB
+            const set = which === 'A' ? setCmpA : setCmpB
+            const label = which === 'A' ? 'רכב א׳ (שלי)' : 'רכב ב׳ (התורם)'
+            return (
+              <div key={which} style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px' }}>
+                <div style={{ fontWeight: 700, marginBottom: '10px', color: which === 'A' ? '#60a5fa' : '#34d399' }}>
+                  {label}
+                </div>
+                {/* Mini tabs */}
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+                  {(['plate', 'model'] as const).map(t => (
+                    <button key={t} onClick={() => set(prev => ({...prev, tab: t, result: null, error: null}))}
+                      style={{ padding: '4px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
+                        background: v.tab === t ? 'rgba(255,255,255,0.2)' : 'transparent', color: v.tab === t ? 'white' : '#6b7280' }}>
+                      {t === 'plate' ? 'לוחית רישוי' : 'יצרן ודגם'}
+                    </button>
+                  ))}
+                </div>
+                {/* Input */}
+                {v.tab === 'plate' ? (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input type="text" inputMode="numeric" value={v.plate}
+                      onChange={e => set(prev => ({...prev, plate: e.target.value, result: null}))}
+                      onKeyDown={e => e.key === 'Enter' && handleLookupCompareVehicle(which)}
+                      placeholder="מספר רישוי..." style={{...styles.input, flex: 1}} dir="ltr" />
+                    <button onClick={() => handleLookupCompareVehicle(which)} disabled={v.loading} style={styles.searchBtn}>
+                      {v.loading ? <span className="spinning-wheel">🛞</span> : '🔍'}
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <input type="text" value={v.make} onChange={e => set(prev => ({...prev, make: e.target.value, result: null}))}
+                      placeholder="יצרן (Toyota / טויוטה)" style={styles.input} />
+                    <input type="text" value={v.model} onChange={e => set(prev => ({...prev, model: e.target.value, result: null}))}
+                      placeholder="דגם (Corolla / קורולה)" style={styles.input} />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input type="text" inputMode="numeric" value={v.year} onChange={e => set(prev => ({...prev, year: e.target.value, result: null}))}
+                        placeholder="שנה" style={{...styles.input, flex: 1}} dir="ltr" />
+                      <button onClick={() => handleLookupCompareVehicle(which)} disabled={v.loading} style={styles.searchBtn}>
+                        {v.loading ? <span className="spinning-wheel">🛞</span> : '🔍'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {/* Error */}
+                {v.error && <p style={{ color: '#f87171', fontSize: '0.85rem', margin: '6px 0 0' }}>{v.error}</p>}
+                {/* Found */}
+                {v.result && (
+                  <div style={{ marginTop: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.08)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <span style={{ fontWeight: 600, color: '#e2e8f0' }}>
+                      {v.result.vehicle.manufacturer} {v.result.vehicle.model} {v.result.vehicle.year}
+                    </span>
+                    {v.result.wheel_fitment && (
+                      <span style={{ color: '#9ca3af', marginRight: '8px' }}>
+                        PCD {v.result.wheel_fitment.pcd}
+                        {v.result.wheel_fitment.center_bore ? ` · CB ${v.result.wheel_fitment.center_bore}` : ''}
+                        {v.result.wheel_fitment.rim_sizes_allowed?.length ? ` · R${v.result.wheel_fitment.rim_sizes_allowed.join('/')}` : ''}
+                      </span>
+                    )}
+                    <button onClick={() => set(prev => ({...prev, result: null, plate: '', make: '', model: '', year: ''}))}
+                      style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.8rem', marginRight: '6px' }}>
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Compare Result */}
+          {(() => {
+            const outcome = getCompareOutcome()
+            if (!outcome) return null
+            const bgColor = outcome.overall === 'compatible' ? 'rgba(16,185,129,0.15)' : outcome.overall === 'with_ring' ? 'rgba(251,191,36,0.15)' : 'rgba(239,68,68,0.15)'
+            const borderColor = outcome.overall === 'compatible' ? '#10b981' : outcome.overall === 'with_ring' ? '#fbbf24' : '#ef4444'
+            const icon = outcome.overall === 'compatible' ? '✅' : outcome.overall === 'with_ring' ? '🟡' : '❌'
+            const title = outcome.overall === 'compatible' ? 'מתאים!' : outcome.overall === 'with_ring' ? 'מתאים עם טבעת מרכוז' : 'לא מתאים'
+            return (
+              <div style={{ background: bgColor, border: `2px solid ${borderColor}`, borderRadius: '14px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '6px' }}>{icon}</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 700, color: borderColor, marginBottom: '14px' }}>{title}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'right', fontSize: '0.9rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#9ca3af' }}>חישוק ברגים (PCD)</span>
+                    <span style={{ fontWeight: 600, color: outcome.pcdMatch ? '#10b981' : '#ef4444' }}>
+                      {outcome.pcdMatch ? `✓ זהה (${cmpA.result!.wheel_fitment!.pcd})` : `✗ שונה (${cmpA.result!.wheel_fitment!.pcd} vs ${cmpB.result!.wheel_fitment!.pcd})`}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#9ca3af' }}>קוטר פנימי (CB)</span>
+                    <span style={{ fontWeight: 600, color: outcome.cbLevel === 'exact' ? '#10b981' : outcome.cbLevel === 'with_ring' ? '#fbbf24' : outcome.cbLevel === 'no_fit' ? '#ef4444' : '#9ca3af' }}>
+                      {outcome.cbLevel === 'exact' && `✓ זהה${outcome.cbDiff !== null ? ` (${cmpA.result!.wheel_fitment!.center_bore}mm)` : ''}`}
+                      {outcome.cbLevel === 'with_ring' && `מומלץ טבעת מרכוז (+${outcome.cbDiff}mm)`}
+                      {outcome.cbLevel === 'no_fit' && `✗ לא מתאים (${outcome.cbDiff !== null ? `${outcome.cbDiff}mm` : 'שונה'})`}
+                      {outcome.cbLevel === 'unknown' && 'לא ידוע'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#9ca3af' }}>גודל חישוק</span>
+                    <span style={{ fontWeight: 600, color: outcome.rimOverlap ? '#10b981' : '#fbbf24' }}>
+                      {outcome.rimOverlap
+                        ? outcome.commonRimSizes.length > 0 ? `✓ R${outcome.commonRimSizes.join('/')}` : '✓ לא ידוע'
+                        : `⚠️ שים לב - גדלים שונים (R${cmpA.result!.wheel_fitment!.rim_sizes_allowed?.join('/')} vs R${cmpB.result!.wheel_fitment!.rim_sizes_allowed?.join('/')})`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
       {/* Search Section */}
-      {!vehicleResult && (
+      {pageMode === 'reverse' && !vehicleResult && (
         <div style={styles.searchCard}>
           {/* Tabs */}
           <div role="tablist" style={styles.tabBar}>
@@ -481,7 +724,7 @@ export default function ReverseSearchPage() {
       )}
 
       {/* Vehicle Info + Results */}
-      {vehicleResult && (
+      {pageMode === 'reverse' && vehicleResult && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '600px', margin: '0 auto', width: '100%' }}>
           {/* Vehicle Info Card */}
           <div style={styles.vehicleInfoCard}>
@@ -596,10 +839,6 @@ export default function ReverseSearchPage() {
         <p style={styles.footerText}>
           <Link href="/login" style={{ color: '#93c5fd', textDecoration: 'none' }}>
             כניסה למערכת
-          </Link>
-          {' | '}
-          <Link href="/" style={{ color: '#93c5fd', textDecoration: 'none' }}>
-            דף הבית
           </Link>
         </p>
         <p style={styles.footerVersion}>v{VERSION}</p>
