@@ -1629,30 +1629,8 @@ export default function WheelStationsPage() {
                       const isPersonalImport = vehicleResult.is_personal_import
                       const allowedSizes = vehicleResult.wheel_fitment?.rim_sizes_allowed
 
-                      // If no rim size available (no tire info and no manual selection), show all wheels
-                      // Otherwise, filter by manufacturer allowed sizes or fallback to ±1 logic
-                      const filteredResults = vehicleSearchResults?.map(result => ({
-                        ...result,
-                        wheels: result.wheels.filter(w => {
-                          if (!w.is_available) return false
-                          const wheelSize = parseInt(w.rim_size)
-                          // No rim size available - show all available wheels with matching PCD
-                          if (!vehicleRimSize) return true
-                          // If we have manufacturer's allowed sizes, use them
-                          if (allowedSizes && allowedSizes.length > 0) {
-                            return allowedSizes.includes(wheelSize)
-                          }
-                          // Fallback: filter by size (exact or one size smaller)
-                          return wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1
-                        })
-                      })).filter(result => result.wheels.length > 0) || []
-
-                      const exactSizeWheels = filteredResults.flatMap(r => r.wheels.filter(w => parseInt(w.rim_size) === vehicleRimSize))
-                      const allowedSizeWheels = allowedSizes ? filteredResults.flatMap(r => r.wheels.filter(w => allowedSizes.includes(parseInt(w.rim_size)))) : []
-                      const smallerSizeWheels = filteredResults.flatMap(r => r.wheels.filter(w => parseInt(w.rim_size) === (vehicleRimSize || 0) - 1))
-                      const hasExactSize = exactSizeWheels.length > 0
-                      const hasSmallerSize = smallerSizeWheels.length > 0
-                      const hasAllowedSizes = allowedSizeWheels.length > 0
+                      // Show all available wheels with matching PCD (filtered by API)
+                      const filteredResults = vehicleSearchResults?.filter(result => result.wheels.some(w => w.is_available)) || []
 
                       if (filteredResults.length > 0) {
                         return (
@@ -1660,27 +1638,9 @@ export default function WheelStationsPage() {
                             <div style={styles.vehicleResultsHeader}>
                               ✅ נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים
                             </div>
-                            {/* No rim size available - show selector hint */}
-                            {!vehicleRimSize && (
-                              <div style={{...styles.vehicleResultsNote, background: '#dbeafe', color: '#1e40af', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px'}}>
-                                ℹ️ בחר קוטר ג&apos;אנט לסינון התוצאות{isPersonalImport ? ', או בדוק מידת גלגל מקורית לפני השאלה' : ''}
-                              </div>
-                            )}
-                            {/* Has manufacturer allowed sizes */}
-                            {allowedSizes && allowedSizes.length > 0 && hasAllowedSizes && (
+                            {vehicleRimSize && (
                               <div style={styles.vehicleResultsNote}>
-                                לרכב שלך מתאימים גדלים: {allowedSizes.join('", ')}"
-                              </div>
-                            )}
-                            {/* Has rim size but no manufacturer data - use fallback */}
-                            {vehicleRimSize && hasExactSize && !allowedSizes && (
-                              <div style={styles.vehicleResultsNote}>
-                                {manualRimSize ? 'מציג' : 'לרכב שלך מתאים'} גודל {vehicleRimSize}"
-                              </div>
-                            )}
-                            {vehicleRimSize && !hasExactSize && hasSmallerSize && !allowedSizes && (
-                              <div style={{...styles.vehicleResultsNote, background: '#fef3c7', color: '#92400e', padding: '8px 12px', borderRadius: '8px', marginBottom: '10px'}}>
-                                ⚠️ לא נמצאו גלגלים בגודל {vehicleRimSize}" - מוצגים גלגלים בגודל {(vehicleRimSize || 0) - 1}" (מידה קטנה יותר)
+                                מידת ג&apos;אנט לרכב: {vehicleRimSize}"
                               </div>
                             )}
                             {filteredResults.map(result => (
@@ -1689,23 +1649,17 @@ export default function WheelStationsPage() {
                                   <div style={styles.resultStationName}>{result.station.name}</div>
                                 </div>
                                 <div style={styles.resultWheelsList}>
-                                  {result.wheels.map(wheel => (
+                                  {result.wheels.filter(w => w.is_available).map(wheel => (
                                     <Link
                                       key={wheel.id}
                                       href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
-                                      style={{
-                                        ...styles.resultWheelCard,
-                                        // Only show warning style if no allowed sizes and wheel is smaller than vehicle size
-                                        ...(!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize ? {border: '2px solid #f59e0b', background: '#fffbeb'} : {})
-                                      }}
+                                      style={styles.resultWheelCard}
                                       className="wheels-result-wheel-card"
                                       onClick={closeVehicleModal}
                                     >
                                       <div style={styles.resultWheelNumber}>#{wheel.wheel_number}</div>
                                       <div style={styles.resultWheelSpecs}>
                                         <span>{wheel.rim_size}"</span>
-                                        {/* Only show "smaller" label if no allowed sizes data */}
-                                        {!allowedSizes && !isPersonalImport && vehicleRimSize && parseInt(wheel.rim_size) < vehicleRimSize && <span style={{fontSize: '10px', color: '#b45309'}}>קטן יותר</span>}
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
                                     </Link>
@@ -1715,20 +1669,10 @@ export default function WheelStationsPage() {
                             ))}
                           </div>
                         )
-                      } else if (vehicleSearchResults && vehicleSearchResults.length === 0) {
+                      } else if (vehicleSearchResults) {
                         return (
                           <div style={styles.noVehicleResults}>
                             😕 לא נמצאו גלגלים מתאימים במלאי
-                          </div>
-                        )
-                      } else if (vehicleSearchResults && vehicleSearchResults.length > 0) {
-                        // Has results but all are larger sizes
-                        return (
-                          <div style={styles.noVehicleResults}>
-                            {!vehicleRimSize
-                              ? '😕 לא נמצאו גלגלים עם PCD מתאים במלאי'
-                              : `😕 לא נמצאו גלגלים בגודל ${vehicleRimSize}" או קטן יותר במלאי`
-                            }
                           </div>
                         )
                       }
