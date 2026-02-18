@@ -1782,6 +1782,14 @@ ${formUrl}`
 
   return (
     <>
+    {/* Hidden file input for Excel import */}
+    <input
+      type="file"
+      ref={fileInputRef}
+      accept=".xlsx,.xls,.csv"
+      style={{display: 'none'}}
+      onChange={handleExcelUpload}
+    />
     <AppHeader currentStationId={stationId} notificationCount={alertCount} />
     <div style={styles.container}>
       <style>{`

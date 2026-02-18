@@ -559,13 +559,38 @@ export default function OperatorPage() {
         totalCount: result.totalCount
       }))
 
-      setResults(transformedResults)
+      // Filter by rim size: show only exact or one size smaller (same as manager view)
+      const vehicleRimSize = pcdInfo.rim_size ? parseInt(pcdInfo.rim_size) : null
+      const allowedSizes = pcdInfo.rim_sizes_allowed
+      const filteredResults = transformedResults.map(result => ({
+        ...result,
+        wheels: result.wheels.filter(w => {
+          if (!w.is_available) return false
+          const wheelSize = parseInt(w.rim_size)
+          if (!vehicleRimSize) return true
+          if (allowedSizes && allowedSizes.length > 0) {
+            return allowedSizes.includes(wheelSize)
+          }
+          return wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1
+        }),
+        availableCount: result.wheels.filter(w => {
+          if (!w.is_available) return false
+          const wheelSize = parseInt(w.rim_size)
+          if (!vehicleRimSize) return true
+          if (allowedSizes && allowedSizes.length > 0) {
+            return allowedSizes.includes(wheelSize)
+          }
+          return wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1
+        }).length
+      })).filter(result => result.wheels.length > 0)
 
-      if (transformedResults.length === 0) {
+      setResults(filteredResults)
+
+      if (filteredResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
       } else {
-        const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
-        toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
+        const totalWheels = filteredResults.reduce((sum, r) => sum + r.wheels.length, 0)
+        toast.success(`נמצאו ${totalWheels} גלגלים ב-${filteredResults.length} תחנות`)
       }
     } catch (error) {
       console.error('Search error:', error)
@@ -645,13 +670,38 @@ export default function OperatorPage() {
         totalCount: result.totalCount
       }))
 
-      setResults(transformedResults)
+      // Filter by rim size: show only exact or one size smaller (same as manager view)
+      const vehicleRimSize = pcdInfo.rim_size ? parseInt(pcdInfo.rim_size) : null
+      const allowedSizes = pcdInfo.rim_sizes_allowed
+      const filteredResults = transformedResults.map(result => ({
+        ...result,
+        wheels: result.wheels.filter(w => {
+          if (!w.is_available) return false
+          const wheelSize = parseInt(w.rim_size)
+          if (!vehicleRimSize) return true
+          if (allowedSizes && allowedSizes.length > 0) {
+            return allowedSizes.includes(wheelSize)
+          }
+          return wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1
+        }),
+        availableCount: result.wheels.filter(w => {
+          if (!w.is_available) return false
+          const wheelSize = parseInt(w.rim_size)
+          if (!vehicleRimSize) return true
+          if (allowedSizes && allowedSizes.length > 0) {
+            return allowedSizes.includes(wheelSize)
+          }
+          return wheelSize === vehicleRimSize || wheelSize === vehicleRimSize - 1
+        }).length
+      })).filter(result => result.wheels.length > 0)
 
-      if (transformedResults.length === 0) {
+      setResults(filteredResults)
+
+      if (filteredResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
       } else {
-        const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
-        toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
+        const totalWheels = filteredResults.reduce((sum, r) => sum + r.wheels.length, 0)
+        toast.success(`נמצאו ${totalWheels} גלגלים ב-${filteredResults.length} תחנות`)
       }
     } catch (error) {
       console.error('Search error:', error)
