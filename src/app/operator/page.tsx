@@ -1405,10 +1405,6 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
             <Link href="/accessibility" style={styles.footerLink}>
               הצהרת נגישות
             </Link>
-            {' • '}
-            <Link href="/reverse-search" style={styles.footerLink}>
-              חיפוש הפוך (בטא)
-            </Link>
           </p>
         </div>
       </footer>

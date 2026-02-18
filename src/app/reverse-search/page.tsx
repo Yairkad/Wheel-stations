@@ -416,6 +416,9 @@ export default function ReverseSearchPage() {
           מצא אילו רכבים יכולים להשאיל לך גלגל עם התאמה מלאה
         </p>
         <div style={styles.betaBadge}>BETA</div>
+        <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '8px 0 0', fontStyle: 'italic' }}>
+          ⚠️ המידע מבוסס על נתוני יצרן בלבד — יש לוודא התאמה פיזית לפני שימוש בפועל
+        </p>
       </div>
 
       {/* Mode Switcher */}
@@ -451,7 +454,7 @@ export default function ReverseSearchPage() {
           {(['A', 'B'] as const).map(which => {
             const v = which === 'A' ? cmpA : cmpB
             const set = which === 'A' ? setCmpA : setCmpB
-            const label = which === 'A' ? 'רכב א׳ (שלי)' : 'רכב ב׳ (התורם)'
+            const label = which === 'A' ? 'רכב 1' : 'רכב 2'
             return (
               <div key={which} style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px' }}>
                 <div style={{ fontWeight: 700, marginBottom: '10px', color: which === 'A' ? '#60a5fa' : '#34d399' }}>

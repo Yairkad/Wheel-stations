@@ -400,6 +400,15 @@ export default function LoginPage() {
 
           </div>
 
+          {/* Reverse Search Button */}
+          <Link href="/reverse-search" style={styles.reverseSearchBtn}>
+            <span>🔍</span>
+            <div>
+              <div style={styles.reverseSearchBtnTitle}>חיפוש גלגל תואם</div>
+              <div style={styles.reverseSearchBtnDesc}>לא זקוק לכניסה · בטא</div>
+            </div>
+          </Link>
+
           {/* Footer */}
           <div style={styles.mainFooter}>
             <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
@@ -407,8 +416,6 @@ export default function LoginPage() {
             <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
             {' • '}
             <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
-            {' • '}
-            <Link href="/reverse-search" style={styles.footerLink}>חיפוש הפוך (בטא)</Link>
           </div>
           <div style={styles.versionText}>גרסה {VERSION}</div>
         </div>
@@ -565,8 +572,6 @@ export default function LoginPage() {
           <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
           {' • '}
           <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
-          {' • '}
-          <Link href="/reverse-search" style={styles.footerLink}>חיפוש הפוך (בטא)</Link>
         </p>
         <p style={styles.versionText}>גרסה {VERSION}</p>
       </footer>
@@ -645,6 +650,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '20px',
     justifyContent: 'center',
     flexWrap: 'wrap'
+  },
+  reverseSearchBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: '16px',
+    padding: '14px 28px',
+    marginTop: '16px',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    color: '#9ca3af',
+    transition: 'all 0.2s',
+    fontSize: '1.2rem',
+  },
+  reverseSearchBtnTitle: {
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: '#d1d5db',
+    textAlign: 'right' as const,
+  },
+  reverseSearchBtnDesc: {
+    fontSize: '0.72rem',
+    color: '#6b7280',
+    marginTop: '2px',
+    textAlign: 'right' as const,
   },
   loginCard: {
     background: 'rgba(255,255,255,0.05)',

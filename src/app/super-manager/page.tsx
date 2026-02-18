@@ -676,8 +676,6 @@ export default function SuperManagerPage() {
           <Link href="/privacy" style={{ color: '#6b7280', textDecoration: 'none' }}>מדיניות פרטיות</Link>
           {' • '}
           <Link href="/accessibility" style={{ color: '#6b7280', textDecoration: 'none' }}>הצהרת נגישות</Link>
-          {' • '}
-          <Link href="/reverse-search" style={{ color: '#6b7280', textDecoration: 'none' }}>חיפוש הפוך (בטא)</Link>
         </p>
         <p style={{ color: '#9ca3af', fontSize: '0.65rem', margin: 0 }}>גירסה {VERSION}</p>
       </footer>
