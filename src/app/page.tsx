@@ -1624,6 +1624,10 @@ export default function WheelStationsPage() {
                       const vehicleRimSize = extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize
                       const isPersonalImport = vehicleResult.is_personal_import
                       const allowedSizes = vehicleResult.wheel_fitment?.rim_sizes_allowed
+                      const effectiveRimSizes: number[] | null =
+                        (allowedSizes && allowedSizes.length > 0) ? allowedSizes
+                        : vehicleRimSize ? [vehicleRimSize]
+                        : null
 
                       // Show all available wheels with matching PCD (filtered by API)
                       const filteredResults = vehicleSearchResults?.filter(result => result.wheels.some(w => w.is_available)) || []
@@ -1645,11 +1649,19 @@ export default function WheelStationsPage() {
                                   <div style={styles.resultStationName}>{result.station.name}</div>
                                 </div>
                                 <div style={styles.resultWheelsList}>
-                                  {result.wheels.filter(w => w.is_available).map(wheel => (
+                                  {result.wheels.filter(w => w.is_available).map(wheel => {
+                                    const wheelRim = wheel.rim_size ? parseInt(wheel.rim_size) : null
+                                    const rimMismatch = effectiveRimSizes && wheelRim
+                                      ? !effectiveRimSizes.includes(wheelRim)
+                                      : false
+                                    return (
                                     <Link
                                       key={wheel.id}
                                       href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
-                                      style={styles.resultWheelCard}
+                                      style={{
+                                        ...styles.resultWheelCard,
+                                        ...(rimMismatch ? {border: '2px solid #ef4444', opacity: 0.65} : {})
+                                      }}
                                       className="wheels-result-wheel-card"
                                       onClick={closeVehicleModal}
                                     >
@@ -1658,8 +1670,14 @@ export default function WheelStationsPage() {
                                         <span>{wheel.rim_size}"</span>
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
+                                      {rimMismatch && (
+                                        <div style={{color: '#dc2626', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <span style={{fontSize: '14px'}}>⛔</span> קוטר לא תואם
+                                        </div>
+                                      )}
                                     </Link>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
                               </div>
                             ))}

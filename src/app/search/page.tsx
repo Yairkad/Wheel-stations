@@ -1801,6 +1801,10 @@ function SearchPageContent() {
                       const vehicleRimSize = extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize
                       const isPersonalImport = vehicleResult.is_personal_import
                       const allowedSizes = vehicleResult.wheel_fitment?.rim_sizes_allowed
+                      const effectiveRimSizes: number[] | null =
+                        (allowedSizes && allowedSizes.length > 0) ? allowedSizes
+                        : vehicleRimSize ? [vehicleRimSize]
+                        : null
 
                       // Show all available wheels with matching PCD (filtered by API)
                       const filteredResults = vehicleSearchResults?.filter(result => result.wheels.some(w => w.is_available)) || []
@@ -1822,19 +1826,27 @@ function SearchPageContent() {
                                   <div style={styles.resultStationName}>{result.station.name}</div>
                                 </div>
                                 <div style={styles.resultWheelsList}>
-                                  {result.wheels.filter(w => w.is_available).map(wheel => {
+                                  {result.wheels.filter(w => {
+                                    if (!w.is_available) return false
+                                    const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
+                                    // Exclude wheels whose CB is smaller than the vehicle's hub — physically cannot fit
+                                    if (vehicleCB && w.center_bore && w.center_bore < vehicleCB) return false
+                                    return true
+                                  }).map(wheel => {
                                     const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
                                     const wheelCB = wheel.center_bore
-                                    const cbTooSmall = vehicleCB && wheelCB && wheelCB < vehicleCB
-                                    const cbNeedsRing = vehicleCB && wheelCB && !cbTooSmall && (wheelCB - vehicleCB) >= 2
+                                    const cbNeedsRing = vehicleCB && wheelCB && (wheelCB - vehicleCB) >= 2
+                                    const wheelRim = wheel.rim_size ? parseInt(wheel.rim_size) : null
+                                    const rimMismatch = effectiveRimSizes && wheelRim
+                                      ? !effectiveRimSizes.includes(wheelRim)
+                                      : false
                                     return (
                                     <Link
                                       key={wheel.id}
                                       href={`/${result.station.id}#wheel-${wheel.wheel_number}`}
                                       style={{
                                         ...styles.resultWheelCard,
-                                        ...(cbTooSmall ? {border: '2px solid #ef4444'} : {}),
-                                        ...(cbNeedsRing ? {border: '2px solid #f59e0b'} : {})
+                                        ...(rimMismatch ? {border: '2px solid #ef4444', opacity: 0.65} : cbNeedsRing ? {border: '2px solid #f59e0b'} : {})
                                       }}
                                       className="wheels-result-wheel-card"
                                       onClick={closeVehicleModal}
@@ -1845,12 +1857,12 @@ function SearchPageContent() {
                                         {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
-                                      {cbTooSmall && (
-                                        <div style={{color: '#ef4444', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <span style={{fontSize: '14px'}}>⚠️</span> CB גלגל ({wheelCB}) קטן מהרכב ({vehicleCB})
+                                      {rimMismatch && (
+                                        <div style={{color: '#dc2626', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <span style={{fontSize: '14px'}}>⛔</span> קוטר לא תואם
                                         </div>
                                       )}
-                                      {cbNeedsRing && (
+                                      {!rimMismatch && cbNeedsRing && (
                                         <div style={{color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
                                           <span style={{fontSize: '14px'}}>⚠️</span> יתכן ונדרש טבעת מירכוז
                                         </div>

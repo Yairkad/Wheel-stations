@@ -162,14 +162,14 @@ export default function ReverseSearchPage() {
   }
 
   // Perform reverse search
-  const doReverseSearch = async (bolt_count: number, bolt_spacing: number, center_bore?: number, rim_size?: number) => {
+  const doReverseSearch = async (bolt_count: number, bolt_spacing: number, center_bore?: number, rim_sizes?: number[]) => {
     setReverseLoading(true)
     try {
       const params = new URLSearchParams()
       params.set('bolt_count', bolt_count.toString())
       params.set('bolt_spacing', bolt_spacing.toString())
       if (center_bore) params.set('center_bore', center_bore.toString())
-      if (rim_size) params.set('rim_size', rim_size.toString())
+      if (rim_sizes && rim_sizes.length > 0) params.set('rim_sizes', rim_sizes.join(','))
 
       const response = await fetch(`/api/vehicle-models/reverse-search?${params}`)
       if (!response.ok) throw new Error('שגיאה בחיפוש')
@@ -202,12 +202,11 @@ export default function ReverseSearchPage() {
       }
       setVehicleResult(data)
       if (data.wheel_fitment) {
-        const defaultRim = data.wheel_fitment.rim_sizes_allowed?.[0]
         await doReverseSearch(
           data.wheel_fitment.bolt_count,
           data.wheel_fitment.bolt_spacing,
           data.wheel_fitment.center_bore,
-          defaultRim
+          data.wheel_fitment.rim_sizes_allowed
         )
       } else {
         setVehicleError('לא נמצאו מידות גלגל לרכב זה')
@@ -268,12 +267,12 @@ export default function ReverseSearchPage() {
           wheel_fitment: wheelFitment,
           source: 'local_db'
         })
-        const defaultRim = wheelFitment.rim_sizes_allowed?.[0] || (model.rim_size ? parseInt(model.rim_size) : undefined)
+        const rimSizes = wheelFitment.rim_sizes_allowed || (model.rim_size ? [parseInt(model.rim_size)] : undefined)
         await doReverseSearch(
           wheelFitment.bolt_count,
           wheelFitment.bolt_spacing,
           wheelFitment.center_bore,
-          defaultRim
+          rimSizes
         )
       } else {
         setVehicleError('לא נמצאו מידות גלגל לדגם זה')

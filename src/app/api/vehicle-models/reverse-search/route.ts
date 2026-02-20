@@ -72,16 +72,23 @@ export async function GET(request: NextRequest) {
       }
     }).filter(v => v !== null)
 
-    // Filter by rim size - donors must have a compatible rim size
-    const targetRimSize = rim_size ? parseInt(rim_size) : null
+    // Filter by rim sizes - donors must have at least one rim size overlapping with target
+    const rim_sizes_param = searchParams.get('rim_sizes') // comma-separated list
+    let targetRimSizes: number[] = []
+    if (rim_sizes_param) {
+      targetRimSizes = rim_sizes_param.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
+    } else if (rim_size) {
+      const n = parseInt(rim_size)
+      if (!isNaN(n)) targetRimSizes = [n]
+    }
     const filtered = results.filter(v => {
-      // If no target rim size provided, skip rim filter
-      if (!targetRimSize) return true
-      // Check if donor's rim sizes include the target
+      if (targetRimSizes.length === 0) return true
       const donorRimSize = v.rim_size ? parseInt(v.rim_size) : null
-      const donorRimSizes = v.rim_sizes_allowed || (donorRimSize ? [donorRimSize] : [])
-      // Target vehicle needs a wheel of its rim size - donor must support it
-      return donorRimSizes.includes(targetRimSize)
+      const donorRimSizes: number[] = v.rim_sizes_allowed?.map(Number) || (donorRimSize ? [donorRimSize] : [])
+      // Donor has no rim data → unknown, treat as compatible
+      if (donorRimSizes.length === 0) return true
+      // Check overlap between donor rim sizes and target allowed rim sizes
+      return donorRimSizes.some(size => targetRimSizes.includes(size))
     })
 
     // Sort: exact first, then with_ring, then technical. Within each level, sort by CB difference
