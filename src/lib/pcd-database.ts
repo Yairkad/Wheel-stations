@@ -318,9 +318,11 @@ export const PCD_DATABASE: PCDEntry[] = [
 
   // ==================== BYD ====================
   { make: 'byd', make_he: 'ביי די', model: 'atto 3', model_variants: ['atto3', 'yuan plus'], year_from: 2022, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
+  { make: 'byd', make_he: 'ביי די', model: 'dolphin', model_variants: ['dolphin mini', 'ea1'], year_from: 2021, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 60.1 },
   { make: 'byd', make_he: 'ביי די', model: 'han', year_from: 2020, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
   { make: 'byd', make_he: 'ביי די', model: 'tang', year_from: 2018, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
   { make: 'byd', make_he: 'ביי די', model: 'seal', year_from: 2022, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
+  { make: 'byd', make_he: 'ביי די', model: 'seagull', year_from: 2023, year_to: null, bolt_count: 4, bolt_spacing: 100, center_bore: 56.1 },
 
   // ==================== GEELY ====================
   { make: 'geely', make_he: 'ג\'ילי', model: 'emgrand', year_from: 2009, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 60.1 },
@@ -466,6 +468,9 @@ export function extractMakeFromHebrew(hebrewMake: string): string | null {
     'קופרה': 'cupra',
     'אם ג\'י': 'mg',
     'ביי די': 'byd',
+    'בי ווי די': 'byd',
+    'ביי וואי די': 'byd',
+    'b.y.d': 'byd',
     'ג\'ילי': 'geely',
     'טסלה': 'tesla',
     'איסוזו': 'isuzu',

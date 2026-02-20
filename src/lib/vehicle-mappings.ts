@@ -12,7 +12,7 @@ export const hebrewToEnglishMakes: Record<string, string> = {
   'סיטרואן': 'Citroen', 'רנו': 'Renault', 'פיאט': 'Fiat', 'אלפא רומאו': 'Alfa Romeo',
   'שברולט': 'Chevrolet', 'פורד': 'Ford', 'ג\'יפ': 'Jeep', 'דאצ\'יה': 'Dacia',
   'אופל': 'Opel', 'וולוו': 'Volvo', 'לקסוס': 'Lexus', 'אינפיניטי': 'Infiniti',
-  'טסלה': 'Tesla', 'ביואיק': 'BYD', 'ג\'ילי': 'Geely', 'MG': 'MG'
+  'טסלה': 'Tesla', 'BYD': 'BYD', 'ביי די': 'BYD', 'בי ווי די': 'BYD', 'ביי וואי די': 'BYD', 'ג\'ילי': 'Geely', 'MG': 'MG'
 }
 
 // Common Hebrew to English car model mappings

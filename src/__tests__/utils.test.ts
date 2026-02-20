@@ -1,25 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { cn } from '@/lib/utils'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
-
-// District functions - testing standalone logic without DB
-const getDistrictColor = (districtCode?: string | null, districts?: { code: string; color: string }[]): string => {
-  if (!districtCode) return '#6b7280'
-  if (districts) {
-    const district = districts.find(d => d.code === districtCode)
-    return district?.color || '#6b7280'
-  }
-  return '#6b7280'
-}
-
-const getDistrictName = (districtCode?: string | null, districts?: { code: string; name: string }[]): string => {
-  if (!districtCode) return 'ללא מחוז'
-  if (districts) {
-    const district = districts.find(d => d.code === districtCode)
-    return district?.name || districtCode
-  }
-  return districtCode
-}
+import { getDistrictColor, getDistrictName } from '@/lib/districts'
 
 // =====================
 // cn (className utility)
