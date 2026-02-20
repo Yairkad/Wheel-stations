@@ -263,6 +263,12 @@ export default function LoginPage() {
       transform: scale(1.1);
     }
 
+    .reverse-search-btn:hover {
+      background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(5,150,105,0.14)) !important;
+      border-color: rgba(16,185,129,0.55) !important;
+      transform: translateY(-2px);
+    }
+
     @media (max-width: 768px) {
       .login-cards-container {
         gap: 15px !important;
@@ -374,7 +380,24 @@ export default function LoginPage() {
           </div>
 
           <h1 style={styles.mainTitle} className="main-title">מערכת גלגלים</h1>
-          <p style={styles.mainSubtitle} className="main-subtitle">בחרו את סוג הכניסה למערכת</p>
+          <p style={styles.mainSubtitle} className="main-subtitle">מערכת ניהול תחנות השאלת גלגלים</p>
+
+          {/* Reverse Search - prominent public feature */}
+          <Link href="/reverse-search" style={styles.reverseSearchBtn} className="reverse-search-btn">
+            <div style={styles.reverseSearchIcon}>🔍</div>
+            <div style={styles.reverseSearchText}>
+              <div style={styles.reverseSearchBtnTitle}>חיפוש גלגל תואם לרכב</div>
+              <div style={styles.reverseSearchBtnDesc}>הזן מספר רכב ומצא גלגל מתאים בתחנות</div>
+            </div>
+            <span style={styles.reverseSearchBadge}>ללא כניסה</span>
+          </Link>
+
+          {/* Divider */}
+          <div style={styles.divider} className="login-divider">
+            <div style={styles.dividerLine} />
+            <span style={styles.dividerText}>התחברות</span>
+            <div style={styles.dividerLine} />
+          </div>
 
           {/* Cards */}
           <div style={styles.cardsContainer} className="login-cards-container">
@@ -397,17 +420,7 @@ export default function LoginPage() {
               <div style={styles.cardTitle} className="card-title">ממשק מוקדן</div>
               <div style={styles.cardDesc} className="card-desc">למוקדנים ומנהלי מוקד</div>
             </button>
-
           </div>
-
-          {/* Reverse Search Button */}
-          <Link href="/reverse-search" style={styles.reverseSearchBtn}>
-            <span>🔍</span>
-            <div>
-              <div style={styles.reverseSearchBtnTitle}>חיפוש גלגל תואם</div>
-              <div style={styles.reverseSearchBtnDesc}>לא זקוק לכניסה · בטא</div>
-            </div>
-          </Link>
 
           {/* Footer */}
           <div style={styles.mainFooter}>
@@ -654,29 +667,68 @@ const styles: { [key: string]: React.CSSProperties } = {
   reverseSearchBtn: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '16px',
-    padding: '14px 28px',
-    marginTop: '16px',
+    gap: '14px',
+    background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.06))',
+    border: '1px solid rgba(16,185,129,0.3)',
+    borderRadius: '18px',
+    padding: '18px 22px',
+    marginBottom: '24px',
     cursor: 'pointer',
     textDecoration: 'none',
-    color: '#9ca3af',
-    transition: 'all 0.2s',
-    fontSize: '1.2rem',
+    color: 'white',
+    transition: 'all 0.25s',
+    width: '100%',
+  },
+  reverseSearchIcon: {
+    width: '52px',
+    height: '52px',
+    flexShrink: 0,
+    background: 'linear-gradient(135deg, #10b981, #059669)',
+    borderRadius: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '24px',
+  },
+  reverseSearchText: {
+    textAlign: 'right' as const,
+    flex: 1,
   },
   reverseSearchBtnTitle: {
-    fontSize: '0.9rem',
-    fontWeight: 600,
-    color: '#d1d5db',
-    textAlign: 'right' as const,
+    fontSize: '1rem',
+    fontWeight: 700,
+    color: '#d1fae5',
+    marginBottom: '3px',
   },
   reverseSearchBtnDesc: {
-    fontSize: '0.72rem',
-    color: '#6b7280',
-    marginTop: '2px',
-    textAlign: 'right' as const,
+    fontSize: '0.78rem',
+    color: 'rgba(209,250,229,0.6)',
+  },
+  reverseSearchBadge: {
+    flexShrink: 0,
+    background: 'rgba(16,185,129,0.2)',
+    border: '1px solid rgba(16,185,129,0.4)',
+    color: '#34d399',
+    fontSize: '0.65rem',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    whiteSpace: 'nowrap' as const,
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    marginBottom: '20px',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: 'rgba(255,255,255,0.1)',
+  },
+  dividerText: {
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: '0.78rem',
+    whiteSpace: 'nowrap' as const,
   },
   loginCard: {
     background: 'rgba(255,255,255,0.05)',
