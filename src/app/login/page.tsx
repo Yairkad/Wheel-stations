@@ -387,7 +387,7 @@ export default function LoginPage() {
             <div style={styles.reverseSearchIcon}>🔍</div>
             <div style={styles.reverseSearchText}>
               <div style={styles.reverseSearchBtnTitle}>חיפוש גלגל תואם לרכב</div>
-              <div style={styles.reverseSearchBtnDesc}>הזן מספר רכב ומצא גלגל מתאים בתחנות</div>
+              <div style={styles.reverseSearchBtnDesc}>הזן פרטי רכב ומצא רכב עם גלגל תואם</div>
             </div>
             <span style={styles.reverseSearchBadge}>ללא כניסה</span>
           </Link>
