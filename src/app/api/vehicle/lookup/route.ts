@@ -251,13 +251,13 @@ async function scrapeWheelfitmentForLookup(make: string, model: string, year: nu
       }
     }
 
-    // Use exact match if found, otherwise use fallback (but log warning)
-    if (!bestMatch && fallbackMatch) {
-      console.warn(`Wheelfitment: No exact year match for ${model} ${year}, using fallback from ${fallbackMatch.yearFrom}-${fallbackMatch.yearTo || 'present'}`)
-      bestMatch = fallbackMatch
+    // Only use exact year match — never use fallback to avoid corrupting DB with wrong generation data
+    if (!bestMatch) {
+      if (fallbackMatch) {
+        console.warn(`Wheelfitment: No exact year match for ${model} ${year}, skipping fallback (would have used ${fallbackMatch.yearFrom}-${fallbackMatch.yearTo || 'present'})`)
+      }
+      return null
     }
-
-    if (!bestMatch) return null
 
     // Step 2: Fetch model page for wheel data
     const modelPageUrl = bestMatch.url.startsWith('http') ? bestMatch.url : `https://www.wheelfitment.eu${bestMatch.url}`

@@ -50,6 +50,7 @@ export const PCD_DATABASE: PCDEntry[] = [
   { make: 'kia', make_he: 'קיה', model: 'sorento', year_from: 2002, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
   { make: 'kia', make_he: 'קיה', model: 'niro', year_from: 2016, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
   { make: 'kia', make_he: 'קיה', model: 'stonic', year_from: 2017, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
+  { make: 'kia', make_he: 'קיה', model: 'seltos', model_variants: ['סלטוס'], year_from: 2019, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
   { make: 'kia', make_he: 'קיה', model: 'carens', model_variants: ['rondo'], year_from: 2006, year_to: null, bolt_count: 5, bolt_spacing: 114.3, center_bore: 67.1 },
 
   // ==================== MAZDA ====================
