@@ -1,6 +1,6 @@
 {
   "name": "wheels-app",
-  "version": "2.5.0",
+  "version": "2.6.6",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:run": "tsc && vitest run",
+    "test:coverage": "tsc && vitest run --coverage"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.2.6",

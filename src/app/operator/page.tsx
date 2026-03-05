@@ -370,7 +370,6 @@ export default function OperatorPage() {
         if (specFilters.rim_size) params.append('rim_size', specFilters.rim_size)
         if (specFilters.bolt_count) params.append('bolt_count', specFilters.bolt_count)
         if (specFilters.bolt_spacing) params.append('bolt_spacing', specFilters.bolt_spacing)
-        params.append('available_only', 'true')
 
         const wheelsRes = await fetch(`/api/wheel-stations/search?${params}`)
         const wheelsData = await wheelsRes.json()
@@ -418,8 +417,8 @@ export default function OperatorPage() {
         if (transformedResults.length === 0) {
           toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
         } else {
-          const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
-          toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
+          const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
+          toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
         }
         return
       }
@@ -514,7 +513,6 @@ export default function OperatorPage() {
       const wheelParams = new URLSearchParams({
         bolt_count: pcdInfo.bolt_count.toString(),
         bolt_spacing: pcdInfo.bolt_spacing.toString(),
-        available_only: 'true'
       })
       // Don't filter by rim_size to show more options
 
@@ -564,8 +562,8 @@ export default function OperatorPage() {
       if (transformedResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
       } else {
-        const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
-        toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
+        const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
+        toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
       }
     } catch (error) {
       console.error('Search error:', error)
@@ -601,7 +599,6 @@ export default function OperatorPage() {
       const wheelParams = new URLSearchParams({
         bolt_count: pcdInfo.bolt_count.toString(),
         bolt_spacing: pcdInfo.bolt_spacing.toString(),
-        available_only: 'true'
       })
 
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
@@ -650,8 +647,8 @@ export default function OperatorPage() {
       if (transformedResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
       } else {
-        const totalWheels = transformedResults.reduce((sum, r) => sum + r.wheels.length, 0)
-        toast.success(`נמצאו ${totalWheels} גלגלים ב-${transformedResults.length} תחנות`)
+        const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
+        toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
       }
     } catch (error) {
       console.error('Search error:', error)
@@ -1151,8 +1148,8 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                 נמצאו {results.reduce((sum, r) => sum + r.wheels.filter(w => {
                   const ws = parseInt(w.rim_size)
                   const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                  return !(vrs && ws > vrs)
-                }).length, 0)} גלגלים ב-{results.length} תחנות
+                  return w.is_available && !(vrs && ws > vrs)
+                }).length, 0)} גלגלים זמינים ב-{results.length} תחנות
               </span>
             </div>
 
@@ -1167,8 +1164,13 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                     {result.wheels.filter(w => {
                       const ws = parseInt(w.rim_size)
                       const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                      return !(vrs && ws > vrs)
-                    }).length} גלגלים
+                      return w.is_available && !(vrs && ws > vrs)
+                    }).length} זמינים
+                    {result.wheels.filter(w => !w.is_available).length > 0 && (
+                      <span style={{color: '#94a3b8', fontSize: '0.8em', marginRight: '4px'}}>
+                        ({result.wheels.filter(w => !w.is_available).length} בהשאלה)
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div style={styles.wheelsGrid} className="operator-wheels-grid">
@@ -1187,6 +1189,24 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                     if (vehicleRimSize && wheelSize) {
                       if (wheelSize === vehicleRimSize) sizeMatch = 'exact'
                       else if (wheelSize < vehicleRimSize) sizeMatch = 'smaller'
+                    }
+                    if (!wheel.is_available) {
+                      return (
+                        <div
+                          key={wheel.wheel_number}
+                          style={{
+                            ...styles.wheelItem,
+                            background: 'rgba(148, 163, 184, 0.1)',
+                            border: '1px solid rgba(148, 163, 184, 0.3)',
+                            cursor: 'default',
+                            opacity: 0.7,
+                          }}
+                        >
+                          <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
+                          <div style={styles.wheelSpecs}>{wheel.rim_size}&quot;</div>
+                          <div style={{fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600}}>📌 בהשאלה</div>
+                        </div>
+                      )
                     }
                     return (
                       <div
