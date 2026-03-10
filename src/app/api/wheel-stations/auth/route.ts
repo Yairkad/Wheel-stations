@@ -19,7 +19,9 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const { phone, password } = await request.json()
+    const body = await request.json()
+    const phone = body.phone?.trim()
+    const password = body.password?.trim()
 
     if (!phone || !password) {
       return NextResponse.json(

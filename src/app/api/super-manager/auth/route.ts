@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { phone, password } = body
+    const phone = body.phone?.trim()
+    const password = body.password?.trim()
 
     if (!phone || !password) {
       return NextResponse.json({ error: 'יש להזין טלפון וסיסמה' }, { status: 400 })
