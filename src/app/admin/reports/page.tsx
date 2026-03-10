@@ -383,28 +383,28 @@ export default function ErrorReportsPage() {
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}} className="stat-icon-responsive">⏳</div>
           <div>
             <div style={styles.statLabel}>ממתינים</div>
-            <div style={{...styles.statValue, color: '#f59e0b'}} className="stat-value-responsive">{pendingCount}</div>
+            <div style={{...styles.statValue, color: '#f59e0b'}} className="stat-value-responsive">{pendingCount + missingPendingCount}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive">👁️</div>
           <div>
             <div style={styles.statLabel}>נבדקו</div>
-            <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{reviewedCount}</div>
+            <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{reviewedCount + missingReports.filter(r => r.status === 'reviewed').length}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive">✅</div>
           <div>
             <div style={styles.statLabel}>תוקנו</div>
-            <div style={{...styles.statValue, color: '#22c55e'}} className="stat-value-responsive">{fixedCount}</div>
+            <div style={{...styles.statValue, color: '#22c55e'}} className="stat-value-responsive">{fixedCount + missingAddedCount}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} className="stat-icon-responsive">📊</div>
           <div>
             <div style={styles.statLabel}>סה״כ</div>
-            <div style={{...styles.statValue, color: '#8b5cf6'}} className="stat-value-responsive">{reports.length}</div>
+            <div style={{...styles.statValue, color: '#8b5cf6'}} className="stat-value-responsive">{reports.length + missingReports.length}</div>
           </div>
         </div>
       </div>
@@ -1123,7 +1123,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Empty State
   emptyState: {
     textAlign: 'center',
-    padding: '60px 20px',
+    padding: '24px 20px',
   },
   emptyIcon: {
     fontSize: '3rem',

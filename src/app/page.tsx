@@ -1460,6 +1460,47 @@ export default function WheelStationsPage() {
                 >
                   ➕ הוסף דגם זה למאגר
                 </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/missing-vehicle-reports', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ plate_number: vehiclePlate })
+                      })
+                      const data = await response.json()
+                      if (data.success) {
+                        if (data.already_reported) {
+                          toast.success('הדיווח כבר קיים במערכת, תודה!')
+                        } else {
+                          toast.success('הדיווח נשלח בהצלחה!')
+                        }
+                      } else {
+                        toast.error('שגיאה בשליחת הדיווח')
+                      }
+                    } catch {
+                      toast.error('שגיאה בשליחת הדיווח')
+                    }
+                  }}
+                  style={{
+                    marginTop: '8px',
+                    padding: '10px 16px',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    justifyContent: 'center'
+                  }}
+                >
+                  📝 דווח על רכב חסר
+                </button>
               </div>
             )}
 
@@ -1487,47 +1528,6 @@ export default function WheelStationsPage() {
                   }}
                 >
                   🔍 חפש לפי דגם ושנה
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/missing-vehicle-reports', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ plate_number: vehiclePlate })
-                      })
-                      const data = await response.json()
-                      if (data.success) {
-                        if (data.already_reported) {
-                          toast.success('הדיווח כבר קיים במערכת, תודה!')
-                        } else {
-                          toast.success('הדיווח נשלח בהצלחה!')
-                        }
-                      } else {
-                        toast.error('שגיאה בשליחת הדיווח')
-                      }
-                    } catch {
-                      toast.error('שגיאה בשליחת הדיווח')
-                    }
-                  }}
-                  style={{
-                    marginTop: '12px',
-                    padding: '10px 16px',
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    width: '100%',
-                    justifyContent: 'center'
-                  }}
-                >
-                  📝 דווח על רכב חסר
                 </button>
               </div>
             )}
@@ -2779,11 +2779,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   fitmentActionsRow: {
     display: 'flex',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: '10px',
     flexWrap: 'wrap',
   },
   rimSizeSelect: {
-    padding: '6px 12px',
+    padding: '8px 12px',
     borderRadius: '8px',
     border: '1px solid #475569',
     background: '#1e293b',
@@ -2819,7 +2820,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   sourceLink: {
     background: 'rgba(59, 130, 246, 0.15)',
     color: '#93c5fd',
-    padding: '6px 12px',
+    padding: '8px 12px',
     borderRadius: '8px',
     fontWeight: '500',
     fontSize: '0.8rem',
@@ -2975,10 +2976,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'rgba(239, 68, 68, 0.2)',
     color: '#fca5a5',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    padding: '8px 16px',
+    padding: '8px 12px',
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '0.85rem',
-    marginTop: '10px',
   },
 }

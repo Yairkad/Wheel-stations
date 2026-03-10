@@ -2102,6 +2102,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Station Actions
   stationCompactActions: {
     display: 'flex',
+    alignItems: 'center',
     gap: '6px',
     marginTop: '10px',
     paddingTop: '10px',
@@ -2115,7 +2116,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     transition: 'all 0.2s',
     textDecoration: 'none',
-    display: 'inline-block',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     textAlign: 'center',
   },
   btnCompactEdit: {

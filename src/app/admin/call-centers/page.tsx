@@ -324,7 +324,7 @@ export default function CallCentersAdminPage() {
           .header-buttons-responsive {
             display: flex !important;
             flex-direction: row !important;
-            flex-wrap: wrap !important;
+            flex-wrap: nowrap !important;
             justify-content: center !important;
             gap: 6px !important;
             width: 100% !important;
