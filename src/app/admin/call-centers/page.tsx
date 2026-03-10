@@ -5,6 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
+import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
 
 interface Operator {
   id: string
@@ -36,6 +37,7 @@ interface CallCenter {
 
 export default function CallCentersAdminPage() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const pendingReports = useAdminPendingReports()
 
   const [callCenters, setCallCenters] = useState<CallCenter[]>([])
   const [loading, setLoading] = useState(true)
@@ -365,7 +367,22 @@ export default function CallCentersAdminPage() {
           <div style={styles.headerButtons} className="header-buttons-responsive">
             <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
-            <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
+            <Link href="/admin/reports" style={{...styles.btnGhost, position: 'relative'}}>
+              📋 דיווחי שגיאות
+              {pendingReports > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '6px',
+                  left: '6px',
+                  width: '8px',
+                  height: '8px',
+                  background: '#ef4444',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 6px #ef4444',
+                  display: 'inline-block',
+                }} />
+              )}
+            </Link>
             <button style={styles.btnLogout} onClick={logout}>יציאה</button>
           </div>
         </div>

@@ -775,43 +775,22 @@ export default function ErrorReportsPage() {
 
               {/* Quick Actions Section */}
               <div style={styles.infoSection}>
-                <div style={styles.infoSectionTitle}>🔎 חיפוש פרטי רכב</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <a
-                    href={`https://www.find-car.co.il/car/private/${selectedMissingReport.plate_number}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'block',
-                      padding: '12px 20px',
-                      background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-                      color: 'white',
-                      textAlign: 'center',
-                      borderRadius: '10px',
-                      textDecoration: 'none',
-                      fontWeight: 600,
-                      fontSize: '1rem'
-                    }}
-                  >
-                    🔍 חפש ב-find-car.co.il
-                  </a>
-                  <Link
-                    href={`/admin/vehicles?plate=${selectedMissingReport.plate_number}`}
-                    style={{
-                      display: 'block',
-                      padding: '12px 20px',
-                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                      color: 'white',
-                      textAlign: 'center',
-                      borderRadius: '10px',
-                      textDecoration: 'none',
-                      fontWeight: 600,
-                      fontSize: '1rem'
-                    }}
-                  >
-                    ➕ הוסף למאגר הרכבים
-                  </Link>
-                </div>
+                <Link
+                  href={`/admin/vehicles?plate=${selectedMissingReport.plate_number}`}
+                  style={{
+                    display: 'block',
+                    padding: '12px 20px',
+                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    color: 'white',
+                    textAlign: 'center',
+                    borderRadius: '10px',
+                    textDecoration: 'none',
+                    fontWeight: 600,
+                    fontSize: '1rem'
+                  }}
+                >
+                  ➕ הוסף למאגר הרכבים
+                </Link>
               </div>
 
               {/* Status Actions */}

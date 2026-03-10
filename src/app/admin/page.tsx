@@ -1042,7 +1042,7 @@ export default function WheelsAdminPage() {
                   min={1}
                   max={20}
                   value={stationForm.max_managers || ''}
-                  onChange={e => setStationForm({...stationForm, max_managers: parseInt(e.target.value) || 0})}
+                  onChange={e => setStationForm(f => ({...f, max_managers: parseInt(e.target.value) || 0}))}
                   onBlur={() => setStationForm(f => ({...f, max_managers: Math.max(1, f.max_managers || 1)}))}
                   style={{...styles.formInput, width: '100px'}}
                 />

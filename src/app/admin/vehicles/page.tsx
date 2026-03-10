@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
+import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
 
 interface VehicleModel {
   id: string
@@ -68,7 +69,8 @@ export default function VehiclesAdminPageWrapper() {
 
 function VehiclesAdminPage() {
   const searchParams = useSearchParams()
-  const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const { isAuthenticated, isLoading: authLoading, logout } = useAdminAuth()
+  const pendingReports = useAdminPendingReports()
 
   const [vehicles, setVehicles] = useState<VehicleModel[]>([])
   const [loading, setLoading] = useState(true)
@@ -404,10 +406,7 @@ function VehiclesAdminPage() {
     setScrapeError(null)
 
     try {
-      // Admin lookup includes find-car.co.il fallback
-      const response = await fetch(`/api/vehicle/lookup?plate=${plateNumber}&admin=true`, {
-        headers: { 'x-admin-password': password }
-      })
+      const response = await fetch(`/api/vehicle/lookup?plate=${plateNumber}`)
       const data = await response.json()
 
       if (!response.ok || !data.success) {
@@ -1336,7 +1335,22 @@ function VehiclesAdminPage() {
           </div>
           <div style={styles.headerButtons} className="header-buttons-responsive">
             <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
-            <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
+            <Link href="/admin/reports" style={{...styles.btnGhost, position: 'relative'}}>
+              📋 דיווחי שגיאות
+              {pendingReports > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '6px',
+                  left: '6px',
+                  width: '8px',
+                  height: '8px',
+                  background: '#ef4444',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 6px #ef4444',
+                  display: 'inline-block',
+                }} />
+              )}
+            </Link>
             <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
             <button style={styles.btnLogout} onClick={logout}>יציאה</button>
           </div>

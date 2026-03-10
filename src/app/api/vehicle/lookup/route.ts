@@ -1,19 +1,17 @@
 /**
  * Vehicle Lookup API
- * GET /api/vehicle/lookup?plate=1234567 - Get vehicle details by license plate from data.gov.il
- * GET /api/vehicle/lookup?plate=1234567&admin=true&admin_password=xxx - Include find-car.co.il fallback
+ * GET /api/vehicle/lookup?plate=1234567 - Get vehicle details by license plate
  * Returns vehicle info + PCD (bolt pattern) for wheel matching
  *
  * Searches in multiple databases:
  * 1. Regular vehicles database (053cea08-09bc-40ec-8f7a-156f0677aff3)
  * 2. Personal import vehicles database (03adc637-b6fe-402b-9937-7c3d3afc9140) - fallback
- * 3. find-car.co.il (admin only) - scrapes when gov databases don't have the vehicle
+ * 3. find-car.co.il - last resort when gov databases don't have the vehicle
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { extractMakeFromHebrew } from '@/lib/pcd-database'
 import { createClient } from '@supabase/supabase-js'
-import { WHEELS_ADMIN_PASSWORD_CLIENT } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -464,12 +462,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const plate = searchParams.get('plate')
-    const isAdmin = searchParams.get('admin') === 'true'
-    // Get admin password from header (more secure) or URL (backwards compatibility)
-    const adminPassword = request.headers.get('x-admin-password') || searchParams.get('admin_password')
-
-    // Validate admin access for extended lookup
-    const hasAdminAccess = isAdmin && WHEELS_ADMIN_PASSWORD_CLIENT && adminPassword === WHEELS_ADMIN_PASSWORD_CLIENT
 
     if (!plate) {
       return NextResponse.json(
@@ -572,28 +564,41 @@ export async function GET(request: NextRequest) {
     const importData: DataGovResponse<PersonalImportRecord> = await importResponse.json()
 
     if (!importData.success || !importData.result.records.length) {
-      // Step 3: If admin, try find-car.co.il as last resort
-      if (hasAdminAccess) {
-        console.log('Admin lookup: Trying find-car.co.il for plate:', cleanPlate)
-        const scrapedData = await scrapeFromFindCar(cleanPlate)
+      // Step 3: Try find-car.co.il as last resort
+      console.log('Trying find-car.co.il for plate:', cleanPlate)
+      const scrapedData = await scrapeFromFindCar(cleanPlate)
 
-        if (scrapedData) {
-          return NextResponse.json({
-            success: true,
-            source: 'find_car_scrape',
-            scrape_warning: 'מידע זה נשלף מ-find-car.co.il ולא ממאגרי משרד התחבורה. יש לאמת את המידע.',
-            vehicle: {
-              plate: cleanPlate,
-              manufacturer: scrapedData.manufacturer,
-              model: scrapedData.model,
-              year: scrapedData.year,
-              front_tire: scrapedData.tire_size,
-              rear_tire: scrapedData.tire_size,
-            },
-            wheel_fitment: null,
-            pcd_found: false
-          })
-        }
+      if (scrapedData) {
+        // Also try to get PCD data from wheelfitment.eu using the scraped vehicle identity
+        const pcdData = await findPcdData(
+          supabase,
+          scrapedData.manufacturer,
+          scrapedData.model,
+          scrapedData.year
+        )
+
+        return NextResponse.json({
+          success: true,
+          source: 'find_car_scrape',
+          scrape_warning: 'מידע זה נשלף מ-find-car.co.il ולא ממאגרי משרד התחבורה. יש לאמת את המידע.',
+          vehicle: {
+            plate: cleanPlate,
+            manufacturer: scrapedData.manufacturer,
+            model: scrapedData.model,
+            year: scrapedData.year,
+            front_tire: scrapedData.tire_size,
+            rear_tire: scrapedData.tire_size,
+          },
+          wheel_fitment: pcdData ? {
+            bolt_count: pcdData.bolt_count,
+            bolt_spacing: pcdData.bolt_spacing,
+            pcd: `${pcdData.bolt_count}x${pcdData.bolt_spacing}`,
+            center_bore: pcdData.center_bore,
+            rim_sizes_allowed: pcdData.rim_sizes_allowed,
+            source_url: pcdData.source_url,
+          } : null,
+          pcd_found: !!pcdData
+        })
       }
 
       return NextResponse.json(

@@ -1637,6 +1637,27 @@ function SearchPageContent() {
               <div style={styles.vehicleError}>
                 ❌ {vehicleError}
                 <button
+                  onClick={() => setVehicleSearchTab('model')}
+                  style={{
+                    marginTop: '12px',
+                    padding: '10px 16px',
+                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    justifyContent: 'center'
+                  }}
+                >
+                  🔍 חפש לפי דגם ושנה
+                </button>
+                <button
                   onClick={async () => {
                     try {
                       const response = await fetch('/api/missing-vehicle-reports', {

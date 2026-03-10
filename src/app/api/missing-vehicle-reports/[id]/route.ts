@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // DELETE - Delete a missing vehicle report
 export async function DELETE(
@@ -11,7 +11,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const { error } = await supabase
       .from('missing_vehicle_reports')
@@ -38,7 +38,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const supabase = createClient(supabaseUrl, supabaseAnonKey)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
     const { status } = body
