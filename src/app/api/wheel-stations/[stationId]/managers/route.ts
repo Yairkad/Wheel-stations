@@ -111,9 +111,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Managers array required' }, { status: 400 })
     }
 
-    // Validate max 4 managers
-    if (managers.length > 4) {
-      return NextResponse.json({ error: 'Maximum 4 managers per station' }, { status: 400 })
+    // Fetch station's max_managers limit
+    const { data: stationData } = await supabase
+      .from('wheel_stations')
+      .select('max_managers')
+      .eq('id', stationId)
+      .single()
+    const maxManagers = stationData?.max_managers ?? 4
+
+    if (managers.length > maxManagers) {
+      return NextResponse.json({ error: `מקסימום ${maxManagers} מנהלים לתחנה זו` }, { status: 400 })
     }
 
     // Validate each manager has required fields

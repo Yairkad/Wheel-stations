@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { admin_password, name, address, city_id, district, is_active, managers } = body
+    const { admin_password, name, address, city_id, district, is_active, managers, max_managers } = body
 
     // Verify admin password
     if (!verifyAdminPassword(admin_password)) {
@@ -36,6 +36,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       city_id?: string | null
       district?: string | null
       is_active?: boolean
+      max_managers?: number
     } = {}
 
     if (name !== undefined) updateData.name = name
@@ -43,6 +44,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (city_id !== undefined) updateData.city_id = city_id || null
     if (district !== undefined) updateData.district = district || null
     if (is_active !== undefined) updateData.is_active = is_active
+    if (max_managers !== undefined) updateData.max_managers = max_managers
 
     // Only update if there's something to update
     if (Object.keys(updateData).length > 0) {

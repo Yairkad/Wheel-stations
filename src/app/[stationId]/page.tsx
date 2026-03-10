@@ -413,7 +413,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   })
 
   // Email notification settings
-  const [notificationEmails, setNotificationEmails] = useState<string[]>(['', ''])
+  const [notificationEmails, setNotificationEmails] = useState<string[]>([''])
 
   // Excel import/export
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -527,7 +527,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           setEditAddress(station?.address || '')
           setEditDepositAmount(String(station?.deposit_amount || 200))
           setEditPaymentMethods(station?.payment_methods || { cash: true, id_deposit: true, license_deposit: true })
-          setNotificationEmails(station?.notification_emails?.length ? [...station.notification_emails, ...Array(2 - station.notification_emails.length).fill('')].slice(0, 2) : ['', ''])
+          setNotificationEmails(station?.notification_emails?.length ? station.notification_emails : [''])
           setShowEditDetailsModal(true)
           break
         case 'password':
@@ -1409,6 +1409,25 @@ ${formUrl}`
 
     setShowWhatsAppModal(false)
     toast.success('נפתח בוואטסאפ!')
+  }
+
+  const copyWhatsAppText = () => {
+    if (!whatsAppPhone.trim() || !whatsAppWheel) {
+      toast.error('נא להזין מספר טלפון')
+      return
+    }
+
+    const formUrl = `${window.location.origin}/sign/${stationId}?wheel=${whatsAppWheel.wheel_number}&phone=${encodeURIComponent(whatsAppPhone)}`
+
+    const message = `שלום רב 👋
+מצורף כאן קישור לחתימה על טופס השאלת גלגל.
+הגלגל המתאים ביותר עבורך כבר נבחר ורק נשאר להשלים פרטים.
+
+${formUrl}`
+
+    navigator.clipboard.writeText(message)
+    setShowWhatsAppModal(false)
+    toast.success('הטקסט הועתק!')
   }
 
   // Save contacts
@@ -3447,7 +3466,7 @@ ${formUrl}`
               />
             </div>
 
-            <div style={{display: 'flex', gap: '12px'}}>
+            <div style={{display: 'flex', gap: '12px', marginBottom: '10px'}}>
               <button
                 style={{
                   flex: 1,
@@ -3469,7 +3488,7 @@ ${formUrl}`
                   padding: '12px',
                   borderRadius: '10px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
                   color: '#fff',
                   cursor: 'pointer',
                   fontWeight: 'bold',
@@ -3478,11 +3497,30 @@ ${formUrl}`
                   justifyContent: 'center',
                   gap: '8px',
                 }}
-                onClick={sendWhatsAppLink}
+                onClick={copyWhatsAppText}
               >
-                💬 שלח בוואטסאפ
+                📋 העתק טקסט
               </button>
             </div>
+            <button
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '10px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                color: '#fff',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+              onClick={sendWhatsAppLink}
+            >
+              💬 שלח בוואטסאפ
+            </button>
           </div>
         </div>
       )}
@@ -4188,12 +4226,12 @@ ${formUrl}`
             {/* Section: Email Notifications - Only for primary manager */}
             {currentManager?.is_primary ? (
               <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📧 התראות מייל לטפסים חתומים</h4>
+                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📧 התראות מייל</h4>
                 <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
-                  עותק מכל טופס השאלה חתום יישלח לכתובות המייל הבאות (עד 2 כתובות)
+                  התראה תישלח למיילים אלו על כל בקשת השאלה חדשה
                 </p>
                 {notificationEmails.map((email, index) => (
-                  <div key={index} style={{marginBottom: '8px'}}>
+                  <div key={index} style={{marginBottom: '8px', display: 'flex', gap: '8px', alignItems: 'center'}}>
                     <input
                       type="email"
                       placeholder={`כתובת מייל ${index + 1}`}
@@ -4203,11 +4241,24 @@ ${formUrl}`
                         newEmails[index] = e.target.value
                         setNotificationEmails(newEmails)
                       }}
-                      style={{...styles.input, width: '100%'}}
+                      style={{...styles.input, flex: 1}}
                       dir="ltr"
                     />
+                    {notificationEmails.length > 1 && (
+                      <button
+                        onClick={() => setNotificationEmails(notificationEmails.filter((_, i) => i !== index))}
+                        style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', padding: '4px'}}
+                        title="הסר"
+                      >✕</button>
+                    )}
                   </div>
                 ))}
+                <button
+                  onClick={() => setNotificationEmails([...notificationEmails, ''])}
+                  style={{...styles.smallBtn, background: '#374151', marginBottom: '8px', fontSize: '0.8rem'}}
+                >
+                  + הוסף מייל
+                </button>
                 <button
                   style={{...styles.smallBtn, background: '#10b981', marginTop: '8px'}}
                   onClick={async () => {

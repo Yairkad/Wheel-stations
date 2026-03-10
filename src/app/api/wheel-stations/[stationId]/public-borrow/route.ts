@@ -8,6 +8,15 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import nodemailer from 'nodemailer'
+
+const emailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+})
 
 // Validate environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -78,7 +87,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check station exists
     const { data: station, error: stationError } = await supabase
       .from('wheel_stations')
-      .select('id, name')
+      .select('id, name, notification_emails')
       .eq('id', stationId)
       .single()
 
@@ -199,6 +208,43 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     } catch (pushError) {
       // Don't fail the request if push fails
       console.error('Error sending push notification:', pushError)
+    }
+
+    // Send email notification to managers (as fallback for push)
+    const notificationEmails = (station as { notification_emails?: string[] }).notification_emails || []
+    if (notificationEmails.length > 0 && process.env.GMAIL_USER) {
+      try {
+        const stationUrl = `${process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin}/${stationId}`
+        const formattedDate = new Date(borrow.borrow_date).toLocaleDateString('he-IL', {
+          day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        })
+        await emailTransporter.sendMail({
+          from: `"תחנות גלגלים ידידים" <${process.env.GMAIL_USER}>`,
+          to: notificationEmails.join(', '),
+          subject: `🛞 בקשת השאלה חדשה - ${borrower_name} - גלגל #${wheel.wheel_number}`,
+          html: `
+            <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 20px;">
+                <h2 style="color: #15803d; margin: 0 0 16px 0;">🛞 בקשת השאלה חדשה ממתינה לאישור</h2>
+                <p style="color: #374151; margin: 0 0 16px 0;"><strong>תחנה:</strong> ${station.name}</p>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-weight: bold;">שם המבקש:</td><td style="padding: 6px 0;">${borrower_name}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-weight: bold;">טלפון:</td><td style="padding: 6px 0;">${borrower_phone}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-weight: bold;">גלגל:</td><td style="padding: 6px 0;">#${wheel.wheel_number}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-weight: bold;">תאריך:</td><td style="padding: 6px 0;">${formattedDate}</td></tr>
+                </table>
+                <div style="margin-top: 20px;">
+                  <a href="${stationUrl}" style="background: #22c55e; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                    ✅ עבור לאישור הבקשה
+                  </a>
+                </div>
+              </div>
+            </div>
+          `
+        })
+      } catch (emailError) {
+        console.error('Error sending approval email:', emailError)
+      }
     }
 
     return NextResponse.json({

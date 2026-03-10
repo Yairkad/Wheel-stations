@@ -21,6 +21,7 @@ interface Station {
   address: string
   district?: string | null
   is_active: boolean
+  max_managers?: number
   wheel_station_managers: Manager[]
   totalWheels: number
   availableWheels: number
@@ -79,6 +80,7 @@ export default function WheelsAdminPage() {
     name: '',
     address: '',
     district: '' as string,
+    max_managers: 4,
     managers: [] as Manager[]
   })
 
@@ -324,6 +326,7 @@ export default function WheelsAdminPage() {
       name: '',
       address: '',
       district: '',
+      max_managers: 4,
       managers: []
     })
   }
@@ -537,6 +540,7 @@ export default function WheelsAdminPage() {
       name: station.name,
       address: station.address || '',
       district: station.district || '',
+      max_managers: station.max_managers ?? 4,
       managers: station.wheel_station_managers || []
     })
     setEditingStation(station)
@@ -583,8 +587,8 @@ export default function WheelsAdminPage() {
   }
 
   const addManager = () => {
-    if (stationForm.managers.length >= 4) {
-      toast.error('ניתן להוסיף עד 4 מנהלים')
+    if (stationForm.managers.length >= stationForm.max_managers) {
+      toast.error(`ניתן להוסיף עד ${stationForm.max_managers} מנהלים`)
       return
     }
     setStationForm({
@@ -1010,10 +1014,22 @@ export default function WheelsAdminPage() {
                 </select>
               </div>
 
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>מקסימום מנהלים לתחנה</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={stationForm.max_managers}
+                  onChange={e => setStationForm({...stationForm, max_managers: Math.max(1, parseInt(e.target.value) || 4)})}
+                  style={{...styles.formInput, width: '100px'}}
+                />
+              </div>
+
               <div style={styles.managersSection}>
                 <div style={styles.managersSectionHeader}>
-                  <label style={styles.formLabel}>מנהלי תחנה ({stationForm.managers.length}/4)</label>
-                  <button style={styles.btnAddManager} onClick={addManager} disabled={stationForm.managers.length >= 4}>
+                  <label style={styles.formLabel}>מנהלי תחנה ({stationForm.managers.length}/{stationForm.max_managers})</label>
+                  <button style={styles.btnAddManager} onClick={addManager} disabled={stationForm.managers.length >= stationForm.max_managers}>
                     + הוסף מנהל
                   </button>
                 </div>

@@ -25,6 +25,7 @@ export async function GET() {
         city_id,
         district,
         is_active,
+        max_managers,
         cities (name),
         wheel_station_managers (
           id,
