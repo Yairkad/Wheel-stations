@@ -13,19 +13,6 @@ export async function DELETE(
     const { id } = await params
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Check if this is a primary manager
-    const { data: manager } = await supabase
-      .from('call_center_managers')
-      .select('is_primary')
-      .eq('id', id)
-      .single()
-
-    if (manager?.is_primary) {
-      return NextResponse.json({
-        error: 'לא ניתן למחוק מנהל ראשי'
-      }, { status: 400 })
-    }
-
     const { error } = await supabase
       .from('call_center_managers')
       .delete()

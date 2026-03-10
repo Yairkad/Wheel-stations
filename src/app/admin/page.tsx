@@ -5,6 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
+import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
 
 interface Manager {
   id?: string
@@ -48,6 +49,7 @@ interface SuperManager {
 
 export default function WheelsAdminPage() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const pendingReports = useAdminPendingReports()
 
   const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState(true)
@@ -459,6 +461,9 @@ export default function WheelsAdminPage() {
 
   const handleUpdateStation = async () => {
     if (!editingStation) return
+    if (stationForm.max_managers < stationForm.managers.length) {
+      toast(`שים לב: יש ${stationForm.managers.length} מנהלים פעילים אבל המגבלה הוגדרה ל-${stationForm.max_managers}`, { icon: '⚠️' })
+    }
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/admin/${editingStation.id}`, {
@@ -587,8 +592,9 @@ export default function WheelsAdminPage() {
   }
 
   const addManager = () => {
-    if (stationForm.managers.length >= stationForm.max_managers) {
-      toast.error(`ניתן להוסיף עד ${stationForm.max_managers} מנהלים`)
+    const maxMgr = stationForm.max_managers || 99
+    if (stationForm.managers.length >= maxMgr) {
+      toast.error(`ניתן להוסיף עד ${maxMgr} מנהלים`)
       return
     }
     setStationForm({
@@ -789,7 +795,22 @@ export default function WheelsAdminPage() {
           </div>
           <div style={styles.headerButtons} className="header-buttons-responsive">
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
-            <Link href="/admin/reports" style={styles.btnGhost}>📋 דיווחי שגיאות</Link>
+            <Link href="/admin/reports" style={{...styles.btnGhost, position: 'relative'}}>
+              📋 דיווחי שגיאות
+              {pendingReports > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '6px',
+                  left: '6px',
+                  width: '8px',
+                  height: '8px',
+                  background: '#ef4444',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 6px #ef4444',
+                  display: 'inline-block',
+                }} />
+              )}
+            </Link>
             <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
             <button style={styles.btnLogout} onClick={logout}>יציאה</button>
           </div>
@@ -1020,9 +1041,9 @@ export default function WheelsAdminPage() {
                   type="number"
                   min={1}
                   max={20}
-                  value={stationForm.max_managers}
-                  onChange={e => setStationForm({...stationForm, max_managers: parseInt(e.target.value) || 1})}
-                  onBlur={e => setStationForm({...stationForm, max_managers: Math.max(1, parseInt(e.target.value) || 4)})}
+                  value={stationForm.max_managers || ''}
+                  onChange={e => setStationForm({...stationForm, max_managers: parseInt(e.target.value) || 0})}
+                  onBlur={() => setStationForm(f => ({...f, max_managers: Math.max(1, f.max_managers || 1)}))}
                   style={{...styles.formInput, width: '100px'}}
                 />
               </div>
@@ -1219,7 +1240,7 @@ export default function WheelsAdminPage() {
                   <option value="">בחר תחנה...</option>
                   {stations.map(station => (
                     <option key={station.id} value={station.id}>
-                      {station.name} ({station.wheel_station_managers?.length || 0}/4 מנהלים)
+                      {station.name} ({station.wheel_station_managers?.length || 0}/{station.max_managers ?? 4} מנהלים)
                     </option>
                   ))}
                 </select>
@@ -1547,7 +1568,7 @@ function StationCard({
           <div style={styles.stationExpanded}>
             {station.wheel_station_managers?.length > 0 && (
               <div style={styles.managersCompact}>
-                <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/4)</div>
+                <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/{station.max_managers ?? 4})</div>
                 {station.wheel_station_managers.map((m, i) => (
                   <div key={i} style={styles.managerRowCompactDisplay}>
                     <span style={{color: m.is_primary ? '#22c55e' : '#64748b'}}>

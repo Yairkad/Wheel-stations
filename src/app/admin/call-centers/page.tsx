@@ -478,12 +478,10 @@ export default function CallCentersAdminPage() {
                                   style={{background: '#334155', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
                                   onClick={() => { setEditingManager(manager); setEditManagerForm({ full_name: manager.full_name, phone: manager.phone, title: manager.title || '', password: '' }) }}
                                 >✏️</button>
-                                {!manager.is_primary && (
-                                  <button
-                                    style={{background: '#450a0a', border: 'none', color: '#f87171', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
-                                    onClick={() => handleDeleteManager(manager)}
-                                  >🗑️</button>
-                                )}
+                                <button
+                                  style={{background: '#450a0a', border: 'none', color: '#f87171', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
+                                  onClick={() => handleDeleteManager(manager)}
+                                >🗑️</button>
                               </div>
                             ))}
                           </div>
