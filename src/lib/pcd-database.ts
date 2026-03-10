@@ -481,7 +481,6 @@ export function extractMakeFromHebrew(hebrewMake: string): string | null {
     'אומודה': 'omoda',
     'לינק אנד קו': 'lynk',
     'לינק': 'lynk',
-    'אלפא': 'alfa',
     'גאק': 'gac',
     'פאו': 'faw',
     'חאוואל': 'haval',
