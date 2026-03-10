@@ -1151,11 +1151,14 @@ ${signFormUrl}
               manager_password: sessionPassword
             })
           })
-          if (!response.ok) throw new Error('Failed to return')
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}))
+            throw new Error(errData.error || 'Failed to return')
+          }
           await fetchStation()
           toast.success('הגלגל הוחזר בהצלחה!')
-        } catch {
-          toast.error('שגיאה בהחזרה')
+        } catch (err: any) {
+          toast.error(err.message || 'שגיאה בהחזרה')
         } finally {
           setActionLoading(false)
         }

@@ -148,14 +148,22 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Find active borrow with all details for verified match
-    const { data: borrow, error: borrowError } = await supabase
+    const { data: borrows, error: borrowError } = await supabase
       .from('wheel_borrows')
       .select('id, license_plate, vehicle_model')
       .eq('wheel_id', wheelId)
       .eq('status', 'borrowed')
-      .single()
+      .order('created_at', { ascending: false })
+      .limit(1)
 
-    if (borrowError || !borrow) {
+    if (borrowError) {
+      console.error('Error finding active borrow:', borrowError, 'wheelId:', wheelId)
+      return NextResponse.json({ error: 'שגיאה בחיפוש השאלה פעילה' }, { status: 500 })
+    }
+
+    const borrow = borrows?.[0]
+    if (!borrow) {
+      console.error('No active borrow found for wheelId:', wheelId, 'stationId:', stationId)
       return NextResponse.json({ error: 'לא נמצאה השאלה פעילה' }, { status: 404 })
     }
 
