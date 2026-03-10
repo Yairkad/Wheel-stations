@@ -475,6 +475,22 @@ export function extractMakeFromHebrew(hebrewMake: string): string | null {
     'ג\'ילי': 'geely',
     'טסלה': 'tesla',
     'איסוזו': 'isuzu',
+    'ג\'אקו': 'jaecoo',
+    'ג\'קו': 'jaecoo',
+    'ומפה': 'omoda',
+    'אומודה': 'omoda',
+    'לינק אנד קו': 'lynk',
+    'לינק': 'lynk',
+    'אלפא': 'alfa',
+    'גאק': 'gac',
+    'פאו': 'faw',
+    'חאוואל': 'haval',
+    'האוול': 'haval',
+    'דונגפנג': 'dongfeng',
+    'חונגקי': 'hongqi',
+    'ניאו': 'nio',
+    'שאולי': 'shaoli',
+    'ריינבו': 'rainbow',
   }
 
   for (const [hebrew, english] of Object.entries(hebrewToEnglish)) {

@@ -143,6 +143,7 @@ async function scrapeFromFindCar(plate: string): Promise<FindCarScrapedData | nu
 
     if (!makeMatch || !modelMatch || !yearMatch) {
       console.log('find-car.co.il: Could not extract required fields. Make:', !!makeMatch, 'Model:', !!modelMatch, 'Year:', !!yearMatch)
+      console.log('find-car.co.il: HTML snippet (first 800 chars):', html.substring(0, 800))
       return null
     }
 
@@ -188,6 +189,18 @@ const MAKE_TRANSLATIONS: Record<string, string> = {
   'מיני': 'mini',
   'דאצ\'יה': 'dacia',
   'פורשה': 'porsche',
+  'ג\'אקו': 'jaecoo',
+  'ג\'קו': 'jaecoo',
+  'ג\'ילי': 'geely',
+  'חאוואל': 'haval',
+  'האוול': 'haval',
+  'דונגפנג': 'dongfeng',
+  'אם ג\'י': 'mg',
+  'ביי די': 'byd',
+  'ביי וואי די': 'byd',
+  'ניאו': 'nio',
+  'גאק': 'gac',
+  'פאו': 'faw',
 }
 
 function normalizeMakeForWheelfitment(make: string): string {
