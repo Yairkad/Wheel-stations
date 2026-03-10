@@ -56,13 +56,14 @@ export async function PUT(
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
-    const { is_active, full_name, title, password } = body
+    const { is_active, full_name, title, password, phone } = body
 
     const updateData: Record<string, unknown> = {}
     if (is_active !== undefined) updateData.is_active = is_active
     if (full_name !== undefined) updateData.full_name = full_name
     if (title !== undefined) updateData.title = title
     if (password !== undefined) updateData.password = password
+    if (phone !== undefined) updateData.phone = phone
 
     const { data, error } = await supabase
       .from('call_center_managers')

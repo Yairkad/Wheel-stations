@@ -61,6 +61,18 @@ export default function CallCentersAdminPage() {
     onConfirm: () => void
   } | null>(null)
 
+  // Edit manager
+  const [editingManager, setEditingManager] = useState<Manager | null>(null)
+  const [editManagerForm, setEditManagerForm] = useState({ full_name: '', phone: '', title: '', password: '' })
+
+  // Add manager
+  const [addManagerCenterId, setAddManagerCenterId] = useState<string | null>(null)
+  const [addManagerForm, setAddManagerForm] = useState({ full_name: '', phone: '', title: 'מנהל מוקד', password: '' })
+
+  // Add operator
+  const [addOperatorCenterId, setAddOperatorCenterId] = useState<string | null>(null)
+  const [addOperatorForm, setAddOperatorForm] = useState({ full_name: '', phone: '' })
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchCallCenters()
@@ -160,6 +172,125 @@ export default function CallCentersAdminPage() {
     } finally {
       setActionLoading(false)
     }
+  }
+
+  const handleSaveManager = async () => {
+    if (!editingManager) return
+    setActionLoading(true)
+    try {
+      const response = await fetch(`/api/call-center/managers/${editingManager.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editManagerForm)
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'שגיאה בעדכון')
+      await fetchCallCenters()
+      setEditingManager(null)
+      toast.success('המנהל עודכן בהצלחה!')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleDeleteManager = (manager: Manager) => {
+    setConfirmDialogData({
+      title: 'מחיקת מנהל',
+      message: `האם למחוק את "${manager.full_name}"?`,
+      onConfirm: async () => {
+        setShowConfirmDialog(false)
+        setConfirmDialogData(null)
+        setActionLoading(true)
+        try {
+          const response = await fetch(`/api/call-center/managers/${manager.id}`, { method: 'DELETE' })
+          const data = await response.json()
+          if (!response.ok) throw new Error(data.error || 'שגיאה במחיקה')
+          await fetchCallCenters()
+          toast.success('המנהל נמחק!')
+        } catch (err: unknown) {
+          toast.error(err instanceof Error ? err.message : 'שגיאה במחיקה')
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
+    setShowConfirmDialog(true)
+  }
+
+  const handleSaveAddManager = async () => {
+    if (!addManagerCenterId || !addManagerForm.full_name || !addManagerForm.phone || !addManagerForm.password) {
+      toast.error('יש למלא שם, טלפון וסיסמה')
+      return
+    }
+    setActionLoading(true)
+    try {
+      const response = await fetch('/api/call-center/managers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ call_center_id: addManagerCenterId, ...addManagerForm })
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'שגיאה בהוספה')
+      await fetchCallCenters()
+      setAddManagerCenterId(null)
+      setAddManagerForm({ full_name: '', phone: '', title: 'מנהל מוקד', password: '' })
+      toast.success('המנהל נוסף בהצלחה!')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בהוספה')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleSaveAddOperator = async () => {
+    if (!addOperatorCenterId || !addOperatorForm.full_name || !addOperatorForm.phone) {
+      toast.error('יש למלא שם וטלפון')
+      return
+    }
+    setActionLoading(true)
+    try {
+      const response = await fetch('/api/call-center/operators', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ call_center_id: addOperatorCenterId, ...addOperatorForm })
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'שגיאה בהוספה')
+      await fetchCallCenters()
+      setAddOperatorCenterId(null)
+      setAddOperatorForm({ full_name: '', phone: '' })
+      toast.success(`המוקדן נוסף! קוד: ${data.operator?.code}`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה בהוספה')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleDeleteOperator = (operator: Operator) => {
+    setConfirmDialogData({
+      title: 'מחיקת מוקדן',
+      message: `האם למחוק את "${operator.full_name}"?`,
+      onConfirm: async () => {
+        setShowConfirmDialog(false)
+        setConfirmDialogData(null)
+        setActionLoading(true)
+        try {
+          const response = await fetch(`/api/call-center/operators/${operator.id}`, { method: 'DELETE' })
+          const data = await response.json()
+          if (!response.ok) throw new Error(data.error || 'שגיאה במחיקה')
+          await fetchCallCenters()
+          toast.success('המוקדן נמחק!')
+        } catch (err: unknown) {
+          toast.error(err instanceof Error ? err.message : 'שגיאה במחיקה')
+        } finally {
+          setActionLoading(false)
+        }
+      }
+    })
+    setShowConfirmDialog(true)
   }
 
   // Stats
@@ -329,54 +460,57 @@ export default function CallCentersAdminPage() {
 
                       {isExpanded && (
                         <div style={styles.centerExpanded}>
-                          {/* Primary Manager */}
-                          {primaryManager && (
-                            <div style={styles.primaryManagerBox}>
-                              <div style={styles.primaryManagerLabel}>מנהל ראשי:</div>
-                              <div style={styles.primaryManagerInfo}>
-                                <span style={{fontWeight: 600}}>{primaryManager.full_name}</span>
-                                <span style={{color: '#64748b'}}> - {primaryManager.phone}</span>
+                          {/* Managers */}
+                          <div style={styles.listSection}>
+                            <div style={{...styles.listTitle, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                              <span>👔 מנהלים ({center.call_center_managers?.length || 0})</span>
+                              <button
+                                style={{...styles.btnCompact, background: '#3b82f6', color: '#fff', border: 'none', fontSize: '0.75rem', padding: '4px 10px'}}
+                                onClick={() => { setAddManagerCenterId(center.id); setAddManagerForm({ full_name: '', phone: '', title: 'מנהל מוקד', password: '' }) }}
+                              >+ הוסף מנהל</button>
+                            </div>
+                            {center.call_center_managers?.map(manager => (
+                              <div key={manager.id} style={{...styles.listItem, alignItems: 'center'}}>
+                                <span style={{flex: 1}}>{manager.full_name} {manager.is_primary && <span style={{color: '#f59e0b', fontSize: '0.75rem'}}>★ ראשי</span>}</span>
+                                <span style={{color: '#64748b', fontSize: '0.85rem'}}>{manager.phone}</span>
+                                <span style={{color: '#8b5cf6', fontSize: '0.78rem'}}>{manager.title}</span>
+                                <button
+                                  style={{background: '#334155', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
+                                  onClick={() => { setEditingManager(manager); setEditManagerForm({ full_name: manager.full_name, phone: manager.phone, title: manager.title || '', password: '' }) }}
+                                >✏️</button>
+                                {!manager.is_primary && (
+                                  <button
+                                    style={{background: '#450a0a', border: 'none', color: '#f87171', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
+                                    onClick={() => handleDeleteManager(manager)}
+                                  >🗑️</button>
+                                )}
                               </div>
-                            </div>
-                          )}
-
-                          {/* Other Managers */}
-                          {center.call_center_managers?.filter(m => !m.is_primary).length > 0 && (
-                            <div style={styles.listSection}>
-                              <div style={styles.listTitle}>מנהלים נוספים:</div>
-                              {center.call_center_managers.filter(m => !m.is_primary).map(manager => (
-                                <div key={manager.id} style={styles.listItem}>
-                                  <span>{manager.full_name}</span>
-                                  <span style={{color: '#64748b'}}>{manager.phone}</span>
-                                  <span style={{color: '#8b5cf6', fontSize: '0.8rem'}}>{manager.title}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                            ))}
+                          </div>
 
                           {/* Operators */}
-                          {center.operators?.length > 0 && (
-                            <div style={styles.listSection}>
-                              <div style={styles.listTitle}>מוקדנים ({center.operators.length}):</div>
-                              {center.operators.slice(0, 5).map(operator => (
-                                <div key={operator.id} style={styles.listItem}>
-                                  <span>{operator.full_name}</span>
-                                  <span style={{color: '#64748b'}}>{operator.phone}</span>
-                                  <span style={{
-                                    color: operator.is_active ? '#22c55e' : '#f59e0b',
-                                    fontSize: '0.8rem'
-                                  }}>
-                                    {operator.is_active ? 'פעיל' : 'לא פעיל'}
-                                  </span>
-                                </div>
-                              ))}
-                              {center.operators.length > 5 && (
-                                <div style={{color: '#64748b', fontSize: '0.85rem', textAlign: 'center', marginTop: '8px'}}>
-                                  ועוד {center.operators.length - 5} מוקדנים...
-                                </div>
-                              )}
+                          <div style={styles.listSection}>
+                            <div style={{...styles.listTitle, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                              <span>👤 מוקדנים ({center.operators?.length || 0})</span>
+                              <button
+                                style={{...styles.btnCompact, background: '#22c55e', color: '#fff', border: 'none', fontSize: '0.75rem', padding: '4px 10px'}}
+                                onClick={() => { setAddOperatorCenterId(center.id); setAddOperatorForm({ full_name: '', phone: '' }) }}
+                              >+ הוסף מוקדן</button>
                             </div>
-                          )}
+                            {center.operators?.map(operator => (
+                              <div key={operator.id} style={{...styles.listItem, alignItems: 'center'}}>
+                                <span style={{flex: 1}}>{operator.full_name}</span>
+                                <span style={{color: '#64748b', fontSize: '0.85rem'}}>{operator.phone}</span>
+                                <span style={{color: operator.is_active ? '#22c55e' : '#f59e0b', fontSize: '0.78rem'}}>
+                                  {operator.is_active ? 'פעיל' : 'לא פעיל'}
+                                </span>
+                                <button
+                                  style={{background: '#450a0a', border: 'none', color: '#f87171', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
+                                  onClick={() => handleDeleteOperator(operator)}
+                                >🗑️</button>
+                              </div>
+                            ))}
+                          </div>
 
                           {/* Actions */}
                           <div style={styles.centerActions}>
@@ -490,6 +624,106 @@ export default function CallCentersAdminPage() {
               </button>
               <button style={styles.confirmDeleteBtn} onClick={confirmDialogData.onConfirm}>
                 מחק
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Manager Modal */}
+      {editingManager && (
+        <div style={styles.modalOverlay} onClick={() => setEditingManager(null)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>✏️ עריכת מנהל</h3>
+            </div>
+            <div style={styles.modalBody}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>שם מלא</label>
+                <input type="text" value={editManagerForm.full_name} onChange={e => setEditManagerForm({...editManagerForm, full_name: e.target.value})} style={styles.formInput} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>טלפון / שם משתמש</label>
+                <input type="text" value={editManagerForm.phone} onChange={e => setEditManagerForm({...editManagerForm, phone: e.target.value})} style={styles.formInput} dir="ltr" />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>תואר</label>
+                <input type="text" value={editManagerForm.title} onChange={e => setEditManagerForm({...editManagerForm, title: e.target.value})} style={styles.formInput} placeholder="מנהל מוקד" />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>סיסמה חדשה (השאר ריק לאי-שינוי)</label>
+                <input type="text" value={editManagerForm.password} onChange={e => setEditManagerForm({...editManagerForm, password: e.target.value})} style={styles.formInput} placeholder="••••••" />
+              </div>
+            </div>
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => setEditingManager(null)}>ביטול</button>
+              <button style={styles.btnSubmit} onClick={handleSaveManager} disabled={actionLoading}>
+                {actionLoading ? 'שומר...' : 'שמור'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Manager Modal */}
+      {addManagerCenterId && (
+        <div style={styles.modalOverlay} onClick={() => setAddManagerCenterId(null)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>➕ הוספת מנהל</h3>
+            </div>
+            <div style={styles.modalBody}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>שם מלא *</label>
+                <input type="text" value={addManagerForm.full_name} onChange={e => setAddManagerForm({...addManagerForm, full_name: e.target.value})} style={styles.formInput} placeholder="ישראל ישראלי" />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>טלפון / שם משתמש *</label>
+                <input type="text" value={addManagerForm.phone} onChange={e => setAddManagerForm({...addManagerForm, phone: e.target.value})} style={styles.formInput} dir="ltr" />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>תואר</label>
+                <input type="text" value={addManagerForm.title} onChange={e => setAddManagerForm({...addManagerForm, title: e.target.value})} style={styles.formInput} placeholder="מנהל מוקד" />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>סיסמה *</label>
+                <input type="text" value={addManagerForm.password} onChange={e => setAddManagerForm({...addManagerForm, password: e.target.value})} style={styles.formInput} />
+              </div>
+            </div>
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => setAddManagerCenterId(null)}>ביטול</button>
+              <button style={styles.btnSubmit} onClick={handleSaveAddManager} disabled={actionLoading}>
+                {actionLoading ? 'מוסיף...' : 'הוסף מנהל'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Operator Modal */}
+      {addOperatorCenterId && (
+        <div style={styles.modalOverlay} onClick={() => setAddOperatorCenterId(null)}>
+          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>➕ הוספת מוקדן</h3>
+            </div>
+            <div style={styles.modalBody}>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>שם מלא *</label>
+                <input type="text" value={addOperatorForm.full_name} onChange={e => setAddOperatorForm({...addOperatorForm, full_name: e.target.value})} style={styles.formInput} placeholder="ישראל ישראלי" />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>טלפון *</label>
+                <input type="tel" value={addOperatorForm.phone} onChange={e => setAddOperatorForm({...addOperatorForm, phone: e.target.value})} style={styles.formInput} dir="ltr" placeholder="050-0000000" />
+              </div>
+              <p style={{fontSize: '0.8rem', color: '#64748b', margin: '8px 0 0'}}>
+                קוד כניסה ייווצר אוטומטית ויוצג לאחר ההוספה
+              </p>
+            </div>
+            <div style={styles.modalFooter}>
+              <button style={styles.btnCancel} onClick={() => setAddOperatorCenterId(null)}>ביטול</button>
+              <button style={styles.btnSubmit} onClick={handleSaveAddOperator} disabled={actionLoading}>
+                {actionLoading ? 'מוסיף...' : 'הוסף מוקדן'}
               </button>
             </div>
           </div>
