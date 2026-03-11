@@ -4319,46 +4319,32 @@ ${formUrl}`
               <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
                 <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>👥 אנשי קשר ({contacts.length}/{station?.max_managers ?? 4})</h4>
                 {contacts.map((contact, index) => (
-                  <div key={index} style={{marginBottom: '10px'}} className="edit-details-contact-row">
-                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center'}}>
+                  <div key={index} style={{display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center'}} className="edit-details-contact-row">
+                    <div style={{position: 'relative', flex: 1, minWidth: '120px'}}>
                       <input
                         type="text"
                         placeholder="שם מלא"
                         value={contact.full_name}
                         onChange={e => updateContact(index, 'full_name', e.target.value)}
-                        style={{...styles.input, flex: 1, minWidth: '120px'}}
-                      />
-                      <input
-                        type="tel"
-                        placeholder="טלפון"
-                        value={contact.phone}
-                        onChange={e => updateContact(index, 'phone', e.target.value)}
-                        style={{...styles.input, flex: 1, minWidth: '100px'}}
+                        style={{...styles.input, width: '100%', paddingLeft: contact.is_primary ? '26px' : undefined}}
                       />
                       {contact.is_primary && (
-                        <span
-                          title="מנהל ראשי"
-                          style={{
-                            width: '32px', height: '32px', borderRadius: '50%',
-                            background: 'rgba(245,158,11,0.12)', display: 'flex',
-                            alignItems: 'center', justifyContent: 'center',
-                            fontSize: '14px', flexShrink: 0,
-                            filter: 'drop-shadow(0 0 4px #f59e0b)',
-                          }}
-                        >⭐</span>
+                        <span title="מנהל ראשי" style={{
+                          position: 'absolute', left: '7px', top: '50%',
+                          transform: 'translateY(-50%)',
+                          fontSize: '12px', lineHeight: 1, pointerEvents: 'none',
+                          filter: 'drop-shadow(0 0 3px #f59e0b)',
+                        }}>⭐</span>
                       )}
-                      <button
-                        style={styles.removeBtn}
-                        disabled={contact.is_primary}
-                        title={contact.is_primary ? 'לא ניתן למחוק מנהל ראשי' : 'הסר'}
-                        onClick={() => removeContact(index)}
-                      >✕</button>
                     </div>
-                    {contact.is_primary && (
-                      <div style={{fontSize: '0.75rem', color: '#f59e0b', marginTop: '4px', paddingRight: '2px'}}>
-                        ⭐ מנהל ראשי — יש לו הרשאות מלאות לעריכה
-                      </div>
-                    )}
+                    <input
+                      type="tel"
+                      placeholder="טלפון"
+                      value={contact.phone}
+                      onChange={e => updateContact(index, 'phone', e.target.value)}
+                      style={{...styles.input, flex: 1, minWidth: '100px'}}
+                    />
+                    <button style={styles.removeBtn} onClick={() => removeContact(index)}>✕</button>
                   </div>
                 ))}
                 <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
