@@ -342,6 +342,9 @@ export default function CallCentersAdminPage() {
           }
         }
         @media (max-width: 480px) {
+          .header-buttons-responsive {
+            flex-wrap: wrap !important;
+          }
           .header-buttons-responsive a,
           .header-buttons-responsive button {
             padding: 6px 8px !important;
