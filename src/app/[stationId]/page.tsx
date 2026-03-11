@@ -4279,6 +4279,11 @@ ${formUrl}`
                     setActionLoading(true)
                     try {
                       const validEmails = notificationEmails.filter(e => e.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
+                      if (validEmails.length === 0 && (station?.notification_emails?.length ?? 0) > 0) {
+                        toast.error('נא להזין לפחות כתובת מייל אחת תקינה')
+                        setActionLoading(false)
+                        return
+                      }
                       const response = await fetch(`/api/wheel-stations/${stationId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
