@@ -1529,6 +1529,28 @@ export default function WheelStationsPage() {
                 >
                   🔍 חפש לפי דגם ושנה
                 </button>
+                <a
+                  href={`https://www.find-car.co.il/car/private/${vehiclePlate.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginTop: '8px',
+                    padding: '7px 14px',
+                    background: 'rgba(255,255,255,0.08)',
+                    color: '#94a3b8',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    width: '100%',
+                    justifyContent: 'center',
+                    textDecoration: 'none',
+                  }}
+                >
+                  🔗 חפש במקור חיצוני (find-car.co.il)
+                </a>
               </div>
             )}
 
