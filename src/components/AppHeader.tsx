@@ -14,6 +14,7 @@ interface UserSession {
     role: string
     station_id: string
     station_name: string
+    is_primary?: boolean
   }
   stationId: string
   stationName: string
@@ -266,12 +267,26 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
               aria-controls="profile-menu"
               aria-label={`תפריט פרופיל - ${userSession.manager.full_name}`}
             >
-              <div className="profile-avatar" style={styles.profileAvatar}>
-                {getUserInitials(userSession.manager.full_name)}
+              <div style={{position: 'relative', flexShrink: 0}}>
+                <div className="profile-avatar" style={styles.profileAvatar}>
+                  {getUserInitials(userSession.manager.full_name)}
+                </div>
+                {userSession.manager.is_primary && (
+                  <span
+                    title="מנהל ראשי"
+                    style={{
+                      position: 'absolute', bottom: '-4px', left: '-4px',
+                      fontSize: '12px', lineHeight: 1,
+                      filter: 'drop-shadow(0 0 3px #f59e0b)',
+                    }}
+                  >⭐</span>
+                )}
               </div>
               <div className="profile-info" style={styles.profileInfo}>
                 <div className="profile-name" style={styles.profileName}>{userSession.manager.full_name}</div>
-                <div className="profile-role" style={styles.profileRole}>{getRoleDisplay(userSession.manager.role)}</div>
+                <div className="profile-role" style={styles.profileRole}>
+                  {userSession.manager.is_primary ? '⭐ מנהל ראשי' : getRoleDisplay(userSession.manager.role)}
+                </div>
               </div>
               <span className="profile-arrow" style={styles.profileArrow}>▼</span>
             </button>
@@ -280,8 +295,14 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
               <div id="profile-menu" role="menu" style={styles.dropdownMenu}>
                 {/* User info section */}
                 <div style={styles.menuUserInfo}>
-                  <div style={styles.menuStationNameLarge}>{userSession.manager.full_name}</div>
+                  <div style={{...styles.menuStationNameLarge, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
+                    {userSession.manager.is_primary && <span title="מנהל ראשי" style={{filter: 'drop-shadow(0 0 4px #f59e0b)'}}>⭐</span>}
+                    {userSession.manager.full_name}
+                  </div>
                   <div style={styles.menuUserPhone}>{userSession.stationName || userSession.manager.station_name || 'התחנה שלי'}</div>
+                  {userSession.manager.is_primary && (
+                    <div style={{fontSize: '11px', color: '#f59e0b', marginTop: '4px'}}>הרשאות עריכה מלאות</div>
+                  )}
                 </div>
 
                 <div style={styles.dropdownDivider} />

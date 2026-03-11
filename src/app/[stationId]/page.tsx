@@ -102,6 +102,7 @@ interface Station {
   deposit_amount?: number
   payment_methods?: PaymentMethods
   notification_emails?: string[]
+  max_managers?: number
 }
 
 interface WheelForm {
@@ -1717,8 +1718,9 @@ ${formUrl}`
   }
 
   const addContact = () => {
-    if (contacts.length >= 4) {
-      toast.error('ניתן להוסיף עד 4 אנשי קשר')
+    const maxAllowed = station?.max_managers ?? 4
+    if (contacts.length >= maxAllowed) {
+      toast.error(`ניתן להוסיף עד ${maxAllowed} אנשי קשר`)
       return
     }
     setContacts([...contacts, { id: '', full_name: '', phone: '', role: 'מנהל תחנה', is_primary: false }])
@@ -3153,7 +3155,16 @@ ${formUrl}`
                       border: '1px solid #4b5563',
                     }}
                   >
-                    <span style={{fontWeight: '500', color: '#fff'}}>{manager.full_name}</span>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                      <span style={{fontWeight: '500', color: '#fff'}}>{manager.full_name}</span>
+                      {manager.is_primary && (
+                        <span title="מנהל ראשי" style={{
+                          fontSize: '16px',
+                          lineHeight: 1,
+                          filter: 'drop-shadow(0 0 4px #f59e0b)',
+                        }}>⭐</span>
+                      )}
+                    </div>
                     <div style={{display: 'flex', gap: '8px'}}>
                       <a
                         href={`tel:${cleanPhone}`}
@@ -4306,28 +4317,52 @@ ${formUrl}`
             {/* Section: Contacts - Only for primary manager */}
             {currentManager?.is_primary ? (
               <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>👥 אנשי קשר ({contacts.length}/4)</h4>
+                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>👥 אנשי קשר ({contacts.length}/{station?.max_managers ?? 4})</h4>
                 {contacts.map((contact, index) => (
-                  <div key={index} style={{display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap'}} className="edit-details-contact-row">
-                    <input
-                      type="text"
-                      placeholder="שם מלא"
-                      value={contact.full_name}
-                      onChange={e => updateContact(index, 'full_name', e.target.value)}
-                      style={{...styles.input, flex: 1, minWidth: '120px'}}
-                    />
-                    <input
-                      type="tel"
-                      placeholder="טלפון"
-                      value={contact.phone}
-                      onChange={e => updateContact(index, 'phone', e.target.value)}
-                      style={{...styles.input, flex: 1, minWidth: '100px'}}
-                    />
-                    <button style={styles.removeBtn} onClick={() => removeContact(index)}>✕</button>
+                  <div key={index} style={{marginBottom: '10px'}} className="edit-details-contact-row">
+                    <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center'}}>
+                      <input
+                        type="text"
+                        placeholder="שם מלא"
+                        value={contact.full_name}
+                        onChange={e => updateContact(index, 'full_name', e.target.value)}
+                        style={{...styles.input, flex: 1, minWidth: '120px'}}
+                      />
+                      <input
+                        type="tel"
+                        placeholder="טלפון"
+                        value={contact.phone}
+                        onChange={e => updateContact(index, 'phone', e.target.value)}
+                        style={{...styles.input, flex: 1, minWidth: '100px'}}
+                      />
+                      {contact.is_primary && (
+                        <span
+                          title="מנהל ראשי"
+                          style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: 'rgba(245,158,11,0.12)', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            fontSize: '14px', flexShrink: 0,
+                            filter: 'drop-shadow(0 0 4px #f59e0b)',
+                          }}
+                        >⭐</span>
+                      )}
+                      <button
+                        style={styles.removeBtn}
+                        disabled={contact.is_primary}
+                        title={contact.is_primary ? 'לא ניתן למחוק מנהל ראשי' : 'הסר'}
+                        onClick={() => removeContact(index)}
+                      >✕</button>
+                    </div>
+                    {contact.is_primary && (
+                      <div style={{fontSize: '0.75rem', color: '#f59e0b', marginTop: '4px', paddingRight: '2px'}}>
+                        ⭐ מנהל ראשי — יש לו הרשאות מלאות לעריכה
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                  <button style={{...styles.smallBtn, background: '#3b82f6'}} onClick={addContact} disabled={contacts.length >= 4}>
+                  <button style={{...styles.smallBtn, background: '#3b82f6'}} onClick={addContact} disabled={contacts.length >= (station?.max_managers ?? 4)}>
                     ➕ הוסף איש קשר
                   </button>
                   <button style={{...styles.smallBtn, background: '#10b981'}} onClick={handleSaveContacts} disabled={actionLoading}>

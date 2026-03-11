@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyStationManager } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,40 +15,6 @@ const supabase = createClient(
 
 interface RouteParams {
   params: Promise<{ stationId: string; wheelId: string }>
-}
-
-// Helper to verify station manager (by phone and personal password)
-async function verifyStationManager(stationId: string, phone: string, password: string): Promise<{ success: boolean; error?: string; managerId?: string }> {
-  // Get station with managers including their personal passwords
-  const { data: station, error } = await supabase
-    .from('wheel_stations')
-    .select(`
-      id,
-      wheel_station_managers (id, phone, password)
-    `)
-    .eq('id', stationId)
-    .single()
-
-  if (error || !station) {
-    return { success: false, error: 'Station not found' }
-  }
-
-  // Find manager by phone
-  const cleanPhone = phone.replace(/\D/g, '')
-  const manager = station.wheel_station_managers.find((m: { id: string; phone: string; password: string }) =>
-    m.phone.replace(/\D/g, '') === cleanPhone
-  )
-
-  if (!manager) {
-    return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
-  }
-
-  // Verify personal password
-  if (manager.password !== password) {
-    return { success: false, error: 'סיסמא שגויה' }
-  }
-
-  return { success: true, managerId: manager.id }
 }
 
 // POST - Mark wheel as borrowed

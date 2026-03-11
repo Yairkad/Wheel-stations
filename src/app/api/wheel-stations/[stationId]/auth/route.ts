@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createHmac } from 'crypto'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,6 +16,35 @@ const supabase = createClient(
 
 // Session expiry time: 7 days in milliseconds
 const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000
+
+const TOKEN_SECRET = process.env.TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || 'fallback-secret'
+
+function signToken(payload: string): string {
+  const hmac = createHmac('sha256', TOKEN_SECRET)
+  hmac.update(payload)
+  return hmac.digest('hex')
+}
+
+function createToken(stationId: string, managerId: string): string {
+  const payload = `${stationId}:${managerId}:${Date.now()}`
+  const sig = signToken(payload)
+  return Buffer.from(`${payload}:${sig}`).toString('base64')
+}
+
+function verifyToken(token: string): { stationId: string; managerId: string; timestamp: string } | null {
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf-8')
+    const parts = decoded.split(':')
+    if (parts.length !== 4) return null
+    const [stationId, managerId, timestamp, sig] = parts
+    const payload = `${stationId}:${managerId}:${timestamp}`
+    const expected = signToken(payload)
+    if (sig !== expected) return null
+    return { stationId, managerId, timestamp }
+  } catch {
+    return null
+  }
+}
 
 // Rate limiting configuration
 const MAX_ATTEMPTS = 5 // Maximum failed login attempts
@@ -109,8 +139,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Decode and validate token
     try {
-      const decoded = Buffer.from(token, 'base64').toString('utf-8')
-      const [tokenStationId, managerId, timestamp] = decoded.split(':')
+      const parsed = verifyToken(token)
+
+      if (!parsed) {
+        return NextResponse.json({ valid: false, error: 'Invalid token' }, { status: 401 })
+      }
+
+      const { stationId: tokenStationId, managerId, timestamp } = parsed
 
       // Check station ID matches
       if (tokenStationId !== stationId) {
@@ -263,8 +298,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Successful login - clear rate limit for this IP/station
     clearRateLimit(ip, stationId)
 
-    // Generate a simple token (in production, use JWT or similar)
-    const token = Buffer.from(`${stationId}:${manager.id}:${Date.now()}`).toString('base64')
+    // Generate HMAC-signed token
+    const token = createToken(stationId, manager.id)
 
     return NextResponse.json({
       success: true,
