@@ -1321,6 +1321,16 @@ function VehiclesAdminPage() {
             font-size: 0.85rem !important;
           }
         }
+        @media (max-width: 480px) {
+          .header-buttons-responsive {
+            gap: 4px !important;
+          }
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            padding: 5px 6px !important;
+            font-size: 0.65rem !important;
+          }
+        }
       `}</style>
 
       {/* Header */}

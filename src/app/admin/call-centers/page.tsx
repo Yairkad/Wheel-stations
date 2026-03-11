@@ -343,12 +343,12 @@ export default function CallCentersAdminPage() {
         }
         @media (max-width: 480px) {
           .header-buttons-responsive {
-            flex-wrap: wrap !important;
+            gap: 4px !important;
           }
           .header-buttons-responsive a,
           .header-buttons-responsive button {
-            padding: 6px 8px !important;
-            font-size: 0.7rem !important;
+            padding: 5px 6px !important;
+            font-size: 0.65rem !important;
           }
           .stats-row-responsive {
             grid-template-columns: 1fr 1fr 1fr !important;

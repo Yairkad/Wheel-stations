@@ -343,6 +343,14 @@ export default function ErrorReportsPage() {
           }
         }
         @media (max-width: 480px) {
+          .header-buttons-responsive {
+            gap: 4px !important;
+          }
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            padding: 5px 6px !important;
+            font-size: 0.65rem !important;
+          }
           .stats-row-responsive {
             grid-template-columns: 1fr 1fr !important;
             gap: 8px !important;

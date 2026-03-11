@@ -739,6 +739,14 @@ export default function WheelsAdminPage() {
           }
         }
         @media (max-width: 480px) {
+          .header-buttons-responsive {
+            gap: 4px !important;
+          }
+          .header-buttons-responsive a,
+          .header-buttons-responsive button {
+            padding: 5px 6px !important;
+            font-size: 0.65rem !important;
+          }
           .stats-row-responsive {
             grid-template-columns: 1fr 1fr !important;
             gap: 10px !important;
@@ -1063,14 +1071,16 @@ export default function WheelsAdminPage() {
                         type="button"
                         style={{
                           ...styles.btnCrownSm,
-                          background: manager.is_primary ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)' : '#1e293b',
+                          background: manager.is_primary ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.04)',
                           borderColor: manager.is_primary ? '#f59e0b' : '#334155',
-                          color: manager.is_primary ? 'white' : '#64748b',
+                          filter: manager.is_primary ? 'drop-shadow(0 0 4px #f59e0b)' : 'grayscale(1) opacity(0.35)',
+                          transition: 'all 0.2s',
+                          fontSize: '13px',
                         }}
                         onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
-                        title={manager.is_primary ? 'יש הרשאות - לחץ להסרה' : 'אין הרשאות - לחץ להוספה'}
+                        title={manager.is_primary ? 'מנהל ראשי — לחץ להסרת הרשאות' : 'אין הרשאות — לחץ להגדרה כמנהל ראשי'}
                       >
-                        {manager.is_primary ? '🔓' : '🔒'}
+                        ⭐
                       </button>
                       <input
                         type="text"
@@ -1571,9 +1581,14 @@ function StationCard({
                 <div style={styles.managersCompactTitle}>מנהלים ({station.wheel_station_managers.length}/{station.max_managers ?? 4})</div>
                 {station.wheel_station_managers.map((m, i) => (
                   <div key={i} style={styles.managerRowCompactDisplay}>
-                    <span style={{color: m.is_primary ? '#22c55e' : '#64748b'}}>
-                      {m.is_primary ? '🔓' : '🔒'}
-                    </span>
+                    <span
+                      title={m.is_primary ? 'מנהל ראשי' : 'מנהל משני'}
+                      style={{
+                        filter: m.is_primary ? 'drop-shadow(0 0 4px #f59e0b)' : 'grayscale(1) opacity(0.35)',
+                        fontSize: '12px',
+                        lineHeight: 1,
+                      }}
+                    >⭐</span>
                     <span style={{color: 'white'}}>{m.full_name}</span>
                     <span style={{color: '#64748b'}}>- {m.phone}</span>
                     <span style={{
