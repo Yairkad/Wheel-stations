@@ -48,7 +48,8 @@ export async function PUT(
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
-    const { is_active, regenerate_code, full_name, phone } = body
+    const { is_active, regenerate_code, full_name } = body
+    const phone = body.phone?.trim()
 
     const updateData: Record<string, unknown> = {}
     if (is_active !== undefined) updateData.is_active = is_active

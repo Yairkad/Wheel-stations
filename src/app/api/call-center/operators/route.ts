@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
-    const { call_center_id, full_name, phone } = body
+    const { call_center_id, full_name } = body
+    const phone = body.phone?.trim()
 
     if (!call_center_id || !full_name || !phone) {
       return NextResponse.json({
