@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name><![CDATA[פנצ'ריות לילה]]></name>
+    <description/>
+    <Style id="icon-1899-DB4436-normal">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+        <hotSpot x="32" xunits="pixels" y="64" yunits="insetPixels"/>
+      </IconStyle>
+      <LabelStyle>
+        <scale>0</scale>
+      </LabelStyle>
+    </Style>
+    <Style id="icon-1899-DB4436-highlight">
+      <IconStyle>
+        <color>ff3644db</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+        <hotSpot x="32" xunits="pixels" y="64" yunits="insetPixels"/>
+      </IconStyle>
+      <LabelStyle>
+        <scale>1</scale>
+      </LabelStyle>
+    </Style>
+    <StyleMap id="icon-1899-DB4436">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#icon-1899-DB4436-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#icon-1899-DB4436-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Folder>
+      <name><![CDATA[רשימת פנצ'ריות לילה]]></name>
+      <Placemark>
+        <name>אור יהודה - צמיגי גיורא‎‎‎‎‎</name>
+        <description><![CDATA[כתובת: אור יהודה, היוזמים 13<br>שעות פתיחה: 07:00-19:00<br>שעות פעילות ערב ולילה: עד חצות<br>שישי עד 14:00<br>מוצש משעה אחרי צאת שבת<br><br>מיכאל: 0525536821<br>שליחת מס' טלפון: https://wa.me/?text=0525536821‎‎‎<br>WhatsApp: https://wa.me/9720525536821<br><br>אבי: 0523861888<br>שליחת מס' טלפון: https://wa.me/?text=0523861888‎‎‎<br>WhatsApp: https://‎wa.me/9720523861888<br>‎<br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.8637855,32.0229955,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אור יהודה - צמיגי פרונט יוסף‎‎‎‎</name>
+        <description><![CDATA[כתובת: אור יהודה, דרך לוד 5.<br>שעות פתיחה: 07:30-18:00.<br>שעות פעילות סופ"ש:<br>שישי: 07:30-13:00.<br>מוצ"ש: משעה אחרי צאת שבת ועד 00:00<br>שעות פעילות ערב ולילה: 18:00-00:00, בתיאום מראש.<br>ברק: 0546316044<br>WhatsApp: https://wa.me/9720546316044<br>שליחת מס' טלפון: https://wa.me/?text=0546316044‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.8521376,32.0356103,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אופקים - צמיגי ישי</name>
+        <description><![CDATA[צמיגי ישי<br>המלאכה 3, אופקים<br>שעות פעילות: 6:30-18:00<br>שעות פעילות ערב ולילה: בתיאום מראש<br><br>ישי<br>שליחת מס' טלפון: https://wa.me/?text=0537387490]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.6205456,31.3195715,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[אילת - הפנצ'רייה הכתומה בע"מ‎]]></name>
+        <description><![CDATA[כתובת: אילת, המלאכה 3.<br>שעות פתיחה: 6:00-18:00<br>שישי: 6:00-15:00<br>שבת: 8:30-18:00<br>שעות פעילות ערב/לילה: פתוח רצוף, בתיאום מראש.<br><br>טלפון - דוד: 0537765148<br>WhatsApp: https://wa.me/9720537765148<br>שליחת מס' טלפון: https://wa.me/?text=0537765148‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.957688,29.563672,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אילת - צמיגי אסף יוסף‎‎‎‎</name>
+        <description><![CDATA[כתובת: אילת הסוור 2.<br>שעות פתיחה: 7:00-18:00<br>שישי שבת פתוחים עד 16:00<br>שעות פעילות לילה: פתוח רצוף, בתיאום מראש.<br><br>טלפון - רז: 0542536563<br>WhatsApp: https://wa.me/9720542536563<br>שליחת מס' טלפון: https://wa.me/?text=0542536563‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.9608877,29.5705401,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אשדוד - מרכז הפרונט</name>
+        <description><![CDATA[מרכז הפרונט<br>העבודה 46, אשדוד<br>שעות פעילות: 8:00-17:00<br>שעות פעילות ערב ולילה: בתיאום מראש.<br><br>ג'נין<br>0529546702<br>שליחת מס' טלפון: https://wa.me/?text=0529546702]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.6664248,31.8121156,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אשדוד - פנצ׳ריית הולכי דרכים-עד הלום‎</name>
+        <description><![CDATA[כתובת: אשדוד, א.ת עד הלום, ת.דלק פז.<br>שעות פתיחה: 6:00-22:00<br>פתוח בערב: עד השעה 22:00.<br><br>יצירת קשר:<br>טלפון - חנן: 0543181497<br>https://wa.me/9720543181497<br>שליחת מס' טלפון: https://wa.me/?text=0543181497‎‎‎<br><br>טלפון - שאול: 0547538082<br>https://wa.me/9720547538082<br>שליחת מס' טלפון: https://wa.me/?text=0547538082‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.6661989,31.7664352,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אשדוד - צמיגי הצלחה</name>
+        <description><![CDATA[כתובת: אשדוד, התקשורת 12<br>שעות פתיחה: 07:00-19:00<br>שעות פעילות ערב ולילה: מתי שצריך.<br><br>נועם: 0559544799<br>שליחת מס' טלפון: https://wa.me/?text=0559544799‎‎‎<br>WhatsApp: https://wa.me/9720559544799<br><br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.6577575,31.8139556,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[אשדוד - פנצ'ריית שרון]]></name>
+        <description><![CDATA[כתובת: תחנת דלק פז - בני ברית<br>פתוח 24/6<br><br>מוחמד: 0533998555<br>שליחת מס' טלפון: https://wa.me/?text=0533998555‎‎‎<br>WhatsApp: https://wa.me/972533998555]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.6658127,31.811075,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אשדוד - צמיגי עמוס‎‎</name>
+        <description><![CDATA[כתובת: אשדוד, בעלי המלאכה 5.<br>שעות פתיחה: 7:00-19:00<br>פותח כל הלילה - בתיאום מראש (גם פנצ'ריה ניידת)<br><br>טלפון - נועם: 0559544799<br>WhatsApp: https://wa.me/9720559544799<br>שליחת מס' טלפון: https://wa.me/?text=0559544799‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.6627742,31.8165955,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אשקלון - סופר צמיג‎‎</name>
+        <description><![CDATA[כתובת: אשקלון, המסגר 1.<br>שעות פתיחה: 7:30-17:00.<br>פותח כל הלילה - בתיאום מראש.<br><br>טלפון - אליאור: 0535701175<br>WhatsApp: https://wa.me/9720535701175<br>שליחת מס' טלפון: https://wa.me/?text=0535701175‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.588013,31.6578141,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>אשקלון - צמיגי מאי‎</name>
+        <description><![CDATA[כתובת: אשקלון, א.ת, צהל 13.<br>שעות פתיחה: 7:30-16:30<br>פותח בערב: עד השעה 22:00 בתיאום מראש<br><br>טלפון - רז: 0538906998<br>WhatsApp: https://wa.me/9720538906998<br>שליחת מס' טלפון: https://wa.me/?text=0538906998‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.5885909,31.6652484,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[באקה אל גרבייה - פנצ'ריה‎‎]]></name>
+        <description><![CDATA[כתובת: באקה אל גרבייה, <br>https://maps.app.goo.gl/Lc2UtzL7NUUajH6h9<br>שעות פתיחה: 08:00-03:00 בלילה<br>שעות פעילות ערב ולילה: <br><br>טלפון: 0505988081<br>WhatsApp: https://wa.me/97205988081<br>שליחת מס' טלפון: https://wa.me/?text=0505988081‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.0415591,32.4200791,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>באר יעקב - צמיגי המהיר</name>
+        <description><![CDATA[צמיגי המהיר<br><br>היוצר 2, באר יעקב<br>שעות פעילות: 07:00-19:00<br>שעות פעילות ערב ולילה: עד 11 בתיאום מראש<br><br>מתנאל <br>0502666005<br>0507839030<br><br>שליחת מס' טלפון: https://wa.me/?text=0502666005<br>שליחת מס' טלפון: https://wa.me/?text=0507839030 ]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.8415698,31.9474452,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>באר שבע - שטיפת האושר‎</name>
+        <description><![CDATA[כתובת: באר שבע, המלאכה 13.<br>שעות פתיחה: 24/7<br>דולב: 0548054626<br>WhatsApp: https://wa.me/972548054626<br>שליחת מס' טלפון: https://wa.me/?text=0548054626‎‎‎‎<br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.7966575,31.236382,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[ביתר עילית - פנצ'ריית מוסך אבי עטיה‎]]></name>
+        <description><![CDATA[כתובת: חושן משפט ביתר עלית<br>שעות פעילות: 08:00-17:00<br>כל הלילה: בתאום מראש<br><br>יצחק: 0506861623<br>שליחת מס' טלפון: https://wa.me/?text=0506861623<br>WhatsApp: https://wa.me/972506861623]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.1263487,31.696135,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>בית שמש - צמיגי בן כליפה</name>
+        <description><![CDATA[כתובת: התעשיה 5, בית שמש<br>שעות פעילות: 07:30-18:00<br>בין 18:00 לחצות תוספת תשלום של 150 ש"ח לפתיחת הפנצ'ריה.<br>בין חצות ל- 06:00 תוספת תשלום של 250 ש"ח לפתיחת הפנצ'ריה.<br><br>מאור: 0528379993<br>שליחת מס' טלפון: https://wa.me/?text=0528379993<br>WhatsApp: https://wa.me/972528379993<br><br>דודו: 0507718882<br>שליחת מס' טלפון: https://wa.me/?text=0507718882<br>WhatsApp: https://wa.me/972507718882]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.9967606,31.7711612,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>בני ברק - עולם הצמיגים‎‎‎‎‎‎</name>
+        <description><![CDATA[כתובת: בני ברק, ברוך הירש 32.<br>שעות פתיחה: 7:00-18:00.<br>פתוח בשעות הערב בתיאום טלפוני: עד השעה 23:00.<br><br>טלפון: 0549404440<br>WhatsApp: https://wa.me/972549404440<br>שליחת מס' טלפון: https://wa.me/?text=0549404440‎‎‎‎‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.8286923,32.0982338,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>בני ברק - צמיגי חנוכה‎‎</name>
+        <description><![CDATA[כתובת: בני ברק, יצחק נפחא 1.<br>שעות פתיחה:<br>א,ב,ד,ה: 07:30-21:00<br>ג: 07:30-18:30<br>ו: 07:30-14:30<br><br>טלפון: 036242202<br>WhatsApp: https://wa.me/9720547721588<br>שליחת מס' טלפון: https://wa.me/?text=036242202‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.8379519,32.0902022,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>דימונה - צמיגי אשר</name>
+        <description><![CDATA[צמיגי אשר<br>הפועלים 16, דימונה <br>שעות פעילות: 7:00 -18:30<br>שעות פעילות ערב ולילה: בתיאום מראש<br><br>אשר אלקובי<br>0533950915<br><br>שליחת מס' טלפון: https://wa.me/?text=0533950915]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.0164638,31.0649238,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[זכרון יעקב - פנצ'ריית חוף הכרמל]]></name>
+        <description><![CDATA[פנצ'ריית חוף הכרמל<br>שכונה צפונית פוריידיס<br>שעות פתיחה: 24/7<br>שעות פעילות ערב ולילה: 24/7<br><br>נעים<br>0523978539<br>שליחת מס' טלפון: https://wa.me/?text=0523978539]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.9519081,32.6027145,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[חורה - פנצ'ריית תל שוקת‎]]></name>
+        <description><![CDATA[כתובת: חורה, איזור התעשיה.<br>שעות פעילות: 24/7, בתיאום מראש בלבד<br><br>טלפון: 0549167002<br>WhatsApp: https://wa.me/9720549167002<br>שליחת מס' טלפון: https://wa.me/?text=0549167002‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.925904,31.295817,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>חיפה - צמיגי ליאם‎‎</name>
+        <description><![CDATA[כתובת: חיפה, ההסתדרות 141.<br>שעות פתיחה: 24/7<br>פתוח כל הלילה (גם פנצ'ריה ניידת)<br><br>טלפון - ליאם: 0525997578<br>WhatsApp: https://wa.me/9720525997578‎<br>שליחת מס' טלפון: https://wa.me/?text=0525997578‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.0676738,32.8116781,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[טבריה - פנצ'ריית א.ד]]></name>
+        <description><![CDATA[כתובת: תחנת דלק פז, שדרות ספיר 7.<br>פתיחה בלילה בתיאום מראש.<br>0503600470<br>WhatsApp: https://wa.me/972503600470<br>שליחת מס' טלפון: https://wa.me/?text=0503600470‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.5168619,32.789885,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[טבריה - פנצ'ריית ש.ר צמיגים ומצברים‎]]></name>
+        <description><![CDATA[הנשיא ויצמן 30, טבריה (על הכביש הראשי).<br>שעות פעילות: 08:00-17:00<br>לילה לפי קריאה כולל שירותי חילוץ.<br><br>שובל<br>0526993639<br><br>שליחת מס' טלפון: https://wa.me/?text=0526993639‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.506382,32.7791287,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[טובא זנגריה - פנצ'ריית ספא‎]]></name>
+        <description><![CDATA[שם פנצ'ריה ספא <br>טובא זנגריה <br><br>גאנם <br>0523633142<br>שליחת מס' טלפון: https://wa.me/?text=0523633142]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.5990264,32.9662927,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[ירושלים - פנצ'ריית י"ג המכוון]]></name>
+        <description><![CDATA[י"ג המכוון<br>בעלי המלאכה ג' 3, תלפיות, ירושלים<br>שעות פעילות: 8:00-17:00<br>שעות פעילות ערב ולילה: בתיאום מראש<br><br>מתי 0546605558<br>שליחת מס' טלפון: https://wa.me/?text=0546605558<br><br>יעד 0528061313<br>שליחת מס' טלפון: https://wa.me/?text=0528061313]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.2105007,31.7477982,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>ירושלים - פסגת זאב‎‎</name>
+        <description><![CDATA[כתובת: ירושלים, עטרות מוסך אבי לוי.<br>פתוח 24/7<br><br>טלפון - אבי: 0508824989<br>WhatsApp: https://wa.me/9720508824989<br>שליחת מס' טלפון: https://wa.me/?text=0508824989‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.2396583,31.8250179,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[כפר עציון - פנצ'ריית כפר עציון]]></name>
+        <description><![CDATA[כתובת: מתחם עסקים כפר עציון<br>0545639227<br>WhatsApp: https://wa.me/972545639227<br>שליחת מס' טלפון: https://wa.me/?text=0545639227‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.114513,31.6479418,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>כפר קאסם - צמיגי חצי חינם‎‎</name>
+        <description><![CDATA[הזית 1, כפר קאסם<br>050-9080419<br>שליחת מס' טלפון: https://wa.me/?text=0509080419‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.9536938,32.1060315,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>כפר קרע - פנצריית נחל עירון אעלימי‎‎</name>
+        <description><![CDATA[כתובת: כפר קרע, בת.ד דור אלון<br>שעות פתיחה: 08:00-22:00<br>שעות פעילות ערב ולילה: 24 ש' בתיאום מראש<br><br>טלפון: 0503611371<br>WhatsApp: https://wa.me/9720503611371<br>שליחת מס' טלפון: https://wa.me/?text=0503611371‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.0613514,32.4999852,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[מצפה רמון - פנצ'ריה‎]]></name>
+        <description><![CDATA[שעות פעילות:<br>כל השבוע - 07:00-22:00<br><br>טלפון: 050-3611888, וואליד<br>שליחת מס' טלפון: https://wa.me/?text=0503611888]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.8020828,30.6188024,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>נתניה - צמיגי אורון‎‎‎</name>
+        <description><![CDATA[כתובת: נתניה, הקדר 9 א.ת הישן <br>שעות פתיחה: 06:45-21:30<br>שישי: 06:45-21:30<br>מוצ"ש: לא פעיל<br>שעות פעילות ערב ולילה: 24 ש' בתיאום.<br>מחיר ערב/לילה: 80 ₪<br>יצירת קשר: 0733744172<br>שליחת מס' טלפון: https://wa.me/?text=0733744172‎‎<br><br>WhatsApp: https://wa.me/9720547428755‎<br>‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.8751182,32.3228797,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>סגולה - צמיגי יעד</name>
+        <description><![CDATA[צמיגי יעד<br>תחנת דלק יעד, סגולה (בכניסה למושב)<br>שעות פעילות: 7:00-19:00<br>שעות פעילות ערב ולילה: כל הלילה בתיאום מראש<br><br>יניב<br>0502710111<br>שליחת מס' טלפון: https://wa.me/?text=0502710111]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.7785762,31.6693112,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[עפולה - פנצ'ריית לב העמקים]]></name>
+        <description><![CDATA[לב העמקים<br>המלאכה 1, עפולה<br>שעות פעילות: 8:00-16:00<br>שעות פעילות ערב ולילה: בתיאום מראש<br><br>אחמד<br>0505499677<br>שליחת מס' טלפון: https://wa.me/?text=0505499677]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.2951561,32.6060905,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[עפולה - פנצ'ריית סלאם‎‎‎]]></name>
+        <description><![CDATA[כתובת: עפולה, חרוד 5.<br>שעות פתיחה: 7:30-17:00.<br>פותח כל הלילה - בתיאום מראש (גם פנצ'ריה ניידת)<br><br>טלפון - אייל: 0556871500<br>WhatsApp: https://wa.me/9720556871500<br>שליחת מס' טלפון: https://wa.me/?text=0556871500‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.299518,32.6054439,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>פתח תקווה - צמיגי מטלון</name>
+        <description>072-2657598</description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.859072,32.091604,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[צופר - פנצ'ריה בערבה מיכונית‎‎‎‎‎‎‎]]></name>
+        <description><![CDATA[כתובת: מושב צופר, 86830<br>שעות פתיחה: 8:00-17:00<br>פותח כל הלילה - בתיאום מראש.<br><br>טלפון - יגאל: 0524260991<br>שליחת מס' טלפון: https://wa.me/?text=0524260991<br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.184415,30.5613202,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[צפת - פנצ'ריית אוטו פז‎‎‎]]></name>
+        <description><![CDATA[כתובת: צפת, העצמאות 1. בת.דלק פז.<br>שעות פתיחה: 8:00-17:00.<br>פותח כל הלילה - בתיאום מראש.<br><br>יצירת קשר:<br>טלפון - אילן: 0532225552<br>https://wa.me/9720532225552<br>שליחת מס' טלפון: https://wa.me/?text=0532225552‎‎<br><br>טלפון - חיים: 0527408808<br>https://wa.me/9720527408808<br>שליחת מס' טלפון: https://wa.me/?text=0527408808‎‎<br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            35.5029357,32.9731083,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>קריית גת - צמיגי אביעד‎</name>
+        <description><![CDATA[כתובת: קרית גת, חשוון 24.<br>שעות פתיחה: 7:30-18:00<br>פותח כל הלילה - בתיאום מראש<br><br>טלפון - אביעד: 0545396030<br>WhatsApp: https://wa.me/9720545396030<br>שליחת מס' טלפון: https://wa.me/?text=0545396030‎‎<br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.7753184,31.5996658,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>קריית גת - צמיגי יורק‎‎</name>
+        <description><![CDATA[כתובת: קרית גת, נתרן 3.<br>שעות פתיחה: 7:00-18:00<br>פותח כל הלילה - בתיאום מראש (גם פנצ'ריה ניידת)<br><br>טלפון - אלכס: 0528789989<br>WhatsApp: https://wa.me/9720528789989<br>שליחת מס' טלפון: https://wa.me/?text=0528789989‎‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.7782298,31.5927802,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>קריית מלאכי - צמיגי מלאכי דארין‎‎</name>
+        <description><![CDATA[צמיגי מלאכי דארין.<br>כתובת: חלוצי התעשיה 8<br>שעות פתיחה: 6:30-22:00<br>שישי: 6:30 עד שעה לפני כניסת שבת.<br>מוצש פתוח מיציאת שבת עד 22:00/23:00<br>מחיר לתיקון: 30 שח לידידים.<br>סעיד - 0505794822‎<br>שליחת מס' טלפון: https://wa.me/?text=0505794822‎‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.7554057,31.7336833,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[ראשון לציון - י.ד. צמיגי טופ 2011 בע"מ‎‎]]></name>
+        <description><![CDATA[שמעון ישראלי 4 ראשל״צ<br>שעות פעילות: 06:00-22:00 בלילה<br><br>טלפון: 039611890<br>שליחת מס' טלפון: https://wa.me/?text=039611890<br><br>נייד: 0524575444<br>שליחת מס' טלפון: https://wa.me/?text=0524575444‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.751049,31.9906605,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>ראשון לציון - צמיגי עדי‎‎</name>
+        <description><![CDATA[כתובת: ראשל״צ, פלוטיצקי 17. ת.ד מצדה<br>שעות פתיחה:<br>א,ב,ג: 07:30-20:00<br>ד,ה: 07:30-00:00<br>ו' וערבי חג: 07:30-15:00<br><br>איש קשר: 0547988807<br>WhatsApp: https://wa.me/9720547988807<br>שליחת מס' טלפון: https://wa.me/?text=0547988807<br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.811128,31.9800595,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[רהט - פנצ'ריית רהט‎‎]]></name>
+        <description><![CDATA[כתובת: רהט, אלסלאם ליד ממתקי אלרוזנה.<br>שעות פתיחה: 7:00-24:00<br>פתוח בשעות הערב: עד 24:00<br><br>טלפון - שריף: 0548836327<br>WhatsApp: https://wa.me/9720548836327<br>שליחת מס' טלפון: https://wa.me/?text=0548836327‎<br>‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.7525853,31.4051655,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[תל אביב - פנצ'ריית אבו אחמד‎‎‎‎]]></name>
+        <description><![CDATA[כתובת: תל אביב, שד' הר ציון 76.<br>פתוח 24/7<br><br>טלפון: 0525542341<br>WhatsApp: https://wa.me/9720525542341<br>שליחת מס' טלפון: https://wa.me/?text=0525542341<br>‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.7742009,32.0525286,0
+          </coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name><![CDATA[תל שבע - פנצ'ריית תל שבע‎‎‎]]></name>
+        <description><![CDATA[כתובת: תל שבע, א.ת מגרש 23<br>שעות פתיחה: 8:00-21:00<br>שעות פעילות ערב/לילה: רצוף, בתיאום מראש <br><br>יצירת קשר:<br>טלפון - עומר: 0547238082<br>https://wa.me/9720547238082<br>שליחת מס' טלפון: https://wa.me/?text=0547238082<br><br>טלפון - יאסיה: 0549829913<br>https://wa.me/9720549829913<br>שליחת מס' טלפון: https://wa.me/?text=0549829913‎‎]]></description>
+        <styleUrl>#icon-1899-DB4436</styleUrl>
+        <Point>
+          <coordinates>
+            34.859154,31.247856,0
+          </coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

@@ -32,7 +32,27 @@
       "Bash(rmdir:*)",
       "Bash(ls \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\src\\\\app\\\\api\\\\admin\"\" 2>/dev/null || echo \"Directory listing \")",
       "Bash(npm install:*)",
-      "Bash(npm run test:run:*)"
+      "Bash(npm run test:run:*)",
+      "Bash(grep:*)",
+      "Bash(ls \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\supabase\\\\migrations\"\" 2>nul || echo \"no migrations dir \")",
+      "Bash(npx next build:*)",
+      "Bash(start \"\" \"C:\\\\Users\\\\0411~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-----------WHEELS-APP\\\\5bc64f17-ba04-4e6f-a018-a16889275526\\\\scratchpad\\\\certificate-preview.html\")",
+      "Read(//c/Users/**)",
+      "Bash(xargs cat:*)",
+      "Bash(git status:*)",
+      "Bash(npx vercel:*)",
+      "Bash(ls:*)",
+      "Bash(NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1 npx next build:*)",
+      "Bash(for file in \"c:\\\\Users\\\\יאיר קדוש\\\\WHEELS_APP\\\\supabase\\\\migrations\"/*.sql)",
+      "Bash(do echo \"===== $file =====\")",
+      "Read(//c/Users/יאיר קדוש/WHEELS_APP/**)",
+      "Bash(done)",
+      "WebFetch(domain:data.gov.il)",
+      "WebFetch(domain:www.find-car.co.il)",
+      "WebFetch(domain:www.wheelfitment.eu)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\יאיר קדוש\\WHEELS_APP\\src\\app\\[stationId]"
     ]
   }
 }
