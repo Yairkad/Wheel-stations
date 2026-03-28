@@ -1,6 +1,6 @@
 /**
  * Puncture Shops API
- * GET /api/punctures?q=searchterm — list all active shops with contacts, optional free-text filter
+ * GET /api/punctures?q=searchterm
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,33 +11,52 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const SELECT_FIELDS = `
-  id, name, address, city, phone, hours,
-  hours_regular, hours_evening, hours_friday, hours_saturday,
-  lat, lng, notes, website, google_maps_url, google_rating,
-  puncture_contacts (id, name, phone, has_whatsapp, sort_order)
-`
-
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q')?.trim() ?? ''
 
-  let query = supabase
+  // 1. Fetch shops
+  let shopsQuery = supabase
     .from('punctures')
-    .select(SELECT_FIELDS)
+    .select(`
+      id, name, address, city, phone, hours,
+      hours_regular, hours_evening, hours_friday, hours_saturday,
+      lat, lng, notes, website, google_maps_url, google_rating
+    `)
     .eq('is_active', true)
     .order('name')
-    .order('sort_order', { referencedTable: 'puncture_contacts' })
 
   if (q) {
-    query = query.or(`name.ilike.%${q}%,address.ilike.%${q}%,city.ilike.%${q}%`)
+    shopsQuery = shopsQuery.or(`name.ilike.%${q}%,address.ilike.%${q}%,city.ilike.%${q}%`)
   }
 
-  const { data, error } = await query
+  const { data: shops, error: shopsError } = await shopsQuery
 
-  if (error) {
-    console.error('Error fetching punctures:', error)
+  if (shopsError) {
+    console.error('Error fetching punctures:', shopsError)
     return NextResponse.json({ error: 'Failed to fetch punctures' }, { status: 500 })
   }
 
-  return NextResponse.json(data ?? [])
+  if (!shops || shops.length === 0) return NextResponse.json([])
+
+  // 2. Fetch all contacts for these shops in one query
+  const ids = shops.map((s) => s.id)
+  const { data: contacts } = await supabase
+    .from('puncture_contacts')
+    .select('id, puncture_id, name, phone, has_whatsapp, sort_order')
+    .in('puncture_id', ids)
+    .order('sort_order')
+
+  // 3. Merge contacts into shops
+  const contactsByShop = new Map<string, typeof contacts>()
+  for (const c of contacts ?? []) {
+    if (!contactsByShop.has(c.puncture_id)) contactsByShop.set(c.puncture_id, [])
+    contactsByShop.get(c.puncture_id)!.push(c)
+  }
+
+  const result = shops.map((shop) => ({
+    ...shop,
+    puncture_contacts: contactsByShop.get(shop.id) ?? [],
+  }))
+
+  return NextResponse.json(result)
 }

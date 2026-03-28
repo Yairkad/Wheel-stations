@@ -139,39 +139,42 @@ function toWhatsApp(phone: string): string {
 
 function buildPopupHtml(shop: PunctureShop): string {
   const contacts = shop.puncture_contacts ?? []
-  const mapsUrl =
-    shop.google_maps_url ?? `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`
+  const mapsUrl  = shop.google_maps_url ?? `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`
+  const address  = [shop.city, shop.address].filter(Boolean).join(', ')
 
-  const contactsHtml = contacts
-    .map(
-      (c) => `
-      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-        <span style="font-size:12px;color:#333">${c.name}: ${c.phone}</span>
-        <a href="tel:${c.phone}" title="התקשר" style="font-size:14px;text-decoration:none">📞</a>
-        ${c.has_whatsapp ? `<a href="https://wa.me/${toWhatsApp(c.phone)}" target="_blank" title="WhatsApp" style="font-size:14px;text-decoration:none">💬</a>` : ''}
-      </div>`
-    )
-    .join('')
+  const hasHours = shop.hours_regular || shop.hours_evening || shop.hours_friday || shop.hours_saturday || shop.hours
+  const hoursHtml = hasHours ? `
+    <div style="margin-top:6px;font-size:12px;color:#555;line-height:1.7">
+      ${shop.hours_regular  ? `<div>א׳–ה׳: ${shop.hours_regular}</div>` : ''}
+      ${shop.hours_evening  ? `<div>ערב/לילה: ${shop.hours_evening}</div>` : ''}
+      ${shop.hours_friday   ? `<div>שישי: ${shop.hours_friday}</div>` : ''}
+      ${shop.hours_saturday ? `<div>מוצש: ${shop.hours_saturday}</div>` : ''}
+      ${(!shop.hours_regular && shop.hours) ? `<div>${shop.hours}</div>` : ''}
+    </div>` : ''
 
-  const hoursRows = [
-    shop.hours_regular && `<div>א'–ה': ${shop.hours_regular}</div>`,
-    shop.hours_evening && `<div>ערב/לילה: ${shop.hours_evening}</div>`,
-    shop.hours_friday && `<div>שישי: ${shop.hours_friday}</div>`,
-    shop.hours_saturday && `<div>מוצש: ${shop.hours_saturday}</div>`,
-  ]
-    .filter(Boolean)
-    .join('')
+  const contactsHtml = contacts.length > 0 ? `
+    <div style="margin-top:8px;padding-top:6px;border-top:1px solid #e5e7eb">
+      ${contacts.map(c => `
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+          <span style="font-size:12px;color:#1f2937;flex:1"><b>${c.name}</b>: ${c.phone}</span>
+          <a href="tel:${c.phone}" style="text-decoration:none;font-size:15px" title="התקשר">📞</a>
+          ${c.has_whatsapp ? `<a href="https://wa.me/${toWhatsApp(c.phone)}" target="_blank" style="text-decoration:none;font-size:15px" title="WhatsApp">💬</a>` : ''}
+        </div>`).join('')}
+    </div>` : (shop.phone ? `
+    <div style="margin-top:8px;padding-top:6px;border-top:1px solid #e5e7eb;display:flex;align-items:center;gap:4px">
+      <span style="font-size:12px;color:#1f2937;flex:1">${shop.phone}</span>
+      <a href="tel:${shop.phone}" style="text-decoration:none;font-size:15px">📞</a>
+      <a href="https://wa.me/${toWhatsApp(shop.phone)}" target="_blank" style="text-decoration:none;font-size:15px">💬</a>
+    </div>` : '')
 
-  return `
-    <div dir="rtl" style="min-width:200px;font-family:inherit;font-size:13px">
-      <strong style="font-size:14px">${shop.name}</strong>
-      ${shop.google_rating ? `<span style="color:#f59e0b;margin-right:6px">★ ${shop.google_rating}</span>` : ''}
-      <div style="color:#555;margin-top:3px">${shop.city ? shop.city + ', ' : ''}${shop.address}</div>
-      ${hoursRows ? `<div style="margin-top:6px;color:#444;line-height:1.6">${hoursRows}</div>` : ''}
-      ${contactsHtml ? `<div style="margin-top:6px;border-top:1px solid #eee;padding-top:6px">${contactsHtml}</div>` : ''}
-      <div style="margin-top:8px">
-        <a href="${mapsUrl}" target="_blank" style="font-size:12px;color:#1d4ed8;text-decoration:none">📍 פתח במפות Google</a>
-      </div>
+  return `<div style="direction:rtl;text-align:right;font-family:system-ui,sans-serif;min-width:210px;max-width:260px">
+    <div style="font-weight:700;font-size:14px;color:#111;line-height:1.3">${shop.name}</div>
+    ${shop.google_rating ? `<div style="font-size:12px;color:#d97706;margin-top:2px">★ ${shop.google_rating}</div>` : ''}
+    ${address ? `<div style="font-size:12px;color:#6b7280;margin-top:3px">${address}</div>` : ''}
+    ${hoursHtml}
+    ${contactsHtml}
+    <div style="margin-top:8px">
+      <a href="${mapsUrl}" target="_blank" style="font-size:12px;color:#2563eb;text-decoration:none;font-weight:500">📍 פתח במפות Google</a>
     </div>
-  `
+  </div>`
 }
