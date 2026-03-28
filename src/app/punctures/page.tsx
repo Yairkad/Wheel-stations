@@ -13,6 +13,16 @@ const MapView = dynamic(() => import('@/components/punctures/MapView'), {
   ),
 })
 
+// ─── WhatsApp SVG icon ────────────────────────────────────────────────────────
+
+function WaIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="#25D366">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  )
+}
+
 // ─── Region ───────────────────────────────────────────────────────────────────
 
 type Region = 'צפון' | 'מרכז' | 'ירושלים והסביבה' | 'דרום'
@@ -52,15 +62,12 @@ function isOpenNow(shop: PunctureShop): boolean {
   const now  = new Date()
   const day  = now.getDay()
   const mins = now.getHours() * 60 + now.getMinutes()
-
-  const all = [shop.hours_regular, shop.hours_evening, shop.hours_friday, shop.hours_saturday, shop.hours]
+  const all  = [shop.hours_regular, shop.hours_evening, shop.hours_friday, shop.hours_saturday, shop.hours]
   if (all.some(h => h && /24\/[76]|פתוח 24/.test(h))) return true
-
   let primary: string | null | undefined
   if      (day === 5) primary = shop.hours_friday  ?? shop.hours_regular
   else if (day === 6) primary = shop.hours_saturday
   else                primary = shop.hours_regular  ?? shop.hours
-
   return (
     inRange(parseRange(primary), mins) ||
     inRange(parseRange(shop.hours_evening), mins) ||
@@ -68,16 +75,18 @@ function isOpenNow(shop: PunctureShop): boolean {
   )
 }
 
-// ─── WhatsApp ─────────────────────────────────────────────────────────────────
+// ─── WhatsApp URL ─────────────────────────────────────────────────────────────
 
 function wa(phone: string) {
   const d = phone.replace(/\D/g, '')
   return d.startsWith('972') ? d : d.startsWith('0') ? '972' + d.slice(1) : '972' + d
 }
 
-// ─── Shop card ───────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type EnrichedShop = PunctureShop & { openNow: boolean; region: Region }
+
+// ─── Shop card ───────────────────────────────────────────────────────────────
 
 function ShopCard({ shop, selected, onClick }: {
   shop: EnrichedShop
@@ -86,9 +95,8 @@ function ShopCard({ shop, selected, onClick }: {
 }) {
   const mapsUrl = shop.google_maps_url
     ?? `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`
-
-  const contacts = shop.puncture_contacts ?? []
-  const hasHours = shop.hours_regular || shop.hours_evening || shop.hours_friday || shop.hours_saturday
+  const contacts    = shop.puncture_contacts ?? []
+  const hasHours    = shop.hours_regular || shop.hours_evening || shop.hours_friday || shop.hours_saturday
   const legacyPhone = contacts.length === 0 ? shop.phone : null
   const legacyHours = !hasHours ? shop.hours : null
   const addressLine = [shop.city, shop.address].filter(Boolean).join(', ')
@@ -96,114 +104,115 @@ function ShopCard({ shop, selected, onClick }: {
   return (
     <li
       onClick={onClick}
-      className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-0 transition-colors ${
+      className={`border-b border-gray-100 last:border-0 cursor-pointer transition-colors ${
         selected ? 'bg-blue-50 border-r-4 border-r-blue-500' : 'hover:bg-gray-50'
       }`}
     >
-      {/* Row 1: name + badges */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="font-semibold text-gray-800 text-sm leading-tight">{shop.name}</span>
-        {shop.google_rating != null && (
-          <span className="text-xs text-amber-500 font-medium">★ {shop.google_rating}</span>
-        )}
-        <span className={`mr-auto text-xs font-medium px-1.5 py-0.5 rounded-full ${
-          shop.openNow
-            ? 'bg-green-100 text-green-700'
-            : 'bg-gray-100 text-gray-500'
-        }`}>
-          {shop.openNow ? 'פתוח' : 'סגור'}
-        </span>
-        {shop.distance_km != null && (
-          <span className="text-xs text-blue-600 font-medium">
-            {shop.distance_km < 1 ? `${Math.round(shop.distance_km * 1000)} מ׳` : `${shop.distance_km} ק״מ`}
+      {/* ── Compact row (always visible) ── */}
+      <div className="px-3 py-2.5">
+        <div className="flex items-center gap-1.5">
+          <span className="font-semibold text-gray-800 text-sm leading-tight flex-1 truncate">
+            {shop.name}
           </span>
+          {shop.distance_km != null && (
+            <span className="flex-shrink-0 text-xs text-blue-600 font-medium">
+              {shop.distance_km < 1 ? `${Math.round(shop.distance_km * 1000)}מ׳` : `${shop.distance_km}ק״מ`}
+            </span>
+          )}
+          <span className={`flex-shrink-0 text-xs font-medium px-1.5 py-0.5 rounded-full ${
+            shop.openNow ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+          }`}>
+            {shop.openNow ? 'פתוח' : 'סגור'}
+          </span>
+          <span className="flex-shrink-0 text-gray-400 text-xs">{selected ? '▲' : '▼'}</span>
+        </div>
+        {addressLine && (
+          <div className="text-xs text-gray-500 mt-0.5 truncate">{addressLine}</div>
         )}
       </div>
 
-      {/* Address */}
-      {addressLine && (
-        <div className="text-xs text-gray-500 mt-0.5">{addressLine}</div>
-      )}
+      {/* ── Expanded details (only when selected) ── */}
+      {selected && (
+        <div className="px-3 pb-3 space-y-2">
 
-      {/* Hours — structured */}
-      {hasHours && (
-        <div className="mt-1.5 space-y-0.5">
-          {shop.hours_regular  && <div className="text-xs text-gray-600">א׳–ה׳: {shop.hours_regular}</div>}
-          {shop.hours_evening  && <div className="text-xs text-gray-600">ערב/לילה: {shop.hours_evening}</div>}
-          {shop.hours_friday   && <div className="text-xs text-gray-600">שישי: {shop.hours_friday}</div>}
-          {shop.hours_saturday && <div className="text-xs text-gray-600">מוצש: {shop.hours_saturday}</div>}
-        </div>
-      )}
-
-      {/* Hours — legacy */}
-      {legacyHours && (
-        <div className="mt-1 text-xs text-gray-600">🕐 {legacyHours}</div>
-      )}
-
-      {/* Contacts */}
-      {contacts.length > 0 && (
-        <div className="mt-2 space-y-1.5 border-t border-gray-100 pt-2">
-          {contacts.map((c) => (
-            <div key={c.id} className="flex items-center gap-1">
-              <span className="text-xs text-gray-800 flex-1 truncate">
-                <span className="font-medium">{c.name}</span>: {c.phone}
-              </span>
-              <a
-                href={`tel:${c.phone}`}
-                onClick={(e) => e.stopPropagation()}
-                title="התקשר"
-                className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 transition-colors text-sm"
-              >📞</a>
-              {c.has_whatsapp && (
-                <>
-                  <a
-                    href={`https://wa.me/${wa(c.phone)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    title="שיחת WhatsApp"
-                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-green-50 hover:bg-green-100 transition-colors text-sm"
-                  >💬</a>
-                  <a
-                    href={`https://wa.me/?text=${encodeURIComponent(c.phone)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    title="שלח מספר ב-WhatsApp"
-                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition-colors text-xs text-gray-500"
-                  >📤</a>
-                </>
-              )}
+          {/* Hours — structured */}
+          {hasHours && (
+            <div className="space-y-0.5 text-xs text-gray-600 bg-gray-50 rounded-lg px-2.5 py-2">
+              {shop.hours_regular  && <div className="flex gap-1"><span className="text-gray-400 w-14">א׳–ה׳:</span>{shop.hours_regular}</div>}
+              {shop.hours_evening  && <div className="flex gap-1"><span className="text-gray-400 w-14">ערב/לילה:</span>{shop.hours_evening}</div>}
+              {shop.hours_friday   && <div className="flex gap-1"><span className="text-gray-400 w-14">שישי:</span>{shop.hours_friday}</div>}
+              {shop.hours_saturday && <div className="flex gap-1"><span className="text-gray-400 w-14">מוצש:</span>{shop.hours_saturday}</div>}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {/* Legacy phone */}
-      {legacyPhone && (
-        <div className="mt-1.5 flex items-center gap-1 border-t border-gray-100 pt-1.5">
-          <span className="text-xs text-gray-800 flex-1">{legacyPhone}</span>
-          <a href={`tel:${legacyPhone}`} onClick={(e) => e.stopPropagation()}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 text-sm">📞</a>
-          <a href={`https://wa.me/${wa(legacyPhone)}`} target="_blank" rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-green-50 hover:bg-green-100 text-sm">💬</a>
-        </div>
-      )}
+          {/* Hours — legacy */}
+          {legacyHours && (
+            <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-2.5 py-2">🕐 {legacyHours}</div>
+          )}
 
-      {/* Footer links */}
-      <div className="mt-2 flex items-center gap-3">
-        <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="text-xs text-blue-600 hover:underline">
-          📍 מפות Google
-        </a>
-        {shop.website && (
-          <a href={shop.website} target="_blank" rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs text-blue-600 hover:underline">
-            🌐 אתר
+          {/* Contacts */}
+          {contacts.length > 0 && (
+            <div className="space-y-1.5">
+              {contacts.map((c) => (
+                <div key={c.id} className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-800 flex-1 min-w-0 truncate">
+                    <span className="font-medium">{c.name}</span>: {c.phone}
+                  </span>
+                  <a href={`tel:${c.phone}`} onClick={e => e.stopPropagation()}
+                    title="התקשר"
+                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 transition-colors">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                    </svg>
+                  </a>
+                  {c.has_whatsapp && (
+                    <>
+                      <a href={`https://wa.me/${wa(c.phone)}`} target="_blank" rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()} title="פתח WhatsApp"
+                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-green-50 hover:bg-green-100 transition-colors">
+                        <WaIcon size={14} />
+                      </a>
+                      <a href={`https://wa.me/?text=${encodeURIComponent(c.phone)}`} target="_blank" rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()} title="שלח מספר ב-WhatsApp"
+                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
+                        </svg>
+                      </a>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Legacy phone */}
+          {legacyPhone && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-800 flex-1">{legacyPhone}</span>
+              <a href={`tel:${legacyPhone}`} onClick={e => e.stopPropagation()}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-blue-50 hover:bg-blue-100 transition-colors">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+              </a>
+              <a href={`https://wa.me/${wa(legacyPhone)}`} target="_blank" rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-green-50 hover:bg-green-100 transition-colors">
+                <WaIcon size={14} />
+              </a>
+            </div>
+          )}
+
+          {/* Footer */}
+          <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="#2563eb"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            מפות Google
           </a>
-        )}
-      </div>
+        </div>
+      )}
     </li>
   )
 }
@@ -218,8 +227,7 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
   const set = (f: string, v: string) => setForm(p => ({ ...p, [f]: v }))
 
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSending(true); setError(null)
+    e.preventDefault(); setSending(true); setError(null)
     try {
       const res = await fetch('/api/puncture-suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       if (!res.ok) setError((await res.json()).error ?? 'שגיאה')
@@ -227,6 +235,8 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
     } catch { setError('שגיאת רשת') }
     finally { setSending(false) }
   }
+
+  const inp = "mt-0.5 w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
@@ -244,46 +254,24 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
         ) : (
           <form onSubmit={submit} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Field label="שם הפנצ׳ריה *" required value={form.name} onChange={v => set('name', v)} />
-              <Field label="עיר *" required value={form.city} onChange={v => set('city', v)} />
+              <div><label className="text-xs font-medium text-gray-700">שם הפנצ׳ריה *</label><input required value={form.name} onChange={e => set('name', e.target.value)} className={inp} /></div>
+              <div><label className="text-xs font-medium text-gray-700">עיר *</label><input required value={form.city} onChange={e => set('city', e.target.value)} className={inp} /></div>
             </div>
-            <Field label="כתובת *" required value={form.address} onChange={v => set('address', v)} />
-            <Field label="טלפון" value={form.phone} onChange={v => set('phone', v)} />
-            <Field label="שעות פעילות" value={form.hours} onChange={v => set('hours', v)} placeholder="א׳–ה׳ 07:00–19:00, שישי עד 14:00..." textarea />
-            <Field label="הערות" value={form.notes} onChange={v => set('notes', v)} textarea />
-            <div className="border-t pt-3">
-              <p className="text-xs text-gray-500 mb-2">פרטי המציע (אופציונלי)</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="שם" value={form.submitter_name} onChange={v => set('submitter_name', v)} />
-                <Field label="טלפון" value={form.submitter_phone} onChange={v => set('submitter_phone', v)} />
-              </div>
+            <div><label className="text-xs font-medium text-gray-700">כתובת *</label><input required value={form.address} onChange={e => set('address', e.target.value)} className={inp} /></div>
+            <div><label className="text-xs font-medium text-gray-700">טלפון</label><input value={form.phone} onChange={e => set('phone', e.target.value)} className={inp} /></div>
+            <div><label className="text-xs font-medium text-gray-700">שעות פעילות</label><textarea value={form.hours} onChange={e => set('hours', e.target.value)} rows={2} className={inp + ' resize-none'} /></div>
+            <div><label className="text-xs font-medium text-gray-700">הערות</label><textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} className={inp + ' resize-none'} /></div>
+            <div className="border-t pt-3 grid grid-cols-2 gap-3">
+              <div><label className="text-xs font-medium text-gray-700">שם המציע</label><input value={form.submitter_name} onChange={e => set('submitter_name', e.target.value)} className={inp} /></div>
+              <div><label className="text-xs font-medium text-gray-700">טלפון</label><input value={form.submitter_phone} onChange={e => set('submitter_phone', e.target.value)} className={inp} /></div>
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
-            <button type="submit" disabled={sending}
-              className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={sending} className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50">
               {sending ? 'שולח...' : 'שלח הצעה'}
             </button>
           </form>
         )}
       </div>
-    </div>
-  )
-}
-
-function Field({ label, value, onChange, required, placeholder, textarea }: {
-  label: string; value: string; onChange: (v: string) => void
-  required?: boolean; placeholder?: string; textarea?: boolean
-}) {
-  const cls = "mt-0.5 w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-  return (
-    <div>
-      <label className="text-xs font-medium text-gray-700">{label}</label>
-      {textarea
-        ? <textarea required={required} value={value} onChange={e => onChange(e.target.value)}
-            placeholder={placeholder} rows={2} className={cls + ' resize-none'} />
-        : <input required={required} value={value} onChange={e => onChange(e.target.value)}
-            placeholder={placeholder} className={cls} />
-      }
     </div>
   )
 }
@@ -298,8 +286,9 @@ export default function PuncturesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedId,  setSelectedId]  = useState<string | null>(null)
   const [showSuggest, setShowSuggest] = useState(false)
-  const [regionFilter,  setRegionFilter]  = useState<Region | ''>('')
-  const [openNowFilter, setOpenNowFilter] = useState(false)
+  const [regionFilter, setRegionFilter] = useState<Region | ''>('')
+  // toggle: false = הכל, true = פתוח כרגע
+  const [openNowOnly, setOpenNowOnly] = useState(false)
   const selectedRef = useRef<HTMLLIElement>(null)
 
   const fetchAll = useCallback(async (q: string) => {
@@ -314,7 +303,6 @@ export default function PuncturesPage() {
   }, [])
 
   useEffect(() => { fetchAll('') }, [fetchAll])
-
   useEffect(() => {
     const t = setTimeout(() => fetchAll(searchQuery), 300)
     return () => clearTimeout(t)
@@ -325,14 +313,12 @@ export default function PuncturesPage() {
   }, [selectedId])
 
   const enriched: EnrichedShop[] = allShops.map(s => ({
-    ...s,
-    openNow: isOpenNow(s),
-    region:  getRegion(s.lat),
+    ...s, openNow: isOpenNow(s), region: getRegion(s.lat),
   }))
 
   const displayed = enriched
-    .filter(s => !regionFilter  || s.region === regionFilter)
-    .filter(s => !openNowFilter || s.openNow)
+    .filter(s => !regionFilter || s.region === regionFilter)
+    .filter(s => !openNowOnly || s.openNow)
 
   const openCount = enriched.filter(s => s.openNow).length
 
@@ -357,17 +343,13 @@ export default function PuncturesPage() {
   return (
     <div dir="rtl" className="h-screen flex flex-col bg-gray-50 overflow-hidden">
 
-      {/* ── Top bar ── */}
+      {/* ── Header ── */}
       <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-3 px-4 py-2.5">
           <h1 className="text-lg font-bold text-gray-800 whitespace-nowrap">🔧 פנצ׳ריות לילה</h1>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי שם, עיר או כתובת..."
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <button onClick={handleNearby} disabled={geoLoading}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap">
             {geoLoading
@@ -386,45 +368,40 @@ export default function PuncturesPage() {
       {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Map */}
-        <div className="flex-1 p-2">
-          <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} />
-        </div>
-
-        {/* ── Sidebar ── */}
-        <aside className="w-80 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+        {/* ── Sidebar — RIGHT (first child in RTL = right side) ── */}
+        <aside className="w-72 bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden">
 
           {/* Filter strip */}
-          <div className="flex-shrink-0 bg-gray-50 border-b border-gray-200 px-3 py-2 space-y-2">
+          <div className="flex-shrink-0 border-b border-gray-200 px-3 py-2 space-y-2">
 
-            {/* Region buttons */}
+            {/* Region pills */}
             <div className="flex flex-wrap gap-1">
-              <button
-                onClick={() => setRegionFilter('')}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  regionFilter === '' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
-                }`}
-              >הכל</button>
-              {REGIONS.map(r => (
+              {(['', ...REGIONS] as (Region | '')[]).map(r => (
                 <button key={r}
-                  onClick={() => setRegionFilter(regionFilter === r ? '' : r)}
+                  onClick={() => setRegionFilter(r)}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    regionFilter === r ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+                    regionFilter === r
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
                   }`}
-                >{r}</button>
+                >
+                  {r || 'הכל'}
+                </button>
               ))}
             </div>
 
-            {/* Open now + count */}
+            {/* Open-now toggle + count */}
             <div className="flex items-center justify-between">
               <button
-                onClick={() => setOpenNowFilter(p => !p)}
+                onClick={() => setOpenNowOnly(p => !p)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  openNowFilter ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+                  openNowOnly
+                    ? 'bg-green-600 text-white border-green-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
                 }`}
               >
-                <span className={`w-2 h-2 rounded-full ${openNowFilter ? 'bg-white' : 'bg-green-500'}`} />
-                פתוח עכשיו ({openCount})
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${openNowOnly ? 'bg-white' : 'bg-green-500'}`} />
+                {openNowOnly ? `פתוח כרגע (${openCount})` : 'הכל'}
               </button>
               <span className="text-xs text-gray-400">
                 {loading ? 'טוען...' : `${displayed.length} תוצאות`}
@@ -432,31 +409,29 @@ export default function PuncturesPage() {
             </div>
           </div>
 
-          {/* List */}
+          {/* Scrollable list — fills remaining sidebar height */}
           {displayed.length === 0 && !loading ? (
             <div className="flex-1 flex items-center justify-center text-gray-400 text-sm px-4 text-center">
-              {openNowFilter ? 'אין פנצ׳ריות פתוחות כרגע' : 'לא נמצאו פנצ׳ריות'}
+              {openNowOnly ? 'אין פנצ׳ריות פתוחות כרגע' : 'לא נמצאו פנצ׳ריות'}
             </div>
           ) : (
-            <ul className="flex-1 overflow-y-auto">
+            <ul className="flex-1 overflow-y-auto min-h-0">
               {displayed.map(shop => (
                 <ShopCard
                   key={shop.id}
                   shop={shop}
                   selected={shop.id === selectedId}
-                  onClick={() => setSelectedId(shop.id)}
+                  onClick={() => setSelectedId(prev => prev === shop.id ? null : shop.id)}
                 />
               ))}
             </ul>
           )}
-
-          {/* Mobile suggest link */}
-          <div className="flex-shrink-0 border-t border-gray-100 px-4 py-2 sm:hidden">
-            <button onClick={() => setShowSuggest(true)} className="text-sm text-blue-600 hover:underline">
-              + הצע מקום חדש
-            </button>
-          </div>
         </aside>
+
+        {/* Map — LEFT (second child in RTL) */}
+        <div className="flex-1 p-2 min-w-0">
+          <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} />
+        </div>
       </div>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}

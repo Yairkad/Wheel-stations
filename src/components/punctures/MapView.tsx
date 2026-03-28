@@ -107,7 +107,11 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
         }
         const marker = L.marker([shop.lat, shop.lng])
           .addTo(map)
-          .bindPopup(buildPopupHtml(shop), { maxWidth: 260 })
+          .bindPopup(buildPopupHtml(shop), {
+            maxWidth: 280,
+            autoPanPadding: [60, 80],   // keep popup away from edges
+            keepInView: true,
+          })
 
         marker.on('click', () => onSelectShop(shop.id))
         markersRef.current.set(shop.id, marker)
@@ -119,10 +123,13 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
   useEffect(() => {
     if (!selectedId || !mapRef.current) return
     const marker = markersRef.current.get(selectedId)
-    const shop = shops.find((s) => s.id === selectedId)
+    const shop   = shops.find((s) => s.id === selectedId)
     if (!marker || !shop) return
-    mapRef.current.flyTo([shop.lat, shop.lng], 15, { duration: 0.8 })
-    marker.openPopup()
+
+    const map = mapRef.current
+    // Pan first, open popup after animation completes so the popup stays centered
+    map.once('moveend', () => marker.openPopup())
+    map.flyTo([shop.lat, shop.lng], Math.max(map.getZoom(), 14), { duration: 0.6 })
   }, [selectedId, shops])
 
   return (
