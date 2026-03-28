@@ -82,6 +82,27 @@ function wa(phone: string) {
   return d.startsWith('972') ? d : d.startsWith('0') ? '972' + d.slice(1) : '972' + d
 }
 
+// ─── Share text ───────────────────────────────────────────────────────────────
+
+function buildShareText(shop: PunctureShop): string {
+  const address = [shop.city, shop.address].filter(Boolean).join(', ')
+  const lines: string[] = [`🔧 ${shop.name}`]
+  if (address) lines.push(`📍 ${address}`)
+  if (shop.hours_regular)  lines.push(`א׳–ה׳: ${shop.hours_regular}`)
+  if (shop.hours_evening)  lines.push(`ערב/לילה: ${shop.hours_evening}`)
+  if (shop.hours_friday)   lines.push(`שישי: ${shop.hours_friday}`)
+  if (shop.hours_saturday) lines.push(`מוצש: ${shop.hours_saturday}`)
+  if (!shop.hours_regular && shop.hours) lines.push(shop.hours)
+  const contacts = shop.puncture_contacts ?? []
+  if (contacts.length > 0) {
+    lines.push('')
+    contacts.forEach(c => lines.push(`${c.name}: ${c.phone}`))
+  } else if (shop.phone) {
+    lines.push(shop.phone)
+  }
+  return lines.join('\n')
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type EnrichedShop = PunctureShop & { openNow: boolean; region: Region }
@@ -166,20 +187,11 @@ function ShopCard({ shop, selected, onClick }: {
                     </svg>
                   </a>
                   {c.has_whatsapp && (
-                    <>
-                      <a href={`https://wa.me/${wa(c.phone)}`} target="_blank" rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()} title="פתח WhatsApp"
-                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-green-50 hover:bg-green-100 transition-colors">
-                        <WaIcon size={14} />
-                      </a>
-                      <a href={`https://wa.me/?text=${encodeURIComponent(c.phone)}`} target="_blank" rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()} title="שלח מספר ב-WhatsApp"
-                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 transition-colors">
-                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
-                        </svg>
-                      </a>
-                    </>
+                    <a href={`https://wa.me/${wa(c.phone)}`} target="_blank" rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()} title="פתח WhatsApp"
+                      className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-green-50 hover:bg-green-100 transition-colors">
+                      <WaIcon size={14} />
+                    </a>
                   )}
                 </div>
               ))}
@@ -205,12 +217,24 @@ function ShopCard({ shop, selected, onClick }: {
           )}
 
           {/* Footer */}
-          <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="#2563eb"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            מפות Google
-          </a>
+          <div className="flex items-center gap-3 flex-wrap">
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="#2563eb"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              Google Maps
+            </a>
+            <a href={`https://waze.com/ul?ll=${shop.lat},${shop.lng}&navigate=yes`} target="_blank" rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="inline-flex items-center gap-1 text-xs text-cyan-600 hover:underline">
+              🗺 Waze
+            </a>
+            <a href={`https://wa.me/?text=${encodeURIComponent(buildShareText(shop))}`} target="_blank" rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="inline-flex items-center gap-1 text-xs text-green-600 hover:underline">
+              <WaIcon size={11} /> שתף
+            </a>
+          </div>
         </div>
       )}
     </li>
@@ -374,34 +398,35 @@ export default function PuncturesPage() {
           {/* Filter strip */}
           <div className="flex-shrink-0 border-b border-gray-200 px-3 py-2 space-y-2">
 
-            {/* Region pills */}
-            <div className="flex flex-wrap gap-1">
-              {(['', ...REGIONS] as (Region | '')[]).map(r => (
-                <button key={r}
-                  onClick={() => setRegionFilter(r)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    regionFilter === r
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
-                  }`}
-                >
-                  {r || 'הכל'}
-                </button>
+            {/* Region dropdown */}
+            <select
+              value={regionFilter}
+              onChange={e => setRegionFilter(e.target.value as Region | '')}
+              className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            >
+              <option value="">כל האזורים</option>
+              {REGIONS.map(r => (
+                <option key={r} value={r}>{r}</option>
               ))}
-            </div>
+            </select>
 
             {/* Open-now toggle + count */}
             <div className="flex items-center justify-between">
               <button
+                role="switch"
+                aria-checked={openNowOnly}
                 onClick={() => setOpenNowOnly(p => !p)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                  openNowOnly
-                    ? 'bg-green-600 text-white border-green-600'
-                    : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
-                }`}
+                className="flex items-center gap-2"
               >
-                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${openNowOnly ? 'bg-white' : 'bg-green-500'}`} />
-                {openNowOnly ? `פתוח כרגע (${openCount})` : 'הכל'}
+                <div className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${openNowOnly ? 'bg-green-500' : 'bg-gray-300'}`}>
+                  <span
+                    className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200"
+                    style={{ transform: openNowOnly ? 'translateX(18px)' : 'translateX(2px)' }}
+                  />
+                </div>
+                <span className="text-xs text-gray-700 select-none">
+                  {openNowOnly ? `פתוח כרגע (${openCount})` : 'פתוח כרגע'}
+                </span>
               </button>
               <span className="text-xs text-gray-400">
                 {loading ? 'טוען...' : `${displayed.length} תוצאות`}

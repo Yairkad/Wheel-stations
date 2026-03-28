@@ -144,10 +144,33 @@ function toWhatsApp(phone: string): string {
   return '972' + d
 }
 
-function buildPopupHtml(shop: PunctureShop): string {
+const WA_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#25D366" style="vertical-align:middle;flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`
+
+function buildShareText(shop: PunctureShop): string {
+  const address = [shop.city, shop.address].filter(Boolean).join(', ')
+  const lines: string[] = [`🔧 ${shop.name}`]
+  if (address) lines.push(`📍 ${address}`)
+  if (shop.hours_regular)  lines.push(`א׳–ה׳: ${shop.hours_regular}`)
+  if (shop.hours_evening)  lines.push(`ערב/לילה: ${shop.hours_evening}`)
+  if (shop.hours_friday)   lines.push(`שישי: ${shop.hours_friday}`)
+  if (shop.hours_saturday) lines.push(`מוצש: ${shop.hours_saturday}`)
+  if (!shop.hours_regular && shop.hours) lines.push(shop.hours)
   const contacts = shop.puncture_contacts ?? []
-  const mapsUrl  = shop.google_maps_url ?? `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`
-  const address  = [shop.city, shop.address].filter(Boolean).join(', ')
+  if (contacts.length > 0) {
+    lines.push('')
+    contacts.forEach(c => lines.push(`${c.name}: ${c.phone}`))
+  } else if (shop.phone) {
+    lines.push(shop.phone)
+  }
+  return lines.join('\n')
+}
+
+function buildPopupHtml(shop: PunctureShop): string {
+  const contacts  = shop.puncture_contacts ?? []
+  const mapsUrl   = shop.google_maps_url ?? `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`
+  const wazeUrl   = `https://waze.com/ul?ll=${shop.lat},${shop.lng}&navigate=yes`
+  const shareUrl  = `https://wa.me/?text=${encodeURIComponent(buildShareText(shop))}`
+  const address   = [shop.city, shop.address].filter(Boolean).join(', ')
 
   const hasHours = shop.hours_regular || shop.hours_evening || shop.hours_friday || shop.hours_saturday || shop.hours
   const hoursHtml = hasHours ? `
@@ -165,13 +188,13 @@ function buildPopupHtml(shop: PunctureShop): string {
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
           <span style="font-size:12px;color:#1f2937;flex:1"><b>${c.name}</b>: ${c.phone}</span>
           <a href="tel:${c.phone}" style="text-decoration:none;font-size:15px" title="התקשר">📞</a>
-          ${c.has_whatsapp ? `<a href="https://wa.me/${toWhatsApp(c.phone)}" target="_blank" style="text-decoration:none;font-size:15px" title="WhatsApp">💬</a>` : ''}
+          ${c.has_whatsapp ? `<a href="https://wa.me/${toWhatsApp(c.phone)}" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center" title="WhatsApp">${WA_SVG}</a>` : ''}
         </div>`).join('')}
     </div>` : (shop.phone ? `
     <div style="margin-top:8px;padding-top:6px;border-top:1px solid #e5e7eb;display:flex;align-items:center;gap:4px">
       <span style="font-size:12px;color:#1f2937;flex:1">${shop.phone}</span>
       <a href="tel:${shop.phone}" style="text-decoration:none;font-size:15px">📞</a>
-      <a href="https://wa.me/${toWhatsApp(shop.phone)}" target="_blank" style="text-decoration:none;font-size:15px">💬</a>
+      <a href="https://wa.me/${toWhatsApp(shop.phone)}" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center" title="WhatsApp">${WA_SVG}</a>
     </div>` : '')
 
   return `<div style="direction:rtl;text-align:right;font-family:system-ui,sans-serif;min-width:210px;max-width:260px">
@@ -180,8 +203,10 @@ function buildPopupHtml(shop: PunctureShop): string {
     ${address ? `<div style="font-size:12px;color:#6b7280;margin-top:3px">${address}</div>` : ''}
     ${hoursHtml}
     ${contactsHtml}
-    <div style="margin-top:8px">
-      <a href="${mapsUrl}" target="_blank" style="font-size:12px;color:#2563eb;text-decoration:none;font-weight:500">📍 פתח במפות Google</a>
+    <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <a href="${mapsUrl}" target="_blank" style="font-size:12px;color:#2563eb;text-decoration:none;font-weight:500">📍 Google Maps</a>
+      <a href="${wazeUrl}" target="_blank" style="font-size:12px;color:#05c8f0;text-decoration:none;font-weight:500">🗺 Waze</a>
+      <a href="${shareUrl}" target="_blank" style="font-size:12px;color:#25D366;text-decoration:none;font-weight:500;display:inline-flex;align-items:center;gap:3px">${WA_SVG} שתף</a>
     </div>
   </div>`
 }
