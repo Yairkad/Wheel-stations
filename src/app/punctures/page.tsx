@@ -495,7 +495,7 @@ export default function PuncturesPage() {
             disabled={geoLoading}
             title="הקרוב אלי"
             className="absolute z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
-            style={{ bottom: 'calc(84px + env(safe-area-inset-bottom) + 12px)', left: 12 }}
+            style={{ bottom: 12, left: 12 }}
           >
             {geoLoading
               ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -542,29 +542,35 @@ export default function PuncturesPage() {
         </div>
 
         {/* Footer links — below tabs */}
-        <div className="flex items-center justify-center gap-2 py-1 border-t border-gray-100">
-          <button onClick={() => setShowSuggest(true)}
-            className="text-[10px] text-blue-500 hover:text-blue-700">+ הצע מקום חדש</button>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <a href="/privacy"       className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <a href="/admin/punctures" className="text-[10px] text-gray-400 hover:text-gray-600">כניסה לעריכה</a>
+        <div className="flex flex-col items-center border-t border-gray-100">
+          <div className="flex items-center justify-center gap-2 py-1">
+            <a href="/privacy"       className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
+            <span className="text-gray-300 text-[10px]">·</span>
+            <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
+            <span className="text-gray-300 text-[10px]">·</span>
+            <a href="/admin/punctures" className="text-[10px] text-gray-400 hover:text-gray-600">כניסה לעריכה</a>
+          </div>
+          <div className="pb-1">
+            <button onClick={() => setShowSuggest(true)}
+              className="text-[10px] text-blue-500 hover:text-blue-700">+ הצע מקום חדש</button>
+          </div>
         </div>
 
       </nav>
 
       {/* ── Public footer (desktop) ── */}
-      <footer className="hidden md:flex flex-shrink-0 items-center justify-center gap-3 py-1.5 border-t border-gray-200 bg-white text-xs text-gray-400">
-        <button onClick={() => setShowSuggest(true)}
-          className="text-blue-500 hover:text-blue-700 hover:underline">+ הצע מקום חדש</button>
-        <span>·</span>
-        <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
-        <span>·</span>
-        <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
-        <span>·</span>
-        <a href="/admin/punctures" className="hover:text-gray-600 hover:underline">כניסה לעריכה</a>
+      <footer className="hidden md:flex flex-col flex-shrink-0 items-center border-t border-gray-200 bg-white text-xs text-gray-400">
+        <div className="flex items-center justify-center gap-3 py-1.5">
+          <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
+          <span>·</span>
+          <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
+          <span>·</span>
+          <a href="/admin/punctures" className="hover:text-gray-600 hover:underline">כניסה לעריכה</a>
+        </div>
+        <div className="pb-1.5">
+          <button onClick={() => setShowSuggest(true)}
+            className="text-blue-500 hover:text-blue-700 hover:underline">+ הצע מקום חדש</button>
+        </div>
       </footer>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}

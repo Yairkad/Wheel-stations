@@ -65,8 +65,8 @@ export default function PunctureManagerLoginPage() {
         <h1 style={s.title}>ניהול פנצ׳ריות לילה</h1>
         <p style={s.sub}>הזן טלפון וסיסמה</p>
         <input
-          type="tel"
-          placeholder="טלפון"
+          type="text"
+          placeholder="שם משתמש"
           value={phone}
           onChange={e => setPhone(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleLogin()}
