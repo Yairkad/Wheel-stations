@@ -393,7 +393,7 @@ export default function PuncturesPage() {
     <div dir="rtl" className="h-[100dvh] flex flex-col bg-gray-50 overflow-hidden">
 
       {/* ── Header ── */}
-      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
+      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0 z-10">
         <div className="flex items-center gap-2 px-3 py-2">
           <h1 className="text-base font-bold text-gray-800 whitespace-nowrap">🔧 פנצ׳ריות לילה</h1>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
@@ -481,12 +481,19 @@ export default function PuncturesPage() {
             </ul>
           )}
 
-          {/* Sidebar footer */}
-          <div className="flex-shrink-0 border-t border-gray-100 px-3 py-2 text-center">
-            <button onClick={() => setShowSuggest(true)}
-              className="text-xs text-blue-500 hover:text-blue-700 hover:underline">
-              + הצע מקום חדש
-            </button>
+          {/* Sidebar footer — add bottom padding on mobile for fixed nav bar */}
+          <div className="flex-shrink-0 border-t border-gray-100 px-3 py-2 pb-[calc(0.5rem+56px)] md:pb-2 text-center space-y-1">
+            <div>
+              <button onClick={() => setShowSuggest(true)}
+                className="text-xs text-blue-500 hover:text-blue-700 hover:underline">
+                + הצע מקום חדש
+              </button>
+            </div>
+            <div className="md:hidden flex items-center justify-center gap-3 text-xs text-gray-400">
+              <a href="/privacy" className="hover:text-gray-600 hover:underline">פרטיות</a>
+              <span>·</span>
+              <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
+            </div>
           </div>
         </aside>
 
@@ -513,8 +520,9 @@ export default function PuncturesPage() {
         </div>
       </div>
 
-      {/* ── Mobile bottom tab bar ── */}
-      <nav className="md:hidden flex-shrink-0 flex border-t border-gray-200 bg-white">
+      {/* ── Mobile bottom tab bar — fixed to bottom ── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-[500] flex border-t border-gray-200 bg-white"
+           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <button
           onClick={() => setMobileView('list')}
           className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
@@ -539,7 +547,17 @@ export default function PuncturesPage() {
           </svg>
           מפה
         </button>
+
       </nav>
+
+      {/* ── Public footer (desktop) ── */}
+      <footer className="hidden md:flex flex-shrink-0 items-center justify-center gap-4 py-1.5 border-t border-gray-200 bg-white text-xs text-gray-400">
+        <a href="/privacy" className="hover:text-gray-600 hover:underline">מדיניות פרטיות</a>
+        <span>·</span>
+        <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
+        <span>·</span>
+        <span>© גלגלים {new Date().getFullYear()}</span>
+      </footer>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}
     </div>
