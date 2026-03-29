@@ -203,7 +203,7 @@ button.btn-sm,
 /* Leaflet attribution — lift above mobile nav bar on small screens */
 @media (max-width: 767px) {
   .leaflet-bottom {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 75px) !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 95px) !important;
   }
 }
 

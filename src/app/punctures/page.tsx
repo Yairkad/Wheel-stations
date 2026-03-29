@@ -495,7 +495,7 @@ export default function PuncturesPage() {
             disabled={geoLoading}
             title="הקרוב אלי"
             className="absolute z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
-            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 80px)', left: 12 }}
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 100px)', left: 12 }}
           >
             {geoLoading
               ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -541,16 +541,17 @@ export default function PuncturesPage() {
           </button>
         </div>
 
-        {/* Footer links — single compact row */}
-        <div dir="ltr" className="flex items-center justify-center gap-1.5 py-0.5 border-t border-gray-100">
+        {/* Footer links — 2 centered rows */}
+        <div className="w-full text-center border-t border-gray-100 pt-0.5 pb-1 leading-none">
+          <div className="text-[10px] text-gray-400">
+            <a href="/privacy"        className="hover:text-gray-600">פרטיות</a>
+            {' · '}
+            <a href="/accessibility"  className="hover:text-gray-600">נגישות</a>
+            {' · '}
+            <a href="/admin/punctures" className="hover:text-gray-600">כניסה לעריכה</a>
+          </div>
           <button onClick={() => setShowSuggest(true)}
-            className="text-[10px] text-blue-500 hover:text-blue-700">+ הצע מקום חדש</button>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <a href="/privacy"       className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <a href="/admin/punctures" className="text-[10px] text-gray-400 hover:text-gray-600">כניסה לעריכה</a>
+            className="text-[10px] text-blue-500 hover:text-blue-700 mt-0.5">+ הצע מקום חדש</button>
         </div>
 
       </nav>
