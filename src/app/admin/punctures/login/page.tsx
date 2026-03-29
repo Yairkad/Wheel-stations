@@ -85,7 +85,6 @@ export default function PunctureManagerLoginPage() {
         <button onClick={handleLogin} disabled={loading} style={s.btn}>
           {loading ? 'מתחבר...' : 'כניסה'}
         </button>
-        <a href="/admin/login" style={s.back}>← כניסת מנהל ראשי</a>
       </div>
     </div>
   )

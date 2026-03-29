@@ -481,13 +481,8 @@ export default function PuncturesPage() {
             </ul>
           )}
 
-          {/* Sidebar footer — add bottom padding on mobile for fixed nav bar */}
-          <div className="flex-shrink-0 border-t border-gray-100 px-3 py-2 pb-[calc(0.5rem+84px)] md:pb-2 text-center">
-            <button onClick={() => setShowSuggest(true)}
-              className="text-xs text-blue-500 hover:text-blue-700 hover:underline">
-              + הצע מקום חדש
-            </button>
-          </div>
+          {/* Bottom spacer for mobile fixed nav bar */}
+          <div className="flex-shrink-0 pb-[84px] md:pb-0" />
         </aside>
 
         {/* Map — LEFT on desktop / full-screen on mobile when mobileView='map' ── */}
@@ -548,6 +543,9 @@ export default function PuncturesPage() {
 
         {/* Footer links — below tabs */}
         <div className="flex items-center justify-center gap-2 py-1 border-t border-gray-100">
+          <button onClick={() => setShowSuggest(true)}
+            className="text-[10px] text-blue-500 hover:text-blue-700">+ הצע מקום חדש</button>
+          <span className="text-gray-300 text-[10px]">·</span>
           <a href="/privacy"       className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
           <span className="text-gray-300 text-[10px]">·</span>
           <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
@@ -559,6 +557,9 @@ export default function PuncturesPage() {
 
       {/* ── Public footer (desktop) ── */}
       <footer className="hidden md:flex flex-shrink-0 items-center justify-center gap-3 py-1.5 border-t border-gray-200 bg-white text-xs text-gray-400">
+        <button onClick={() => setShowSuggest(true)}
+          className="text-blue-500 hover:text-blue-700 hover:underline">+ הצע מקום חדש</button>
+        <span>·</span>
         <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
         <span>·</span>
         <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
