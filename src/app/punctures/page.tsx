@@ -482,18 +482,11 @@ export default function PuncturesPage() {
           )}
 
           {/* Sidebar footer — add bottom padding on mobile for fixed nav bar */}
-          <div className="flex-shrink-0 border-t border-gray-100 px-3 py-2 pb-[calc(0.5rem+56px)] md:pb-2 text-center space-y-1">
-            <div>
-              <button onClick={() => setShowSuggest(true)}
-                className="text-xs text-blue-500 hover:text-blue-700 hover:underline">
-                + הצע מקום חדש
-              </button>
-            </div>
-            <div className="md:hidden flex items-center justify-center gap-3 text-xs text-gray-400">
-              <a href="/privacy" className="hover:text-gray-600 hover:underline">פרטיות</a>
-              <span>·</span>
-              <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
-            </div>
+          <div className="flex-shrink-0 border-t border-gray-100 px-3 py-2 pb-[calc(0.5rem+84px)] md:pb-2 text-center">
+            <button onClick={() => setShowSuggest(true)}
+              className="text-xs text-blue-500 hover:text-blue-700 hover:underline">
+              + הצע מקום חדש
+            </button>
           </div>
         </aside>
 
@@ -520,33 +513,46 @@ export default function PuncturesPage() {
         </div>
       </div>
 
-      {/* ── Mobile bottom tab bar — fixed to bottom ── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-[500] flex border-t border-gray-200 bg-white"
+      {/* ── Mobile bottom nav — fixed to bottom ── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-[500] flex flex-col border-t border-gray-200 bg-white"
            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <button
-          onClick={() => setMobileView('list')}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
-            mobileView === 'list' ? 'text-blue-600' : 'text-gray-500'
-          }`}
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-          </svg>
-          רשימה
-        </button>
-        <button
-          onClick={() => setMobileView('map')}
-          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
-            mobileView === 'map' ? 'text-blue-600' : 'text-gray-500'
-          }`}
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-            <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
-          </svg>
-          מפה
-        </button>
+
+        {/* Tab buttons */}
+        <div className="flex">
+          <button
+            onClick={() => setMobileView('list')}
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+              mobileView === 'list' ? 'text-blue-600' : 'text-gray-500'
+            }`}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            רשימה
+          </button>
+          <button
+            onClick={() => setMobileView('map')}
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+              mobileView === 'map' ? 'text-blue-600' : 'text-gray-500'
+            }`}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+              <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+            מפה
+          </button>
+        </div>
+
+        {/* Footer links — below tabs */}
+        <div className="flex items-center justify-center gap-3 py-1 border-t border-gray-100">
+          <a href="/privacy" className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
+          <span className="text-gray-300 text-[10px]">·</span>
+          <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
+          <span className="text-gray-300 text-[10px]">·</span>
+          <span className="text-[10px] text-gray-300">© גלגלים {new Date().getFullYear()}</span>
+        </div>
 
       </nav>
 
