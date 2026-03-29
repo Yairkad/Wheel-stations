@@ -495,7 +495,7 @@ export default function PuncturesPage() {
             disabled={geoLoading}
             title="הקרוב אלי"
             className="absolute z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
-            style={{ bottom: 12, left: 12 }}
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 58px)', left: 12 }}
           >
             {geoLoading
               ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -517,11 +517,11 @@ export default function PuncturesPage() {
         <div className="flex">
           <button
             onClick={() => setMobileView('list')}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1 text-xs font-medium transition-colors ${
               mobileView === 'list' ? 'text-blue-600' : 'text-gray-500'
             }`}
           >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
               <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
             </svg>
@@ -529,11 +529,11 @@ export default function PuncturesPage() {
           </button>
           <button
             onClick={() => setMobileView('map')}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1 text-xs font-medium transition-colors ${
               mobileView === 'map' ? 'text-blue-600' : 'text-gray-500'
             }`}
           >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
               <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
             </svg>
@@ -541,36 +541,30 @@ export default function PuncturesPage() {
           </button>
         </div>
 
-        {/* Footer links — below tabs */}
-        <div className="flex flex-col items-center border-t border-gray-100">
-          <div className="flex items-center justify-center gap-2 py-1">
-            <a href="/privacy"       className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
-            <span className="text-gray-300 text-[10px]">·</span>
-            <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
-            <span className="text-gray-300 text-[10px]">·</span>
-            <a href="/admin/punctures" className="text-[10px] text-gray-400 hover:text-gray-600">כניסה לעריכה</a>
-          </div>
-          <div className="pb-1">
-            <button onClick={() => setShowSuggest(true)}
-              className="text-[10px] text-blue-500 hover:text-blue-700">+ הצע מקום חדש</button>
-          </div>
+        {/* Footer links — single compact row */}
+        <div className="flex items-center justify-center gap-1.5 py-0.5 border-t border-gray-100">
+          <button onClick={() => setShowSuggest(true)}
+            className="text-[10px] text-blue-500 hover:text-blue-700">+ הצע מקום חדש</button>
+          <span className="text-gray-300 text-[10px]">·</span>
+          <a href="/privacy"       className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
+          <span className="text-gray-300 text-[10px]">·</span>
+          <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
+          <span className="text-gray-300 text-[10px]">·</span>
+          <a href="/admin/punctures" className="text-[10px] text-gray-400 hover:text-gray-600">כניסה לעריכה</a>
         </div>
 
       </nav>
 
       {/* ── Public footer (desktop) ── */}
-      <footer className="hidden md:flex flex-col flex-shrink-0 items-center border-t border-gray-200 bg-white text-xs text-gray-400">
-        <div className="flex items-center justify-center gap-3 py-1.5">
-          <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
-          <span>·</span>
-          <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
-          <span>·</span>
-          <a href="/admin/punctures" className="hover:text-gray-600 hover:underline">כניסה לעריכה</a>
-        </div>
-        <div className="pb-1.5">
-          <button onClick={() => setShowSuggest(true)}
-            className="text-blue-500 hover:text-blue-700 hover:underline">+ הצע מקום חדש</button>
-        </div>
+      <footer className="hidden md:flex flex-shrink-0 items-center justify-center gap-3 py-1 border-t border-gray-200 bg-white text-xs text-gray-400">
+        <button onClick={() => setShowSuggest(true)}
+          className="text-blue-500 hover:text-blue-700 hover:underline">+ הצע מקום חדש</button>
+        <span>·</span>
+        <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
+        <span>·</span>
+        <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
+        <span>·</span>
+        <a href="/admin/punctures" className="hover:text-gray-600 hover:underline">כניסה לעריכה</a>
       </footer>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}

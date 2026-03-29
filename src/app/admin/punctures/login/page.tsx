@@ -63,7 +63,7 @@ export default function PunctureManagerLoginPage() {
       <div style={s.box}>
         <div style={s.icon}>🔧</div>
         <h1 style={s.title}>ניהול פנצ׳ריות לילה</h1>
-        <p style={s.sub}>הזן טלפון וסיסמה</p>
+        <p style={s.sub}>הזן שם משתמש וסיסמה</p>
         <input
           type="text"
           placeholder="שם משתמש"
@@ -71,7 +71,6 @@ export default function PunctureManagerLoginPage() {
           onChange={e => setPhone(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleLogin()}
           style={s.input}
-          dir="ltr"
         />
         <input
           type="password"
@@ -85,6 +84,7 @@ export default function PunctureManagerLoginPage() {
         <button onClick={handleLogin} disabled={loading} style={s.btn}>
           {loading ? 'מתחבר...' : 'כניסה'}
         </button>
+        <a href="/punctures" style={s.back}>← חזרה לרשימת הפנצ׳ריות</a>
       </div>
     </div>
   )
