@@ -802,6 +802,7 @@ export default function WheelsAdminPage() {
             </div>
           </div>
           <div style={styles.headerButtons} className="header-buttons-responsive">
+            <Link href="/admin/punctures" style={styles.btnGhost}>🔧 פנצ׳ריות</Link>
             <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
             <Link href="/admin/reports" style={{...styles.btnGhost, position: 'relative'}}>
               📋 דיווחי שגיאות

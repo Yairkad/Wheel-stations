@@ -263,7 +263,7 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
   const inp = "mt-0.5 w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-6 max-h-[90vh] overflow-y-auto" dir="rtl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold">הצעת פנצ׳ריה חדשה</h2>
@@ -313,6 +313,8 @@ export default function PuncturesPage() {
   const [regionFilter, setRegionFilter] = useState<Region | ''>('')
   // toggle: false = הכל, true = פתוח כרגע
   const [openNowOnly, setOpenNowOnly] = useState(false)
+  // mobile: 'list' or 'map'
+  const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
   const selectedRef = useRef<HTMLLIElement>(null)
 
   const fetchAll = useCallback(async (q: string) => {
@@ -365,52 +367,53 @@ export default function PuncturesPage() {
   }
 
   return (
-    <div dir="rtl" className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+    <div dir="rtl" className="h-[100dvh] flex flex-col bg-gray-50 overflow-hidden">
 
       {/* ── Header ── */}
       <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-3 px-4 py-2.5">
-          <h1 className="text-lg font-bold text-gray-800 whitespace-nowrap">🔧 פנצ׳ריות לילה</h1>
+        <div className="flex items-center gap-2 px-3 py-2">
+          <h1 className="text-base font-bold text-gray-800 whitespace-nowrap">🔧 פנצ׳ריות לילה</h1>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            placeholder="חיפוש לפי שם, עיר או כתובת..."
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <button onClick={handleNearby} disabled={geoLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap">
-            {geoLoading
-              ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : '📍'}
-            הקרוב אלי
-          </button>
-          <button onClick={() => setShowSuggest(true)}
-            className="text-sm text-blue-600 hover:underline whitespace-nowrap hidden sm:block">
-            + הצע מקום
-          </button>
+            placeholder="חיפוש לפי שם, עיר..."
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" />
         </div>
-        {geoError && <p className="px-4 pb-2 text-xs text-red-600">{geoError}</p>}
       </header>
 
       {/* ── Body ── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ── Sidebar — RIGHT (first child in RTL = right side) ── */}
-        <aside className="w-72 bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden">
+        {/* ── Sidebar — RIGHT on desktop / full-screen on mobile when mobileView='list' ── */}
+        <aside className={`
+          w-full md:w-72 bg-white md:border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden
+          ${mobileView === 'list' ? 'flex' : 'hidden'} md:flex
+        `}>
 
           {/* Filter strip */}
           <div className="flex-shrink-0 border-b border-gray-200 px-3 py-2 space-y-2">
 
-            {/* Region dropdown */}
-            <select
-              value={regionFilter}
-              onChange={e => setRegionFilter(e.target.value as Region | '')}
-              className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="">כל האזורים</option>
-              {REGIONS.map(r => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
+            {/* Row 1: region + nearby button */}
+            <div className="flex gap-2">
+              <select
+                value={regionFilter}
+                onChange={e => setRegionFilter(e.target.value as Region | '')}
+                className="flex-1 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-0"
+              >
+                <option value="">כל האזורים</option>
+                {REGIONS.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              <button onClick={handleNearby} disabled={geoLoading}
+                title="הקרוב אלי"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap flex-shrink-0">
+                {geoLoading
+                  ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <svg viewBox="0 0 24 24" width="15" height="15" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>}
+                <span className="hidden sm:inline">הקרוב אלי</span>
+              </button>
+            </div>
 
-            {/* Open-now toggle + count */}
+            {/* Row 2: open-now toggle + count */}
             <div className="flex items-center justify-between">
               <button
                 role="switch"
@@ -432,9 +435,11 @@ export default function PuncturesPage() {
                 {loading ? 'טוען...' : `${displayed.length} תוצאות`}
               </span>
             </div>
+
+            {geoError && <p className="text-xs text-red-600">{geoError}</p>}
           </div>
 
-          {/* Scrollable list — fills remaining sidebar height */}
+          {/* Scrollable list */}
           {displayed.length === 0 && !loading ? (
             <div className="flex-1 flex items-center justify-center text-gray-400 text-sm px-4 text-center">
               {openNowOnly ? 'אין פנצ׳ריות פתוחות כרגע' : 'לא נמצאו פנצ׳ריות'}
@@ -446,18 +451,60 @@ export default function PuncturesPage() {
                   key={shop.id}
                   shop={shop}
                   selected={shop.id === selectedId}
-                  onClick={() => setSelectedId(prev => prev === shop.id ? null : shop.id)}
+                  onClick={() => {
+                    setSelectedId(prev => prev === shop.id ? null : shop.id)
+                    setMobileView('map')
+                  }}
                 />
               ))}
             </ul>
           )}
+
+          {/* Sidebar footer */}
+          <div className="flex-shrink-0 border-t border-gray-100 px-3 py-2 text-center">
+            <button onClick={() => setShowSuggest(true)}
+              className="text-xs text-blue-500 hover:text-blue-700 hover:underline">
+              + הצע מקום חדש
+            </button>
+          </div>
         </aside>
 
-        {/* Map — LEFT (second child in RTL) */}
-        <div className="flex-1 p-2 min-w-0">
+        {/* Map — LEFT on desktop / full-screen on mobile when mobileView='map' ── */}
+        <div className={`
+          flex-1 min-w-0
+          ${mobileView === 'map' ? 'flex' : 'hidden'} md:flex
+        `}>
           <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} />
         </div>
       </div>
+
+      {/* ── Mobile bottom tab bar ── */}
+      <nav className="md:hidden flex-shrink-0 flex border-t border-gray-200 bg-white">
+        <button
+          onClick={() => setMobileView('list')}
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+            mobileView === 'list' ? 'text-blue-600' : 'text-gray-500'
+          }`}
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+          רשימה
+        </button>
+        <button
+          onClick={() => setMobileView('map')}
+          className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-xs font-medium transition-colors ${
+            mobileView === 'map' ? 'text-blue-600' : 'text-gray-500'
+          }`}
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+            <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+          </svg>
+          מפה
+        </button>
+      </nav>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}
     </div>
