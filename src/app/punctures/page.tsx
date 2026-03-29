@@ -495,7 +495,7 @@ export default function PuncturesPage() {
             disabled={geoLoading}
             title="הקרוב אלי"
             className="absolute z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
-            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 58px)', left: 12 }}
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 80px)', left: 12 }}
           >
             {geoLoading
               ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -542,7 +542,7 @@ export default function PuncturesPage() {
         </div>
 
         {/* Footer links — single compact row */}
-        <div className="flex items-center justify-center gap-1.5 py-0.5 border-t border-gray-100">
+        <div dir="ltr" className="flex items-center justify-center gap-1.5 py-0.5 border-t border-gray-100">
           <button onClick={() => setShowSuggest(true)}
             className="text-[10px] text-blue-500 hover:text-blue-700">+ הצע מקום חדש</button>
           <span className="text-gray-300 text-[10px]">·</span>
