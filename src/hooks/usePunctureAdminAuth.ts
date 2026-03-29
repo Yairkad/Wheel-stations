@@ -58,9 +58,12 @@ export function usePunctureAdminAuth(): PunctureAdminAuth {
   }, [router])
 
   const logout = () => {
-    if (role === 'puncture_manager') {
-      localStorage.removeItem('puncture_manager_auth')
+    if (role === 'admin') {
+      // Full admin: just navigate away, keep the main admin session active
+      router.push('/admin')
+      return
     }
+    localStorage.removeItem('puncture_manager_auth')
     setIsAuthenticated(false)
     setRole(null)
     router.push('/admin/punctures/login')

@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
-import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 interface Operator {
   id: string
@@ -37,7 +36,6 @@ interface CallCenter {
 
 export default function CallCentersAdminPage() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
-  const pendingReports = useAdminPendingReports()
 
   const [callCenters, setCallCenters] = useState<CallCenter[]>([])
   const [loading, setLoading] = useState(true)
@@ -357,39 +355,13 @@ export default function CallCentersAdminPage() {
         }
       `}</style>
 
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerContent} className="header-content-responsive">
-          <div style={styles.headerLogo} className="header-logo-responsive">
-            <div style={styles.logoIcon}>🎧</div>
-            <div>
-              <h1 style={styles.headerTitle}>ניהול מוקדים</h1>
-              <p style={styles.headerSubtitle}>סניפים, מנהלים ומוקדנים</p>
-            </div>
-          </div>
-          <div style={styles.headerButtons} className="header-buttons-responsive">
-            <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
-            <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
-            <Link href="/admin/reports" style={{...styles.btnGhost, position: 'relative'}}>
-              📋 דיווחי שגיאות
-              {pendingReports > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '6px',
-                  left: '6px',
-                  width: '8px',
-                  height: '8px',
-                  background: '#ef4444',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 6px #ef4444',
-                  display: 'inline-block',
-                }} />
-              )}
-            </Link>
-            <button style={styles.btnLogout} onClick={logout}>יציאה</button>
-          </div>
-        </div>
-      </div>
+      <AdminHeader
+        title="ניהול מוקדים"
+        subtitle="סניפים, מנהלים ומוקדנים"
+        icon="🎧"
+        iconBg="linear-gradient(135deg, #8b5cf6, #7c3aed)"
+        onLogout={logout}
+      />
 
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">

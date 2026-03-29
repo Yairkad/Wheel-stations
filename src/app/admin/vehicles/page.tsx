@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
-import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 interface VehicleModel {
   id: string
@@ -70,7 +69,6 @@ export default function VehiclesAdminPageWrapper() {
 function VehiclesAdminPage() {
   const searchParams = useSearchParams()
   const { isAuthenticated, isLoading: authLoading, logout } = useAdminAuth()
-  const pendingReports = useAdminPendingReports()
 
   const [vehicles, setVehicles] = useState<VehicleModel[]>([])
   const [loading, setLoading] = useState(true)
@@ -1333,39 +1331,13 @@ function VehiclesAdminPage() {
         }
       `}</style>
 
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerContent} className="header-content-responsive">
-          <div style={styles.headerLogo} className="header-logo-responsive">
-            <div style={styles.logoIcon}>🚗</div>
-            <div>
-              <h1 style={styles.headerTitle}>ניהול מאגר דגמי רכבים</h1>
-              <p style={styles.headerSubtitle}>גרידה והוספת דגמים למאגר PCD</p>
-            </div>
-          </div>
-          <div style={styles.headerButtons} className="header-buttons-responsive">
-            <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
-            <Link href="/admin/reports" style={{...styles.btnGhost, position: 'relative'}}>
-              📋 דיווחי שגיאות
-              {pendingReports > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '6px',
-                  left: '6px',
-                  width: '8px',
-                  height: '8px',
-                  background: '#ef4444',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 6px #ef4444',
-                  display: 'inline-block',
-                }} />
-              )}
-            </Link>
-            <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
-            <button style={styles.btnLogout} onClick={logout}>יציאה</button>
-          </div>
-        </div>
-      </div>
+      <AdminHeader
+        title="ניהול מאגר דגמי רכבים"
+        subtitle="גרידה והוספת דגמים למאגר PCD"
+        icon="🚗"
+        iconBg="linear-gradient(135deg, #3b82f6, #1d4ed8)"
+        onLogout={logout}
+      />
 
       {/* Stats */}
       <div style={styles.statsRow} className="stats-row-responsive">

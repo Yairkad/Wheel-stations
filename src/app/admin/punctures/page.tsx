@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePunctureAdminAuth } from '@/hooks/usePunctureAdminAuth'
 import { HoursFields, HoursState, emptyHours, parseHoursState, hoursToString } from '@/components/punctures/HoursFields'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
@@ -515,19 +516,14 @@ export default function PuncturesAdminPage() {
   return (
     <div dir="rtl" style={{ minHeight: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif", color: '#f8fafc' }}>
 
-      {/* Header */}
-      <div style={{ background: '#1e293b', borderBottom: '1px solid #334155', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg,#f59e0b,#d97706)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>🔧</div>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#f8fafc' }}>ניהול פנצ׳ריות לילה</h1>
-          <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
-            {role === 'admin' ? 'מנהל ראשי' : 'מנהל פנצ׳ריות'}
-          </p>
-        </div>
-        <a href="/punctures" target="_blank" style={{ fontSize: '0.78rem', color: '#64748b', textDecoration: 'none' }}>← לדף הציבורי</a>
-        {role === 'admin' && <a href="/admin" style={{ fontSize: '0.78rem', color: '#64748b', textDecoration: 'none' }}>← ניהול ראשי</a>}
-        <button onClick={logout} style={{ padding: '6px 14px', background: '#334155', border: 'none', borderRadius: 8, color: '#94a3b8', fontSize: '0.82rem', cursor: 'pointer' }}>יציאה</button>
-      </div>
+      <AdminHeader
+        title="ניהול פנצ׳ריות לילה"
+        subtitle={role === 'admin' ? 'מנהל ראשי' : 'מנהל פנצ׳ריות'}
+        icon="🔧"
+        iconBg="linear-gradient(135deg, #f59e0b, #d97706)"
+        onLogout={logout}
+        hideNav={role !== 'admin'}
+      />
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #1e293b', padding: '0 24px', background: '#0f172a' }}>

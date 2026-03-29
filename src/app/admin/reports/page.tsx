@@ -5,6 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 interface ErrorReport {
   id: string
@@ -366,24 +367,13 @@ export default function ErrorReportsPage() {
         }
       `}</style>
 
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerContent} className="header-content-responsive">
-          <div style={styles.headerLogo} className="header-logo-responsive">
-            <div style={styles.logoIcon}>📋</div>
-            <div>
-              <h1 style={styles.headerTitle}>דיווחי שגיאות</h1>
-              <p style={styles.headerSubtitle}>ניהול דיווחים על טעויות במאגר</p>
-            </div>
-          </div>
-          <div style={styles.headerButtons} className="header-buttons-responsive">
-            <Link href="/admin" style={styles.btnGhost}>🏢 תחנות</Link>
-            <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
-            <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
-            <button style={styles.btnLogout} onClick={logout}>יציאה</button>
-          </div>
-        </div>
-      </div>
+      <AdminHeader
+        title="דיווחי שגיאות"
+        subtitle="ניהול דיווחים על טעויות במאגר"
+        icon="📋"
+        iconBg="linear-gradient(135deg, #f59e0b, #d97706)"
+        onLogout={logout}
+      />
 
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">

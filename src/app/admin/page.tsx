@@ -5,7 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
-import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
+import { AdminHeader } from '@/components/admin/AdminHeader'
 
 interface Manager {
   id?: string
@@ -49,7 +49,6 @@ interface SuperManager {
 
 export default function WheelsAdminPage() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
-  const pendingReports = useAdminPendingReports()
 
   const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState(true)
@@ -791,40 +790,12 @@ export default function WheelsAdminPage() {
         }
       `}</style>
 
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerContent} className="header-content-responsive">
-          <div style={styles.headerLogo} className="header-logo-responsive">
-            <div style={styles.logoIcon}>🛞</div>
-            <div>
-              <h1 style={styles.headerTitle}>ניהול תחנות גלגלים</h1>
-              <p style={styles.headerSubtitle}>מערכת ניהול תחנות והשאלות</p>
-            </div>
-          </div>
-          <div style={styles.headerButtons} className="header-buttons-responsive">
-            <Link href="/admin/punctures" style={styles.btnGhost}>🔧 פנצ׳ריות</Link>
-            <Link href="/admin/vehicles" style={styles.btnGhost}>🚗 מאגר רכבים</Link>
-            <Link href="/admin/reports" style={{...styles.btnGhost, position: 'relative'}}>
-              📋 דיווחי שגיאות
-              {pendingReports > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '6px',
-                  left: '6px',
-                  width: '8px',
-                  height: '8px',
-                  background: '#ef4444',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 6px #ef4444',
-                  display: 'inline-block',
-                }} />
-              )}
-            </Link>
-            <Link href="/admin/call-centers" style={styles.btnGhost}>🎧 מוקדים</Link>
-            <button style={styles.btnLogout} onClick={logout}>יציאה</button>
-          </div>
-        </div>
-      </div>
+      <AdminHeader
+        title="ניהול תחנות גלגלים"
+        subtitle="מערכת ניהול תחנות והשאלות"
+        icon="🛞"
+        onLogout={logout}
+      />
 
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">
