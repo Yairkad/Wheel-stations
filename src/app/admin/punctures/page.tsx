@@ -17,6 +17,21 @@ function parseLatLngFromUrl(url: string): { lat: string; lng: string } | null {
   return null
 }
 
+async function resolveMapsUrl(url: string): Promise<{ lat: string; lng: string } | null> {
+  // Try direct extraction first (full URLs)
+  const direct = parseLatLngFromUrl(url)
+  if (direct) return direct
+  // Short URL or indirect — ask server to follow redirects
+  try {
+    const res = await fetch(`/api/resolve-maps?url=${encodeURIComponent(url)}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.lat && data.lng) return { lat: String(data.lat), lng: String(data.lng) }
+    }
+  } catch { /* ignore */ }
+  return null
+}
+
 // ─── GeoSearch ────────────────────────────────────────────────────────────────
 
 interface GeoResult { lat: number; lng: number; label: string }
@@ -121,16 +136,20 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
   const [address, setAddress] = useState(suggestion.address)
   const [phone,   setPhone]   = useState(suggestion.phone ?? '')
   const [notes,   setNotes]   = useState(suggestion.notes ?? '')
-  const [mapsUrl, setMapsUrl] = useState('')
-  const [lat,     setLat]     = useState('')
-  const [lng,     setLng]     = useState('')
-  const [hours,   setHours]   = useState<HoursState>(emptyHours())
-  const [saving,  setSaving]  = useState(false)
-  const [error,   setError]   = useState<string | null>(null)
+  const [mapsUrl,    setMapsUrl]    = useState('')
+  const [lat,        setLat]        = useState('')
+  const [lng,        setLng]        = useState('')
+  const [hours,      setHours]      = useState<HoursState>(emptyHours())
+  const [saving,     setSaving]     = useState(false)
+  const [resolving,  setResolving]  = useState(false)
+  const [error,      setError]      = useState<string | null>(null)
 
-  const handleMapsUrl = (url: string) => {
+  const handleMapsUrl = async (url: string) => {
     setMapsUrl(url)
-    const coords = parseLatLngFromUrl(url)
+    if (!url.trim()) return
+    setResolving(true)
+    const coords = await resolveMapsUrl(url)
+    setResolving(false)
     if (coords) { setLat(coords.lat); setLng(coords.lng) }
   }
 
@@ -179,10 +198,11 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
 
           <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
             <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
-            <input value={mapsUrl} onChange={e => handleMapsUrl(e.target.value)} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/..."/>
+            <input value={mapsUrl} onChange={e => handleMapsUrl(e.target.value)} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/... או maps.app.goo.gl/..."/>
             <div style={lbl}>או חפש כתובת:</div>
             <GeoSearch onSelect={(la, ln) => { setLat(la); setLng(ln) }} dark />
-            {lat && lng && (
+            {resolving && <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#94a3b8' }}>מחלץ מיקום...</div>}
+            {!resolving && lat && lng && (
               <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
                 ✓ lat: {lat}, lng: {lng}
               </div>
@@ -191,7 +211,7 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
 
           <div><div style={lbl}>הערות</div><textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} style={{ ...inp, resize: 'none' as const }}/></div>
           {error && <div style={{ color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
-          <button onClick={submit} disabled={saving} style={{
+          <button onClick={submit} disabled={saving || resolving} style={{
             width: '100%', padding: '11px', background: '#f59e0b', border: 'none',
             borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
           }}>{saving ? 'שומר...' : 'אשר והוסף לרשימה'}</button>
@@ -217,10 +237,20 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
     phone: shop.phone ?? '', notes: shop.notes ?? '',
     website: shop.website ?? '', google_maps_url: shop.google_maps_url ?? '',
   })
-  const [hours,  setHours]  = useState<HoursState>(parseHoursState(shop.hours_regular, shop.hours_evening, shop.hours_friday, shop.hours_saturday))
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState<string | null>(null)
+  const [hours,     setHours]     = useState<HoursState>(parseHoursState(shop.hours_regular, shop.hours_evening, shop.hours_friday, shop.hours_saturday))
+  const [saving,    setSaving]    = useState(false)
+  const [resolving, setResolving] = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
   const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }))
+
+  const handleMapsUrl = async (url: string) => {
+    set('google_maps_url', url)
+    if (!url.trim()) return
+    setResolving(true)
+    const coords = await resolveMapsUrl(url)
+    setResolving(false)
+    if (coords) { set('lat', coords.lat); set('lng', coords.lng) }
+  }
 
   const submit = async () => {
     setSaving(true); setError(null)
@@ -265,14 +295,11 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
 
           <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
             <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
-            <input value={form.google_maps_url} onChange={e => {
-              set('google_maps_url', e.target.value)
-              const coords = parseLatLngFromUrl(e.target.value)
-              if (coords) { set('lat', coords.lat); set('lng', coords.lng) }
-            }} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/..."/>
+            <input value={form.google_maps_url} onChange={e => handleMapsUrl(e.target.value)} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/... או maps.app.goo.gl/..."/>
             <div style={lbl}>או חפש כתובת:</div>
             <GeoSearch onSelect={(la, ln) => { set('lat', la); set('lng', ln) }} dark />
-            {form.lat && form.lng && (
+            {resolving && <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#94a3b8' }}>מחלץ מיקום...</div>}
+            {!resolving && form.lat && form.lng && (
               <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
                 ✓ lat: {form.lat}, lng: {form.lng}
               </div>
@@ -281,10 +308,16 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
 
           <div><div style={lbl}>הערות</div><textarea value={form.notes} onChange={e => set('notes',e.target.value)} rows={2} style={{ ...inp, resize: 'none' as const }}/></div>
           {error && <div style={{ color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
-          <button onClick={submit} disabled={saving} style={{
-            width: '100%', padding: '11px', background: '#3b82f6', border: 'none',
-            borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
-          }}>{saving ? 'שומר...' : 'שמור שינויים'}</button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={onClose} style={{
+              flex: 1, padding: '11px', background: 'transparent', border: '1px solid #334155',
+              borderRadius: 10, color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+            }}>ביטול</button>
+            <button onClick={submit} disabled={saving || resolving} style={{
+              flex: 2, padding: '11px', background: '#3b82f6', border: 'none',
+              borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+            }}>{saving ? 'שומר...' : 'שמור שינויים'}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -302,10 +335,20 @@ function AddShopModal({ authPayload, onDone, onClose }: {
     name: '', city: '', address: '', lat: '', lng: '',
     phone: '', notes: '', website: '', google_maps_url: '',
   })
-  const [hours,  setHours]  = useState<HoursState>(emptyHours())
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState<string | null>(null)
+  const [hours,     setHours]     = useState<HoursState>(emptyHours())
+  const [saving,    setSaving]    = useState(false)
+  const [resolving, setResolving] = useState(false)
+  const [error,     setError]     = useState<string | null>(null)
   const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }))
+
+  const handleMapsUrl = async (url: string) => {
+    set('google_maps_url', url)
+    if (!url.trim()) return
+    setResolving(true)
+    const coords = await resolveMapsUrl(url)
+    setResolving(false)
+    if (coords) { set('lat', coords.lat); set('lng', coords.lng) }
+  }
 
   const submit = async () => {
     if (!form.name || !form.lat || !form.lng) { setError('נדרש שם ומיקום'); return }

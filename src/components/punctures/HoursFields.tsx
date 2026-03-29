@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
+
 // ─── Time options ──────────────────────────────────────────────────────────────
 
 const TIME_OPTIONS: string[] = []
@@ -63,7 +65,7 @@ export function hoursToString(d: DayHours): string {
   return `${d.from}-${d.to}`
 }
 
-// ─── TimeSelect ───────────────────────────────────────────────────────────────
+// ─── TimeCombo (input + filtered dropdown) ────────────────────────────────────
 
 interface TimeSelectProps {
   value:    string
@@ -72,25 +74,80 @@ interface TimeSelectProps {
 }
 
 function TimeSelect({ value, onChange, dark }: TimeSelectProps) {
-  const bg = dark ? '#0f172a' : '#fff'
+  const [typed, setTyped] = useState(value)
+  const [open,  setOpen]  = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  // Sync when external value changes
+  useEffect(() => { setTyped(value) }, [value])
+
+  const filtered = typed.length >= 1
+    ? TIME_OPTIONS.filter(t => t.startsWith(typed))
+    : TIME_OPTIONS
+
+  const pick = (t: string) => {
+    onChange(t)
+    setTyped(t)
+    setOpen(false)
+  }
+
+  const handleBlur = (e: React.FocusEvent) => {
+    if (wrapRef.current?.contains(e.relatedTarget as Node)) return
+    setOpen(false)
+    if (TIME_OPTIONS.includes(typed)) {
+      onChange(typed)
+    } else if (!typed.trim()) {
+      onChange('')
+      setTyped('')
+    } else {
+      setTyped(value) // revert to last valid
+    }
+  }
+
+  const bg     = dark ? '#0f172a' : '#fff'
   const border = dark ? '1px solid #334155' : '1px solid #d1d5db'
-  const color = dark ? '#f8fafc' : '#1e293b'
+  const color  = dark ? '#f8fafc' : '#1e293b'
+  const ddBg   = dark ? '#1e293b' : '#fff'
+  const ddHov  = dark ? '#334155' : '#f1f5f9'
 
   return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        flex: 1, padding: '6px 8px', background: bg, border, borderRadius: 8,
-        color: value ? color : '#94a3b8', fontSize: '0.82rem', cursor: 'pointer',
-        direction: 'ltr', textAlign: 'center',
-      }}
-    >
-      <option value="">--:--</option>
-      {TIME_OPTIONS.map(t => (
-        <option key={t} value={t}>{t}</option>
-      ))}
-    </select>
+    <div ref={wrapRef} style={{ position: 'relative', flex: 1 }} onBlur={handleBlur}>
+      <input
+        value={typed}
+        onChange={e => { setTyped(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        placeholder="--:--"
+        style={{
+          width: '100%', padding: '6px 8px', background: bg, border, borderRadius: 8,
+          color: typed ? color : '#94a3b8', fontSize: '0.82rem',
+          direction: 'ltr', textAlign: 'center', boxSizing: 'border-box',
+        }}
+      />
+      {open && filtered.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 2px)', left: 0, right: 0,
+          zIndex: 300, background: ddBg, border, borderRadius: 8,
+          maxHeight: 160, overflowY: 'auto',
+          boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+        }}>
+          {filtered.map(t => (
+            <div
+              key={t}
+              onMouseDown={() => pick(t)}
+              style={{
+                padding: '6px 10px', cursor: 'pointer', fontSize: '0.82rem',
+                color, direction: 'ltr', textAlign: 'center',
+                background: t === value ? (dark ? '#334155' : '#e0f2fe') : 'transparent',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = ddHov)}
+              onMouseLeave={e => (e.currentTarget.style.background = t === value ? (dark ? '#334155' : '#e0f2fe') : 'transparent')}
+            >
+              {t}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 

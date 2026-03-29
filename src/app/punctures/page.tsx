@@ -489,7 +489,7 @@ export default function PuncturesPage() {
           flex-1 min-w-0
           ${mobileView === 'map' ? 'flex' : 'hidden'} md:flex
         `}>
-          <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} />
+          <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} visible={mobileView === 'map'} />
         </div>
       </div>
 

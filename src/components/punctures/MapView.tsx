@@ -16,8 +16,8 @@ export interface PunctureShop {
   name: string
   address: string
   city?: string | null
-  phone?: string | null          // legacy field (pre-v2 schema)
-  hours?: string | null          // legacy field (pre-v2 schema)
+  phone?: string | null
+  hours?: string | null
   hours_regular?: string | null
   hours_evening?: string | null
   hours_friday?: string | null
@@ -36,23 +36,26 @@ interface MapViewProps {
   shops: PunctureShop[]
   selectedId: string | null
   onSelectShop: (id: string) => void
+  /** Pass true when the map container becomes visible (mobile view switch) so it can resize */
+  visible?: boolean
 }
 
 const DEFAULT_CENTER: [number, number] = [31.5, 34.9]
 const DEFAULT_ZOOM = 8
 
-export default function MapView({ shops, selectedId, onSelectShop }: MapViewProps) {
+export default function MapView({ shops, selectedId, onSelectShop, visible }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<LeafletMap | null>(null)
-  const markersRef = useRef<Map<string, LeafletMarker>>(new Map())
+  const mapRef       = useRef<LeafletMap | null>(null)
+  const markersRef   = useRef<Map<string, LeafletMarker>>(new Map())
+  const fittedRef    = useRef(false)
 
+  // ── init map ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link')
-      link.id = 'leaflet-css'
-      link.rel = 'stylesheet'
+      link.id = 'leaflet-css'; link.rel = 'stylesheet'
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
       document.head.appendChild(link)
     }
@@ -68,7 +71,11 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
 
-      const map = L.map(containerRef.current!).setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const map = (L.map as any)(containerRef.current!, {
+        tap: false,        // disable Leaflet tap handler — fixes mobile click events "flying" the map
+      }).setView(DEFAULT_CENTER, DEFAULT_ZOOM) as LeafletMap
+
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
         subdomains: 'abcd',
@@ -82,9 +89,18 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
       mapRef.current?.remove()
       mapRef.current = null
       markersRef.current.clear()
+      fittedRef.current = false
     }
   }, [])
 
+  // ── invalidate size when container becomes visible (mobile tab switch) ────
+  useEffect(() => {
+    if (!mapRef.current) return
+    const t = setTimeout(() => mapRef.current?.invalidateSize(), 60)
+    return () => clearTimeout(t)
+  }, [visible])
+
+  // ── update markers + auto-fit bounds on first shop load ───────────────────
   useEffect(() => {
     if (!mapRef.current) return
 
@@ -92,14 +108,13 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
       const map = mapRef.current
       if (!map) return
 
+      // Remove stale markers
       const currentIds = new Set(shops.map((s) => s.id))
       markersRef.current.forEach((marker, id) => {
-        if (!currentIds.has(id)) {
-          marker.remove()
-          markersRef.current.delete(id)
-        }
+        if (!currentIds.has(id)) { marker.remove(); markersRef.current.delete(id) }
       })
 
+      // Add/update markers
       shops.forEach((shop) => {
         if (markersRef.current.has(shop.id)) {
           markersRef.current.get(shop.id)!.setPopupContent(buildPopupHtml(shop))
@@ -109,17 +124,26 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
           .addTo(map)
           .bindPopup(buildPopupHtml(shop), {
             maxWidth: 280,
-            autoPanPadding: [60, 80],   // keep popup away from edges
+            autoPanPadding: [60, 80],
             keepInView: true,
           })
 
+        // Only call onSelectShop — selectedId effect handles flyTo + openPopup
         marker.on('click', () => onSelectShop(shop.id))
         markersRef.current.set(shop.id, marker)
       })
+
+      // Auto-fit to all shops the first time they load
+      if (!fittedRef.current && shops.length > 0) {
+        fittedRef.current = true
+        const bounds = L.latLngBounds(shops.map(s => [s.lat, s.lng] as [number, number]))
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13, animate: false })
+      }
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shops])
 
+  // ── fly to selected shop + open popup ────────────────────────────────────
   useEffect(() => {
     if (!selectedId || !mapRef.current) return
     const marker = markersRef.current.get(selectedId)
@@ -127,7 +151,6 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
     if (!marker || !shop) return
 
     const map = mapRef.current
-    // Pan first, open popup after animation completes so the popup stays centered
     map.once('moveend', () => marker.openPopup())
     map.flyTo([shop.lat, shop.lng], Math.max(map.getZoom(), 14), { duration: 0.6 })
   }, [selectedId, shops])
@@ -136,6 +159,8 @@ export default function MapView({ shops, selectedId, onSelectShop }: MapViewProp
     <div ref={containerRef} className="w-full h-full rounded-lg" style={{ minHeight: '400px' }} />
   )
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function toWhatsApp(phone: string): string {
   const d = phone.replace(/\D/g, '')
@@ -171,18 +196,8 @@ function buildPopupHtml(shop: PunctureShop): string {
   const wazeUrl   = `https://waze.com/ul?ll=${shop.lat},${shop.lng}&navigate=yes`
   const shareUrl  = `https://wa.me/?text=${encodeURIComponent(buildShareText(shop))}`
   const address   = [shop.city, shop.address].filter(Boolean).join(', ')
+  const hasHours  = shop.hours_regular || shop.hours_evening || shop.hours_friday || shop.hours_saturday || shop.hours
 
-  const hasHours = shop.hours_regular || shop.hours_evening || shop.hours_friday || shop.hours_saturday || shop.hours
-  const hoursHtml = hasHours ? `
-    <div style="margin-top:6px;font-size:12px;color:#555;line-height:1.7">
-      ${shop.hours_regular  ? `<div>א׳–ה׳: ${shop.hours_regular}</div>` : ''}
-      ${shop.hours_evening  ? `<div>ערב/לילה: ${shop.hours_evening}</div>` : ''}
-      ${shop.hours_friday   ? `<div>שישי: ${shop.hours_friday}</div>` : ''}
-      ${shop.hours_saturday ? `<div>מוצש: ${shop.hours_saturday}</div>` : ''}
-      ${(!shop.hours_regular && shop.hours) ? `<div>${shop.hours}</div>` : ''}
-    </div>` : ''
-
-  // pill-style call/WA buttons (design 4B)
   const pill = (href: string, target: string, color: string, bg: string, content: string) =>
     `<a href="${href}" ${target} style="display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-decoration:none;color:${color};background:${bg};flex-shrink:0">${content}</a>`
 
@@ -206,7 +221,6 @@ function buildPopupHtml(shop: PunctureShop): string {
 
   return `<div style="direction:rtl;text-align:right;font-family:system-ui,sans-serif;min-width:220px;max-width:270px">
 
-    <!-- header -->
     <div style="padding-bottom:8px;border-bottom:1px solid #f1f5f9">
       <div style="font-weight:800;font-size:14px;color:#0f172a;line-height:1.3">${shop.name}</div>
       ${address ? `<div style="font-size:11.5px;color:#64748b;margin-top:2px">${address}</div>` : ''}
@@ -223,22 +237,19 @@ function buildPopupHtml(shop: PunctureShop): string {
         </div>` : ''}
     </div>
 
-    <!-- contacts -->
     ${contactsHtml}
 
-    <!-- nav buttons -->
     <div style="margin-top:8px;display:flex;gap:6px">
       <a href="${mapsUrl}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 6px;border-radius:10px;background:#eff6ff;color:#1d4ed8;font-size:11.5px;font-weight:700;text-decoration:none">
         <svg viewBox="0 0 24 24" width="12" height="12" fill="#1d4ed8"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
         Google Maps
       </a>
       <a href="${wazeUrl}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 6px;border-radius:10px;background:#e0f7ff;color:#0369a1;font-size:11.5px;font-weight:700;text-decoration:none">
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="#0369a1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="#0369a1"><path d="M20.54 6.29L13 4l-7.91 2.65A2 2 0 004 8.54V13c0 4.55 3.87 7.63 8.56 9h.02C17.24 20.68 20 17.65 20 13V8.54a2 2 0 00-1.46-1.94zM9 10h2v5H9v-5zm4 0h2v5h-2v-5z"/></svg>
         Waze
       </a>
     </div>
 
-    <!-- share — secondary -->
     <div style="margin-top:5px;text-align:center">
       <a href="${shareUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#94a3b8;text-decoration:none;padding:3px 8px;border-radius:20px">
         ${WA_SVG} שתף כרטיס
