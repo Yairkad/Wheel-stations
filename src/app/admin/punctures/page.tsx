@@ -1,7 +1,85 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePunctureAdminAuth } from '@/hooks/usePunctureAdminAuth'
+import { HoursFields, HoursState, emptyHours, parseHoursState, hoursToString } from '@/components/punctures/HoursFields'
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+
+function parseLatLngFromUrl(url: string): { lat: string; lng: string } | null {
+  let m = /@(-?\d+\.\d+),(-?\d+\.\d+)/.exec(url)
+  if (m) return { lat: m[1], lng: m[2] }
+  m = /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/.exec(url)
+  if (m) return { lat: m[1], lng: m[2] }
+  m = /[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/.exec(url)
+  if (m) return { lat: m[1], lng: m[2] }
+  return null
+}
+
+// ─── GeoSearch ────────────────────────────────────────────────────────────────
+
+interface GeoResult { lat: number; lng: number; label: string }
+
+function GeoSearch({ onSelect, dark }: {
+  onSelect: (lat: string, lng: string) => void
+  dark?: boolean
+}) {
+  const [q,       setQ]       = useState('')
+  const [results, setResults] = useState<GeoResult[]>([])
+  const [open,    setOpen]    = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const bg     = dark ? '#0f172a' : '#fff'
+  const border = dark ? '1px solid #334155' : '1px solid #d1d5db'
+  const color  = dark ? '#f8fafc' : '#1e293b'
+  const ddBg   = dark ? '#1e293b' : '#fff'
+
+  useEffect(() => {
+    if (timer.current) clearTimeout(timer.current)
+    if (q.length < 2) { setResults([]); return }
+    timer.current = setTimeout(async () => {
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`)
+      if (res.ok) { setResults(await res.json()); setOpen(true) }
+    }, 400)
+  }, [q])
+
+  const pick = (r: GeoResult) => {
+    onSelect(String(r.lat), String(r.lng))
+    setQ(r.label.split(',').slice(0, 2).join(', '))
+    setOpen(false)
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        value={q}
+        onChange={e => setQ(e.target.value)}
+        onFocus={() => results.length > 0 && setOpen(true)}
+        placeholder="חפש כתובת לחילוץ קואורדינטות..."
+        style={{ width: '100%', padding: '8px 12px', background: bg, border, borderRadius: 8, color, fontSize: '0.85rem', boxSizing: 'border-box' as const }}
+      />
+      {open && results.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', right: 0, left: 0, zIndex: 100,
+          background: ddBg, border, borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+          marginTop: 4, maxHeight: 200, overflowY: 'auto' as const,
+        }}>
+          {results.map((r, i) => (
+            <div key={i} onClick={() => pick(r)} style={{
+              padding: '8px 12px', cursor: 'pointer', fontSize: '0.8rem', color,
+              borderBottom: i < results.length - 1 ? border : 'none',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = dark ? '#334155' : '#f1f5f9')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              {r.label.split(',').slice(0, 3).join(', ')}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,71 +115,92 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
   onDone: () => void
   onClose: () => void
 }) {
-  const [form, setForm] = useState({
-    name: suggestion.name, city: suggestion.city, address: suggestion.address,
-    phone: suggestion.phone ?? '', hours: suggestion.hours ?? '',
-    hours_regular: '', hours_evening: '', hours_friday: '', hours_saturday: '',
-    notes: suggestion.notes ?? '', website: '', google_maps_url: '',
-    lat: '', lng: '',
-  })
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState<string | null>(null)
-  const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }))
+  const [name,    setName]    = useState(suggestion.name)
+  const [city,    setCity]    = useState(suggestion.city)
+  const [address, setAddress] = useState(suggestion.address)
+  const [phone,   setPhone]   = useState(suggestion.phone ?? '')
+  const [notes,   setNotes]   = useState(suggestion.notes ?? '')
+  const [mapsUrl, setMapsUrl] = useState('')
+  const [lat,     setLat]     = useState('')
+  const [lng,     setLng]     = useState('')
+  const [hours,   setHours]   = useState<HoursState>(emptyHours())
+  const [saving,  setSaving]  = useState(false)
+  const [error,   setError]   = useState<string | null>(null)
+
+  const handleMapsUrl = (url: string) => {
+    setMapsUrl(url)
+    const coords = parseLatLngFromUrl(url)
+    if (coords) { setLat(coords.lat); setLng(coords.lng) }
+  }
 
   const submit = async () => {
-    if (!form.lat || !form.lng) { setError('נדרש קו רוחב וקו אורך'); return }
+    if (!lat || !lng) { setError('נדרש מיקום — הדבק קישור גוגל מפס או חפש כתובת'); return }
     setSaving(true); setError(null)
+    const shopData = {
+      name, city, address, phone, notes, google_maps_url: mapsUrl,
+      lat, lng,
+      hours_regular:  hoursToString(hours.regular),
+      hours_evening:  hoursToString(hours.evening),
+      hours_friday:   hoursToString(hours.friday),
+      hours_saturday: hoursToString(hours.saturday),
+    }
     const res = await fetch(`/api/admin/punctures/suggestions/${suggestion.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...authPayload(), action: 'approve', shopData: form }),
+      body: JSON.stringify({ ...authPayload(), action: 'approve', shopData }),
     })
     if (res.ok) onDone()
     else { const d = await res.json(); setError(d.error ?? 'שגיאה') }
     setSaving(false)
   }
 
-  const inp = 'w-full border border-gray-600 bg-gray-900 text-gray-100 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500'
+  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: '#f8fafc', fontSize: '0.85rem', boxSizing: 'border-box' }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-gray-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" dir="rtl" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-white">אישור הצעה</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">✕</button>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', padding: 16 }} onClick={onClose}>
+      <div style={{ background: '#1e293b', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>אישור הצעה</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
         </div>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">שם *</label><input value={form.name} onChange={e => set('name',e.target.value)} className={inp}/></div>
-            <div><label className="text-xs text-gray-400">עיר</label><input value={form.city} onChange={e => set('city',e.target.value)} className={inp}/></div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div><div style={lbl}>שם *</div><input value={name} onChange={e => setName(e.target.value)} style={inp}/></div>
+            <div><div style={lbl}>עיר</div><input value={city} onChange={e => setCity(e.target.value)} style={inp}/></div>
           </div>
-          <div><label className="text-xs text-gray-400">כתובת *</label><input value={form.address} onChange={e => set('address',e.target.value)} className={inp}/></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">קו רוחב (lat) *</label><input value={form.lat} onChange={e => set('lat',e.target.value)} className={inp} dir="ltr" placeholder="31.7683"/></div>
-            <div><label className="text-xs text-gray-400">קו אורך (lng) *</label><input value={form.lng} onChange={e => set('lng',e.target.value)} className={inp} dir="ltr" placeholder="35.2137"/></div>
+          <div><div style={lbl}>כתובת</div><input value={address} onChange={e => setAddress(e.target.value)} style={inp}/></div>
+          <div><div style={lbl}>טלפון</div><input value={phone} onChange={e => setPhone(e.target.value)} style={{ ...inp, direction: 'ltr' }}/></div>
+
+          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+            <div style={{ ...lbl, marginBottom: 8 }}>שעות פעילות</div>
+            <HoursFields value={hours} onChange={setHours} dark />
           </div>
-          <div><label className="text-xs text-gray-400">טלפון</label><input value={form.phone} onChange={e => set('phone',e.target.value)} className={inp} dir="ltr"/></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">שעות א׳–ה׳</label><input value={form.hours_regular} onChange={e => set('hours_regular',e.target.value)} className={inp}/></div>
-            <div><label className="text-xs text-gray-400">ערב/לילה</label><input value={form.hours_evening} onChange={e => set('hours_evening',e.target.value)} className={inp}/></div>
+
+          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+            <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
+            <input value={mapsUrl} onChange={e => handleMapsUrl(e.target.value)} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/..."/>
+            <div style={lbl}>או חפש כתובת:</div>
+            <GeoSearch onSelect={(la, ln) => { setLat(la); setLng(ln) }} dark />
+            {lat && lng && (
+              <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
+                ✓ lat: {lat}, lng: {lng}
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">שישי</label><input value={form.hours_friday} onChange={e => set('hours_friday',e.target.value)} className={inp}/></div>
-            <div><label className="text-xs text-gray-400">מוצ״ש</label><input value={form.hours_saturday} onChange={e => set('hours_saturday',e.target.value)} className={inp}/></div>
-          </div>
-          <div><label className="text-xs text-gray-400">שעות (שדה חופשי)</label><input value={form.hours} onChange={e => set('hours',e.target.value)} className={inp}/></div>
-          <div><label className="text-xs text-gray-400">קישור Google Maps</label><input value={form.google_maps_url} onChange={e => set('google_maps_url',e.target.value)} className={inp} dir="ltr"/></div>
-          <div><label className="text-xs text-gray-400">הערות</label><textarea value={form.notes} onChange={e => set('notes',e.target.value)} rows={2} className={inp + ' resize-none'}/></div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <button onClick={submit} disabled={saving}
-            className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl disabled:opacity-50">
-            {saving ? 'שומר...' : 'אשר והוסף לרשימה'}
-          </button>
+
+          <div><div style={lbl}>הערות</div><textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} style={{ ...inp, resize: 'none' as const }}/></div>
+          {error && <div style={{ color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
+          <button onClick={submit} disabled={saving} style={{
+            width: '100%', padding: '11px', background: '#f59e0b', border: 'none',
+            borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+          }}>{saving ? 'שומר...' : 'אשר והוסף לרשימה'}</button>
         </div>
       </div>
     </div>
   )
 }
+
+const lbl: React.CSSProperties = { fontSize: '0.75rem', color: '#94a3b8', marginBottom: 4 }
 
 // ─── Edit shop modal ───────────────────────────────────────────────────────────
 
@@ -114,12 +213,10 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
   const [form, setForm] = useState({
     name: shop.name, city: shop.city ?? '', address: shop.address,
     lat: String(shop.lat), lng: String(shop.lng),
-    phone: shop.phone ?? '', hours: shop.hours ?? '',
-    hours_regular: shop.hours_regular ?? '', hours_evening: shop.hours_evening ?? '',
-    hours_friday: shop.hours_friday ?? '', hours_saturday: shop.hours_saturday ?? '',
-    notes: shop.notes ?? '', website: shop.website ?? '',
-    google_maps_url: shop.google_maps_url ?? '',
+    phone: shop.phone ?? '', notes: shop.notes ?? '',
+    website: shop.website ?? '', google_maps_url: shop.google_maps_url ?? '',
   })
+  const [hours,  setHours]  = useState<HoursState>(parseHoursState(shop.hours_regular, shop.hours_evening, shop.hours_friday, shop.hours_saturday))
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState<string | null>(null)
   const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }))
@@ -129,49 +226,150 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
     const res = await fetch(`/api/admin/punctures/shops/${shop.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...authPayload(), ...form, lat: parseFloat(form.lat), lng: parseFloat(form.lng) }),
+      body: JSON.stringify({
+        ...authPayload(), ...form,
+        lat: parseFloat(form.lat), lng: parseFloat(form.lng),
+        hours_regular:  hoursToString(hours.regular),
+        hours_evening:  hoursToString(hours.evening),
+        hours_friday:   hoursToString(hours.friday),
+        hours_saturday: hoursToString(hours.saturday),
+      }),
     })
     if (res.ok) onDone()
     else { const d = await res.json(); setError(d.error ?? 'שגיאה') }
     setSaving(false)
   }
 
-  const inp = 'w-full border border-gray-600 bg-gray-900 text-gray-100 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: '#f8fafc', fontSize: '0.85rem', boxSizing: 'border-box' }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="bg-gray-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" dir="rtl" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-white">עריכת חנות</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">✕</button>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', padding: 16 }} onClick={onClose}>
+      <div style={{ background: '#1e293b', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>עריכת חנות</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
         </div>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">שם</label><input value={form.name} onChange={e => set('name',e.target.value)} className={inp}/></div>
-            <div><label className="text-xs text-gray-400">עיר</label><input value={form.city} onChange={e => set('city',e.target.value)} className={inp}/></div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div><div style={lbl}>שם</div><input value={form.name} onChange={e => set('name',e.target.value)} style={inp}/></div>
+            <div><div style={lbl}>עיר</div><input value={form.city} onChange={e => set('city',e.target.value)} style={inp}/></div>
           </div>
-          <div><label className="text-xs text-gray-400">כתובת</label><input value={form.address} onChange={e => set('address',e.target.value)} className={inp}/></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">lat</label><input value={form.lat} onChange={e => set('lat',e.target.value)} className={inp} dir="ltr"/></div>
-            <div><label className="text-xs text-gray-400">lng</label><input value={form.lng} onChange={e => set('lng',e.target.value)} className={inp} dir="ltr"/></div>
+          <div><div style={lbl}>כתובת</div><input value={form.address} onChange={e => set('address',e.target.value)} style={inp}/></div>
+          <div><div style={lbl}>טלפון</div><input value={form.phone} onChange={e => set('phone',e.target.value)} style={{ ...inp, direction: 'ltr' }}/></div>
+
+          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+            <div style={{ ...lbl, marginBottom: 8 }}>שעות פעילות</div>
+            <HoursFields value={hours} onChange={setHours} dark />
           </div>
-          <div><label className="text-xs text-gray-400">טלפון</label><input value={form.phone} onChange={e => set('phone',e.target.value)} className={inp} dir="ltr"/></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">א׳–ה׳</label><input value={form.hours_regular} onChange={e => set('hours_regular',e.target.value)} className={inp}/></div>
-            <div><label className="text-xs text-gray-400">ערב/לילה</label><input value={form.hours_evening} onChange={e => set('hours_evening',e.target.value)} className={inp}/></div>
+
+          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+            <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
+            <input value={form.google_maps_url} onChange={e => {
+              set('google_maps_url', e.target.value)
+              const coords = parseLatLngFromUrl(e.target.value)
+              if (coords) { set('lat', coords.lat); set('lng', coords.lng) }
+            }} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/..."/>
+            <div style={lbl}>או חפש כתובת:</div>
+            <GeoSearch onSelect={(la, ln) => { set('lat', la); set('lng', ln) }} dark />
+            {form.lat && form.lng && (
+              <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
+                ✓ lat: {form.lat}, lng: {form.lng}
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs text-gray-400">שישי</label><input value={form.hours_friday} onChange={e => set('hours_friday',e.target.value)} className={inp}/></div>
-            <div><label className="text-xs text-gray-400">מוצ״ש</label><input value={form.hours_saturday} onChange={e => set('hours_saturday',e.target.value)} className={inp}/></div>
+
+          <div><div style={lbl}>הערות</div><textarea value={form.notes} onChange={e => set('notes',e.target.value)} rows={2} style={{ ...inp, resize: 'none' as const }}/></div>
+          {error && <div style={{ color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
+          <button onClick={submit} disabled={saving} style={{
+            width: '100%', padding: '11px', background: '#3b82f6', border: 'none',
+            borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+          }}>{saving ? 'שומר...' : 'שמור שינויים'}</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Add shop modal ───────────────────────────────────────────────────────────
+
+function AddShopModal({ authPayload, onDone, onClose }: {
+  authPayload: () => Record<string, string>
+  onDone: () => void
+  onClose: () => void
+}) {
+  const [form, setForm] = useState({
+    name: '', city: '', address: '', lat: '', lng: '',
+    phone: '', notes: '', website: '', google_maps_url: '',
+  })
+  const [hours,  setHours]  = useState<HoursState>(emptyHours())
+  const [saving, setSaving] = useState(false)
+  const [error,  setError]  = useState<string | null>(null)
+  const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }))
+
+  const submit = async () => {
+    if (!form.name || !form.lat || !form.lng) { setError('נדרש שם ומיקום'); return }
+    setSaving(true); setError(null)
+    const res = await fetch('/api/admin/punctures/shops', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...authPayload(), ...form,
+        lat: parseFloat(form.lat), lng: parseFloat(form.lng),
+        hours_regular:  hoursToString(hours.regular),
+        hours_evening:  hoursToString(hours.evening),
+        hours_friday:   hoursToString(hours.friday),
+        hours_saturday: hoursToString(hours.saturday),
+      }),
+    })
+    if (res.ok) onDone()
+    else { const d = await res.json(); setError(d.error ?? 'שגיאה') }
+    setSaving(false)
+  }
+
+  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: '#f8fafc', fontSize: '0.85rem', boxSizing: 'border-box' }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', padding: 16 }} onClick={onClose}>
+      <div style={{ background: '#1e293b', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>הוספת חנות חדשה</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div><div style={lbl}>שם *</div><input value={form.name} onChange={e => set('name',e.target.value)} style={inp}/></div>
+            <div><div style={lbl}>עיר</div><input value={form.city} onChange={e => set('city',e.target.value)} style={inp}/></div>
           </div>
-          <div><label className="text-xs text-gray-400">שעות (חופשי)</label><input value={form.hours} onChange={e => set('hours',e.target.value)} className={inp}/></div>
-          <div><label className="text-xs text-gray-400">Google Maps URL</label><input value={form.google_maps_url} onChange={e => set('google_maps_url',e.target.value)} className={inp} dir="ltr"/></div>
-          <div><label className="text-xs text-gray-400">הערות</label><textarea value={form.notes} onChange={e => set('notes',e.target.value)} rows={2} className={inp + ' resize-none'}/></div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
-          <button onClick={submit} disabled={saving}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl disabled:opacity-50">
-            {saving ? 'שומר...' : 'שמור שינויים'}
-          </button>
+          <div><div style={lbl}>כתובת</div><input value={form.address} onChange={e => set('address',e.target.value)} style={inp}/></div>
+          <div><div style={lbl}>טלפון</div><input value={form.phone} onChange={e => set('phone',e.target.value)} style={{ ...inp, direction: 'ltr' }}/></div>
+
+          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+            <div style={{ ...lbl, marginBottom: 8 }}>שעות פעילות</div>
+            <HoursFields value={hours} onChange={setHours} dark />
+          </div>
+
+          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+            <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
+            <input value={form.google_maps_url} onChange={e => {
+              set('google_maps_url', e.target.value)
+              const coords = parseLatLngFromUrl(e.target.value)
+              if (coords) { set('lat', coords.lat); set('lng', coords.lng) }
+            }} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/..."/>
+            <div style={lbl}>או חפש כתובת:</div>
+            <GeoSearch onSelect={(la, ln) => { set('lat', la); set('lng', ln) }} dark />
+            {form.lat && form.lng && (
+              <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
+                ✓ lat: {form.lat}, lng: {form.lng}
+              </div>
+            )}
+          </div>
+
+          <div><div style={lbl}>הערות</div><textarea value={form.notes} onChange={e => set('notes',e.target.value)} rows={2} style={{ ...inp, resize: 'none' as const }}/></div>
+          {error && <div style={{ color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
+          <button onClick={submit} disabled={saving} style={{
+            width: '100%', padding: '11px', background: '#f59e0b', border: 'none',
+            borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+          }}>{saving ? 'שומר...' : 'הוסף חנות'}</button>
         </div>
       </div>
     </div>
@@ -194,6 +392,7 @@ export default function PuncturesAdminPage() {
   const [shops,       setShops]       = useState<Shop[]>([])
   const [shopsLoading,setShopsLoading]= useState(false)
   const [editingShop, setEditingShop] = useState<Shop | null>(null)
+  const [addingShop,  setAddingShop]  = useState(false)
   const [shopSearch,  setShopSearch]  = useState('')
 
   // Managers (admin only)
@@ -256,6 +455,17 @@ export default function PuncturesAdminPage() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...payload, is_active: !shop.is_active }),
+    })
+    fetchShops()
+  }
+
+  // ── delete shop ──
+  const deleteShop = async (shop: Shop) => {
+    if (!confirm(`למחוק את "${shop.name}"? פעולה זו לא ניתנת לביטול.`)) return
+    await fetch(`/api/admin/punctures/shops/${shop.id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     })
     fetchShops()
   }
@@ -405,11 +615,17 @@ export default function PuncturesAdminPage() {
         {/* ── SHOPS TAB ── */}
         {tab === 'shops' && (
           <div>
-            <input
-              value={shopSearch} onChange={e => setShopSearch(e.target.value)}
-              placeholder="חיפוש לפי שם או עיר..."
-              style={{ width: '100%', padding: '10px 14px', background: '#1e293b', border: '1px solid #334155', borderRadius: 10, color: '#f8fafc', fontSize: '0.9rem', marginBottom: 16, boxSizing: 'border-box' }}
-            />
+            <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+              <input
+                value={shopSearch} onChange={e => setShopSearch(e.target.value)}
+                placeholder="חיפוש לפי שם או עיר..."
+                style={{ flex: 1, padding: '9px 14px', background: '#1e293b', border: '1px solid #334155', borderRadius: 10, color: '#f8fafc', fontSize: '0.88rem', boxSizing: 'border-box' as const }}
+              />
+              <button onClick={() => setAddingShop(true)} style={{
+                padding: '9px 16px', background: '#f59e0b', border: 'none',
+                borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' as const,
+              }}>+ הוסף חנות</button>
+            </div>
             {shopsLoading ? (
               <div style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>טוען...</div>
             ) : (
@@ -419,29 +635,39 @@ export default function PuncturesAdminPage() {
                     background: '#1e293b', borderRadius: 12, padding: '12px 16px',
                     border: `1px solid ${shop.is_active ? '#334155' : '#1e293b'}`,
                     opacity: shop.is_active ? 1 : 0.55,
-                    display: 'flex', alignItems: 'center', gap: 12,
+                    display: 'flex', alignItems: 'center', gap: 10,
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#f8fafc' }}>{shop.name}</div>
                       <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: 1 }}>{shop.city}{shop.city && shop.address ? ', ' : ''}{shop.address}</div>
                       {shop.hours_regular && <div style={{ fontSize: '0.74rem', color: '#475569', marginTop: 1 }}>א׳–ה׳: {shop.hours_regular}</div>}
                     </div>
-                    {/* Toggle active */}
-                    <button onClick={() => toggleShop(shop)} title={shop.is_active ? 'השבת' : 'הפעל'}
+                    {/* Toggle — as a label+checkbox for reliable rendering */}
+                    <div
+                      onClick={() => toggleShop(shop)}
+                      title={shop.is_active ? 'השבת' : 'הפעל'}
                       style={{
-                        position: 'relative', width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: shop.is_active ? '#22c55e' : '#475569', transition: 'background 0.2s', flexShrink: 0,
-                      }}>
-                      <span style={{
-                        position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                        transition: 'transform 0.2s',
-                        transform: shop.is_active ? 'translateX(18px)' : 'translateX(2px)',
+                        width: 40, height: 22, borderRadius: 11, flexShrink: 0, cursor: 'pointer',
+                        background: shop.is_active ? '#22c55e' : '#475569',
+                        transition: 'background 0.2s', position: 'relative',
+                        display: 'inline-block',
+                      }}
+                    >
+                      <div style={{
+                        position: 'absolute', top: 3, left: shop.is_active ? 21 : 3,
+                        width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                        transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                       }}/>
-                    </button>
+                    </div>
                     <button onClick={() => setEditingShop(shop)} style={{
                       padding: '5px 12px', background: '#334155', border: 'none',
                       borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', cursor: 'pointer',
                     }}>עריכה</button>
+                    <button onClick={() => deleteShop(shop)} style={{
+                      padding: '5px 10px', background: 'rgba(239,68,68,0.1)',
+                      border: '1px solid rgba(239,68,68,0.2)',
+                      borderRadius: 8, color: '#f87171', fontSize: '0.78rem', cursor: 'pointer',
+                    }}>מחק</button>
                   </div>
                 ))}
               </div>
@@ -521,6 +747,13 @@ export default function PuncturesAdminPage() {
           authPayload={authPayload}
           onDone={() => { setEditingShop(null); fetchShops() }}
           onClose={() => setEditingShop(null)}
+        />
+      )}
+      {addingShop && (
+        <AddShopModal
+          authPayload={authPayload}
+          onDone={() => { setAddingShop(false); fetchShops() }}
+          onClose={() => setAddingShop(false)}
         />
       )}
     </div>

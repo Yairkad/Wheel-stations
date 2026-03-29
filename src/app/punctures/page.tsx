@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import type { PunctureShop } from '@/components/punctures/MapView'
+import { HoursFields, HoursState, emptyHours, hoursToString } from '@/components/punctures/HoursFields'
 
 const MapView = dynamic(() => import('@/components/punctures/MapView'), {
   ssr: false,
@@ -244,7 +245,8 @@ function ShopCard({ shop, selected, onClick }: {
 // ─── Suggestion modal ─────────────────────────────────────────────────────────
 
 function SuggestModal({ onClose }: { onClose: () => void }) {
-  const [form, setForm] = useState({ name: '', city: '', address: '', phone: '', hours: '', notes: '', submitter_name: '', submitter_phone: '' })
+  const [form, setForm] = useState({ name: '', city: '', address: '', phone: '', notes: '', submitter_name: '', submitter_phone: '' })
+  const [hours,   setHours]   = useState<HoursState>(emptyHours())
   const [sending, setSending] = useState(false)
   const [sent,    setSent]    = useState(false)
   const [error,   setError]   = useState<string | null>(null)
@@ -252,8 +254,16 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setSending(true); setError(null)
+    const hoursParts = [
+      hoursToString(hours.regular)  && `א׳-ה׳: ${hoursToString(hours.regular)}`,
+      hoursToString(hours.friday)   && `שישי: ${hoursToString(hours.friday)}`,
+    ].filter(Boolean).join('\n')
     try {
-      const res = await fetch('/api/puncture-suggestions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      const res = await fetch('/api/puncture-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, hours: hoursParts }),
+      })
       if (!res.ok) setError((await res.json()).error ?? 'שגיאה')
       else setSent(true)
     } catch { setError('שגיאת רשת') }
@@ -283,7 +293,12 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
             </div>
             <div><label className="text-xs font-medium text-gray-700">כתובת *</label><input required value={form.address} onChange={e => set('address', e.target.value)} className={inp} /></div>
             <div><label className="text-xs font-medium text-gray-700">טלפון</label><input value={form.phone} onChange={e => set('phone', e.target.value)} className={inp} /></div>
-            <div><label className="text-xs font-medium text-gray-700">שעות פעילות</label><textarea value={form.hours} onChange={e => set('hours', e.target.value)} rows={2} className={inp + ' resize-none'} /></div>
+            <div>
+              <label className="text-xs font-medium text-gray-700">שעות פעילות</label>
+              <div className="mt-1.5">
+                <HoursFields value={hours} onChange={setHours} extended={false} />
+              </div>
+            </div>
             <div><label className="text-xs font-medium text-gray-700">הערות</label><textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2} className={inp + ' resize-none'} /></div>
             <div className="border-t pt-3 grid grid-cols-2 gap-3">
               <div><label className="text-xs font-medium text-gray-700">שם המציע</label><input value={form.submitter_name} onChange={e => set('submitter_name', e.target.value)} className={inp} /></div>
