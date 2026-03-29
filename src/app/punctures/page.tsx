@@ -110,10 +110,11 @@ type EnrichedShop = PunctureShop & { openNow: boolean; region: Region }
 
 // ─── Shop card ───────────────────────────────────────────────────────────────
 
-function ShopCard({ shop, selected, onClick }: {
+function ShopCard({ shop, selected, onClick, onShowMap }: {
   shop: EnrichedShop
   selected: boolean
   onClick: () => void
+  onShowMap: () => void
 }) {
   const mapsUrl = shop.google_maps_url
     ?? `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}`
@@ -219,6 +220,13 @@ function ShopCard({ shop, selected, onClick }: {
 
           {/* Footer */}
           <div className="flex items-center gap-3 flex-wrap">
+            {/* Show on map — mobile only */}
+            <button
+              onClick={e => { e.stopPropagation(); onShowMap() }}
+              className="md:hidden inline-flex items-center gap-1 text-xs text-indigo-600 font-medium hover:underline">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="#4f46e5"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+              הצג במפה
+            </button>
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
               className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline">
@@ -466,10 +474,8 @@ export default function PuncturesPage() {
                   key={shop.id}
                   shop={shop}
                   selected={shop.id === selectedId}
-                  onClick={() => {
-                    setSelectedId(prev => prev === shop.id ? null : shop.id)
-                    setMobileView('map')
-                  }}
+                  onClick={() => setSelectedId(prev => prev === shop.id ? null : shop.id)}
+                  onShowMap={() => { setSelectedId(shop.id); setMobileView('map') }}
                 />
               ))}
             </ul>
@@ -486,7 +492,7 @@ export default function PuncturesPage() {
 
         {/* Map — LEFT on desktop / full-screen on mobile when mobileView='map' ── */}
         <div className={`relative flex-1 min-w-0 ${mobileView === 'map' ? 'flex' : 'hidden'} md:flex`}>
-          <MapView shops={displayed} selectedId={selectedId} onSelectShop={id => { setSelectedId(id); setMobileView('map') }} visible={mobileView === 'map'} />
+          <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} visible={mobileView === 'map'} />
 
           {/* Locate-me button overlaid on map */}
           <button
