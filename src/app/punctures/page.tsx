@@ -485,11 +485,25 @@ export default function PuncturesPage() {
         </aside>
 
         {/* Map — LEFT on desktop / full-screen on mobile when mobileView='map' ── */}
-        <div className={`
-          flex-1 min-w-0
-          ${mobileView === 'map' ? 'flex' : 'hidden'} md:flex
-        `}>
-          <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} visible={mobileView === 'map'} />
+        <div className={`relative flex-1 min-w-0 ${mobileView === 'map' ? 'flex' : 'hidden'} md:flex`}>
+          <MapView shops={displayed} selectedId={selectedId} onSelectShop={id => { setSelectedId(id); setMobileView('map') }} visible={mobileView === 'map'} />
+
+          {/* Locate-me button overlaid on map */}
+          <button
+            onClick={handleNearby}
+            disabled={geoLoading}
+            title="הקרוב אלי"
+            className="absolute bottom-5 left-3 z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
+          >
+            {geoLoading
+              ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              : <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                  <circle cx="12" cy="12" r="8" strokeDasharray="3 2"/>
+                </svg>
+            }
+          </button>
         </div>
       </div>
 

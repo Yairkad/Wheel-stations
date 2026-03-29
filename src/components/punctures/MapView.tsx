@@ -150,9 +150,16 @@ export default function MapView({ shops, selectedId, onSelectShop, visible }: Ma
     const shop   = shops.find((s) => s.id === selectedId)
     if (!marker || !shop) return
 
-    const map = mapRef.current
-    map.once('moveend', () => marker.openPopup())
-    map.flyTo([shop.lat, shop.lng], Math.max(map.getZoom(), 14), { duration: 0.6 })
+    // Delay flyTo so invalidateSize (from visible effect) runs first.
+    // Without this, getZoom() returns NaN on a hidden-then-revealed map → crash.
+    const t = setTimeout(() => {
+      const map = mapRef.current
+      if (!map) return
+      const zoom = map.getZoom()
+      map.once('moveend', () => marker.openPopup())
+      map.flyTo([shop.lat, shop.lng], isNaN(zoom) ? 14 : Math.max(zoom, 14), { duration: 0.5 })
+    }, 100)
+    return () => clearTimeout(t)
   }, [selectedId, shops])
 
   return (
