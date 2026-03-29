@@ -494,12 +494,13 @@ export default function PuncturesPage() {
         <div className={`relative flex-1 min-w-0 ${mobileView === 'map' ? 'flex' : 'hidden'} md:flex`}>
           <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} visible={mobileView === 'map'} />
 
-          {/* Locate-me button overlaid on map */}
+          {/* Locate-me button — above the fixed nav bar (nav ≈ 84px on mobile) */}
           <button
             onClick={handleNearby}
             disabled={geoLoading}
             title="הקרוב אלי"
-            className="absolute bottom-5 left-3 z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
+            className="absolute z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
+            style={{ bottom: 'calc(84px + env(safe-area-inset-bottom) + 12px)', left: 12 }}
           >
             {geoLoading
               ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -546,23 +547,23 @@ export default function PuncturesPage() {
         </div>
 
         {/* Footer links — below tabs */}
-        <div className="flex items-center justify-center gap-3 py-1 border-t border-gray-100">
-          <a href="/privacy" className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
+        <div className="flex items-center justify-center gap-2 py-1 border-t border-gray-100">
+          <a href="/privacy"       className="text-[10px] text-gray-400 hover:text-gray-600">פרטיות</a>
           <span className="text-gray-300 text-[10px]">·</span>
           <a href="/accessibility" className="text-[10px] text-gray-400 hover:text-gray-600">נגישות</a>
           <span className="text-gray-300 text-[10px]">·</span>
-          <span className="text-[10px] text-gray-300">© גלגלים {new Date().getFullYear()}</span>
+          <a href="/admin/punctures" className="text-[10px] text-gray-400 hover:text-gray-600">כניסה לעריכה</a>
         </div>
 
       </nav>
 
       {/* ── Public footer (desktop) ── */}
-      <footer className="hidden md:flex flex-shrink-0 items-center justify-center gap-4 py-1.5 border-t border-gray-200 bg-white text-xs text-gray-400">
-        <a href="/privacy" className="hover:text-gray-600 hover:underline">מדיניות פרטיות</a>
+      <footer className="hidden md:flex flex-shrink-0 items-center justify-center gap-3 py-1.5 border-t border-gray-200 bg-white text-xs text-gray-400">
+        <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
         <span>·</span>
         <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
         <span>·</span>
-        <span>© גלגלים {new Date().getFullYear()}</span>
+        <a href="/admin/punctures" className="hover:text-gray-600 hover:underline">כניסה לעריכה</a>
       </footer>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}
