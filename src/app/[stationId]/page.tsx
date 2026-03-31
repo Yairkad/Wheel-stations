@@ -301,7 +301,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           } else {
             localStorage.removeItem(`station_session_${stationId}`)
           }
-        } catch {
+        } catch (e) {
+          console.warn('Station session data corrupted, clearing:', e)
           localStorage.removeItem(`station_session_${stationId}`)
         }
       }
@@ -328,7 +329,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
             }
           }
           localStorage.removeItem(`wheel_manager_${stationId}`)
-        } catch {
+        } catch (e) {
+          console.warn('Old session data corrupted, clearing:', e)
           localStorage.removeItem(`wheel_manager_${stationId}`)
         }
       }

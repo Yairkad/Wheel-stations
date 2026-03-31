@@ -9,7 +9,7 @@ const supabase = createClient(
 // Accepts { admin_password } OR { pm_phone, pm_password }
 export async function verifyPunctureAccess(body: Record<string, unknown>): Promise<boolean> {
   if (body.admin_password) {
-    try { return verifyAdminPassword(body.admin_password as string) } catch { return false }
+    try { return verifyAdminPassword(body.admin_password as string) } catch (e) { console.error('Admin auth config error:', e); return false }
   }
   if (body.pm_phone && body.pm_password) {
     const cleanPhone = (body.pm_phone as string).replace(/\D/g, '')

@@ -28,7 +28,7 @@ async function resolveMapsUrl(url: string): Promise<{ lat: string; lng: string }
       const data = await res.json()
       if (data.lat && data.lng) return { lat: String(data.lat), lng: String(data.lng) }
     }
-  } catch { /* ignore */ }
+  } catch (e) { console.warn('Failed to resolve maps URL:', e) }
   return null
 }
 

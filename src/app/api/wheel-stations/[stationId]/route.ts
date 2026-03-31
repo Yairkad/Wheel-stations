@@ -83,7 +83,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         deposit_details: b.deposit_details,
         is_signed: !!b.signature_data,
         signed_at: b.signed_at,
-        form_id: (b as any).signed_forms?.[0]?.id || null
+        form_id: (b as unknown as { signed_forms?: Array<{ id: string }> }).signed_forms?.[0]?.id ?? null
       }]) || []
     )
 

@@ -62,7 +62,7 @@ describe('hebrewToEnglishMakes - תרגום יצרן מעברית לאנגלית
 
   it('all values are non-empty strings', () => {
     for (const [key, value] of Object.entries(hebrewToEnglishMakes)) {
-      expect(value, `value for key "${key}" is empty`).toBeTruthy()
+      expect(value.length, `value for key "${key}" is empty`).toBeGreaterThan(0)
       expect(typeof value).toBe('string')
     }
   })
@@ -106,7 +106,7 @@ describe('hebrewToEnglishModels - תרגום דגם מעברית לאנגלית'
 
   it('all values are non-empty strings', () => {
     for (const [key, value] of Object.entries(hebrewToEnglishModels)) {
-      expect(value, `value for key "${key}" is empty`).toBeTruthy()
+      expect(value.length, `value for key "${key}" is empty`).toBeGreaterThan(0)
       expect(typeof value).toBe('string')
     }
   })
@@ -172,7 +172,7 @@ describe('modelToMake - מיפוי דגם ליצרן', () => {
 
   it('all values are non-empty strings', () => {
     for (const [key, value] of Object.entries(modelToMake)) {
-      expect(value, `value for key "${key}" is empty`).toBeTruthy()
+      expect(value.length, `value for key "${key}" is empty`).toBeGreaterThan(0)
       expect(typeof value).toBe('string')
     }
   })

@@ -46,7 +46,7 @@ describe('checkRateLimit', () => {
   })
 
   it('decrements remaining count', () => {
-    const id = 'test-ip-2-' + Date.now()
+    const id = crypto.randomUUID()
     const result1 = checkRateLimit(id, { maxRequests: 3, windowMs: 60000 })
     expect(result1.remaining).toBe(2)
 
@@ -58,7 +58,7 @@ describe('checkRateLimit', () => {
   })
 
   it('blocks requests after limit exceeded', () => {
-    const id = 'test-ip-3-' + Date.now()
+    const id = crypto.randomUUID()
 
     // Use up all requests
     for (let i = 0; i < 3; i++) {
@@ -72,7 +72,7 @@ describe('checkRateLimit', () => {
   })
 
   it('uses default options if not provided', () => {
-    const id = 'test-ip-4-' + Date.now()
+    const id = crypto.randomUUID()
     const result = checkRateLimit(id)
     expect(result.success).toBe(true)
     expect(result.remaining).toBe(4) // Default is 5 requests
