@@ -200,10 +200,13 @@ button.btn-sm,
   min-width: 36px;
 }
 
+/* Mobile nav height token — used by map overlays and Leaflet attribution */
+:root { --mobile-nav-h: 84px; }
+
 /* Leaflet attribution — lift above mobile nav bar on small screens */
 @media (max-width: 767px) {
   .leaflet-bottom {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 115px) !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--mobile-nav-h) + 31px) !important;
   }
 }
 

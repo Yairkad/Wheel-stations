@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import type { PunctureShop } from '@/components/punctures/MapView'
 import { HoursFields, HoursState, emptyHours, hoursToString } from '@/components/punctures/HoursFields'
@@ -361,15 +361,19 @@ export default function PuncturesPage() {
     selectedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [selectedId])
 
-  const enriched: EnrichedShop[] = allShops.map(s => ({
-    ...s, openNow: isOpenNow(s), region: getRegion(s.lat),
-  }))
+  const enriched = useMemo<EnrichedShop[]>(() =>
+    allShops.map(s => ({ ...s, openNow: isOpenNow(s), region: getRegion(s.lat) })),
+    [allShops]
+  )
 
-  const displayed = enriched
-    .filter(s => !regionFilter || s.region === regionFilter)
-    .filter(s => !openNowOnly || s.openNow)
+  const displayed = useMemo(() =>
+    enriched
+      .filter(s => !regionFilter || s.region === regionFilter)
+      .filter(s => !openNowOnly || s.openNow),
+    [enriched, regionFilter, openNowOnly]
+  )
 
-  const openCount = enriched.filter(s => s.openNow).length
+  const openCount = useMemo(() => enriched.filter(s => s.openNow).length, [enriched])
 
   const handleNearby = () => {
     if (!navigator.geolocation) { setGeoError('הדפדפן שלך אינו תומך ב-Geolocation'); return }
@@ -489,13 +493,12 @@ export default function PuncturesPage() {
         <div className={`relative flex-1 min-w-0 ${mobileView === 'map' ? 'flex' : 'hidden'} md:flex`}>
           <MapView shops={displayed} selectedId={selectedId} onSelectShop={setSelectedId} visible={mobileView === 'map'} />
 
-          {/* Locate-me button — above the fixed nav bar (nav ≈ 84px on mobile) */}
           <button
             onClick={handleNearby}
             disabled={geoLoading}
             title="הקרוב אלי"
             className="absolute z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
-            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 140px)', left: 12 }}
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + var(--mobile-nav-h) + 56px)', left: 12 }}
           >
             {geoLoading
               ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -515,30 +518,28 @@ export default function PuncturesPage() {
 
         {/* Tab buttons */}
         <div className="flex">
-          <button
-            onClick={() => setMobileView('list')}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1 text-xs font-medium transition-colors ${
-              mobileView === 'list' ? 'text-blue-600' : 'text-gray-500'
-            }`}
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-            רשימה
-          </button>
-          <button
-            onClick={() => setMobileView('map')}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1 text-xs font-medium transition-colors ${
-              mobileView === 'map' ? 'text-blue-600' : 'text-gray-500'
-            }`}
-          >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
-              <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
-            </svg>
-            מפה
-          </button>
+          {([
+            { view: 'list', label: 'רשימה', icon: (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+            )},
+            { view: 'map', label: 'מפה', icon: (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+              </svg>
+            )},
+          ] as const).map(({ view, label, icon }) => (
+            <button key={view} onClick={() => setMobileView(view)}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1 text-xs font-medium transition-colors ${
+                mobileView === view ? 'text-blue-600' : 'text-gray-500'
+              }`}
+            >
+              {icon}{label}
+            </button>
+          ))}
         </div>
 
         {/* Footer links — 2 centered rows */}
