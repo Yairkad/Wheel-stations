@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'פנצ׳ריות לילה | גלגלים',
+  title: 'פנצ׳ריות לילה',
   description: 'מצא פנצ׳ריית לילה קרובה אליך — מפה אינטראקטיבית עם שעות פעילות, טלפונים וניווט ישיר',
   openGraph: {
-    title: 'פנצ׳ריות לילה | גלגלים',
+    title: 'פנצ׳ריות לילה',
     description: 'מצא פנצ׳ריית לילה קרובה אליך — שעות פעילות, טלפונים וניווט',
     siteName: 'גלגלים',
     locale: 'he_IL',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'פנצ׳ריות לילה | גלגלים',
+    title: 'פנצ׳ריות לילה',
     description: 'מצא פנצ׳ריית לילה קרובה אליך',
   },
 }
