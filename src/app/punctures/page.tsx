@@ -498,7 +498,7 @@ export default function PuncturesPage() {
             disabled={geoLoading}
             title="הקרוב אלי"
             className="absolute z-[1000] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 disabled:opacity-60 transition-colors"
-            style={{ bottom: 'calc(env(safe-area-inset-bottom) + var(--mobile-nav-h) + 56px)', left: 12 }}
+            style={{ bottom: 'calc(env(safe-area-inset-bottom) + 140px)', left: 12 }}
           >
             {geoLoading
               ? <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
