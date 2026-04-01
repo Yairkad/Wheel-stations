@@ -11,6 +11,18 @@ export interface RoleResult {
   data: Record<string, unknown>
 }
 
+interface StationManagerRow {
+  id: string
+  full_name: string
+  phone: string
+  password: string
+  role: string | null
+  is_primary: boolean | null
+  is_active: boolean | null
+  station_id: string
+  wheel_stations: { id: string; name: string } | null
+}
+
 async function checkStationManager(
   supabase: ReturnType<typeof createClient>,
   phone: string,
@@ -23,14 +35,14 @@ async function checkStationManager(
 
   if (!managers) return null
 
-  const manager = managers.find(
-    (m: { phone: string }) => m.phone.replace(/\D/g, '') === cleanPhone
+  const manager = (managers as StationManagerRow[]).find(
+    (m) => m.phone.replace(/\D/g, '') === cleanPhone
   )
   if (!manager) return null
   if (!manager.is_active) return null
   if (manager.password !== password) return null
 
-  const station = manager.wheel_stations as { id: string; name: string } | null
+  const station = manager.wheel_stations
 
   return {
     role: 'station_manager',
@@ -106,6 +118,15 @@ async function checkOperator(
   return null
 }
 
+interface SuperManagerRow {
+  id: string
+  full_name: string
+  phone: string
+  password: string
+  is_active: boolean | null
+  allowed_districts: string[] | null
+}
+
 async function checkDistrictManager(
   supabase: ReturnType<typeof createClient>,
   phone: string,
@@ -119,8 +140,8 @@ async function checkDistrictManager(
 
   if (!managers) return null
 
-  const manager = managers.find(
-    (m: { phone: string }) => m.phone.replace(/\D/g, '') === cleanPhone
+  const manager = (managers as SuperManagerRow[]).find(
+    (m) => m.phone.replace(/\D/g, '') === cleanPhone
   )
   if (!manager) return null
   if (!manager.is_active) return null
