@@ -65,11 +65,11 @@ interface PunctureManagerRow {
 
 async function checkStationManager(supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
   const cleanPhone = phone.replace(/\D/g, '')
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('wheel_station_managers')
-    .select('id, full_name, phone, password, role, is_primary, is_active, station_id, wheel_stations(id, name)')
+    .select('*, wheel_stations(id, name)')
 
-  if (!data) { console.log('[checkStationManager] no data'); return null }
+  if (!data) { console.log('[checkStationManager] no data, error:', JSON.stringify(error)); return null }
 
   const manager = (data as StationManagerRow[]).find(
     (m) => m.phone.replace(/\D/g, '') === cleanPhone
