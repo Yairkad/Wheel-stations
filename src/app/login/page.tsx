@@ -279,6 +279,7 @@ export default function LoginPage() {
       <style>{responsiveStyles}</style>
 
       <Link href="/admin" style={styles.adminBtn} className="admin-btn">⚙️</Link>
+      <Link href="/" style={styles.backHomeBtn}>← דף הבית</Link>
 
       <div style={styles.formCard} className="form-card">
         <div style={styles.formLogo} className="form-logo">
@@ -418,6 +419,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     direction: 'rtl',
     position: 'relative',
+  },
+  backHomeBtn: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    color: '#475569',
+    fontSize: '13px',
+    textDecoration: 'none',
+    transition: 'color 0.2s',
   },
   adminBtn: {
     position: 'absolute',

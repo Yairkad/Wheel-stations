@@ -399,6 +399,7 @@ export default function PuncturesPage() {
       {/* ── Header ── */}
       <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0 z-10">
         <div className="flex items-center gap-2 px-3 py-2">
+          <a href="/" className="text-gray-400 hover:text-gray-600 transition-colors text-lg leading-none" title="חזרה לדף הראשי">←</a>
           <h1 className="text-base font-bold text-gray-800 whitespace-nowrap">🔧 פנצ׳ריות לילה</h1>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי שם, עיר..."

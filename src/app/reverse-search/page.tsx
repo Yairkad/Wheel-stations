@@ -410,6 +410,7 @@ export default function ReverseSearchPage() {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
+        <a href="/" style={{ position: 'absolute', top: '16px', right: '16px', color: '#9ca3af', fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>← דף הבית</a>
         <h1 style={styles.title}>חיפוש הפוך</h1>
         <p style={styles.subtitle}>
           מצא אילו רכבים יכולים להשאיל לך גלגל עם התאמה מלאה

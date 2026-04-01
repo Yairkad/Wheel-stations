@@ -121,9 +121,41 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
     // Load unified auth roles for role switcher
     try {
       const storedRoles = localStorage.getItem('auth_roles')
-      if (storedRoles) setAuthRoles(JSON.parse(storedRoles))
       const storedActiveRole = localStorage.getItem('active_role')
-      if (storedActiveRole) setActiveRole(storedActiveRole)
+      if (storedRoles) {
+        setAuthRoles(JSON.parse(storedRoles))
+        if (storedActiveRole) setActiveRole(storedActiveRole)
+      } else {
+        // Fallback: synthesize a single role from legacy session keys
+        const stationKey = Object.keys(localStorage).find(k => k.startsWith('station_session_'))
+        const operatorRaw = localStorage.getItem('operator_session')
+        const superRaw = localStorage.getItem('super_manager_session')
+        const punctureRaw = localStorage.getItem('puncture_manager_auth')
+
+        if (stationKey) {
+          const s = JSON.parse(localStorage.getItem(stationKey) || '{}')
+          if (s.manager) {
+            setAuthRoles([{ role: 'station_manager', label: 'מנהל תחנה', data: s.manager }])
+            setActiveRole('station_manager')
+          }
+        } else if (operatorRaw) {
+          const s = JSON.parse(operatorRaw)
+          if (s.user) {
+            const label = s.role === 'manager' ? 'מוקדן' : 'מוקדן'
+            setAuthRoles([{ role: 'operator', label, data: s.user }])
+            setActiveRole('operator')
+          }
+        } else if (superRaw) {
+          const s = JSON.parse(superRaw)
+          if (s.superManager) {
+            setAuthRoles([{ role: 'district_manager', label: 'מנהל מחוז', data: s.superManager }])
+            setActiveRole('district_manager')
+          }
+        } else if (punctureRaw) {
+          setAuthRoles([{ role: 'editor', label: 'עורך', data: {} }])
+          setActiveRole('editor')
+        }
+      }
     } catch { /* ignore */ }
 
     setIsLoading(false)
