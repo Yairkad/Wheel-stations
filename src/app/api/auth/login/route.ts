@@ -94,14 +94,15 @@ async function checkStationManager(supabase: Supa, phone: string, password: stri
 }
 
 async function checkOperator(supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
-  const { data: managerRaw } = await supabase
+  const cleanPhone = phone.replace(/\D/g, '')
+  const { data: managersRaw } = await supabase
     .from('call_center_managers')
     .select('id, full_name, title, phone, password, is_primary, is_active, call_center_id, call_centers(id, name, is_active)')
-    .eq('phone', phone)
-    .single()
 
-  const manager = managerRaw as CallCenterManagerRow | null
-  if (manager?.is_active && manager.password === password && manager.call_centers?.is_active) {
+  const manager = (managersRaw as CallCenterManagerRow[] | null)?.find(
+    m => m.phone?.replace(/\D/g, '') === cleanPhone
+  ) ?? null
+  if (manager && manager.is_active !== false && manager.password === password && manager.call_centers?.is_active !== false) {
     return {
       role: 'operator',
       label: 'מוקדן',
@@ -113,19 +114,19 @@ async function checkOperator(supabase: Supa, phone: string, password: string): P
         is_primary: manager.is_primary,
         sub_role: 'manager',
         call_center_id: manager.call_center_id,
-        call_center_name: manager.call_centers.name,
+        call_center_name: manager.call_centers?.name,
       }
     }
   }
 
-  const { data: operatorRaw } = await supabase
+  const { data: operatorsRaw } = await supabase
     .from('operators')
     .select('id, full_name, phone, code, is_active, call_center_id, call_centers(id, name, is_active)')
-    .eq('phone', phone)
-    .single()
 
-  const operator = operatorRaw as OperatorRow | null
-  if (operator?.is_active && operator.code === password && operator.call_centers?.is_active) {
+  const operator = (operatorsRaw as OperatorRow[] | null)?.find(
+    o => o.phone?.replace(/\D/g, '') === cleanPhone
+  ) ?? null
+  if (operator && operator.is_active !== false && operator.code === password && operator.call_centers?.is_active !== false) {
     return {
       role: 'operator',
       label: 'מוקדן',
@@ -135,7 +136,7 @@ async function checkOperator(supabase: Supa, phone: string, password: string): P
         phone: operator.phone,
         sub_role: 'operator',
         call_center_id: operator.call_center_id,
-        call_center_name: operator.call_centers.name,
+        call_center_name: operator.call_centers?.name,
       }
     }
   }
