@@ -69,12 +69,14 @@ async function checkStationManager(supabase: Supa, phone: string, password: stri
     .from('wheel_station_managers')
     .select('id, full_name, phone, password, role, is_primary, is_active, station_id, wheel_stations(id, name)')
 
-  if (!data) return null
+  if (!data) { console.log('[checkStationManager] no data'); return null }
 
   const manager = (data as StationManagerRow[]).find(
     (m) => m.phone.replace(/\D/g, '') === cleanPhone
   )
-  if (!manager || manager.is_active === false || manager.password !== password) return null
+  if (!manager) { console.log('[checkStationManager] phone not found, cleanPhone:', cleanPhone, 'available:', (data as StationManagerRow[]).map(m => m.phone.replace(/\D/g, ''))); return null }
+  if (manager.is_active === false) { console.log('[checkStationManager] is_active=false'); return null }
+  if (manager.password !== password) { console.log('[checkStationManager] wrong password'); return null }
 
   const stationRaw = manager.wheel_stations
   const station = Array.isArray(stationRaw) ? stationRaw[0] : stationRaw
@@ -225,6 +227,13 @@ export async function POST(request: NextRequest) {
       checkDistrictManager(supabase, phone, password),
       checkEditor(supabase, phone, password),
     ])
+
+    console.log('[auth/login] results:', {
+      stationManager: !!stationManager,
+      operator: !!operator,
+      districtManager: !!districtManager,
+      editor: !!editor,
+    })
 
     const roles: RoleResult[] = [stationManager, operator, districtManager, editor].filter(
       (r): r is RoleResult => r !== null
