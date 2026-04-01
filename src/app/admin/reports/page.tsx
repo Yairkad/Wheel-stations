@@ -728,12 +728,13 @@ export default function ErrorReportsPage() {
               <div style={styles.infoSection}>
                 <div style={styles.infoSectionTitle}>🔢 מספר רכב</div>
                 <div style={{
-                  background: '#0f172a',
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
                   padding: '16px',
                   borderRadius: '12px',
                   fontSize: '1.5rem',
                   fontWeight: 700,
-                  color: '#3b82f6',
+                  color: '#2563eb',
                   textAlign: 'center',
                   letterSpacing: '2px'
                 }}>
@@ -872,9 +873,9 @@ export default function ErrorReportsPage() {
 const styles: { [key: string]: React.CSSProperties } = {
   // Page wrapper
   pageWrapper: {
-    background: '#0f172a',
+    background: '#f1f5f9',
     minHeight: '100vh',
-    color: '#e2e8f0',
+    color: '#1e293b',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
     overflowX: 'hidden',
@@ -882,8 +883,8 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Header
   header: {
-    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)',
-    borderBottom: '1px solid #f59e0b',
+    background: '#ffffff',
+    borderBottom: '1px solid #e2e8f0',
     padding: '30px 30px 60px',
   },
   headerContent: {
@@ -904,7 +905,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   logoIcon: {
     width: '55px',
     height: '55px',
-    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+    background: '#f59e0b',
     borderRadius: '16px',
     display: 'flex',
     alignItems: 'center',
@@ -914,7 +915,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexShrink: 0,
   },
   headerTitle: {
-    color: 'white',
+    color: '#1e293b',
     fontSize: '1.8rem',
     fontWeight: 800,
     margin: 0,
@@ -941,7 +942,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.2s',
     fontSize: '0.9rem',
     background: 'transparent',
-    color: '#f87171',
+    color: '#dc2626',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -949,13 +950,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   btnGhost: {
     padding: '10px 20px',
     borderRadius: '10px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.2s',
     fontSize: '0.9rem',
     background: 'transparent',
-    color: '#94a3b8',
+    color: '#64748b',
     textDecoration: 'none',
     display: 'flex',
     alignItems: 'center',
@@ -975,13 +976,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxSizing: 'border-box',
   },
   statCard: {
-    background: 'linear-gradient(145deg, #1e293b 0%, #1a2234 100%)',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '14px',
     padding: '12px 14px',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   statIcon: {
     width: '36px',
@@ -1014,26 +1016,27 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Section
   section: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '24px',
     marginBottom: '25px',
     overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   sectionHeader: {
     padding: '18px 24px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    background: 'linear-gradient(90deg, rgba(245, 158, 11, 0.05) 0%, transparent 100%)',
+    background: '#f8fafc',
     flexWrap: 'wrap',
     gap: '12px',
   },
   sectionTitle: {
     fontSize: '1.1rem',
     fontWeight: 700,
-    color: 'white',
+    color: '#1e293b',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
@@ -1041,7 +1044,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   sectionTitleIcon: {
     width: '36px',
     height: '36px',
-    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+    background: '#f59e0b',
     borderRadius: '10px',
     display: 'flex',
     alignItems: 'center',
@@ -1061,9 +1064,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   filterSelect: {
     padding: '10px 16px',
     borderRadius: '10px',
-    border: '1px solid #334155',
-    background: '#0f172a',
-    color: 'white',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '0.9rem',
     cursor: 'pointer',
   },
@@ -1075,8 +1078,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '12px',
   },
   reportCard: {
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '14px',
     padding: '16px',
     cursor: 'pointer',
@@ -1092,7 +1095,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   reportVehicle: {
     fontWeight: 700,
-    color: 'white',
+    color: '#1e293b',
     fontSize: '1rem',
   },
   statusBadge: {
@@ -1111,11 +1114,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   reportNotes: {
     fontSize: '0.85rem',
-    color: '#94a3b8',
-    background: 'rgba(255,255,255,0.03)',
+    color: '#64748b',
+    background: '#f8fafc',
     padding: '10px',
     borderRadius: '8px',
     lineHeight: 1.5,
+    border: '1px solid #e2e8f0',
   },
 
   // Empty State
@@ -1147,7 +1151,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(0, 0, 0, 0.8)',
+    background: 'rgba(15,23,42,0.5)',
     backdropFilter: 'blur(8px)',
     display: 'flex',
     alignItems: 'center',
@@ -1156,18 +1160,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '15px',
   },
   modal: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '20px',
     width: '100%',
     maxWidth: '600px',
     maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   modalHeader: {
     padding: '20px 24px 16px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -1175,7 +1179,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   modalTitle: {
     fontSize: '1.2rem',
     fontWeight: 800,
-    color: '#f59e0b',
+    color: '#1e293b',
     margin: 0,
   },
   closeBtn: {
@@ -1192,7 +1196,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '16px 24px 20px',
     display: 'flex',
     gap: '10px',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
   },
 
   // Info Sections
@@ -1202,7 +1206,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   infoSectionTitle: {
     fontSize: '0.9rem',
     fontWeight: 700,
-    color: '#94a3b8',
+    color: '#64748b',
     marginBottom: '10px',
   },
   infoGrid: {
@@ -1211,7 +1215,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '10px',
   },
   infoItem: {
-    background: '#0f172a',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     padding: '10px 12px',
     borderRadius: '8px',
   },
@@ -1223,15 +1228,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   infoValue: {
     fontSize: '0.95rem',
-    color: 'white',
+    color: '#1e293b',
     fontWeight: 600,
   },
   notesBox: {
-    background: '#0f172a',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     padding: '12px',
     borderRadius: '10px',
     fontSize: '0.9rem',
-    color: '#e2e8f0',
+    color: '#1e293b',
     lineHeight: 1.6,
   },
   imageLink: {
@@ -1248,10 +1254,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   adminNotesInput: {
     width: '100%',
     padding: '12px',
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.9rem',
     minHeight: '80px',
     resize: 'vertical',
@@ -1260,7 +1266,8 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Status Actions
   statusActions: {
-    background: '#0f172a',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     padding: '15px',
     borderRadius: '12px',
     marginTop: '20px',
@@ -1268,6 +1275,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   statusActionsTitle: {
     fontSize: '0.85rem',
     color: '#64748b',
+    fontWeight: 600,
     marginBottom: '12px',
   },
   statusButtons: {
@@ -1304,9 +1312,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Footer Buttons
   btnCancel: {
     flex: 1,
-    background: '#334155',
-    color: 'white',
-    border: 'none',
+    background: '#f1f5f9',
+    color: '#64748b',
+    border: '1px solid #e2e8f0',
     padding: '12px',
     borderRadius: '10px',
     cursor: 'pointer',
@@ -1325,7 +1333,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   btnUpdate: {
     flex: 1,
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '12px 16px',
@@ -1340,14 +1348,14 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Confirm Dialog
   confirmDialog: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '20px',
     padding: '25px',
     width: '100%',
     maxWidth: '400px',
     textAlign: 'center',
-    boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   confirmTitle: {
     fontSize: '1.2rem',
@@ -1356,7 +1364,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '0 0 15px 0',
   },
   confirmMessage: {
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.95rem',
     margin: '0 0 25px 0',
     lineHeight: 1.6,
@@ -1380,7 +1388,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Loading styles
   loadingContainer: {
     minHeight: '100vh',
-    background: '#0f172a',
+    background: '#f1f5f9',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -1397,7 +1405,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   footer: {
     padding: '20px',
     textAlign: 'center',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
     marginTop: '20px',
   },
   footerVersion: {

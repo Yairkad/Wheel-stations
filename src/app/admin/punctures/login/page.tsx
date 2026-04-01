@@ -92,35 +92,36 @@ export default function PunctureManagerLoginPage() {
 
 const s: Record<string, React.CSSProperties> = {
   page: {
-    minHeight: '100vh', background: '#0f172a',
+    minHeight: '100vh', background: '#f1f5f9',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     padding: 20, fontFamily: "'Segoe UI', sans-serif", direction: 'rtl',
   },
   box: {
     width: '100%', maxWidth: 380,
-    background: '#1e293b', border: '1px solid #334155',
+    background: '#ffffff', border: '1px solid #e2e8f0',
     borderRadius: 20, padding: 40, textAlign: 'center',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   icon: {
     width: 64, height: 64, borderRadius: 16,
-    background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+    background: '#f59e0b',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: '1.8rem', margin: '0 auto 18px',
     boxShadow: '0 8px 24px rgba(245,158,11,0.3)',
   },
-  title:  { fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc', margin: '0 0 6px' },
+  title:  { fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', margin: '0 0 6px' },
   sub:    { color: '#64748b', margin: '0 0 22px', fontSize: '0.9rem' },
   input:  {
-    width: '100%', padding: '11px 14px', background: '#0f172a',
-    border: '1px solid #334155', borderRadius: 10, color: '#f8fafc',
+    width: '100%', padding: '11px 14px', background: '#f8fafc',
+    border: '1px solid #e2e8f0', borderRadius: 10, color: '#1e293b',
     fontSize: '0.95rem', boxSizing: 'border-box',
   },
   error:  { color: '#ef4444', fontSize: '0.85rem', marginTop: 8 },
   btn: {
     width: '100%', marginTop: 16, padding: '13px',
-    background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+    background: '#f59e0b',
     color: '#fff', border: 'none', borderRadius: 10,
     fontWeight: 700, fontSize: '1rem', cursor: 'pointer',
   },
-  back: { display: 'block', marginTop: 18, color: '#475569', fontSize: '0.85rem', textDecoration: 'none' },
+  back: { display: 'block', marginTop: 18, color: '#64748b', fontSize: '0.85rem', textDecoration: 'none' },
 }

@@ -356,42 +356,42 @@ export default function LoginPage() {
 
       {/* Forgot Password Modal */}
       {showForgotPassword && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
-          <div style={{ background: '#1e293b', borderRadius: '16px', padding: '24px', maxWidth: '400px', width: '100%', border: '1px solid #334155', position: 'relative' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ color: '#fff', textAlign: 'center', marginBottom: '8px', fontSize: '1.2rem' }}>🔓 איפוס סיסמא</h3>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '24px', maxWidth: '400px', width: '100%', border: '1px solid #e2e8f0', boxShadow: '0 8px 32px rgba(0,0,0,0.10)', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ color: '#1e293b', textAlign: 'center', marginBottom: '8px', fontSize: '1.2rem' }}>איפוס סיסמא</h3>
             {forgotSuccess ? (
               <>
-                <p style={{ textAlign: 'center', color: '#10b981', fontSize: '1rem', marginBottom: '16px' }}>הסיסמא אופסה בהצלחה!</p>
-                <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', marginBottom: '20px' }}>יש להתחבר עם הסיסמא החדשה ולהוריד תעודת שחזור חדשה.</p>
-                <button onClick={() => setShowForgotPassword(false)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#06b6d4,#8b5cf6)', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>
+                <p style={{ textAlign: 'center', color: '#16a34a', fontSize: '1rem', marginBottom: '16px' }}>הסיסמא אופסה בהצלחה!</p>
+                <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.85rem', marginBottom: '20px' }}>יש להתחבר עם הסיסמא החדשה ולהוריד תעודת שחזור חדשה.</p>
+                <button onClick={() => setShowForgotPassword(false)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: '#2563eb', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>
                   חזור להתחברות
                 </button>
               </>
             ) : (
               <>
-                <p style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '16px', textAlign: 'center' }}>העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא</p>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px', textAlign: 'center' }}>העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא</p>
                 <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '6px' }}>מספר טלפון</label>
-                  <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #4a5568', background: '#2d3748', color: '#fff', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                  <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>מספר טלפון</label>
+                  <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                 </div>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '6px' }}>סיסמא חדשה</label>
-                    <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #4a5568', background: '#2d3748', color: '#fff', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                    <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>סיסמא חדשה</label>
+                    <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '6px' }}>אימות סיסמא</label>
-                    <input type="password" value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #4a5568', background: '#2d3748', color: '#fff', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                    <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>אימות סיסמא</label>
+                    <input type="password" value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                   </div>
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '10px', border: '2px dashed #4a5568', background: '#2d3748', color: '#60a5fa', cursor: 'pointer', fontSize: '0.95rem', marginTop: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '10px', border: '2px dashed #e2e8f0', background: '#f8fafc', color: '#2563eb', cursor: 'pointer', fontSize: '0.95rem', marginTop: '8px' }}>
                   📷 העלה תמונת תעודת שחזור
                   <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleForgotUpload} disabled={forgotLoading} />
                 </label>
                 {forgotLoading && (
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                    <div style={{ width: '50px', height: '50px', border: '3px solid #334155', borderTopColor: '#f59e0b', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                    <p style={{ color: '#f59e0b', fontSize: '1rem', marginTop: '16px' }}>סורק קוד QR...</p>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.9)', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                    <div style={{ width: '50px', height: '50px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <p style={{ color: '#2563eb', fontSize: '1rem', marginTop: '16px' }}>סורק קוד QR...</p>
                     <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
                   </div>
                 )}
@@ -426,7 +426,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%)',
+    background: '#f1f5f9',
     padding: '20px',
     direction: 'rtl',
     position: 'relative',
@@ -435,10 +435,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'absolute',
     top: '20px',
     right: '20px',
-    color: '#475569',
+    color: '#64748b',
     fontSize: '13px',
+    fontWeight: 600,
     textDecoration: 'none',
-    transition: 'color 0.2s',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 12px',
+    borderRadius: '20px',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    transition: 'all 0.15s',
   },
   adminBtn: {
     position: 'absolute',
@@ -446,33 +454,32 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '20px',
     width: '40px',
     height: '40px',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.2)',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '18px',
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
+    transition: 'all 0.15s',
     zIndex: 10,
     textDecoration: 'none'
   },
   formCard: {
-    background: 'rgba(255,255,255,0.05)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '24px',
     padding: '40px 35px',
     width: '100%',
     maxWidth: '420px',
-    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
   },
   formLogo: {
     width: '80px',
     height: '80px',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.2)',
+    background: '#eff6ff',
+    border: '1px solid #bfdbfe',
     borderRadius: '20px',
     display: 'flex',
     alignItems: 'center',
@@ -481,14 +488,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     overflow: 'hidden',
   },
   formTitle: {
-    color: '#fff',
+    color: '#1e293b',
     fontSize: '1.6rem',
     fontWeight: '800',
     textAlign: 'center',
     margin: '0 0 8px',
   },
   formSubtitle: {
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.9rem',
     textAlign: 'center',
     margin: '0 0 28px',
@@ -502,9 +509,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     padding: '14px 16px',
     borderRadius: '12px',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: 'rgba(255,255,255,0.08)',
-    color: '#fff',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '16px',
     outline: 'none',
     boxSizing: 'border-box',
@@ -519,9 +526,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     padding: '14px 16px 14px 48px',
     borderRadius: '12px',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: 'rgba(255,255,255,0.08)',
-    color: '#fff',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '16px',
     outline: 'none',
     boxSizing: 'border-box',
@@ -535,12 +542,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '18px',
     padding: '4px',
+    color: '#94a3b8',
   },
   error: {
-    background: 'rgba(239,68,68,0.15)',
-    border: '1px solid rgba(239,68,68,0.3)',
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
     borderRadius: '10px',
-    color: '#fca5a5',
+    color: '#ef4444',
     padding: '10px 14px',
     fontSize: '0.9rem',
     textAlign: 'center',
@@ -562,16 +570,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
   },
   footerLinks: {
-    color: '#475569',
+    color: '#94a3b8',
     fontSize: '0.8rem',
     margin: '0 0 4px',
   },
   footerLink: {
-    color: '#475569',
+    color: '#64748b',
     textDecoration: 'none',
   },
   versionText: {
-    color: '#334155',
+    color: '#94a3b8',
     fontSize: '0.75rem',
   },
 }

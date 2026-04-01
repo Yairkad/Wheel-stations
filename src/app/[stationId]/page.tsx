@@ -2457,10 +2457,10 @@ ${formUrl}`
           {/* Deleted Wheels Section */}
           {deletedWheels.length > 0 && (
             <div style={{
-              background: 'rgba(255,255,255,0.05)',
+              background: '#fef2f2',
               borderRadius: '12px',
               padding: '16px',
-              border: '1px solid rgba(248,113,113,0.3)'
+              border: '1px solid #fecaca'
             }}>
               <h3 style={{ color: '#f87171', margin: '0 0 12px 0', fontSize: '1rem' }}>
                 🗑️ גלגלים שנמחקו ({deletedWheels.length})
@@ -2481,9 +2481,9 @@ ${formUrl}`
                 return (
                   <div key={wheel.id} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: isDismissed ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.08)',
+                    background: isDismissed ? '#f8fafc' : '#ffffff',
                     borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
-                    border: isDismissed ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(248,113,113,0.2)',
+                    border: isDismissed ? '1px solid #e2e8f0' : '1px solid #fecaca',
                     opacity: isDismissed ? 0.5 : 1
                   }}>
                     <div>
@@ -2532,12 +2532,12 @@ ${formUrl}`
           {/* Overdue Loans Section */}
           {overdueBorrows.length > 0 && (
             <div style={{
-              background: 'rgba(255,255,255,0.05)',
+              background: '#fefce8',
               borderRadius: '12px',
               padding: '16px',
-              border: '1px solid rgba(251,191,36,0.3)'
+              border: '1px solid #fde68a'
             }}>
-              <h3 style={{ color: '#fbbf24', margin: '0 0 12px 0', fontSize: '1rem' }}>
+              <h3 style={{ color: '#92400e', margin: '0 0 12px 0', fontSize: '1rem' }}>
                 ⏰ השאלות ארוכות ({overdueBorrows.length})
               </h3>
               {[...overdueBorrows]
@@ -2554,9 +2554,9 @@ ${formUrl}`
                 return (
                   <div key={borrow.id} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    background: isDismissed ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.08)',
+                    background: isDismissed ? '#f8fafc' : '#ffffff',
                     borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
-                    border: isDismissed ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(251,191,36,0.2)',
+                    border: isDismissed ? '1px solid #e2e8f0' : '1px solid #fde68a',
                     opacity: isDismissed ? 0.5 : 1
                   }}>
                     <div>
@@ -3152,13 +3152,13 @@ ${formUrl}`
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '12px',
-                      background: 'rgba(255,255,255,0.05)',
+                      background: '#f8fafc',
                       borderRadius: '8px',
-                      border: '1px solid #4b5563',
+                      border: '1px solid #e2e8f0',
                     }}
                   >
                     <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                      <span style={{fontWeight: '500', color: '#fff'}}>{manager.full_name}</span>
+                      <span style={{fontWeight: '500', color: '#1e293b'}}>{manager.full_name}</span>
                       {manager.is_primary && (
                         <span title="מנהל ראשי" style={{
                           fontSize: '16px',
@@ -3270,7 +3270,7 @@ ${formUrl}`
                 <span style={{background: '#3b82f6', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
                   גלגל {manualBorrowWheel.wheel_number}
                 </span>
-                <span style={{color: '#a0aec0', fontSize: '0.85rem'}}>
+                <span style={{color: '#64748b', fontSize: '0.85rem'}}>
                   {manualBorrowWheel.rim_size}" | {manualBorrowWheel.bolt_count}×{manualBorrowWheel.bolt_spacing}
                 </span>
                 {manualBorrowWheel.is_donut && (
@@ -3446,7 +3446,7 @@ ${formUrl}`
                 <span style={{background: '#3b82f6', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
                   גלגל {whatsAppWheel.wheel_number}
                 </span>
-                <span style={{color: '#a0aec0', fontSize: '0.85rem'}}>
+                <span style={{color: '#64748b', fontSize: '0.85rem'}}>
                   {whatsAppWheel.rim_size}" | {whatsAppWheel.bolt_count}×{whatsAppWheel.bolt_spacing}
                 </span>
                 {whatsAppWheel.is_donut && (
@@ -3456,7 +3456,7 @@ ${formUrl}`
             </div>
 
             <div style={{marginBottom: '16px'}}>
-              <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '8px'}}>
+              <label style={{color: '#475569', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '8px'}}>
                 מספר טלפון של הפונה
               </label>
               <input
@@ -3470,9 +3470,9 @@ ${formUrl}`
                   width: '100%',
                   padding: '14px',
                   borderRadius: '10px',
-                  border: '2px solid #4a5568',
-                  background: '#2d3748',
-                  color: 'white',
+                  border: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  color: '#1e293b',
                   fontSize: '1.1rem',
                   textAlign: 'center',
                   letterSpacing: '1px',
@@ -3558,10 +3558,10 @@ ${formUrl}`
               marginBottom: '16px',
             }}>
               <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
-                <span style={{background: '#f59e0b', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
+                <span style={{background: '#2563eb', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
                   גלגל {selectedWheelForUnavailable.wheel_number}
                 </span>
-                <span style={{color: '#a0aec0', fontSize: '0.85rem'}}>
+                <span style={{color: '#64748b', fontSize: '0.85rem'}}>
                   {selectedWheelForUnavailable.rim_size}" | {selectedWheelForUnavailable.bolt_count}×{selectedWheelForUnavailable.bolt_spacing}
                 </span>
                 {selectedWheelForUnavailable.is_donut && (
@@ -3571,7 +3571,7 @@ ${formUrl}`
             </div>
 
             <div style={{marginBottom: '16px'}}>
-              <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '8px'}}>
+              <label style={{color: '#475569', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '8px'}}>
                 סיבה *
               </label>
               <select
@@ -3581,9 +3581,9 @@ ${formUrl}`
                   width: '100%',
                   padding: '12px',
                   borderRadius: '10px',
-                  border: '2px solid #4a5568',
-                  background: '#2d3748',
-                  color: 'white',
+                  border: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  color: '#1e293b',
                   fontSize: '1rem',
                 }}
               >
@@ -3595,7 +3595,7 @@ ${formUrl}`
             </div>
 
             <div style={{marginBottom: '16px'}}>
-              <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '8px'}}>
+              <label style={{color: '#475569', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '8px'}}>
                 הערות (אופציונלי)
               </label>
               <textarea
@@ -3607,9 +3607,9 @@ ${formUrl}`
                   width: '100%',
                   padding: '12px',
                   borderRadius: '10px',
-                  border: '2px solid #4a5568',
-                  background: '#2d3748',
-                  color: 'white',
+                  border: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  color: '#1e293b',
                   fontSize: '0.95rem',
                   resize: 'vertical',
                   fontFamily: 'inherit',
@@ -4033,7 +4033,7 @@ ${formUrl}`
             <h3 id="edit-details-modal-title" style={styles.modalTitle}>⚙️ עריכת פרטי תחנה</h3>
 
             {/* Section: Address */}
-            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+            <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
               <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📍 כתובת התחנה</h4>
               <div style={styles.formGroup}>
                 <input
@@ -4077,7 +4077,7 @@ ${formUrl}`
             </div>
 
             {/* Section: Deposit Settings */}
-            <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+            <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
               <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>💰 הגדרות פיקדון ואמצעי תשלום</h4>
 
               {/* Deposit Amount */}
@@ -4241,7 +4241,7 @@ ${formUrl}`
 
             {/* Section: Email Notifications - Only for primary manager */}
             {currentManager?.is_primary ? (
-              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+              <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
                 <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📧 התראות מייל</h4>
                 <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
                   התראה תישלח למיילים אלו על כל בקשת השאלה חדשה
@@ -4271,7 +4271,7 @@ ${formUrl}`
                 ))}
                 <button
                   onClick={() => setNotificationEmails([...notificationEmails, ''])}
-                  style={{...styles.smallBtn, background: '#374151', marginBottom: '8px', fontSize: '0.8rem'}}
+                  style={{...styles.smallBtn, background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', marginBottom: '8px', fontSize: '0.8rem'}}
                 >
                   + הוסף מייל
                 </button>
@@ -4313,7 +4313,7 @@ ${formUrl}`
                 </button>
               </div>
             ) : (
-              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', opacity: 0.6}}>
+              <div style={{marginBottom: '20px', padding: '15px', background: '#f1f5f9', borderRadius: '10px', opacity: 0.6}}>
                 <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>📧 התראות מייל</h4>
                 <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
                   🔒 רק מנהל ראשי יכול לערוך כתובות מייל
@@ -4323,7 +4323,7 @@ ${formUrl}`
 
             {/* Section: Contacts - Only for primary manager */}
             {currentManager?.is_primary ? (
-              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
+              <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
                 <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>👥 אנשי קשר ({contacts.length}/{station?.max_managers ?? 4})</h4>
                 {contacts.map((contact, index) => (
                   <div key={index} style={{display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center'}} className="edit-details-contact-row">
@@ -4364,7 +4364,7 @@ ${formUrl}`
                 </div>
               </div>
             ) : (
-              <div style={{marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', opacity: 0.6}}>
+              <div style={{marginBottom: '20px', padding: '15px', background: '#f1f5f9', borderRadius: '10px', opacity: 0.6}}>
                 <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>👥 אנשי קשר</h4>
                 <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
                   🔒 רק מנהל ראשי יכול לערוך אנשי קשר
@@ -4514,10 +4514,10 @@ ${formUrl}`
                 <div
                   id="recovery-certificate"
                   style={{
-                    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%)',
                     borderRadius: '16px',
                     padding: '28px 24px',
-                    border: '2px solid #f59e0b',
+                    border: '2px solid #2563eb',
                     textAlign: 'center',
                     position: 'relative',
                     overflow: 'hidden'
@@ -4666,7 +4666,7 @@ ${formUrl}`
                     padding: '14px',
                     borderRadius: '10px',
                     border: '2px dashed #4a5568',
-                    background: '#2d3748',
+                    background: '#f8fafc',
                     color: '#60a5fa',
                     cursor: 'pointer',
                     fontSize: '0.95rem',
@@ -4720,9 +4720,9 @@ ${formUrl}`
                       flex: 1,
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      border: 'none',
-                      background: importMode === 'file' ? 'linear-gradient(135deg, #059669, #047857)' : '#374151',
-                      color: 'white',
+                      border: importMode === 'file' ? 'none' : '1px solid #e2e8f0',
+                      background: importMode === 'file' ? '#16a34a' : '#f1f5f9',
+                      color: importMode === 'file' ? 'white' : '#475569',
                       cursor: 'pointer',
                       fontSize: '0.9rem'
                     }}
@@ -4735,9 +4735,9 @@ ${formUrl}`
                       flex: 1,
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      border: 'none',
-                      background: importMode === 'sheets' ? 'linear-gradient(135deg, #059669, #047857)' : '#374151',
-                      color: 'white',
+                      border: importMode === 'sheets' ? 'none' : '1px solid #e2e8f0',
+                      background: importMode === 'sheets' ? '#16a34a' : '#f1f5f9',
+                      color: importMode === 'sheets' ? 'white' : '#475569',
                       cursor: 'pointer',
                       fontSize: '0.9rem'
                     }}
@@ -4775,9 +4775,9 @@ ${formUrl}`
                       style={{
                         padding: '12px',
                         borderRadius: '8px',
-                        border: '1px solid #4a5568',
-                        background: '#2d3748',
-                        color: 'white',
+                        border: '1px solid #e2e8f0',
+                        background: '#f8fafc',
+                        color: '#1e293b',
                         fontSize: '0.9rem',
                         direction: 'ltr'
                       }}
@@ -4877,18 +4877,19 @@ ${formUrl}`
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #374151 0%, #4b5563 100%)',
-    color: '#fff',
+    background: '#f1f5f9',
+    color: '#1e293b',
     padding: '20px',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
   },
   stationInfoSection: {
-    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+    background: '#ffffff',
     borderRadius: '12px',
     padding: '16px 20px',
     marginBottom: '20px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   stationInfoHeader: {
     display: 'flex',
@@ -4901,18 +4902,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1.5rem',
     fontWeight: 700,
     margin: 0,
-    color: 'white',
+    color: '#1e293b',
   },
   stationAddress: {
     fontSize: '0.9rem',
-    color: '#94a3b8',
+    color: '#64748b',
     margin: '8px 0 0 0',
   },
   stickyHeader: {
     position: 'sticky',
     top: 0,
     zIndex: 100,
-    background: 'linear-gradient(135deg, #374151 0%, #4b5563 100%)',
+    background: '#f1f5f9',
     marginLeft: '-20px',
     marginRight: '-20px',
     marginTop: '-20px',
@@ -4929,16 +4930,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '10px',
   },
   backBtn: {
-    color: '#a0aec0',
+    color: '#64748b',
     textDecoration: 'none',
     fontSize: '0.9rem',
   },
   backBtnStyled: {
-    background: 'linear-gradient(135deg, #64748b, #475569)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     textDecoration: 'none',
     fontSize: '0.85rem',
     fontWeight: 500,
-    color: 'white',
+    color: '#475569',
     lineHeight: 1,
     display: 'flex',
     alignItems: 'center',
@@ -4951,8 +4953,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     whiteSpace: 'nowrap',
   },
   linkShareBtn: {
-    background: 'linear-gradient(135deg, #10b981, #059669)',
-    border: 'none',
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
     borderRadius: '10px',
     width: '38px',
     height: '38px',
@@ -4961,28 +4963,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
     transition: 'all 0.2s',
   },
   linkShareDropdown: {
     position: 'absolute' as const,
     top: '48px',
     left: '0',
-    background: 'linear-gradient(145deg, #1e293b, #0f172a)',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '12px',
     minWidth: '200px',
-    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
     zIndex: 1000,
     overflow: 'hidden',
   },
   linkShareHeader: {
     padding: '12px 16px',
-    borderBottom: '1px solid #334155',
-    background: 'rgba(16, 185, 129, 0.1)',
+    borderBottom: '1px solid #e2e8f0',
+    background: '#f0fdf4',
   },
   linkShareTitle: {
-    color: '#10b981',
+    color: '#16a34a',
     fontSize: '0.85rem',
     fontWeight: '600',
   },
@@ -4991,8 +4992,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '12px 16px',
     background: 'transparent',
     border: 'none',
-    borderBottom: '1px solid #1e293b',
-    color: 'white',
+    borderBottom: '1px solid #f1f5f9',
+    color: '#1e293b',
     fontSize: '0.9rem',
     cursor: 'pointer',
     display: 'flex',
@@ -5005,9 +5006,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1.1rem',
   },
   managerBtn: {
-    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-    color: '#000',
-    border: 'none',
+    background: '#fefce8',
+    border: '1px solid #fde68a',
+    color: '#92400e',
     padding: '10px 20px',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -5017,10 +5018,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   title: {
     fontSize: '1.8rem',
     margin: '10px 0',
-    color: '#f59e0b',
+    color: '#2563eb',
   },
   address: {
-    color: '#a0aec0',
+    color: '#64748b',
   },
   loading: {
     display: 'flex',
@@ -5029,20 +5030,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     height: '50vh',
     gap: '20px',
+    color: '#64748b',
   },
   spinner: {
     width: '40px',
     height: '40px',
-    border: '4px solid rgba(255,255,255,0.1)',
-    borderTopColor: '#f59e0b',
+    border: '4px solid #e2e8f0',
+    borderTopColor: '#2563eb',
     borderRadius: '50%',
   },
   error: {
     textAlign: 'center',
     padding: '40px',
+    color: '#1e293b',
   },
   backLink: {
-    color: '#a0aec0',
+    color: '#2563eb',
     textDecoration: 'none',
     marginTop: '20px',
     display: 'inline-block',
@@ -5054,24 +5057,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: 'wrap',
   },
   stat: {
-    background: 'rgba(255,255,255,0.05)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     padding: '15px 25px',
     borderRadius: '12px',
     textAlign: 'center',
     minWidth: '100px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
   },
   statAvailable: {},
   statTaken: {},
   statValue: {
     fontSize: '1.8rem',
     fontWeight: 'bold',
+    color: '#1e293b',
   },
   statLabel: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
   },
   filters: {
-    background: 'rgba(255,255,255,0.05)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '12px',
     padding: '15px',
     marginBottom: '20px',
@@ -5083,23 +5090,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '12px',
   },
   filtersTitle: {
-    color: '#f59e0b',
+    color: '#1e293b',
     fontSize: '1rem',
     margin: 0,
+    fontWeight: 600,
   },
   filtersToggle: {
-    background: 'transparent',
-    border: '1px solid #4a5568',
-    color: '#a0aec0',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
+    color: '#64748b',
     padding: '6px 12px',
     borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '0.85rem',
   },
   filtersToggleActive: {
-    background: 'rgba(245, 158, 11, 0.2)',
-    borderColor: '#f59e0b',
-    color: '#f59e0b',
+    background: '#eff6ff',
+    borderColor: '#bfdbfe',
+    color: '#2563eb',
   },
   filterRow: {
     display: 'flex',
@@ -5114,16 +5122,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   filterLabel: {
     display: 'block',
     marginBottom: '4px',
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.8rem',
+    fontWeight: 600,
   },
   filterSelect: {
     width: '100%',
     padding: '8px',
     borderRadius: '6px',
-    border: '1px solid #4a5568',
-    background: '#2d3748',
-    color: 'white',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '0.9rem',
   },
   toolbar: {
@@ -5137,25 +5146,26 @@ const styles: { [key: string]: React.CSSProperties } = {
   viewToggle: {
     display: 'flex',
     gap: '5px',
-    background: 'rgba(255,255,255,0.1)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     padding: '4px',
     borderRadius: '8px',
   },
   viewBtn: {
     background: 'transparent',
     border: 'none',
-    color: '#a0aec0',
+    color: '#94a3b8',
     padding: '8px 12px',
     borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '1rem',
   },
   viewBtnActive: {
-    background: '#f59e0b',
-    color: '#000',
+    background: '#2563eb',
+    color: 'white',
   },
   resultsCount: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
   },
   grid: {
@@ -5165,26 +5175,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '30px',
   },
   card: {
-    background: 'linear-gradient(145deg, #2d3748, #1a202c)',
+    background: '#ffffff',
     borderRadius: '12px',
     overflow: 'visible',
-    border: '2px solid transparent',
+    border: '1px solid #e2e8f0',
     position: 'relative',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
   },
   cardTaken: {
     opacity: 0.85,
-    borderColor: '#ef4444',
+    borderColor: '#fecaca',
   },
   cardImage: {
     width: '100%',
     height: '100px',
-    background: 'linear-gradient(135deg, #374151, #1f2937)',
+    background: '#f8fafc',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
     borderRadius: '12px 12px 0 0',
     overflow: 'hidden',
+    borderBottom: '1px solid #e2e8f0',
   },
   wheelImg: {
     width: '70px',
@@ -5195,8 +5207,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'absolute',
     top: '8px',
     right: '8px',
-    background: 'rgba(0,0,0,0.7)',
-    color: '#f59e0b',
+    background: '#1e293b',
+    color: '#f8fafc',
     fontSize: '1.1rem',
     fontWeight: 'bold',
     padding: '4px 10px',
@@ -5206,7 +5218,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'absolute',
     top: '8px',
     left: '8px',
-    background: '#a855f7',
+    background: '#7c3aed',
     color: 'white',
     fontSize: '0.75rem',
     padding: '3px 6px',
@@ -5223,12 +5235,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
   },
   statusAvailable: {
-    background: 'rgba(16, 185, 129, 0.3)',
-    color: '#10b981',
+    background: '#f0fdf4',
+    color: '#16a34a',
+    border: '1px solid #bbf7d0',
   },
   statusTaken: {
-    background: 'rgba(239, 68, 68, 0.3)',
-    color: '#ef4444',
+    background: '#fef2f2',
+    color: '#dc2626',
+    border: '1px solid #fecaca',
   },
   cardInfo: {
     padding: '12px',
@@ -5240,17 +5254,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '8px',
   },
   spec: {
-    background: 'rgba(255,255,255,0.1)',
+    background: '#f1f5f9',
+    border: '1px solid #e2e8f0',
     padding: '4px 10px',
     borderRadius: '6px',
     fontSize: '0.85rem',
+    color: '#475569',
   },
   cardCategory: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.85rem',
   },
   cardNotes: {
-    color: '#718096',
+    color: '#94a3b8',
     fontSize: '0.8rem',
     marginTop: '5px',
   },
@@ -5261,32 +5277,36 @@ const styles: { [key: string]: React.CSSProperties } = {
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    background: 'rgba(255,255,255,0.02)',
+    background: '#ffffff',
     borderRadius: '12px',
     overflow: 'hidden',
+    border: '1px solid #e2e8f0',
   },
   th: {
-    background: 'rgba(245, 158, 11, 0.2)',
+    background: '#f8fafc',
     padding: '12px 15px',
     textAlign: 'right',
     fontWeight: 600,
-    color: '#f59e0b',
+    color: '#475569',
     fontSize: '0.9rem',
+    borderBottom: '1px solid #e2e8f0',
   },
   td: {
     padding: '12px 15px',
-    borderBottom: '1px solid rgba(255,255,255,0.05)',
+    borderBottom: '1px solid #f1f5f9',
     fontSize: '0.9rem',
+    color: '#1e293b',
   },
   rowTaken: {
     opacity: 0.7,
   },
   donutTag: {
-    background: 'rgba(168, 85, 247, 0.2)',
-    color: '#a855f7',
+    background: '#f3e8ff',
+    color: '#7c3aed',
     padding: '3px 8px',
     borderRadius: '8px',
     fontSize: '0.75rem',
+    border: '1px solid #e9d5ff',
   },
   tableStatus: {
     padding: '4px 10px',
@@ -5295,20 +5315,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
   },
   tableStatusAvailable: {
-    background: 'rgba(16, 185, 129, 0.2)',
-    color: '#10b981',
+    background: '#f0fdf4',
+    color: '#16a34a',
+    border: '1px solid #bbf7d0',
   },
   tableStatusTaken: {
-    background: 'rgba(239, 68, 68, 0.2)',
-    color: '#ef4444',
+    background: '#fef2f2',
+    color: '#dc2626',
+    border: '1px solid #fecaca',
   },
   contacts: {
     marginTop: '30px',
   },
   contactsTitle: {
-    color: '#f59e0b',
+    color: '#1e293b',
     marginBottom: '15px',
     fontSize: '1.1rem',
+    fontWeight: 700,
   },
   contactsGrid: {
     display: 'flex',
@@ -5366,7 +5389,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
     padding: '8px 14px',
@@ -5389,10 +5412,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     top: '100%',
     right: 0,
     marginTop: '8px',
-    background: '#1e293b',
+    background: '#ffffff',
     borderRadius: '12px',
-    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-    border: '1px solid #334155',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
+    border: '1px solid #e2e8f0',
     minWidth: '220px',
     maxWidth: 'calc(100vw - 40px)',
     zIndex: 1000,
@@ -5400,46 +5423,48 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   menuUserInfo: {
     padding: '14px 16px',
-    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-    color: 'white',
+    background: 'linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%)',
+    borderBottom: '1px solid #e2e8f0',
   },
   menuUserName: {
     fontWeight: 'bold',
     fontSize: '1rem',
     marginBottom: '4px',
+    color: '#1e293b',
   },
   menuUserPhone: {
     fontSize: '0.85rem',
-    opacity: 0.9,
+    color: '#64748b',
   },
   menuUserRole: {
     fontSize: '0.75rem',
-    opacity: 0.8,
+    color: '#94a3b8',
     marginTop: '4px',
   },
   menuStationNameSmall: {
     fontSize: '0.8rem',
-    color: '#f59e0b',
+    color: '#2563eb',
     marginTop: '6px',
+    fontWeight: 600,
   },
   menuStationInfo: {
     padding: '12px 16px',
-    background: 'rgba(255,255,255,0.05)',
-    borderBottom: '1px solid #334155',
+    background: '#f8fafc',
+    borderBottom: '1px solid #e2e8f0',
   },
   menuStationName: {
     fontWeight: 'bold',
     fontSize: '0.9rem',
-    color: '#f59e0b',
+    color: '#2563eb',
     marginBottom: '4px',
   },
   menuStationAddress: {
     fontSize: '0.8rem',
-    color: '#94a3b8',
+    color: '#64748b',
   },
   menuDivider: {
     height: '1px',
-    background: '#334155',
+    background: '#e2e8f0',
   },
   menuItem: {
     display: 'block',
@@ -5447,10 +5472,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '12px 16px',
     background: 'transparent',
     border: 'none',
-    color: '#e2e8f0',
+    color: '#1e293b',
     fontSize: '0.9rem',
     textAlign: 'right',
     cursor: 'pointer',
+    borderBottom: '1px solid #f1f5f9',
   },
   managerActions: {
     display: 'flex',
@@ -5458,7 +5484,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: 'wrap',
   },
   addBtn: {
-    background: '#10b981',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '8px 16px',
@@ -5468,7 +5494,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
   },
   templateBtn: {
-    background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+    background: '#7c3aed',
     color: 'white',
     border: 'none',
     padding: '8px 16px',
@@ -5482,7 +5508,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '4px',
   },
   editContactsBtn: {
-    background: '#3b82f6',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
     padding: '8px 16px',
@@ -5492,7 +5518,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
   },
   changePasswordBtn: {
-    background: '#8b5cf6',
+    background: '#7c3aed',
     color: 'white',
     border: 'none',
     padding: '8px 16px',
@@ -5502,9 +5528,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
   },
   logoutBtn: {
-    background: '#6b7280',
-    color: 'white',
-    border: 'none',
+    background: '#f8fafc',
+    color: '#64748b',
+    border: '1px solid #e2e8f0',
     padding: '8px 16px',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -5513,8 +5539,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   managerBadge: {
     display: 'inline-block',
-    background: 'rgba(16, 185, 129, 0.2)',
-    color: '#10b981',
+    background: '#f0fdf4',
+    color: '#16a34a',
+    border: '1px solid #bbf7d0',
     padding: '4px 12px',
     borderRadius: '12px',
     fontSize: '0.85rem',
@@ -5524,21 +5551,21 @@ const styles: { [key: string]: React.CSSProperties } = {
   borrowerInfo: {
     marginTop: '10px',
     padding: '10px',
-    background: 'rgba(239, 68, 68, 0.1)',
+    background: '#fef2f2',
     borderRadius: '8px',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
+    border: '1px solid #fecaca',
   },
   borrowerName: {
     fontWeight: 'bold',
-    color: '#ef4444',
+    color: '#dc2626',
     fontSize: '0.85rem',
   },
   borrowerPhone: {
-    color: '#f87171',
+    color: '#ef4444',
     fontSize: '0.8rem',
   },
   borrowDate: {
-    color: '#a0aec0',
+    color: '#94a3b8',
     fontSize: '0.75rem',
     marginTop: '4px',
   },
@@ -5546,12 +5573,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '8px',
     marginTop: '12px',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
+    borderTop: '1px solid #e2e8f0',
     paddingTop: '12px',
   },
   borrowBtn: {
     flex: 1,
-    background: '#10b981',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '8px 12px',
@@ -5562,7 +5589,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   returnBtn: {
     flex: 1,
-    background: '#3b82f6',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
     padding: '8px 12px',
@@ -5581,7 +5608,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
   },
   whatsappShareBtn: {
-    background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '8px 12px',
@@ -5590,9 +5617,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
   },
   optionsBtn: {
-    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
-    color: 'white',
-    border: 'none',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
+    color: '#475569',
     padding: '8px 14px',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -5608,10 +5635,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '50%',
     transform: 'translateX(-50%)',
     marginBottom: '8px',
-    background: '#1e293b',
+    background: '#ffffff',
     borderRadius: '12px',
-    boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
-    border: '1px solid #334155',
+    boxShadow: '0 -8px 32px rgba(0,0,0,0.10)',
+    border: '1px solid #e2e8f0',
     minWidth: '180px',
     zIndex: 999,
     overflow: 'hidden',
@@ -5622,12 +5649,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '12px 16px',
     background: 'transparent',
     border: 'none',
-    color: '#e2e8f0',
+    color: '#1e293b',
     fontSize: '0.9rem',
     textAlign: 'right',
     cursor: 'pointer',
     transition: 'background 0.2s',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #f1f5f9',
   },
   optionItemDisabled: {
     opacity: 0.5,
@@ -5640,7 +5667,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(0,0,0,0.7)',
+    background: 'rgba(15,23,42,0.5)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -5649,7 +5676,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     overflow: 'auto',
   },
   modal: {
-    background: '#1e293b',
+    background: '#ffffff',
     borderRadius: '16px',
     padding: '20px',
     width: '100%',
@@ -5657,14 +5684,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxHeight: 'calc(100vh - 20px)',
     overflowY: 'auto',
     margin: 'auto',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   modalTitle: {
-    color: '#f59e0b',
+    color: '#1e293b',
     marginBottom: '10px',
     fontSize: '1.3rem',
+    fontWeight: 700,
   },
   modalSubtitle: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
     marginBottom: '20px',
   },
@@ -5679,29 +5709,30 @@ const styles: { [key: string]: React.CSSProperties } = {
   label: {
     display: 'block',
     marginBottom: '5px',
-    color: '#a0aec0',
+    color: '#475569',
     fontSize: '0.85rem',
+    fontWeight: 600,
   },
   input: {
     width: '100%',
     padding: '10px 12px',
     borderRadius: '8px',
-    border: '1px solid #4a5568',
-    background: '#2d3748',
-    color: 'white',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '0.95rem',
   },
   inputError: {
     border: '2px solid #ef4444',
-    background: 'rgba(239, 68, 68, 0.15)',
+    background: '#fef2f2',
   },
   inputSmall: {
     flex: 1,
     padding: '8px 10px',
     borderRadius: '6px',
-    border: '1px solid #4a5568',
-    background: '#2d3748',
-    color: 'white',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '0.85rem',
     minWidth: '80px',
   },
@@ -5712,7 +5743,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '15px',
   },
   checkboxLabel: {
-    color: '#a0aec0',
+    color: '#475569',
     fontSize: '0.9rem',
   },
   modalButtons: {
@@ -5722,9 +5753,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   cancelBtn: {
     flex: 1,
-    background: '#4a5568',
-    color: 'white',
-    border: 'none',
+    background: '#f8fafc',
+    color: '#64748b',
+    border: '1px solid #e2e8f0',
     padding: '12px',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -5732,8 +5763,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   submitBtn: {
     flex: 1,
-    background: '#f59e0b',
-    color: '#000',
+    background: '#2563eb',
+    color: 'white',
     border: 'none',
     padding: '12px',
     borderRadius: '8px',
@@ -5741,7 +5772,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
   },
   smallBtn: {
-    background: '#3b82f6',
+    background: '#2563eb',
     color: '#fff',
     border: 'none',
     padding: '8px 16px',
@@ -5776,7 +5807,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     marginBottom: '12px',
     padding: '10px',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
   },
   contactEditFields: {
@@ -5798,8 +5830,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   addContactBtn: {
     width: '100%',
     background: 'transparent',
-    border: '2px dashed #4a5568',
-    color: '#a0aec0',
+    border: '2px dashed #e2e8f0',
+    color: '#64748b',
     padding: '12px',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -5807,21 +5839,23 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   // Confirm dialog styles
   confirmDialog: {
-    background: '#1e293b',
+    background: '#ffffff',
     borderRadius: '16px',
     padding: '25px',
     width: '100%',
     maxWidth: '360px',
     textAlign: 'center',
-    boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
+    border: '1px solid #e2e8f0',
   },
   confirmTitle: {
     fontSize: '1.3rem',
     marginBottom: '12px',
     fontWeight: 'bold',
+    color: '#1e293b',
   },
   confirmMessage: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '1rem',
     marginBottom: '25px',
     lineHeight: 1.5,
@@ -5842,7 +5876,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   // Excel button styles
   excelBtn: {
-    background: 'linear-gradient(135deg, #059669, #047857)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '8px 16px',
@@ -5852,7 +5886,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
   },
   excelImportBtn: {
-    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
     padding: '20px',
@@ -5863,7 +5897,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center' as const,
   },
   excelExportBtn: {
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '20px',
@@ -5874,7 +5908,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center' as const,
   },
   excelTemplateBtn: {
-    background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+    background: '#7c3aed',
     color: 'white',
     border: 'none',
     padding: '20px',
@@ -5891,7 +5925,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '10px',
     marginBottom: '20px',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     padding: '8px',
     borderRadius: '12px',
   },
@@ -5904,12 +5939,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
     fontSize: '0.95rem',
     background: 'transparent',
-    color: '#a0aec0',
+    color: '#64748b',
     transition: 'all 0.2s',
   },
   tabBtnActive: {
-    background: '#f59e0b',
-    color: '#000',
+    background: '#2563eb',
+    color: 'white',
   },
   pendingIndicator: {
     position: 'absolute',
@@ -5941,7 +5976,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   trackingStat: {
     flex: 1,
     minWidth: '100px',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     padding: '15px',
     borderRadius: '12px',
     textAlign: 'center',
@@ -5949,9 +5985,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   trackingStatValue: {
     fontSize: '1.8rem',
     fontWeight: 'bold',
+    color: '#1e293b',
   },
   trackingStatLabel: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.8rem',
     marginTop: '5px',
   },
@@ -5964,19 +6001,21 @@ const styles: { [key: string]: React.CSSProperties } = {
   trackingFilterBtn: {
     padding: '8px 16px',
     borderRadius: '20px',
-    border: 'none',
+    border: '1px solid #e2e8f0',
     fontSize: '0.9rem',
     cursor: 'pointer',
-    background: '#4b5563',
-    color: '#d1d5db',
+    background: '#f8fafc',
+    color: '#64748b',
   },
   trackingFilterBtnActive: {
-    background: '#3b82f6',
+    background: '#2563eb',
     color: 'white',
+    border: '1px solid #2563eb',
   },
   trackingFilterBtnPending: {
     background: '#ec4899',
     color: 'white',
+    border: '1px solid #ec4899',
   },
   trackingTableWrapper: {
     overflowX: 'auto',
@@ -5989,24 +6028,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     tableLayout: 'fixed' as const,
   },
   trackingTh: {
-    background: '#4b5563',
-    color: '#d1d5db',
+    background: '#f8fafc',
+    color: '#475569',
     padding: '12px 8px',
     textAlign: 'right',
     fontSize: '0.85rem',
+    borderBottom: '1px solid #e2e8f0',
+    fontWeight: 600,
   },
   trackingTd: {
     padding: '12px 8px',
-    borderBottom: '1px solid #4b5563',
-    color: 'white',
+    borderBottom: '1px solid #f1f5f9',
+    color: '#1e293b',
     fontSize: '0.9rem',
   },
   borrowerNameCell: {
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#1e293b',
   },
   borrowerInfoCell: {
-    color: '#9ca3af',
+    color: '#64748b',
     fontSize: '0.8rem',
   },
   depositBadge: {
@@ -6014,8 +6055,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '20px',
     fontSize: '0.8rem',
     fontWeight: 600,
-    background: '#4b5563',
-    color: '#d1d5db',
+    background: '#f1f5f9',
+    color: '#475569',
+    border: '1px solid #e2e8f0',
   },
   depositBadgeMoney: {
     background: '#d1fae5',
@@ -6108,19 +6150,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '4px',
   },
   whatsappLinkBox: {
-    background: 'rgba(37, 211, 102, 0.1)',
-    border: '1px solid #25d366',
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
     borderRadius: '10px',
     padding: '12px 16px',
     marginTop: '16px',
   },
   whatsappLinkTitle: {
-    color: '#25d366',
+    color: '#16a34a',
     fontSize: '0.9rem',
     margin: '0',
+    fontWeight: 600,
   },
   whatsappLinkDesc: {
-    color: '#9ca3af',
+    color: '#64748b',
     fontSize: '0.9rem',
     marginBottom: '12px',
   },
@@ -6134,9 +6177,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     minWidth: '200px',
     padding: '10px 12px',
     borderRadius: '8px',
-    border: '1px solid #4b5563',
-    background: '#2d3748',
-    color: 'white',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '0.9rem',
   },
   copyBtn: {
@@ -6198,9 +6241,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     padding: '60px 20px',
     textAlign: 'center',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#ffffff',
     borderRadius: '16px',
-    border: '2px dashed #4b5563',
+    border: '2px dashed #e2e8f0',
     gridColumn: '1 / -1',
   },
   emptyIcon: {
@@ -6211,19 +6254,19 @@ const styles: { [key: string]: React.CSSProperties } = {
   emptyTitle: {
     fontSize: '1.2rem',
     fontWeight: 600,
-    color: '#f3f4f6',
+    color: '#1e293b',
     marginBottom: '8px',
   },
   emptyText: {
     fontSize: '0.95rem',
-    color: '#9ca3af',
+    color: '#64748b',
   },
   // Mobile card styles for tracking
   mobileCard: {
-    background: 'rgba(255,255,255,0.05)',
+    background: '#ffffff',
     borderRadius: '12px',
     padding: '16px',
-    border: '1px solid #4b5563',
+    border: '1px solid #e2e8f0',
   },
   mobileCardHeader: {
     display: 'flex',
@@ -6231,7 +6274,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'flex-start',
     marginBottom: '12px',
     paddingBottom: '12px',
-    borderBottom: '1px solid #4b5563',
+    borderBottom: '1px solid #e2e8f0',
   },
   mobileCardBody: {
     display: 'flex',
@@ -6249,6 +6292,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '8px',
     paddingTop: '12px',
-    borderTop: '1px solid #4b5563',
+    borderTop: '1px solid #e2e8f0',
   },
 }

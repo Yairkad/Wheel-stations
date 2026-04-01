@@ -106,7 +106,7 @@ export default function AdminLoginPage() {
 const styles: { [key: string]: React.CSSProperties } = {
   loginContainer: {
     minHeight: '100vh',
-    background: '#0f172a',
+    background: '#f1f5f9',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -117,16 +117,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   loginBox: {
     maxWidth: '400px',
     width: '100%',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '20px',
     padding: '40px',
     textAlign: 'center',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   loginLogoIcon: {
     width: '70px',
     height: '70px',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     borderRadius: '20px',
     display: 'flex',
     alignItems: 'center',
@@ -137,7 +138,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   loginTitle: {
     fontSize: '1.5rem',
-    color: 'white',
+    color: '#1e293b',
     fontWeight: 800,
     marginBottom: '8px',
     margin: '0 0 8px 0',
@@ -150,17 +151,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   formInput: {
     width: '100%',
     padding: '12px 14px',
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.95rem',
     transition: 'all 0.2s',
     boxSizing: 'border-box',
   },
   loginBtn: {
     width: '100%',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '14px',
@@ -187,6 +188,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   versionText: {
     marginTop: '20px',
     fontSize: '0.75rem',
-    color: '#475569',
+    color: '#64748b',
   },
 }

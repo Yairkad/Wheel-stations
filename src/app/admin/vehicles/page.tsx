@@ -60,7 +60,7 @@ interface ScrapeResult {
 // Wrapper component for Suspense
 export default function VehiclesAdminPageWrapper() {
   return (
-    <Suspense fallback={<div style={{ background: '#0f172a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>טוען...</div>}>
+    <Suspense fallback={<div style={{ background: '#f1f5f9', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>טוען...</div>}>
       <VehiclesAdminPage />
     </Suspense>
   )
@@ -1374,12 +1374,12 @@ function VehiclesAdminPage() {
         {/* Report Data Banner */}
         {reportData && (
           <div style={{
-            background: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%)',
-            border: '2px solid #3b82f6',
+            background: '#eff6ff',
+            border: '2px solid #2563eb',
             borderRadius: '14px',
             padding: '16px 20px',
             marginBottom: '16px',
-            color: 'white'
+            color: '#1e293b'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1392,9 +1392,9 @@ function VehiclesAdminPage() {
                   window.history.replaceState({}, '', '/admin/vehicles')
                 }}
                 style={{
-                  background: 'rgba(255,255,255,0.2)',
+                  background: '#e2e8f0',
                   border: 'none',
-                  color: 'white',
+                  color: '#64748b',
                   padding: '6px 12px',
                   borderRadius: '8px',
                   cursor: 'pointer',
@@ -1406,32 +1406,32 @@ function VehiclesAdminPage() {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '0.9rem' }}>
               {reportData.boltCount && (
-                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
-                  <span style={{ color: '#93c5fd' }}>ברגים:</span> <strong>{reportData.boltCount}</strong>
+                <div style={{ background: '#dbeafe', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#2563eb' }}>ברגים:</span> <strong>{reportData.boltCount}</strong>
                 </div>
               )}
               {reportData.boltSpacing && (
-                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
-                  <span style={{ color: '#93c5fd' }}>מרווח:</span> <strong>{reportData.boltSpacing}</strong>
+                <div style={{ background: '#dbeafe', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#2563eb' }}>מרווח:</span> <strong>{reportData.boltSpacing}</strong>
                 </div>
               )}
               {reportData.centerBore && (
-                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
-                  <span style={{ color: '#93c5fd' }}>CB:</span> <strong>{reportData.centerBore}</strong>
+                <div style={{ background: '#dbeafe', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#2563eb' }}>CB:</span> <strong>{reportData.centerBore}</strong>
                 </div>
               )}
               {reportData.rimSize && (
-                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
-                  <span style={{ color: '#93c5fd' }}>חישוק:</span> <strong>{reportData.rimSize}</strong>
+                <div style={{ background: '#dbeafe', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#2563eb' }}>חישוק:</span> <strong>{reportData.rimSize}</strong>
                 </div>
               )}
               {reportData.tireSize && (
-                <div style={{ background: 'rgba(255,255,255,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
-                  <span style={{ color: '#93c5fd' }}>צמיג:</span> <strong>{reportData.tireSize}</strong>
+                <div style={{ background: '#dbeafe', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ color: '#2563eb' }}>צמיג:</span> <strong>{reportData.tireSize}</strong>
                 </div>
               )}
             </div>
-            <div style={{ marginTop: '12px', fontSize: '0.8rem', color: '#93c5fd' }}>
+            <div style={{ marginTop: '12px', fontSize: '0.8rem', color: '#2563eb' }}>
               מצא את הרכב בטבלה ולחץ על כפתור העריכה כדי לעדכן את הערכים
             </div>
           </div>
@@ -2388,7 +2388,7 @@ function VehiclesAdminPage() {
                 <button
                   style={{
                     padding: '12px 20px',
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    background: '#f59e0b',
                     color: 'white',
                     border: 'none',
                     borderRadius: '10px',
@@ -2419,7 +2419,7 @@ function VehiclesAdminPage() {
               {/* Step 1: Search for target vehicle */}
               {!selectedMergeTarget ? (
                 <div>
-                  <p style={{color: '#94a3b8', marginBottom: '15px'}}>חפש את הדגם שברצונך למזג אליו:</p>
+                  <p style={{color: '#64748b', marginBottom: '15px'}}>חפש את הדגם שברצונך למזג אליו:</p>
                   <input
                     type="text"
                     placeholder="חפש לפי יצרן או דגם..."
@@ -2438,18 +2438,18 @@ function VehiclesAdminPage() {
                           key={v.id}
                           onClick={() => selectMergeTarget(v)}
                           style={{
-                            background: '#1e293b',
-                            border: '1px solid #334155',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
                             borderRadius: '8px',
                             padding: '12px 15px',
                             textAlign: 'right',
                             cursor: 'pointer',
-                            color: '#e2e8f0',
+                            color: '#1e293b',
                             transition: 'all 0.2s'
                           }}
                         >
                           <div style={{fontWeight: 600}}>{v.make} {v.model}</div>
-                          <div style={{fontSize: '0.85rem', color: '#94a3b8'}}>
+                          <div style={{fontSize: '0.85rem', color: '#64748b'}}>
                             {v.year_from || '?'}-{v.year_to || '?'} | {v.bolt_count}×{v.bolt_spacing} | CB: {v.center_bore || '-'}
                           </div>
                         </button>
@@ -2466,7 +2466,7 @@ function VehiclesAdminPage() {
                 <div>
                   <button
                     onClick={() => setSelectedMergeTarget(null)}
-                    style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', marginBottom: '15px'}}
+                    style={{background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '15px'}}
                   >
                     ← חזור לחיפוש
                   </button>
@@ -2478,20 +2478,20 @@ function VehiclesAdminPage() {
                     marginBottom: '20px',
                     alignItems: 'center'
                   }}>
-                    <div style={{textAlign: 'center', padding: '10px', background: '#1e3a5f', borderRadius: '8px'}}>
-                      <div style={{color: '#3b82f6', fontWeight: 600, marginBottom: '5px'}}>רשומה נוכחית</div>
-                      <div style={{fontSize: '0.9rem'}}>{mergeTargetVehicle.make} {mergeTargetVehicle.model}</div>
-                      <div style={{fontSize: '0.8rem', color: '#94a3b8'}}>{mergeTargetVehicle.year_from}-{mergeTargetVehicle.year_to}</div>
+                    <div style={{textAlign: 'center', padding: '10px', background: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe'}}>
+                      <div style={{color: '#2563eb', fontWeight: 600, marginBottom: '5px'}}>רשומה נוכחית</div>
+                      <div style={{fontSize: '0.9rem', color: '#1e293b'}}>{mergeTargetVehicle.make} {mergeTargetVehicle.model}</div>
+                      <div style={{fontSize: '0.8rem', color: '#64748b'}}>{mergeTargetVehicle.year_from}-{mergeTargetVehicle.year_to}</div>
                     </div>
                     <div style={{fontSize: '1.5rem'}}>➡️</div>
-                    <div style={{textAlign: 'center', padding: '10px', background: '#1e293b', borderRadius: '8px', border: '1px solid #f59e0b'}}>
-                      <div style={{color: '#f59e0b', fontWeight: 600, marginBottom: '5px'}}>למיזוג (יימחק)</div>
-                      <div style={{fontSize: '0.9rem'}}>{selectedMergeTarget.make} {selectedMergeTarget.model}</div>
-                      <div style={{fontSize: '0.8rem', color: '#94a3b8'}}>{selectedMergeTarget.year_from}-{selectedMergeTarget.year_to}</div>
+                    <div style={{textAlign: 'center', padding: '10px', background: '#fffbeb', borderRadius: '8px', border: '1px solid #f59e0b'}}>
+                      <div style={{color: '#d97706', fontWeight: 600, marginBottom: '5px'}}>למיזוג (יימחק)</div>
+                      <div style={{fontSize: '0.9rem', color: '#1e293b'}}>{selectedMergeTarget.make} {selectedMergeTarget.model}</div>
+                      <div style={{fontSize: '0.8rem', color: '#64748b'}}>{selectedMergeTarget.year_from}-{selectedMergeTarget.year_to}</div>
                     </div>
                   </div>
 
-                  <p style={{color: '#94a3b8', marginBottom: '15px', fontSize: '0.9rem'}}>בחר איזה ערך לשמור עבור כל שדה:</p>
+                  <p style={{color: '#64748b', marginBottom: '15px', fontSize: '0.9rem'}}>בחר איזה ערך לשמור עבור כל שדה:</p>
 
                   <div style={{display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '400px', overflowY: 'auto'}}>
                     {[
@@ -2521,18 +2521,18 @@ function VehiclesAdminPage() {
                           gap: '10px',
                           alignItems: 'center',
                           padding: '8px',
-                          background: '#0f172a',
+                          background: '#f8fafc',
                           borderRadius: '6px'
                         }}>
-                          <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>{label}</span>
+                          <span style={{color: '#64748b', fontSize: '0.85rem'}}>{label}</span>
                           <button
                             onClick={() => setMergeFieldSelections({...mergeFieldSelections, [key]: 'source'})}
                             style={{
                               padding: '8px',
-                              background: mergeFieldSelections[key] === 'source' ? '#1e3a5f' : '#1e293b',
-                              border: mergeFieldSelections[key] === 'source' ? '2px solid #3b82f6' : '1px solid #334155',
+                              background: mergeFieldSelections[key] === 'source' ? '#dbeafe' : '#ffffff',
+                              border: mergeFieldSelections[key] === 'source' ? '2px solid #2563eb' : '1px solid #e2e8f0',
                               borderRadius: '6px',
-                              color: displaySource ? '#e2e8f0' : '#64748b',
+                              color: displaySource ? '#1e293b' : '#64748b',
                               cursor: 'pointer',
                               textAlign: 'right',
                               fontSize: '0.85rem',
@@ -2549,10 +2549,10 @@ function VehiclesAdminPage() {
                             onClick={() => setMergeFieldSelections({...mergeFieldSelections, [key]: 'target'})}
                             style={{
                               padding: '8px',
-                              background: mergeFieldSelections[key] === 'target' ? '#422006' : '#1e293b',
-                              border: mergeFieldSelections[key] === 'target' ? '2px solid #f59e0b' : '1px solid #334155',
+                              background: mergeFieldSelections[key] === 'target' ? '#fffbeb' : '#ffffff',
+                              border: mergeFieldSelections[key] === 'target' ? '2px solid #f59e0b' : '1px solid #e2e8f0',
                               borderRadius: '6px',
-                              color: displayTarget ? '#e2e8f0' : '#64748b',
+                              color: displayTarget ? '#1e293b' : '#64748b',
                               cursor: 'pointer',
                               textAlign: 'right',
                               fontSize: '0.85rem',
@@ -2573,7 +2573,7 @@ function VehiclesAdminPage() {
                     <button
                       style={{
                         ...styles.btnSubmit,
-                        background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                        background: '#16a34a',
                         flex: 1
                       }}
                       onClick={executeMerge}
@@ -2616,15 +2616,15 @@ function VehiclesAdminPage() {
 
 const styles: { [key: string]: React.CSSProperties } = {
   pageWrapper: {
-    background: '#0f172a',
+    background: '#f1f5f9',
     minHeight: '100vh',
-    color: '#e2e8f0',
+    color: '#1e293b',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
   },
   header: {
-    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-    borderBottom: '1px solid #3b82f6',
+    background: '#ffffff',
+    borderBottom: '1px solid #e2e8f0',
     padding: '20px 30px',
   },
   headerContent: {
@@ -2642,7 +2642,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   logoIcon: {
     width: '50px',
     height: '50px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    background: '#2563eb',
     borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
@@ -2650,7 +2650,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1.5rem',
   },
   headerTitle: {
-    color: 'white',
+    color: '#1e293b',
     fontSize: '1.5rem',
     fontWeight: 700,
     margin: 0,
@@ -2661,10 +2661,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
   },
   btnBack: {
-    color: '#94a3b8',
+    color: '#64748b',
     textDecoration: 'none',
     padding: '10px 20px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
     fontSize: '0.9rem',
   },
@@ -2675,10 +2675,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: 'wrap',
   },
   btnGhost: {
-    color: '#94a3b8',
+    color: '#64748b',
     textDecoration: 'none',
     padding: '10px 20px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
     fontSize: '0.9rem',
     background: 'transparent',
@@ -2689,7 +2689,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
   },
   btnLogout: {
-    color: '#f87171',
+    color: '#dc2626',
     background: 'transparent',
     padding: '10px 20px',
     border: '1px solid #dc2626',
@@ -2710,13 +2710,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '12px',
   },
   statCard: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
     padding: '12px 14px',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   statIcon: {
     width: '36px',
@@ -2732,7 +2733,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.75rem',
   },
   statValue: {
-    color: '#3b82f6',
+    color: '#2563eb',
     fontSize: '1.2rem',
     fontWeight: 700,
   },
@@ -2748,7 +2749,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: 'nowrap',
   },
   btnPrimary: {
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
     padding: '12px 24px',
@@ -2758,9 +2759,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.95rem',
   },
   btnSecondary: {
-    background: '#334155',
-    color: 'white',
-    border: '1px solid #475569',
+    background: '#f1f5f9',
+    color: '#64748b',
+    border: '1px solid #e2e8f0',
     padding: '12px 24px',
     borderRadius: '10px',
     cursor: 'pointer',
@@ -2768,7 +2769,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.95rem',
   },
   btnExport: {
-    background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '12px 24px',
@@ -2784,18 +2785,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     maxWidth: '400px',
     padding: '12px 16px',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.95rem',
   },
   tableContainer: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '16px',
     overflowX: 'auto',
     WebkitOverflowScrolling: 'touch',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   table: {
     width: '100%',
@@ -2803,16 +2805,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderCollapse: 'collapse',
   },
   th: {
-    background: '#0f172a',
+    background: '#f8fafc',
     padding: '14px 16px',
     textAlign: 'right',
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.85rem',
     fontWeight: 600,
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
   },
   tr: {
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
   },
   td: {
     padding: '12px 16px',
@@ -2863,7 +2865,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(0, 0, 0, 0.8)',
+    background: 'rgba(15,23,42,0.5)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -2871,23 +2873,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
   },
   modal: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '16px',
     width: '100%',
     maxWidth: '500px',
     maxHeight: '90vh',
     overflowY: 'auto',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   modalHeader: {
     padding: '20px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   modalTitle: {
-    color: '#3b82f6',
+    color: '#2563eb',
     fontSize: '1.2rem',
     fontWeight: 700,
     margin: 0,
@@ -2903,7 +2906,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
   },
   modalDesc: {
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.9rem',
     marginBottom: '20px',
     margin: '0 0 20px 0',
@@ -2918,23 +2921,23 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   formLabel: {
     display: 'block',
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.85rem',
     marginBottom: '6px',
   },
   formInput: {
     width: '100%',
     padding: '10px 14px',
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.95rem',
     boxSizing: 'border-box',
   },
   btnScrape: {
     width: '100%',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    background: '#2563eb',
     color: 'white',
     border: 'none',
     padding: '14px',
@@ -2982,10 +2985,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '8px 0',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    borderBottom: '1px solid #e2e8f0',
   },
   resultLabel: {
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.85rem',
   },
   sourceLink: {
@@ -2998,7 +3001,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   btnAddResult: {
     width: '100%',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '14px',
@@ -3010,7 +3013,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   btnSubmit: {
     width: '100%',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '14px',
@@ -3023,7 +3026,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Loading
   loadingContainer: {
     minHeight: '100vh',
-    background: '#0f172a',
+    background: '#f1f5f9',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -3040,54 +3043,55 @@ const styles: { [key: string]: React.CSSProperties } = {
     top: '100%',
     left: 0,
     right: 0,
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
     marginTop: '4px',
     maxHeight: '200px',
     overflowY: 'auto',
     zIndex: 100,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
   },
   suggestionItem: {
     padding: '10px 14px',
     cursor: 'pointer',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
     transition: 'background 0.2s',
   },
   filterRow: {
-    background: '#0f172a',
+    background: '#f8fafc',
   },
   thFilter: {
     padding: '8px',
     textAlign: 'right',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
   },
   filterSelect: {
     width: '100%',
     padding: '6px 8px',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '6px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.75rem',
     cursor: 'pointer',
   },
   filterInput: {
     width: '100%',
     padding: '6px 22px 6px 8px',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '6px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.8rem',
     boxSizing: 'border-box',
   },
   filterInputSmall: {
     padding: '4px 6px',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '4px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.75rem',
     boxSizing: 'border-box' as const,
   },
@@ -3101,28 +3105,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '8px',
     marginBottom: '20px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
     paddingBottom: '12px',
   },
   tab: {
     flex: 1,
     padding: '10px 16px',
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
-    color: '#94a3b8',
+    color: '#64748b',
     cursor: 'pointer',
     fontSize: '0.9rem',
     fontWeight: 500,
     transition: 'all 0.2s',
   },
   tabActive: {
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-    borderColor: '#3b82f6',
+    background: '#2563eb',
+    borderColor: '#2563eb',
     color: 'white',
   },
   btnLookup: {
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '10px 16px',
@@ -3182,21 +3186,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     top: '100%',
     left: 0,
     right: 0,
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '6px',
     marginTop: '2px',
     zIndex: 100,
     maxHeight: '150px',
     overflowY: 'auto',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
   } as React.CSSProperties,
   filterSuggestionItem: {
     padding: '8px 10px',
     cursor: 'pointer',
     fontSize: '0.85rem',
-    color: 'white',
-    borderBottom: '1px solid #334155',
+    color: '#1e293b',
+    borderBottom: '1px solid #e2e8f0',
     transition: 'background 0.15s',
   } as React.CSSProperties,
   filterInputWrapper: {
@@ -3232,7 +3236,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   footer: {
     padding: '20px',
     textAlign: 'center',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
     marginTop: '20px',
   } as React.CSSProperties,
   footerVersion: {
@@ -3246,12 +3250,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '50px',
     height: '50px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    background: '#2563eb',
     border: 'none',
     color: 'white',
     fontSize: '1.5rem',
     cursor: 'pointer',
-    boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
+    boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

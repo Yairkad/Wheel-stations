@@ -174,13 +174,13 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
     setSaving(false)
   }
 
-  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: '#f8fafc', fontSize: '0.85rem', boxSizing: 'border-box' }
+  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b', fontSize: '0.85rem', boxSizing: 'border-box' }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', padding: 16 }} onClick={onClose}>
-      <div style={{ background: '#1e293b', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.5)', padding: 16 }} onClick={onClose}>
+      <div style={{ background: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl', boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>אישור הצעה</h2>
+          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>אישור הצעה</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -191,12 +191,12 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
           <div><div style={lbl}>כתובת</div><input value={address} onChange={e => setAddress(e.target.value)} style={inp}/></div>
           <div><div style={lbl}>טלפון</div><input value={phone} onChange={e => setPhone(e.target.value)} style={{ ...inp, direction: 'ltr' }}/></div>
 
-          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
             <div style={{ ...lbl, marginBottom: 8 }}>שעות פעילות</div>
             <HoursFields value={hours} onChange={setHours} dark />
           </div>
 
-          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
             <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
             <input value={mapsUrl} onChange={e => handleMapsUrl(e.target.value)} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/... או maps.app.goo.gl/..."/>
             <div style={lbl}>או חפש כתובת:</div>
@@ -221,7 +221,7 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
   )
 }
 
-const lbl: React.CSSProperties = { fontSize: '0.75rem', color: '#94a3b8', marginBottom: 4 }
+const lbl: React.CSSProperties = { fontSize: '0.75rem', color: '#64748b', marginBottom: 4 }
 
 // ─── Edit shop modal ───────────────────────────────────────────────────────────
 
@@ -271,13 +271,13 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
     setSaving(false)
   }
 
-  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: '#f8fafc', fontSize: '0.85rem', boxSizing: 'border-box' }
+  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b', fontSize: '0.85rem', boxSizing: 'border-box' }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', padding: 16 }} onClick={onClose}>
-      <div style={{ background: '#1e293b', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.5)', padding: 16 }} onClick={onClose}>
+      <div style={{ background: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl', boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>עריכת חנות</h2>
+          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>עריכת חנות</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -288,12 +288,12 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
           <div><div style={lbl}>כתובת</div><input value={form.address} onChange={e => set('address',e.target.value)} style={inp}/></div>
           <div><div style={lbl}>טלפון</div><input value={form.phone} onChange={e => set('phone',e.target.value)} style={{ ...inp, direction: 'ltr' }}/></div>
 
-          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
             <div style={{ ...lbl, marginBottom: 8 }}>שעות פעילות</div>
             <HoursFields value={hours} onChange={setHours} dark />
           </div>
 
-          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
             <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
             <input value={form.google_maps_url} onChange={e => handleMapsUrl(e.target.value)} style={{ ...inp, direction: 'ltr', marginBottom: 6 }} placeholder="https://maps.google.com/... או maps.app.goo.gl/..."/>
             <div style={lbl}>או חפש כתובת:</div>
@@ -310,8 +310,8 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
           {error && <div style={{ color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={onClose} style={{
-              flex: 1, padding: '11px', background: 'transparent', border: '1px solid #334155',
-              borderRadius: 10, color: '#94a3b8', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
+              flex: 1, padding: '11px', background: '#f1f5f9', border: '1px solid #e2e8f0',
+              borderRadius: 10, color: '#64748b', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
             }}>ביטול</button>
             <button onClick={submit} disabled={saving || resolving} style={{
               flex: 2, padding: '11px', background: '#3b82f6', border: 'none',
@@ -370,13 +370,13 @@ function AddShopModal({ authPayload, onDone, onClose }: {
     setSaving(false)
   }
 
-  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, color: '#f8fafc', fontSize: '0.85rem', boxSizing: 'border-box' }
+  const inp: React.CSSProperties = { width: '100%', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b', fontSize: '0.85rem', boxSizing: 'border-box' }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', padding: 16 }} onClick={onClose}>
-      <div style={{ background: '#1e293b', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.5)', padding: 16 }} onClick={onClose}>
+      <div style={{ background: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl', boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>הוספת חנות חדשה</h2>
+          <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>הוספת חנות חדשה</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -387,12 +387,12 @@ function AddShopModal({ authPayload, onDone, onClose }: {
           <div><div style={lbl}>כתובת</div><input value={form.address} onChange={e => set('address',e.target.value)} style={inp}/></div>
           <div><div style={lbl}>טלפון</div><input value={form.phone} onChange={e => set('phone',e.target.value)} style={{ ...inp, direction: 'ltr' }}/></div>
 
-          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
             <div style={{ ...lbl, marginBottom: 8 }}>שעות פעילות</div>
             <HoursFields value={hours} onChange={setHours} dark />
           </div>
 
-          <div style={{ borderTop: '1px solid #334155', paddingTop: 12 }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
             <div style={lbl}>מיקום — הדבק קישור Google Maps</div>
             <input value={form.google_maps_url} onChange={e => {
               set('google_maps_url', e.target.value)
@@ -557,7 +557,7 @@ export default function PuncturesAdminPage() {
   const statusLabel = { pending: 'ממתינות', approved: 'מאושרות', rejected: 'נדחו' }
 
   return (
-    <div dir="rtl" style={{ minHeight: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif", color: '#f8fafc' }}>
+    <div dir="rtl" style={{ minHeight: '100vh', background: '#f1f5f9', fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
 
       <AdminHeader
         title="ניהול פנצ׳ריות לילה"
@@ -569,13 +569,13 @@ export default function PuncturesAdminPage() {
       />
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #1e293b', padding: '0 24px', background: '#0f172a' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', padding: '0 24px', background: '#ffffff' }}>
         {(['suggestions', 'shops', ...(role === 'admin' ? ['managers'] : [])] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer',
             fontSize: '0.88rem', fontWeight: 700,
-            color: tab === t ? '#f59e0b' : '#64748b',
-            borderBottom: tab === t ? '2px solid #f59e0b' : '2px solid transparent',
+            color: tab === t ? '#2563eb' : '#64748b',
+            borderBottom: tab === t ? '2px solid #2563eb' : '2px solid transparent',
             transition: 'all 0.15s',
           }}>
             {t === 'suggestions' ? `הצעות (${suggestions.filter(s => s.status === 'pending').length || ''})` : t === 'shops' ? `חנויות (${shops.length || ''})` : 'מנהלים'}
@@ -594,7 +594,7 @@ export default function PuncturesAdminPage() {
                 <button key={s} onClick={() => setSuggStatus(s)} style={{
                   padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
                   fontWeight: 700, fontSize: '0.8rem',
-                  background: suggStatus === s ? '#f59e0b' : '#1e293b',
+                  background: suggStatus === s ? '#2563eb' : '#f1f5f9',
                   color: suggStatus === s ? '#fff' : '#64748b',
                 }}>{statusLabel[s]}</button>
               ))}
@@ -607,32 +607,32 @@ export default function PuncturesAdminPage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {suggestions.map(s => (
-                  <div key={s.id} style={{ background: '#1e293b', borderRadius: 14, padding: '16px 18px', border: '1px solid #334155' }}>
+                  <div key={s.id} style={{ background: '#ffffff', borderRadius: 14, padding: '16px 18px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#f8fafc' }}>{s.name}</div>
-                        <div style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: 2 }}>{s.city}, {s.address}</div>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#1e293b' }}>{s.name}</div>
+                        <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: 2 }}>{s.city}, {s.address}</div>
                         {s.phone && <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }} dir="ltr">{s.phone}</div>}
                         {s.hours && <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>שעות: {s.hours}</div>}
                         {s.notes && <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 2 }}>הערות: {s.notes}</div>}
                         {(s.submitter_name || s.submitter_phone) && (
-                          <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: 4 }}>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4 }}>
                             הציע: {s.submitter_name} {s.submitter_phone}
                           </div>
                         )}
-                        <div style={{ fontSize: '0.72rem', color: '#334155', marginTop: 4 }}>
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 4 }}>
                           {new Date(s.created_at).toLocaleDateString('he-IL')}
                         </div>
                       </div>
                       {s.status === 'pending' && (
                         <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                           <button onClick={() => setApprovingSugg(s)} style={{
-                            padding: '7px 14px', background: '#f59e0b', border: 'none',
+                            padding: '7px 14px', background: '#16a34a', border: 'none',
                             borderRadius: 8, color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
                           }}>אשר</button>
                           <button onClick={() => reject(s.id)} style={{
-                            padding: '7px 14px', background: '#1e293b', border: '1px solid #475569',
-                            borderRadius: 8, color: '#94a3b8', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
+                            padding: '7px 14px', background: '#f1f5f9', border: '1px solid #e2e8f0',
+                            borderRadius: 8, color: '#64748b', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
                           }}>דחה</button>
                         </div>
                       )}
@@ -658,7 +658,7 @@ export default function PuncturesAdminPage() {
               <input
                 value={shopSearch} onChange={e => setShopSearch(e.target.value)}
                 placeholder="חיפוש לפי שם או עיר..."
-                style={{ flex: 1, padding: '9px 14px', background: '#1e293b', border: '1px solid #334155', borderRadius: 10, color: '#f8fafc', fontSize: '0.88rem', boxSizing: 'border-box' as const }}
+                style={{ flex: 1, padding: '9px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, color: '#1e293b', fontSize: '0.88rem', boxSizing: 'border-box' as const }}
               />
               <button onClick={() => setAddingShop(true)} style={{
                 padding: '9px 16px', background: '#f59e0b', border: 'none',
@@ -671,15 +671,16 @@ export default function PuncturesAdminPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {filteredShops.map(shop => (
                   <div key={shop.id} style={{
-                    background: '#1e293b', borderRadius: 12, padding: '12px 16px',
-                    border: `1px solid ${shop.is_active ? '#334155' : '#1e293b'}`,
+                    background: '#ffffff', borderRadius: 12, padding: '12px 16px',
+                    border: `1px solid ${shop.is_active ? '#e2e8f0' : '#f1f5f9'}`,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                     opacity: shop.is_active ? 1 : 0.55,
                     display: 'flex', alignItems: 'center', gap: 10,
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#f8fafc' }}>{shop.name}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#1e293b' }}>{shop.name}</div>
                       <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: 1 }}>{shop.city}{shop.city && shop.address ? ', ' : ''}{shop.address}</div>
-                      {shop.hours_regular && <div style={{ fontSize: '0.74rem', color: '#475569', marginTop: 1 }}>א׳–ה׳: {shop.hours_regular}</div>}
+                      {shop.hours_regular && <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: 1 }}>א׳–ה׳: {shop.hours_regular}</div>}
                     </div>
                     {/* Toggle — as a label+checkbox for reliable rendering */}
                     <div
@@ -687,7 +688,7 @@ export default function PuncturesAdminPage() {
                       title={shop.is_active ? 'השבת' : 'הפעל'}
                       style={{
                         width: 40, height: 22, borderRadius: 11, flexShrink: 0, cursor: 'pointer',
-                        background: shop.is_active ? '#22c55e' : '#475569',
+                        background: shop.is_active ? '#22c55e' : '#94a3b8',
                         transition: 'background 0.2s', position: 'relative',
                         display: 'inline-block',
                       }}
@@ -699,8 +700,8 @@ export default function PuncturesAdminPage() {
                       }}/>
                     </div>
                     <button onClick={() => setEditingShop(shop)} style={{
-                      padding: '5px 12px', background: '#334155', border: 'none',
-                      borderRadius: 8, color: '#94a3b8', fontSize: '0.78rem', cursor: 'pointer',
+                      padding: '5px 12px', background: '#f1f5f9', border: '1px solid #e2e8f0',
+                      borderRadius: 8, color: '#64748b', fontSize: '0.78rem', cursor: 'pointer',
                     }}>עריכה</button>
                     <button onClick={() => deleteShop(shop)} style={{
                       padding: '5px 10px', background: 'rgba(239,68,68,0.1)',
@@ -718,8 +719,8 @@ export default function PuncturesAdminPage() {
         {tab === 'managers' && role === 'admin' && (
           <div>
             {/* Add form */}
-            <div style={{ background: '#1e293b', borderRadius: 14, padding: '16px 18px', border: '1px solid #334155', marginBottom: 20 }}>
-              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 700, color: '#f8fafc' }}>הוסף מנהל חדש</h3>
+            <div style={{ background: '#ffffff', borderRadius: 14, padding: '16px 18px', border: '1px solid #e2e8f0', marginBottom: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>הוסף מנהל חדש</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                 <input value={mgrForm.full_name} onChange={e => setMgrForm(p => ({ ...p, full_name: e.target.value }))}
                   placeholder="שם מלא" style={mgrInp}/>
@@ -741,18 +742,19 @@ export default function PuncturesAdminPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {managers.map(mgr => (
                   <div key={mgr.id} style={{
-                    background: '#1e293b', borderRadius: 12, padding: '12px 16px',
-                    border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: 12,
+                    background: '#ffffff', borderRadius: 12, padding: '12px 16px',
+                    border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 12,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                     opacity: mgr.is_active ? 1 : 0.55,
                   }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc' }}>{mgr.full_name}</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{mgr.full_name}</div>
                       <div style={{ fontSize: '0.78rem', color: '#64748b' }} dir="ltr">{mgr.phone}</div>
                     </div>
                     <button onClick={() => toggleManager(mgr)} title={mgr.is_active ? 'השבת' : 'הפעל'}
                       style={{
                         position: 'relative', width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: mgr.is_active ? '#22c55e' : '#475569', flexShrink: 0,
+                        background: mgr.is_active ? '#22c55e' : '#94a3b8', flexShrink: 0,
                       }}>
                       <span style={{
                         position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%', background: '#fff',
@@ -800,7 +802,7 @@ export default function PuncturesAdminPage() {
 }
 
 const mgrInp: React.CSSProperties = {
-  width: '100%', padding: '8px 12px', background: '#0f172a',
-  border: '1px solid #334155', borderRadius: 8, color: '#f8fafc', fontSize: '0.85rem',
+  width: '100%', padding: '8px 12px', background: '#f8fafc',
+  border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b', fontSize: '0.85rem',
   boxSizing: 'border-box',
 }

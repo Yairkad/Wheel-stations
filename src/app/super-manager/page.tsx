@@ -343,8 +343,8 @@ export default function SuperManagerPage() {
 
   if (!superManager) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#7dd3fc' }}>טוען...</p>
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#64748b' }}>טוען...</p>
       </div>
     )
   }
@@ -354,7 +354,7 @@ export default function SuperManagerPage() {
     return (
       <div style={{ minHeight: '100vh', background: '#f1f5f9', direction: 'rtl' }}>
         {/* Header */}
-        <div style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', padding: '16px 20px', color: 'white' }}>
+        <div style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '16px 20px', color: '#1e293b' }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <button onClick={handleBack} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', marginLeft: '12px' }}>
@@ -585,8 +585,8 @@ export default function SuperManagerPage() {
 
         {/* Confirm dialog */}
         {showConfirmDialog && confirmDialogData && (
-          <div role="presentation" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px' }} onClick={closeConfirmDialog}>
-            <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message" style={{ background: '#1e293b', borderRadius: '16px', padding: '25px', width: '100%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+          <div role="presentation" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px' }} onClick={closeConfirmDialog}>
+            <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-message" style={{ background: '#ffffff', borderRadius: '16px', padding: '25px', width: '100%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.10)', border: '1px solid #e2e8f0' }} onClick={e => e.stopPropagation()}>
               <h3 id="confirm-dialog-title" style={{
                 fontSize: '1.3rem', marginBottom: '12px', fontWeight: 'bold',
                 color: confirmDialogData.variant === 'danger' ? '#ef4444' : confirmDialogData.variant === 'warning' ? '#f59e0b' : '#3b82f6'

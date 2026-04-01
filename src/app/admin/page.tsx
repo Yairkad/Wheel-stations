@@ -878,8 +878,8 @@ export default function WheelsAdminPage() {
                       key={district.id}
                       style={{
                         ...styles.districtCard,
-                        borderColor: isExpanded ? '#22c55e' : '#334155',
-                        boxShadow: isExpanded ? '0 10px 30px rgba(34, 197, 94, 0.15)' : 'none'
+                        borderColor: isExpanded ? '#16a34a' : '#e2e8f0',
+                        boxShadow: isExpanded ? '0 4px 16px rgba(22, 163, 74, 0.12)' : '0 2px 8px rgba(0,0,0,0.04)'
                       }}
                     >
                       <div
@@ -1043,8 +1043,8 @@ export default function WheelsAdminPage() {
                         type="button"
                         style={{
                           ...styles.btnCrownSm,
-                          background: manager.is_primary ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.04)',
-                          borderColor: manager.is_primary ? '#f59e0b' : '#334155',
+                          background: manager.is_primary ? 'rgba(245,158,11,0.15)' : '#f8fafc',
+                          borderColor: manager.is_primary ? '#f59e0b' : '#e2e8f0',
                           filter: manager.is_primary ? 'drop-shadow(0 0 4px #f59e0b)' : 'grayscale(1) opacity(0.35)',
                           transition: 'all 0.2s',
                           fontSize: '13px',
@@ -1299,16 +1299,16 @@ export default function WheelsAdminPage() {
               style={{...styles.sectionTitle, cursor: 'pointer'}}
               onClick={() => setShowSuperManagerSection(!showSuperManagerSection)}
             >
-              <div style={{...styles.sectionTitleIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>👑</div>
+              <div style={{...styles.sectionTitleIcon, background: '#7c3aed'}}>👑</div>
               מנהלים עליונים
-              <span style={{...styles.sectionCount, background: 'rgba(139, 92, 246, 0.2)', color: '#8b5cf6'}}>
+              <span style={{...styles.sectionCount, background: 'rgba(124, 58, 237, 0.12)', color: '#7c3aed'}}>
                 {superManagers.length} מנהלים
               </span>
               <span style={{...styles.expandIcon, transform: showSuperManagerSection ? 'rotate(180deg)' : 'none'}}>▼</span>
             </div>
             {showSuperManagerSection && (
               <div style={styles.sectionButtons} className="section-buttons">
-                <button style={{...styles.btnPrimary, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} onClick={() => { resetSuperManagerForm(); setShowAddSuperManager(true) }}>+ מנהל עליון</button>
+                <button style={{...styles.btnPrimary, background: '#7c3aed'}} onClick={() => { resetSuperManagerForm(); setShowAddSuperManager(true) }}>+ מנהל עליון</button>
               </div>
             )}
           </div>
@@ -1321,8 +1321,8 @@ export default function WheelsAdminPage() {
                 <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
                   {superManagers.map(sm => (
                     <div key={sm.id} style={{
-                      background: '#0f172a',
-                      border: '1px solid #334155',
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
                       borderRadius: '12px',
                       padding: '14px 16px',
                       display: 'flex',
@@ -1334,7 +1334,7 @@ export default function WheelsAdminPage() {
                         width: '40px',
                         height: '40px',
                         borderRadius: '10px',
-                        background: sm.is_active ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' : '#334155',
+                        background: sm.is_active ? '#7c3aed' : '#e2e8f0',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1342,7 +1342,7 @@ export default function WheelsAdminPage() {
                         flexShrink: 0,
                       }}>👑</div>
                       <div style={{flex: 1, minWidth: '150px'}}>
-                        <div style={{fontWeight: 600, color: 'white', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        <div style={{fontWeight: 600, color: '#1e293b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
                           {sm.full_name}
                           <div style={{
                             width: '8px',
@@ -1354,11 +1354,11 @@ export default function WheelsAdminPage() {
                         </div>
                         <div style={{color: '#64748b', fontSize: '0.8rem', direction: 'ltr', textAlign: 'right'}}>{sm.phone}</div>
                         {sm.allowed_districts?.length ? (
-                          <div style={{fontSize: '0.75rem', color: '#8b5cf6', marginTop: '2px'}}>
+                          <div style={{fontSize: '0.75rem', color: '#7c3aed', marginTop: '2px'}}>
                             מחוזות: {sm.allowed_districts.map(code => districts.find(d => d.code === code)?.name || code).join(', ')}
                           </div>
                         ) : (
-                          <div style={{fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px'}}>כל המחוזות</div>
+                          <div style={{fontSize: '0.75rem', color: '#64748b', marginTop: '2px'}}>כל המחוזות</div>
                         )}
                       </div>
                       <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
@@ -1389,7 +1389,7 @@ export default function WheelsAdminPage() {
         <div style={styles.modalOverlay} onClick={() => { setShowAddSuperManager(false); setEditingSuperManager(null) }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={{...styles.modalTitle, color: '#8b5cf6'}}>
+              <h3 style={{...styles.modalTitle, color: '#7c3aed'}}>
                 {editingSuperManager ? '✏️ עריכת מנהל עליון' : '👑 מנהל עליון חדש'}
               </h3>
             </div>
@@ -1448,9 +1448,9 @@ export default function WheelsAdminPage() {
                         }}
                         style={{
                           padding: '6px 14px', borderRadius: '8px', fontSize: '0.85rem', cursor: 'pointer',
-                          border: isSelected ? '2px solid #7c3aed' : '1px solid #d1d5db',
-                          background: isSelected ? '#ede9fe' : 'white',
-                          color: isSelected ? '#7c3aed' : '#374151',
+                          border: isSelected ? '2px solid #7c3aed' : '1px solid #e2e8f0',
+                          background: isSelected ? '#ede9fe' : '#f8fafc',
+                          color: isSelected ? '#7c3aed' : '#1e293b',
                           fontWeight: isSelected ? 600 : 400
                         }}
                       >
@@ -1460,7 +1460,7 @@ export default function WheelsAdminPage() {
                   })}
                 </div>
                 {superManagerForm.allowed_districts.length === 0 && (
-                  <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
                     לא נבחרו מחוזות - למנהל תהיה גישה לכל התחנות
                   </div>
                 )}
@@ -1472,7 +1472,7 @@ export default function WheelsAdminPage() {
                 ביטול
               </button>
               <button
-                style={{...styles.btnSubmit, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}
+                style={{...styles.btnSubmit, background: '#7c3aed'}}
                 onClick={editingSuperManager ? handleUpdateSuperManager : handleAddSuperManager}
                 disabled={superManagerLoading}
               >
@@ -1561,7 +1561,7 @@ function StationCard({
                         lineHeight: 1,
                       }}
                     >⭐</span>
-                    <span style={{color: 'white'}}>{m.full_name}</span>
+                    <span style={{color: '#1e293b'}}>{m.full_name}</span>
                     <span style={{color: '#64748b'}}>- {m.phone}</span>
                     <span style={{
                       marginRight: '8px',
@@ -1603,17 +1603,17 @@ function StationCard({
 const styles: { [key: string]: React.CSSProperties } = {
   // Page wrapper
   pageWrapper: {
-    background: '#0f172a',
+    background: '#f1f5f9',
     minHeight: '100vh',
-    color: '#e2e8f0',
+    color: '#1e293b',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
   },
 
   // Header
   header: {
-    background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%)',
-    borderBottom: '1px solid #22c55e',
+    background: '#ffffff',
+    borderBottom: '1px solid #e2e8f0',
     padding: '30px 30px 60px',
     position: 'relative',
   },
@@ -1635,7 +1635,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   logoIcon: {
     width: '55px',
     height: '55px',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     borderRadius: '16px',
     display: 'flex',
     alignItems: 'center',
@@ -1645,7 +1645,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexShrink: 0,
   },
   headerTitle: {
-    color: 'white',
+    color: '#1e293b',
     fontSize: '1.8rem',
     fontWeight: 800,
     marginBottom: '6px',
@@ -1668,7 +1668,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
     whiteSpace: 'nowrap',
     background: 'transparent',
-    color: '#f87171',
+    color: '#dc2626',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1682,7 +1682,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.3s ease',
     fontSize: '0.85rem',
     whiteSpace: 'nowrap',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     display: 'flex',
     alignItems: 'center',
@@ -1691,14 +1691,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   btnGhost: {
     padding: '10px 20px',
     borderRadius: '10px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.2s',
     fontSize: '0.9rem',
     whiteSpace: 'nowrap',
     background: 'transparent',
-    color: '#94a3b8',
+    color: '#64748b',
     textDecoration: 'none',
     display: 'flex',
     alignItems: 'center',
@@ -1714,8 +1714,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '32px',
     height: '32px',
     fontSize: '0.8rem',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     color: '#64748b',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -1725,8 +1725,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '28px',
     height: '28px',
     fontSize: '0.75rem',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     color: '#64748b',
     borderRadius: '6px',
     cursor: 'pointer',
@@ -1745,8 +1745,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '0 20px',
   },
   statCard: {
-    background: 'linear-gradient(145deg, #1e293b 0%, #1a2234 100%)',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '14px',
     padding: '12px 14px',
     position: 'relative',
@@ -1754,6 +1754,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   statIcon: {
     width: '36px',
@@ -1773,7 +1774,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   statValue: {
     fontSize: '1.3rem',
     fontWeight: 800,
-    color: '#22c55e',
+    color: '#1e293b',
     lineHeight: 1,
   },
 
@@ -1786,26 +1787,27 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Section
   section: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '24px',
     marginBottom: '25px',
     overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   sectionHeader: {
     padding: '18px 24px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.05) 0%, transparent 100%)',
+    background: '#f8fafc',
     flexWrap: 'wrap',
     gap: '12px',
   },
   sectionTitle: {
     fontSize: '1.1rem',
     fontWeight: 700,
-    color: 'white',
+    color: '#1e293b',
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
@@ -1813,7 +1815,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   sectionTitleIcon: {
     width: '36px',
     height: '36px',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     borderRadius: '10px',
     display: 'flex',
     alignItems: 'center',
@@ -1822,8 +1824,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexShrink: 0,
   },
   sectionCount: {
-    background: 'rgba(34, 197, 94, 0.2)',
-    color: '#22c55e',
+    background: 'rgba(34, 197, 94, 0.15)',
+    color: '#16a34a',
     padding: '4px 10px',
     borderRadius: '20px',
     fontSize: '0.8rem',
@@ -1841,16 +1843,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Search
   searchContainer: {
     padding: '0 24px 16px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
   },
   searchInput: {
     width: '100%',
     padding: '12px 16px',
     fontSize: '0.95rem',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
     borderRadius: '12px',
-    background: '#0f172a',
-    color: 'white',
+    background: '#f8fafc',
+    color: '#1e293b',
     outline: 'none',
     transition: 'all 0.2s',
   },
@@ -1870,8 +1872,8 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // District Card
   districtCard: {
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '16px',
     overflow: 'hidden',
     transition: 'all 0.3s',
@@ -1899,7 +1901,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   districtName: {
     fontWeight: 700,
-    color: 'white',
+    color: '#1e293b',
     marginBottom: '4px',
     fontSize: '1rem',
   },
@@ -1921,8 +1923,8 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // District Stations
   districtStations: {
-    borderTop: '1px solid #334155',
-    background: 'rgba(0, 0, 0, 0.2)',
+    borderTop: '1px solid #e2e8f0',
+    background: '#f1f5f9',
     overflow: 'hidden',
     transition: 'max-height 0.4s ease-out, opacity 0.3s ease-out',
   },
@@ -1935,17 +1937,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     marginBottom: '14px',
     paddingBottom: '10px',
-    borderBottom: '1px dashed #334155',
+    borderBottom: '1px dashed #e2e8f0',
   },
   districtStationsTitle: {
     fontSize: '0.85rem',
-    color: '#94a3b8',
+    color: '#64748b',
     fontWeight: 600,
   },
   btnAddStation: {
     padding: '6px 12px',
     fontSize: '0.8rem',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
@@ -1971,12 +1973,13 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Station Card Compact
   stationCardCompact: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '14px',
     padding: '14px',
     marginBottom: '12px',
     transition: 'all 0.2s',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
   },
   stationCompactTop: {
     display: 'flex',
@@ -2009,7 +2012,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   stationCompactName: {
     fontSize: '0.95rem',
     fontWeight: 600,
-    color: 'white',
+    color: '#1e293b',
     marginBottom: '2px',
   },
   stationCompactAddress: {
@@ -2025,7 +2028,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: '8px',
   },
   compactStat: {
-    background: '#0f172a',
+    background: '#f8fafc',
     padding: '4px 10px',
     borderRadius: '8px',
     fontSize: '0.75rem',
@@ -2041,7 +2044,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   stationExpanded: {
     marginTop: '12px',
     paddingTop: '12px',
-    borderTop: '1px dashed #334155',
+    borderTop: '1px dashed #e2e8f0',
   },
   passwordRowCompact: {
     display: 'flex',
@@ -2069,7 +2072,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Managers Compact
   managersCompact: {
-    background: '#0f172a',
+    background: '#f8fafc',
     borderRadius: '10px',
     padding: '10px',
   },
@@ -2093,7 +2096,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px',
     marginTop: '10px',
     paddingTop: '10px',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
   },
   btnCompact: {
     padding: '6px 10px',
@@ -2113,8 +2116,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#3b82f6',
   },
   btnCompactView: {
-    background: '#334155',
-    color: '#94a3b8',
+    background: '#f1f5f9',
+    color: '#64748b',
   },
   btnCompactToggle: {
     background: 'rgba(245, 158, 11, 0.15)',
@@ -2155,7 +2158,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(0, 0, 0, 0.8)',
+    background: 'rgba(15,23,42,0.5)',
     backdropFilter: 'blur(8px)',
     display: 'flex',
     alignItems: 'center',
@@ -2164,23 +2167,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '15px',
   },
   modal: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '20px',
     width: '100%',
     maxWidth: '500px',
     maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   modalHeader: {
     padding: '20px 24px 16px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
   },
   modalTitle: {
     fontSize: '1.2rem',
     fontWeight: 800,
-    color: '#22c55e',
+    color: '#1e293b',
     margin: 0,
   },
   modalBody: {
@@ -2190,7 +2193,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '16px 24px 20px',
     display: 'flex',
     gap: '10px',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
   },
 
   // Form
@@ -2199,7 +2202,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   formLabel: {
     display: 'block',
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.85rem',
     fontWeight: 600,
     marginBottom: '8px',
@@ -2207,10 +2210,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   formInput: {
     width: '100%',
     padding: '12px 14px',
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.95rem',
     transition: 'all 0.2s',
     boxSizing: 'border-box',
@@ -2220,7 +2223,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   managersSection: {
     marginTop: '20px',
     padding: '15px',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#f8fafc',
     borderRadius: '10px',
   },
   managersSectionHeader: {
@@ -2247,16 +2250,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   managerInputCompact: {
     flex: 1,
     padding: '6px 8px',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '6px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.75rem',
     minWidth: 0,
   },
   managerCard: {
-    background: '#0f172a',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
     padding: '10px',
     marginBottom: '8px',
@@ -2273,10 +2276,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     flex: 1,
     minWidth: 0,
     padding: '6px 8px',
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '6px',
-    color: 'white',
+    color: '#1e293b',
     fontSize: '0.75rem',
   },
   btnResetPassword: {
@@ -2294,7 +2297,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '26px',
     height: '26px',
     borderRadius: '6px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
     cursor: 'pointer',
     fontSize: '0.7rem',
     display: 'flex',
@@ -2320,9 +2323,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Modal Buttons
   btnCancel: {
     flex: 1,
-    background: '#334155',
-    color: 'white',
-    border: 'none',
+    background: '#f1f5f9',
+    color: '#64748b',
+    border: '1px solid #e2e8f0',
     padding: '12px',
     borderRadius: '10px',
     cursor: 'pointer',
@@ -2331,7 +2334,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   btnSubmit: {
     flex: 1,
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    background: '#16a34a',
     color: 'white',
     border: 'none',
     padding: '12px',
@@ -2343,14 +2346,14 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   // Confirm Dialog
   confirmDialog: {
-    background: '#1e293b',
-    border: '1px solid #334155',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '20px',
     padding: '25px',
     width: '100%',
     maxWidth: '400px',
     textAlign: 'center',
-    boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
   },
   confirmTitle: {
     fontSize: '1.2rem',
@@ -2360,7 +2363,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '0 0 15px 0',
   },
   confirmMessage: {
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.95rem',
     marginBottom: '25px',
     lineHeight: 1.6,
@@ -2385,7 +2388,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Loading styles
   loadingContainer: {
     minHeight: '100vh',
-    background: '#0f172a',
+    background: '#f1f5f9',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -2406,7 +2409,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   footer: {
     padding: '20px',
     textAlign: 'center',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
     marginTop: '20px',
   },
   footerVersion: {
