@@ -74,7 +74,7 @@ async function checkStationManager(supabase: Supa, phone: string, password: stri
   const manager = (data as StationManagerRow[]).find(
     (m) => m.phone.replace(/\D/g, '') === cleanPhone
   )
-  if (!manager || !manager.is_active || manager.password !== password) return null
+  if (!manager || manager.is_active === false || manager.password !== password) return null
 
   const stationRaw = manager.wheel_stations
   const station = Array.isArray(stationRaw) ? stationRaw[0] : stationRaw
@@ -155,7 +155,7 @@ async function checkDistrictManager(supabase: Supa, phone: string, password: str
   const manager = (data as SuperManagerRow[]).find(
     (m) => m.phone.replace(/\D/g, '') === cleanPhone
   )
-  if (!manager || !manager.is_active || manager.password !== password) return null
+  if (!manager || manager.is_active === false || manager.password !== password) return null
 
   return {
     role: 'district_manager',
