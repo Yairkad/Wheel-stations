@@ -6,17 +6,16 @@ import Link from 'next/link'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION, VERSION } from '@/lib/version'
-
-type LoginMode = 'select' | 'station' | 'operator'
+import type { RoleResult } from '@/app/api/auth/login/route'
 
 export default function LoginPage() {
   const router = useRouter()
-  const [mode, setMode] = useState<LoginMode>('select')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [roles, setRoles] = useState<RoleResult[] | null>(null)
 
   // Forgot password state
   const [showForgotPassword, setShowForgotPassword] = useState(false)
@@ -40,24 +39,18 @@ export default function LoginPage() {
 
     try {
       const jsQR = (await import('jsqr')).default
-
-      // Read file as data URL
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = () => resolve(reader.result as string)
         reader.onerror = () => reject(new Error('Failed to read file'))
         reader.readAsDataURL(file)
       })
-
-      // Load image
       const img = await new Promise<HTMLImageElement>((resolve, reject) => {
         const image = new window.Image()
         image.onload = () => resolve(image)
         image.onerror = () => reject(new Error('Failed to load image'))
         image.src = dataUrl
       })
-
-      // Scan QR - scale down large images for mobile compatibility
       const canvas = document.createElement('canvas')
       const maxSize = 1024
       let w = img.width
@@ -74,14 +67,11 @@ export default function LoginPage() {
       ctx.drawImage(img, 0, 0, w, h)
       const imageData = ctx.getImageData(0, 0, w, h)
       const qrCode = jsQR(imageData.data, imageData.width, imageData.height)
-
       if (!qrCode) {
         setForgotError('לא נמצא קוד QR בתמונה. נסה תמונה ברורה יותר.')
         setForgotLoading(false)
         return
       }
-
-      // Reset password with recovery key
       const response = await fetch('/api/wheel-stations/recovery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,338 +89,185 @@ export default function LoginPage() {
       setForgotError('שגיאה באיפוס הסיסמא')
     } finally {
       setForgotLoading(false)
+      e.target.value = ''
     }
-    // Reset file input
-    e.target.value = ''
   }
 
-  const handleStationLogin = async () => {
-    if (!phone || !password) {
-      setError('יש למלא טלפון וסיסמה')
-      return
+  // Save session to localStorage and redirect for a given role
+  const applyRole = (role: RoleResult) => {
+    const d = role.data
+    switch (role.role) {
+      case 'station_manager': {
+        const session = {
+          manager: { ...d, type: 'wheel_station' },
+          stationId: d.station_id,
+          stationName: d.station_name,
+          password,
+          timestamp: Date.now(),
+          version: SESSION_VERSION
+        }
+        localStorage.setItem(`station_session_${d.station_id}`, JSON.stringify(session))
+        router.push(`/${d.station_id}`)
+        break
+      }
+      case 'operator': {
+        const session = {
+          user: { id: d.id, full_name: d.full_name, phone: d.phone, title: d.title, is_primary: d.is_primary },
+          role: d.sub_role === 'manager' ? 'manager' : 'operator',
+          callCenterId: d.call_center_id,
+          callCenterName: d.call_center_name,
+          password,
+          timestamp: Date.now(),
+          version: SESSION_VERSION
+        }
+        localStorage.setItem('operator_session', JSON.stringify(session))
+        router.push(d.sub_role === 'manager' ? '/call-center' : '/operator')
+        break
+      }
+      case 'district_manager': {
+        const session = {
+          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
+          password,
+          timestamp: Date.now(),
+          version: SESSION_VERSION
+        }
+        localStorage.setItem('super_manager_session', JSON.stringify(session))
+        router.push('/super-manager')
+        break
+      }
+      case 'editor': {
+        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
+        localStorage.setItem('puncture_manager_auth', JSON.stringify({ expiry, phone: d.phone, password }))
+        router.push('/admin/punctures')
+        break
+      }
     }
+  }
 
+  const handleLogin = async () => {
+    if (!phone || !password) { setError('יש למלא טלפון וסיסמה'); return }
     setLoading(true)
     setError('')
 
     try {
-      const response = await fetch('/api/wheel-stations/auth', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password })
       })
+      const data = await res.json()
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        // Station manager auth failed - try super manager auth as fallback
-        try {
-          const smResponse = await fetch('/api/super-manager/auth', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, password })
-          })
-          const smData = await smResponse.json()
-
-          if (smResponse.ok) {
-            const session = {
-              superManager: smData.super_manager,
-              password: password,
-              timestamp: Date.now(),
-              version: SESSION_VERSION
-            }
-            localStorage.setItem('super_manager_session', JSON.stringify(session))
-            toast.success(`שלום ${smData.super_manager.full_name}`)
-            router.push('/super-manager')
-            return
-          }
-        } catch {
-          // Super manager auth also failed, show original error
-        }
-
+      if (!res.ok) {
         setError(data.error || 'שגיאה בכניסה')
         setLoading(false)
         return
       }
 
-      // Save session to localStorage
-      const stationId = data.manager.station_id
-      const session = {
-        manager: data.manager,
-        stationId: stationId,
-        stationName: data.manager.station_name,
-        password: password,
-        timestamp: Date.now(),
-        version: SESSION_VERSION
-      }
-      localStorage.setItem(`station_session_${stationId}`, JSON.stringify(session))
+      const foundRoles: RoleResult[] = data.roles
+      // Store all roles for the header switcher
+      localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
 
-      toast.success(`שלום ${data.manager.full_name}`)
-      router.push(`/${stationId}`)
+      if (foundRoles.length === 1) {
+        localStorage.setItem('active_role', foundRoles[0].role)
+        toast.success(`שלום ${foundRoles[0].data.full_name as string}`)
+        applyRole(foundRoles[0])
+      } else {
+        // Multiple roles — show picker
+        setRoles(foundRoles)
+        setLoading(false)
+      }
     } catch {
       setError('שגיאה בכניסה')
       setLoading(false)
     }
   }
 
-  const handleOperatorLogin = async () => {
-    if (!phone || !password) {
-      setError('יש למלא טלפון וסיסמה')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      // Try unified auth - works for both operators and managers
-      const response = await fetch('/api/call-center/unified-auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'שגיאה בהתחברות')
-        setLoading(false)
-        return
-      }
-
-      // Save session
-      const session = {
-        user: data.user,
-        role: data.role, // 'operator' | 'manager'
-        callCenterId: data.call_center_id,
-        callCenterName: data.call_center_name,
-        password: password,
-        timestamp: Date.now(),
-        version: SESSION_VERSION
-      }
-      localStorage.setItem('operator_session', JSON.stringify(session))
-
-      toast.success(`שלום ${data.user.full_name}`)
-
-      // Redirect based on role
-      if (data.role === 'manager') {
-        router.push('/call-center')
-      } else {
-        router.push('/operator')
-      }
-    } catch {
-      setError('שגיאה בהתחברות')
-      setLoading(false)
-    }
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (mode === 'station') {
-      handleStationLogin()
-    } else if (mode === 'operator') {
-      handleOperatorLogin()
-    }
+    handleLogin()
   }
 
-  // Responsive CSS + animations
   const responsiveStyles = `
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-10px); }
     }
-
     .admin-btn {
       opacity: 0 !important;
       background: transparent !important;
       border-color: transparent !important;
     }
-
     .admin-btn:hover {
       opacity: 1 !important;
       background: rgba(255,255,255,0.15) !important;
       border-color: rgba(255,255,255,0.2) !important;
       transform: rotate(45deg);
     }
-
-    .login-card:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    .role-card:hover {
+      background: rgba(255,255,255,0.12) !important;
+      border-color: rgba(99,179,237,0.5) !important;
+      transform: translateY(-3px);
     }
-
-    .login-card:hover .card-icon {
-      background: rgba(255,255,255,0.3) !important;
-      transform: scale(1.1);
-    }
-
-    .reverse-search-btn:hover {
-      background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(5,150,105,0.14)) !important;
-      border-color: rgba(16,185,129,0.55) !important;
-      transform: translateY(-2px);
-    }
-
     @media (max-width: 768px) {
-      .login-cards-container {
-        gap: 15px !important;
-      }
-      .login-card {
-        width: 180px !important;
-        padding: 28px 22px !important;
-      }
-      .card-icon {
-        width: 60px !important;
-        height: 60px !important;
-        font-size: 28px !important;
-      }
-      .card-title {
-        font-size: 1.1rem !important;
-      }
-      .card-desc {
-        font-size: 0.8rem !important;
-      }
-      .main-title {
-        font-size: 1.8rem !important;
-      }
-      .main-logo {
-        width: 85px !important;
-        height: 85px !important;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .login-cards-container {
-        flex-direction: column !important;
-        gap: 12px !important;
-        align-items: center !important;
-      }
-      .login-card {
-        width: 100% !important;
-        max-width: 280px !important;
-        padding: 24px 20px !important;
-      }
-      .main-title {
-        font-size: 1.5rem !important;
-      }
-      .main-subtitle {
-        font-size: 0.9rem !important;
-      }
-      .main-logo {
-        width: 75px !important;
-        height: 75px !important;
-      }
-      .admin-btn {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 16px !important;
-      }
-    }
-
-    /* Form responsive */
-    @media (max-width: 768px) {
-      .form-card {
-        padding: 30px 25px !important;
-        max-width: 380px !important;
-      }
+      .form-card { padding: 30px 25px !important; max-width: 380px !important; }
     }
     @media (max-width: 480px) {
-      .form-card {
-        padding: 25px 20px !important;
-        margin: 10px !important;
-      }
-      .form-input {
-        padding: 14px !important;
-        font-size: 15px !important;
-      }
-      .form-submit {
-        padding: 14px !important;
-        font-size: 16px !important;
-      }
-      .form-logo {
-        width: 70px !important;
-        height: 70px !important;
-        font-size: 32px !important;
-      }
-      .form-title {
-        font-size: 1.3rem !important;
-      }
+      .form-card { padding: 25px 20px !important; margin: 10px !important; }
+      .form-input { padding: 14px !important; font-size: 15px !important; }
+      .form-submit { padding: 14px !important; font-size: 16px !important; }
+      .form-logo { width: 70px !important; height: 70px !important; font-size: 32px !important; }
+      .form-title { font-size: 1.3rem !important; }
     }
   `
 
-  // Selection screen - new design
-  if (mode === 'select') {
+  // Role picker (multiple roles found)
+  if (roles) {
+    const roleIcons: Record<string, string> = {
+      station_manager: '🏪',
+      operator: '🎧',
+      district_manager: '👑',
+      editor: '✏️',
+    }
+
     return (
       <div style={styles.container}>
         <style>{responsiveStyles}</style>
-
-        {/* Admin button - hidden */}
-        <Link href="/admin" style={styles.adminBtn} className="admin-btn">
-          ⚙️
-        </Link>
-
-        <div style={styles.mainContainer}>
-          {/* Logo */}
-          <div style={styles.mainLogo} className="main-logo">
-            <Image
-              src="/logo.wheels.png"
-              alt="לוגו מערכת גלגלים"
-              width={80}
-              height={80}
-              style={{ objectFit: 'contain' }}
-            />
+        <div style={styles.formCard} className="form-card">
+          <div style={{ fontSize: '40px', textAlign: 'center', marginBottom: '8px' }}>🔀</div>
+          <h1 style={styles.formTitle} className="form-title">בחר תפקיד</h1>
+          <p style={{ ...styles.formSubtitle, marginBottom: '24px' }}>נמצאו מספר תפקידים עבור חשבון זה</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {roles.map((r) => (
+              <button
+                key={r.role}
+                className="role-card"
+                onClick={() => {
+                  localStorage.setItem('active_role', r.role)
+                  toast.success(`שלום ${r.data.full_name as string}`)
+                  applyRole(r)
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '16px 20px',
+                  background: 'rgba(255,255,255,0.07)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '12px',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  textAlign: 'right',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <span style={{ fontSize: '28px' }}>{roleIcons[r.role]}</span>
+                <span>{r.label}</span>
+              </button>
+            ))}
           </div>
-
-          <h1 style={styles.mainTitle} className="main-title">מערכת גלגלים</h1>
-          <p style={styles.mainSubtitle} className="main-subtitle">מערכת ניהול תחנות השאלת גלגלים</p>
-
-          {/* Reverse Search - prominent public feature */}
-          <Link href="/reverse-search" style={styles.reverseSearchBtn} className="reverse-search-btn">
-            <div style={styles.reverseSearchIcon}>🔍</div>
-            <div style={styles.reverseSearchText}>
-              <div style={styles.reverseSearchBtnTitle}>חיפוש גלגל תואם לרכב</div>
-              <div style={styles.reverseSearchBtnDesc}>הזן פרטי רכב ומצא רכב עם גלגל תואם</div>
-            </div>
-            <span style={styles.reverseSearchBadge}>ללא כניסה</span>
-          </Link>
-
-          {/* Divider */}
-          <div style={styles.divider} className="login-divider">
-            <div style={styles.dividerLine} />
-            <span style={styles.dividerText}>התחברות</span>
-            <div style={styles.dividerLine} />
-          </div>
-
-          {/* Cards */}
-          <div style={styles.cardsContainer} className="login-cards-container">
-            <button
-              style={styles.loginCard}
-              onClick={() => setMode('station')}
-              className="login-card"
-            >
-              <div style={styles.cardIcon} className="card-icon">🏪</div>
-              <div style={styles.cardTitle} className="card-title">ניהול תחנה</div>
-              <div style={styles.cardDesc} className="card-desc">למנהלי תחנות השאלה</div>
-            </button>
-
-            <button
-              style={styles.loginCard}
-              onClick={() => setMode('operator')}
-              className="login-card"
-            >
-              <div style={styles.cardIcon} className="card-icon">🎧</div>
-              <div style={styles.cardTitle} className="card-title">ממשק מוקדן</div>
-              <div style={styles.cardDesc} className="card-desc">למוקדנים ומנהלי מוקד</div>
-            </button>
-          </div>
-
-          {/* Footer */}
-          <div style={styles.mainFooter}>
-            <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
-            {' • '}
-            <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
-            {' • '}
-            <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
-          </div>
-          <div style={styles.versionText}>גרסה {VERSION}</div>
         </div>
       </div>
     )
@@ -441,41 +278,36 @@ export default function LoginPage() {
     <div style={styles.container}>
       <style>{responsiveStyles}</style>
 
-      <div style={styles.formCard} className="form-card">
-        <button
-          style={styles.backButton}
-          onClick={() => { setMode('select'); setError(''); setPhone(''); setPassword('') }}
-        >
-          ← חזרה
-        </button>
+      <Link href="/admin" style={styles.adminBtn} className="admin-btn">⚙️</Link>
 
+      <div style={styles.formCard} className="form-card">
         <div style={styles.formLogo} className="form-logo">
-          {mode === 'station' ? '🏪' : '🎧'}
+          <Image src="/logo.wheels.png" alt="לוגו מערכת גלגלים" width={60} height={60} style={{ objectFit: 'contain' }} />
         </div>
-        <h1 style={styles.formTitle} className="form-title">
-          {mode === 'station' ? 'כניסת מנהל תחנה' : 'כניסת מוקדן'}
-        </h1>
-        <p style={styles.formSubtitle}>הזן שם משתמש וסיסמה</p>
+        <h1 style={styles.formTitle} className="form-title">כניסה למערכת</h1>
+        <p style={styles.formSubtitle}>הזן טלפון וסיסמה</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
             type="text"
-            placeholder="שם משתמש"
+            placeholder="מספר טלפון"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             style={styles.formInput}
             className="form-input"
             dir="ltr"
+            autoComplete="username"
           />
           <div style={styles.passwordWrapper}>
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="סיסמה"
+              placeholder="סיסמה / קוד"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={styles.passwordInput}
               className="form-input"
               dir="ltr"
+              autoComplete="current-password"
             />
             <button
               type="button"
@@ -489,86 +321,70 @@ export default function LoginPage() {
 
           {error && <div style={styles.error}>{error}</div>}
 
-          <button
-            type="submit"
-            style={styles.formSubmit}
-            className="form-submit"
-            disabled={loading}
-          >
+          <button type="submit" style={styles.formSubmit} className="form-submit" disabled={loading}>
             {loading ? 'מתחבר...' : 'כניסה'}
           </button>
-          {mode === 'station' && (
-            <button
-              type="button"
-              onClick={() => {
-                setForgotPhone(phone)
-                setForgotNewPassword('')
-                setForgotConfirmPassword('')
-                setForgotError('')
-                setForgotSuccess(false)
-                setShowForgotPassword(true)
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#60a5fa',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                marginTop: '12px',
-                textDecoration: 'underline',
-                width: '100%',
-                textAlign: 'center'
-              }}
-            >
-              שכחתי סיסמא
-            </button>
-          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              setForgotPhone(phone)
+              setForgotNewPassword('')
+              setForgotConfirmPassword('')
+              setForgotError('')
+              setForgotSuccess(false)
+              setShowForgotPassword(true)
+            }}
+            style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '12px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' }}
+          >
+            שכחתי סיסמא (למנהלי תחנה)
+          </button>
         </form>
       </div>
 
       {/* Forgot Password Modal */}
       {showForgotPassword && (
-        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:'20px'}} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
-          <div style={{background:'#1e293b',borderRadius:'16px',padding:'24px',maxWidth:'400px',width:'100%',border:'1px solid #334155',position:'relative'}} onClick={e => e.stopPropagation()}>
-            <h3 style={{color:'#fff',textAlign:'center',marginBottom:'8px',fontSize:'1.2rem'}}>🔓 איפוס סיסמא</h3>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }} onClick={() => !forgotLoading && setShowForgotPassword(false)}>
+          <div style={{ background: '#1e293b', borderRadius: '16px', padding: '24px', maxWidth: '400px', width: '100%', border: '1px solid #334155', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ color: '#fff', textAlign: 'center', marginBottom: '8px', fontSize: '1.2rem' }}>🔓 איפוס סיסמא</h3>
             {forgotSuccess ? (
               <>
-                <p style={{textAlign:'center',color:'#10b981',fontSize:'1rem',marginBottom:'16px'}}>הסיסמא אופסה בהצלחה!</p>
-                <p style={{textAlign:'center',color:'#9ca3af',fontSize:'0.85rem',marginBottom:'20px'}}>יש להתחבר עם הסיסמא החדשה ולהוריד תעודת שחזור חדשה.</p>
-                <button onClick={() => setShowForgotPassword(false)} style={{width:'100%',padding:'12px',borderRadius:'10px',border:'none',background:'linear-gradient(135deg,#06b6d4,#8b5cf6)',color:'#fff',fontWeight:'bold',cursor:'pointer',fontSize:'1rem'}}>
+                <p style={{ textAlign: 'center', color: '#10b981', fontSize: '1rem', marginBottom: '16px' }}>הסיסמא אופסה בהצלחה!</p>
+                <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.85rem', marginBottom: '20px' }}>יש להתחבר עם הסיסמא החדשה ולהוריד תעודת שחזור חדשה.</p>
+                <button onClick={() => setShowForgotPassword(false)} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg,#06b6d4,#8b5cf6)', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>
                   חזור להתחברות
                 </button>
               </>
             ) : (
               <>
-                <p style={{fontSize:'0.85rem',color:'#9ca3af',marginBottom:'16px',textAlign:'center'}}>העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא</p>
-                <div style={{marginBottom:'12px'}}>
-                  <label style={{display:'block',color:'#d1d5db',fontSize:'0.85rem',marginBottom:'6px'}}>מספר טלפון</label>
-                  <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{width:'100%',padding:'10px 12px',borderRadius:'8px',border:'1px solid #4a5568',background:'#2d3748',color:'#fff',fontSize:'0.95rem',boxSizing:'border-box'}} />
+                <p style={{ fontSize: '0.85rem', color: '#9ca3af', marginBottom: '16px', textAlign: 'center' }}>העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא</p>
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '6px' }}>מספר טלפון</label>
+                  <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #4a5568', background: '#2d3748', color: '#fff', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                 </div>
-                <div style={{display:'flex',gap:'10px',marginBottom:'12px'}}>
-                  <div style={{flex:1}}>
-                    <label style={{display:'block',color:'#d1d5db',fontSize:'0.85rem',marginBottom:'6px'}}>סיסמא חדשה</label>
-                    <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{width:'100%',padding:'10px 12px',borderRadius:'8px',border:'1px solid #4a5568',background:'#2d3748',color:'#fff',fontSize:'0.95rem',boxSizing:'border-box'}} />
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '6px' }}>סיסמא חדשה</label>
+                    <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #4a5568', background: '#2d3748', color: '#fff', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                   </div>
-                  <div style={{flex:1}}>
-                    <label style={{display:'block',color:'#d1d5db',fontSize:'0.85rem',marginBottom:'6px'}}>אימות סיסמא</label>
-                    <input type="password" value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)} dir="ltr" style={{width:'100%',padding:'10px 12px',borderRadius:'8px',border:'1px solid #4a5568',background:'#2d3748',color:'#fff',fontSize:'0.95rem',boxSizing:'border-box'}} />
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '6px' }}>אימות סיסמא</label>
+                    <input type="password" value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #4a5568', background: '#2d3748', color: '#fff', fontSize: '0.95rem', boxSizing: 'border-box' }} />
                   </div>
                 </div>
-                <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',padding:'14px',borderRadius:'10px',border:'2px dashed #4a5568',background:'#2d3748',color:'#60a5fa',cursor:'pointer',fontSize:'0.95rem',marginTop:'8px'}}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '10px', border: '2px dashed #4a5568', background: '#2d3748', color: '#60a5fa', cursor: 'pointer', fontSize: '0.95rem', marginTop: '8px' }}>
                   📷 העלה תמונת תעודת שחזור
-                  <input type="file" accept="image/*" style={{display:'none'}} onChange={handleForgotUpload} disabled={forgotLoading} />
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleForgotUpload} disabled={forgotLoading} />
                 </label>
                 {forgotLoading && (
-                  <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.8)',borderRadius:'16px',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',zIndex:10}}>
-                    <div style={{width:'50px',height:'50px',border:'3px solid #334155',borderTopColor:'#f59e0b',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
-                    <p style={{color:'#f59e0b',fontSize:'1rem',marginTop:'16px'}}>סורק קוד QR...</p>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                    <div style={{ width: '50px', height: '50px', border: '3px solid #334155', borderTopColor: '#f59e0b', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    <p style={{ color: '#f59e0b', fontSize: '1rem', marginTop: '16px' }}>סורק קוד QR...</p>
                     <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
                   </div>
                 )}
-                {forgotError && <p style={{textAlign:'center',color:'#ef4444',fontSize:'0.85rem',marginTop:'10px'}}>{forgotError}</p>}
-                <button onClick={() => setShowForgotPassword(false)} disabled={forgotLoading} style={{width:'100%',padding:'10px',borderRadius:'8px',border:'1px solid #4a5568',background:'transparent',color:'#9ca3af',cursor:'pointer',fontSize:'0.9rem',marginTop:'16px',opacity:forgotLoading?0.5:1}}>
+                {forgotError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: '0.85rem', marginTop: '10px' }}>{forgotError}</p>}
+                <button onClick={() => setShowForgotPassword(false)} disabled={forgotLoading} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #4a5568', background: 'transparent', color: '#9ca3af', cursor: 'pointer', fontSize: '0.9rem', marginTop: '16px', opacity: forgotLoading ? 0.5 : 1, fontFamily: 'inherit' }}>
                   ביטול
                 </button>
               </>
@@ -577,7 +393,6 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* Footer */}
       <footer style={styles.footer}>
         <p style={styles.footerLinks}>
           <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
@@ -603,7 +418,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '20px',
     direction: 'rtl',
     position: 'relative',
-    overflow: 'hidden'
   },
   adminBtn: {
     position: 'absolute',
@@ -621,289 +435,122 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     zIndex: 10,
-    backdropFilter: 'blur(10px)',
     textDecoration: 'none'
   },
-  mainContainer: {
-    textAlign: 'center',
-    width: '100%',
-    maxWidth: '550px',
-    position: 'relative',
-    zIndex: 1
-  },
-  mainLogo: {
-    width: '100px',
-    height: '100px',
-    background: 'rgba(255,255,255,0.1)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: '28px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0 auto 24px',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-    animation: 'float 3s ease-in-out infinite',
-    overflow: 'hidden'
-  },
-  mainTitle: {
-    fontSize: '2.2rem',
-    fontWeight: 800,
-    color: 'white',
-    marginBottom: '8px',
-    textShadow: '0 2px 10px rgba(0,0,0,0.1)'
-  },
-  mainSubtitle: {
-    color: '#7dd3fc',
-    marginBottom: '40px',
-    fontSize: '1rem'
-  },
-  cardsContainer: {
-    display: 'flex',
-    gap: '20px',
-    justifyContent: 'center',
-    flexWrap: 'wrap'
-  },
-  reverseSearchBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '14px',
-    background: 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.06))',
-    border: '1px solid rgba(16,185,129,0.3)',
-    borderRadius: '18px',
-    padding: '18px 22px',
-    marginBottom: '24px',
-    cursor: 'pointer',
-    textDecoration: 'none',
-    color: 'white',
-    transition: 'all 0.25s',
-    width: '100%',
-  },
-  reverseSearchIcon: {
-    width: '52px',
-    height: '52px',
-    flexShrink: 0,
-    background: 'linear-gradient(135deg, #10b981, #059669)',
-    borderRadius: '14px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '24px',
-  },
-  reverseSearchText: {
-    textAlign: 'right' as const,
-    flex: 1,
-  },
-  reverseSearchBtnTitle: {
-    fontSize: '1rem',
-    fontWeight: 700,
-    color: '#d1fae5',
-    marginBottom: '3px',
-  },
-  reverseSearchBtnDesc: {
-    fontSize: '0.78rem',
-    color: 'rgba(209,250,229,0.6)',
-  },
-  reverseSearchBadge: {
-    flexShrink: 0,
-    background: 'rgba(16,185,129,0.2)',
-    border: '1px solid rgba(16,185,129,0.4)',
-    color: '#34d399',
-    fontSize: '0.65rem',
-    padding: '4px 10px',
-    borderRadius: '20px',
-    whiteSpace: 'nowrap' as const,
-  },
-  divider: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '20px',
-  },
-  dividerLine: {
-    flex: 1,
-    height: '1px',
-    background: 'rgba(255,255,255,0.1)',
-  },
-  dividerText: {
-    color: 'rgba(255,255,255,0.35)',
-    fontSize: '0.78rem',
-    whiteSpace: 'nowrap' as const,
-  },
-  loginCard: {
-    background: 'rgba(255,255,255,0.05)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: '24px',
-    padding: '35px 30px',
-    width: '220px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 15px 35px rgba(0,0,0,0.1)',
-    textAlign: 'center'
-  },
-  cardIcon: {
-    width: '70px',
-    height: '70px',
-    background: 'linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%)',
-    borderRadius: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '32px',
-    margin: '0 auto 18px',
-    transition: 'all 0.3s ease'
-  },
-  cardTitle: {
-    fontSize: '1.2rem',
-    fontWeight: 700,
-    color: 'white',
-    marginBottom: '10px'
-  },
-  cardDesc: {
-    fontSize: '0.85rem',
-    color: 'rgba(255,255,255,0.7)',
-    lineHeight: 1.5
-  },
-  mainFooter: {
-    marginTop: '40px',
-    fontSize: '0.8rem',
-    color: 'rgba(255,255,255,0.6)'
-  },
-  versionText: {
-    marginTop: '15px',
-    fontSize: '0.75rem',
-    color: 'rgba(255,255,255,0.4)'
-  },
-  footerLink: {
-    color: 'rgba(255,255,255,0.8)',
-    textDecoration: 'none',
-    margin: '0 10px',
-    transition: 'color 0.2s'
-  },
-  // Form styles
   formCard: {
     background: 'rgba(255,255,255,0.05)',
     backdropFilter: 'blur(20px)',
     border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: '24px',
-    padding: '40px',
-    maxWidth: '420px',
+    padding: '40px 35px',
     width: '100%',
+    maxWidth: '420px',
     boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-    textAlign: 'center',
-    position: 'relative'
-  },
-  backButton: {
-    position: 'absolute',
-    top: '15px',
-    right: '15px',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: '8px',
-    fontSize: '14px',
-    color: 'rgba(255,255,255,0.8)',
-    cursor: 'pointer',
-    padding: '8px 12px',
-    transition: 'all 0.2s'
   },
   formLogo: {
     width: '80px',
     height: '80px',
-    background: 'linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%)',
+    background: 'rgba(255,255,255,0.1)',
+    border: '1px solid rgba(255,255,255,0.2)',
     borderRadius: '20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '40px',
     margin: '0 auto 20px',
-    boxShadow: '0 10px 30px rgba(0, 212, 255, 0.3)'
+    overflow: 'hidden',
   },
   formTitle: {
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: 'white',
-    marginBottom: '8px'
+    color: '#fff',
+    fontSize: '1.6rem',
+    fontWeight: '800',
+    textAlign: 'center',
+    margin: '0 0 8px',
   },
   formSubtitle: {
+    color: '#94a3b8',
     fontSize: '0.9rem',
-    color: 'rgba(255,255,255,0.7)',
-    marginBottom: '30px'
+    textAlign: 'center',
+    margin: '0 0 28px',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '15px'
+    gap: '14px',
   },
   formInput: {
-    padding: '16px',
-    fontSize: '16px',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.2)',
+    width: '100%',
+    padding: '14px 16px',
     borderRadius: '12px',
+    border: '1px solid rgba(255,255,255,0.15)',
+    background: 'rgba(255,255,255,0.08)',
+    color: '#fff',
+    fontSize: '16px',
     outline: 'none',
-    transition: 'all 0.2s',
-    textAlign: 'center',
-    color: 'white'
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
   },
   passwordWrapper: {
     position: 'relative',
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   passwordInput: {
-    padding: '16px',
-    paddingLeft: '45px',
-    fontSize: '16px',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: '12px',
-    outline: 'none',
-    transition: 'all 0.2s',
-    textAlign: 'center',
     width: '100%',
-    color: 'white'
+    padding: '14px 48px 14px 16px',
+    borderRadius: '12px',
+    border: '1px solid rgba(255,255,255,0.15)',
+    background: 'rgba(255,255,255,0.08)',
+    color: '#fff',
+    fontSize: '16px',
+    outline: 'none',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
   },
   toggleButton: {
     position: 'absolute',
-    left: '10px',
+    left: '12px',
     background: 'none',
     border: 'none',
     cursor: 'pointer',
     fontSize: '18px',
-    padding: '5px'
+    padding: '4px',
   },
   error: {
-    color: '#ff6b6b',
-    fontSize: '14px',
-    padding: '12px',
-    background: 'rgba(255, 107, 107, 0.1)',
+    background: 'rgba(239,68,68,0.15)',
+    border: '1px solid rgba(239,68,68,0.3)',
     borderRadius: '10px',
-    border: '1px solid rgba(255, 107, 107, 0.3)'
+    color: '#fca5a5',
+    padding: '10px 14px',
+    fontSize: '0.9rem',
+    textAlign: 'center',
   },
   formSubmit: {
-    padding: '16px',
-    fontSize: '18px',
-    fontWeight: 'bold',
-    color: 'white',
-    background: 'linear-gradient(135deg, #00d4ff 0%, #7b2ff7 100%)',
-    border: 'none',
+    padding: '14px',
     borderRadius: '12px',
+    border: 'none',
+    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+    color: '#fff',
+    fontSize: '1rem',
+    fontWeight: '700',
     cursor: 'pointer',
-    transition: 'all 0.3s',
-    marginTop: '10px',
-    boxShadow: '0 10px 30px rgba(0, 212, 255, 0.3)'
+    transition: 'opacity 0.2s',
+    fontFamily: 'inherit',
   },
   footer: {
-    position: 'absolute',
-    bottom: '20px',
-    left: 0,
-    right: 0,
-    textAlign: 'center'
+    marginTop: '32px',
+    textAlign: 'center',
   },
   footerLinks: {
-    fontSize: '12px',
-    color: 'rgba(255,255,255,0.6)',
-    margin: 0
-  }
+    color: '#475569',
+    fontSize: '0.8rem',
+    margin: '0 0 4px',
+  },
+  footerLink: {
+    color: '#475569',
+    textDecoration: 'none',
+  },
+  versionText: {
+    color: '#334155',
+    fontSize: '0.75rem',
+  },
 }

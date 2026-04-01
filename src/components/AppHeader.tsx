@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
+import type { RoleResult } from '@/app/api/auth/login/route'
 
 interface UserSession {
   manager: {
@@ -33,6 +34,10 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showFormSubmenu, setShowFormSubmenu] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
+  const [activeRole, setActiveRole] = useState<string | null>(null)
+  const [showRoleMenu, setShowRoleMenu] = useState(false)
+  const roleMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Helper to clear all sessions and redirect to login
@@ -113,24 +118,42 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
       }
     }
 
+    // Load unified auth roles for role switcher
+    try {
+      const storedRoles = localStorage.getItem('auth_roles')
+      if (storedRoles) setAuthRoles(JSON.parse(storedRoles))
+      const storedActiveRole = localStorage.getItem('active_role')
+      if (storedActiveRole) setActiveRole(storedActiveRole)
+    } catch { /* ignore */ }
+
     setIsLoading(false)
   }, [])
 
-  // Close menu on click outside
+  // Close menus on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (showProfileMenu && !(e.target as Element).closest('.profile-dropdown')) {
         setShowProfileMenu(false)
       }
+      if (showRoleMenu && roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) {
+        setShowRoleMenu(false)
+      }
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [showProfileMenu])
+  }, [showProfileMenu, showRoleMenu])
 
   const handleLogout = () => {
-    // Clear all session data
     Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('station_session_') || key.startsWith('wheel_manager_') || key === 'operator_session') {
+      if (
+        key.startsWith('station_session_') ||
+        key.startsWith('wheel_manager_') ||
+        key === 'operator_session' ||
+        key === 'super_manager_session' ||
+        key === 'puncture_manager_auth' ||
+        key === 'auth_roles' ||
+        key === 'active_role'
+      ) {
         localStorage.removeItem(key)
       }
     })
@@ -165,7 +188,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
 
   // Check if current page is user's own station
   const isOwnStation = currentStationId && userSession?.stationId === currentStationId
-  const isOnStationsPage = pathname === '/' || pathname === '/stations'
+  const isOnStationsPage = pathname === '/stations'
   const isOnSearchPage = pathname === '/search'
 
   // Get user initials for avatar
@@ -186,6 +209,22 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
       default: return 'משתמש'
     }
   }
+
+  const navigateToRole = (r: RoleResult) => {
+    localStorage.setItem('active_role', r.role)
+    setActiveRole(r.role)
+    setShowRoleMenu(false)
+    const d = r.data
+    switch (r.role) {
+      case 'station_manager': router.push(`/${d.station_id as string}`); break
+      case 'operator': router.push(d.sub_role === 'manager' ? '/call-center' : '/operator'); break
+      case 'district_manager': router.push('/super-manager'); break
+      case 'editor': router.push('/admin/punctures'); break
+    }
+  }
+
+  const currentRoleLabel = authRoles.find(r => r.role === activeRole)?.label
+    ?? authRoles[0]?.label
 
   if (isLoading) {
     return null
@@ -257,6 +296,47 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
       <header className="app-header" style={styles.header}>
         {/* Right side - Profile (RTL) */}
         <div style={styles.headerRight}>
+          {/* Role Switcher */}
+          {authRoles.length > 0 && currentRoleLabel && (
+            <div ref={roleMenuRef} style={{ position: 'relative' }}>
+              {authRoles.length === 1 ? (
+                <span style={styles.roleStatic}>{currentRoleLabel}</span>
+              ) : (
+                <>
+                  <button
+                    style={styles.roleBtn}
+                    onClick={() => setShowRoleMenu(!showRoleMenu)}
+                    aria-haspopup="menu"
+                    aria-expanded={showRoleMenu}
+                  >
+                    {currentRoleLabel}
+                    <span style={{ fontSize: '10px', color: '#60a5fa' }}>▼</span>
+                  </button>
+                  {showRoleMenu && (
+                    <div style={styles.roleDropdown} role="menu">
+                      {authRoles.map((r) => (
+                        <button
+                          key={r.role}
+                          role="menuitem"
+                          style={{
+                            ...styles.roleOption,
+                            ...(r.role === activeRole ? styles.roleOptionActive : {}),
+                          }}
+                          onClick={() => navigateToRole(r)}
+                        >
+                          <span style={{ fontSize: '11px', width: '14px' }}>
+                            {r.role === activeRole ? '✓' : ''}
+                          </span>
+                          {r.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {/* Profile Dropdown */}
           <div className="profile-dropdown" style={styles.profileDropdown}>
             <button
@@ -469,7 +549,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
           )}
 
           {/* All Stations Button */}
-          <Link href="/" className="app-header-btn" style={{...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {})}}>
+          <Link href="/stations" className="app-header-btn" style={{...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {})}}>
             <span>🏪</span>
             <span className="btn-text-full">כל התחנות</span>
             <span className="btn-text-short" style={{display: 'none'}}>תחנות</span>
@@ -592,6 +672,64 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid rgba(251, 191, 36, 0.3)',
     color: '#fbbf24',
   },
+  roleStatic: {
+    background: 'rgba(30, 58, 95, 0.8)',
+    border: '1px solid #3b82f6',
+    color: '#93c5fd',
+    fontSize: '13px',
+    fontWeight: '600',
+    padding: '5px 14px',
+    borderRadius: '20px',
+    whiteSpace: 'nowrap',
+  } as React.CSSProperties,
+  roleBtn: {
+    background: 'rgba(30, 58, 95, 0.8)',
+    border: '1px solid #3b82f6',
+    color: '#93c5fd',
+    fontSize: '13px',
+    fontWeight: '600',
+    padding: '5px 10px',
+    borderRadius: '20px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap',
+    transition: 'background 0.15s',
+  } as React.CSSProperties,
+  roleDropdown: {
+    position: 'absolute',
+    top: 'calc(100% + 8px)',
+    right: 0,
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    minWidth: '150px',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+    zIndex: 200,
+  } as React.CSSProperties,
+  roleOption: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 16px',
+    color: '#cbd5e1',
+    fontSize: '13px',
+    cursor: 'pointer',
+    fontWeight: '500',
+    background: 'transparent',
+    border: 'none',
+    width: '100%',
+    textAlign: 'right' as const,
+    fontFamily: 'inherit',
+    transition: 'background 0.15s',
+  } as React.CSSProperties,
+  roleOptionActive: {
+    color: '#60a5fa',
+    fontWeight: '700',
+  } as React.CSSProperties,
   profileDropdown: {
     position: 'relative',
   },
