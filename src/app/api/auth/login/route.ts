@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Supa = SupabaseClient<any, any, any>
 
 export interface RoleResult {
   role: 'station_manager' | 'operator' | 'district_manager' | 'editor'
@@ -20,30 +23,61 @@ interface StationManagerRow {
   is_primary: boolean | null
   is_active: boolean | null
   station_id: string
-  wheel_stations: { id: string; name: string } | null
+  wheel_stations: { id: string; name: string }[] | { id: string; name: string } | null
 }
 
-async function checkStationManager(
-  supabase: ReturnType<typeof createClient>,
-  phone: string,
+interface CallCenterManagerRow {
+  id: string
+  full_name: string
+  title: string | null
+  phone: string
   password: string
-): Promise<RoleResult | null> {
+  is_primary: boolean | null
+  is_active: boolean | null
+  call_center_id: string
+  call_centers: { id: string; name: string; is_active: boolean } | null
+}
+
+interface OperatorRow {
+  id: string
+  full_name: string
+  phone: string
+  code: string
+  is_active: boolean | null
+  call_center_id: string
+  call_centers: { id: string; name: string; is_active: boolean } | null
+}
+
+interface SuperManagerRow {
+  id: string
+  full_name: string
+  phone: string
+  password: string
+  is_active: boolean | null
+  allowed_districts: string[] | null
+}
+
+interface PunctureManagerRow {
+  id: string
+  full_name: string
+  phone: string
+}
+
+async function checkStationManager(supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
   const cleanPhone = phone.replace(/\D/g, '')
-  const { data: managers } = await supabase
+  const { data } = await supabase
     .from('wheel_station_managers')
     .select('id, full_name, phone, password, role, is_primary, is_active, station_id, wheel_stations(id, name)')
 
-  if (!managers) return null
+  if (!data) return null
 
-  const manager = (managers as StationManagerRow[]).find(
+  const manager = (data as StationManagerRow[]).find(
     (m) => m.phone.replace(/\D/g, '') === cleanPhone
   )
-  if (!manager) return null
-  if (!manager.is_active) return null
-  if (manager.password !== password) return null
+  if (!manager || !manager.is_active || manager.password !== password) return null
 
-  const station = manager.wheel_stations
-
+  const stationRaw = manager.wheel_stations
+  const station = Array.isArray(stationRaw) ? stationRaw[0] : stationRaw
   return {
     role: 'station_manager',
     label: 'מנהל תחנה',
@@ -59,58 +93,49 @@ async function checkStationManager(
   }
 }
 
-async function checkOperator(
-  supabase: ReturnType<typeof createClient>,
-  phone: string,
-  password: string
-): Promise<RoleResult | null> {
-  // Try call_center_managers first, then operators
-  const { data: manager } = await supabase
+async function checkOperator(supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
+  const { data: managerRaw } = await supabase
     .from('call_center_managers')
     .select('id, full_name, title, phone, password, is_primary, is_active, call_center_id, call_centers(id, name, is_active)')
     .eq('phone', phone)
     .single()
 
-  if (manager && manager.is_active && manager.password === password) {
-    const callCenter = manager.call_centers as { id: string; name: string; is_active: boolean } | null
-    if (callCenter?.is_active) {
-      return {
-        role: 'operator',
-        label: 'מוקדן',
-        data: {
-          id: manager.id,
-          full_name: manager.full_name,
-          title: manager.title,
-          phone: manager.phone,
-          is_primary: manager.is_primary,
-          sub_role: 'manager',
-          call_center_id: manager.call_center_id,
-          call_center_name: callCenter.name,
-        }
+  const manager = managerRaw as CallCenterManagerRow | null
+  if (manager?.is_active && manager.password === password && manager.call_centers?.is_active) {
+    return {
+      role: 'operator',
+      label: 'מוקדן',
+      data: {
+        id: manager.id,
+        full_name: manager.full_name,
+        title: manager.title,
+        phone: manager.phone,
+        is_primary: manager.is_primary,
+        sub_role: 'manager',
+        call_center_id: manager.call_center_id,
+        call_center_name: manager.call_centers.name,
       }
     }
   }
 
-  const { data: operator } = await supabase
+  const { data: operatorRaw } = await supabase
     .from('operators')
     .select('id, full_name, phone, code, is_active, call_center_id, call_centers(id, name, is_active)')
     .eq('phone', phone)
     .single()
 
-  if (operator && operator.is_active && operator.code === password) {
-    const callCenter = operator.call_centers as { id: string; name: string; is_active: boolean } | null
-    if (callCenter?.is_active) {
-      return {
-        role: 'operator',
-        label: 'מוקדן',
-        data: {
-          id: operator.id,
-          full_name: operator.full_name,
-          phone: operator.phone,
-          sub_role: 'operator',
-          call_center_id: operator.call_center_id,
-          call_center_name: callCenter.name,
-        }
+  const operator = operatorRaw as OperatorRow | null
+  if (operator?.is_active && operator.code === password && operator.call_centers?.is_active) {
+    return {
+      role: 'operator',
+      label: 'מוקדן',
+      data: {
+        id: operator.id,
+        full_name: operator.full_name,
+        phone: operator.phone,
+        sub_role: 'operator',
+        call_center_id: operator.call_center_id,
+        call_center_name: operator.call_centers.name,
       }
     }
   }
@@ -118,34 +143,19 @@ async function checkOperator(
   return null
 }
 
-interface SuperManagerRow {
-  id: string
-  full_name: string
-  phone: string
-  password: string
-  is_active: boolean | null
-  allowed_districts: string[] | null
-}
-
-async function checkDistrictManager(
-  supabase: ReturnType<typeof createClient>,
-  phone: string,
-  password: string
-): Promise<RoleResult | null> {
+async function checkDistrictManager(supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
   const cleanPhone = phone.replace(/\D/g, '')
-  const { data: managers } = await supabase
+  const { data } = await supabase
     .from('super_managers')
     .select('id, full_name, phone, password, is_active, allowed_districts')
     .limit(50)
 
-  if (!managers) return null
+  if (!data) return null
 
-  const manager = (managers as SuperManagerRow[]).find(
+  const manager = (data as SuperManagerRow[]).find(
     (m) => m.phone.replace(/\D/g, '') === cleanPhone
   )
-  if (!manager) return null
-  if (!manager.is_active) return null
-  if (manager.password !== password) return null
+  if (!manager || !manager.is_active || manager.password !== password) return null
 
   return {
     role: 'district_manager',
@@ -159,13 +169,9 @@ async function checkDistrictManager(
   }
 }
 
-async function checkEditor(
-  supabase: ReturnType<typeof createClient>,
-  phone: string,
-  password: string
-): Promise<RoleResult | null> {
+async function checkEditor(supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
   const cleanPhone = phone.replace(/\D/g, '')
-  const { data: manager } = await supabase
+  const { data } = await supabase
     .from('puncture_managers')
     .select('id, full_name, phone, is_active')
     .eq('phone', cleanPhone)
@@ -173,8 +179,9 @@ async function checkEditor(
     .eq('is_active', true)
     .single()
 
-  if (!manager) return null
+  if (!data) return null
 
+  const manager = data as PunctureManagerRow
   return {
     role: 'editor',
     label: 'עורך',
@@ -211,7 +218,6 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Check all 4 role tables in parallel
     const [stationManager, operator, districtManager, editor] = await Promise.all([
       checkStationManager(supabase, phone, password),
       checkOperator(supabase, phone, password),
