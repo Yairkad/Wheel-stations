@@ -747,7 +747,7 @@ export default function WheelStationsPage() {
             100% { background-position: -200% 0; }
           }
           .skeleton {
-            background: linear-gradient(90deg, #3d4a5c 25%, #4b5a6e 50%, #3d4a5c 75%);
+            background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
             border-radius: 8px;
@@ -1815,68 +1815,68 @@ export default function WheelStationsPage() {
 
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px'}}>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>מס׳ ברגים</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#64748b'}}>מס׳ ברגים</label>
                   <input
                     type="number"
                     value={errorReportForm.correct_bolt_count}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_bolt_count: e.target.value})}
                     placeholder="5"
-                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc', color: '#1e293b', fontSize: '1rem'}}
                   />
                 </div>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>מרווח (PCD)</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#64748b'}}>מרווח (PCD)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={errorReportForm.correct_bolt_spacing}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_bolt_spacing: e.target.value})}
                     placeholder="114.3"
-                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc', color: '#1e293b', fontSize: '1rem'}}
                   />
                 </div>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>CB (Center Bore)</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#64748b'}}>CB (Center Bore)</label>
                   <input
                     type="number"
                     step="0.1"
                     value={errorReportForm.correct_center_bore}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_center_bore: e.target.value})}
                     placeholder="60.1"
-                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc', color: '#1e293b', fontSize: '1rem'}}
                   />
                 </div>
                 <div>
-                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>גודל חישוק</label>
+                  <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#64748b'}}>גודל חישוק</label>
                   <input
                     type="text"
                     value={errorReportForm.correct_rim_size}
                     onChange={e => setErrorReportForm({...errorReportForm, correct_rim_size: e.target.value})}
                     placeholder='16"'
-                    style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
+                    style={{width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc', color: '#1e293b', fontSize: '1rem'}}
                   />
                 </div>
               </div>
 
               <div style={{marginBottom: '16px'}}>
-                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>גודל צמיג</label>
+                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#64748b'}}>גודל צמיג</label>
                 <input
                   type="text"
                   value={errorReportForm.correct_tire_size}
                   onChange={e => setErrorReportForm({...errorReportForm, correct_tire_size: e.target.value})}
                   placeholder="205/55R16"
-                  style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem'}}
+                  style={{width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc', color: '#1e293b', fontSize: '1rem'}}
                 />
               </div>
 
               <div style={{marginBottom: '20px'}}>
-                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#94a3b8'}}>הערות נוספות</label>
+                <label style={{display: 'block', marginBottom: '4px', fontSize: '0.85rem', color: '#64748b'}}>הערות נוספות</label>
                 <textarea
                   value={errorReportForm.notes}
                   onChange={e => setErrorReportForm({...errorReportForm, notes: e.target.value})}
                   placeholder="תאר את הטעות שמצאת..."
                   rows={3}
-                  style={{width: '100%', padding: '10px', border: '1px solid #475569', borderRadius: '8px', background: '#1e293b', color: '#fff', fontSize: '1rem', resize: 'vertical'}}
+                  style={{width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc', color: '#1e293b', fontSize: '1rem', resize: 'vertical'}}
                 />
               </div>
 
@@ -2201,8 +2201,8 @@ export default function WheelStationsPage() {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #374151 0%, #4b5563 100%)',
-    color: '#fff',
+    background: '#f1f5f9',
+    color: '#1e293b',
     padding: '20px',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
@@ -2221,8 +2221,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '50%',
     objectFit: 'cover',
     marginBottom: '20px',
-    border: '3px solid #6b7280',
-    boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+    border: '3px solid #e2e8f0',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
     display: 'block',
     margin: '0 auto 20px',
   },
@@ -2232,7 +2232,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '50%',
     objectFit: 'cover',
     marginBottom: '20px',
-    border: '3px solid #6b7280',
+    border: '3px solid #e2e8f0',
     animation: 'pulse 1.5s ease-in-out infinite',
     display: 'block',
     margin: '0 auto 20px',
@@ -2240,9 +2240,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   title: {
     fontSize: '2.5rem',
     marginBottom: '10px',
+    color: '#1e293b',
   },
   subtitle: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '1.1rem',
     marginBottom: '20px',
   },
@@ -2263,9 +2264,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     padding: '12px 40px 12px 16px',
     borderRadius: '12px',
-    border: '2px solid rgba(255,255,255,0.2)',
-    background: 'rgba(255,255,255,0.1)',
-    color: '#fff',
+    border: '1px solid #e2e8f0',
+    background: '#ffffff',
+    color: '#1e293b',
     fontSize: '1rem',
     outline: 'none',
     transition: 'border-color 0.2s, background 0.2s',
@@ -2275,7 +2276,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: '12px',
     background: 'none',
     border: 'none',
-    color: '#9ca3af',
+    color: '#94a3b8',
     cursor: 'pointer',
     fontSize: '1rem',
     padding: '4px',
@@ -2321,20 +2322,21 @@ const styles: { [key: string]: React.CSSProperties } = {
   spinner: {
     width: '40px',
     height: '40px',
-    border: '4px solid rgba(255,255,255,0.1)',
-    borderTopColor: '#f59e0b',
+    border: '4px solid #e2e8f0',
+    borderTopColor: '#2563eb',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   },
   error: {
     textAlign: 'center',
     padding: '40px',
+    color: '#1e293b',
   },
   retryBtn: {
     marginTop: '20px',
     padding: '10px 30px',
-    background: '#f59e0b',
-    color: '#000',
+    background: '#2563eb',
+    color: '#fff',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -2343,7 +2345,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   empty: {
     textAlign: 'center',
     padding: '60px',
-    color: '#a0aec0',
+    color: '#64748b',
   },
   grid: {
     display: 'grid',
@@ -2353,28 +2355,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '0 auto',
   },
   card: {
-    background: 'linear-gradient(145deg, #2d3748, #1a202c)',
+    background: '#ffffff',
     borderRadius: '16px',
     padding: '25px',
     cursor: 'pointer',
-    transition: 'all 0.3s',
+    transition: 'all 0.2s',
     textDecoration: 'none',
-    color: '#fff',
-    border: '2px solid transparent',
+    color: '#1e293b',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
     display: 'block',
   },
   cardTitle: {
     fontSize: '1.3rem',
     marginBottom: '10px',
-    color: '#f59e0b',
+    color: '#2563eb',
   },
   address: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
     marginBottom: '5px',
   },
   cityName: {
-    color: '#718096',
+    color: '#94a3b8',
     fontSize: '0.85rem',
     marginBottom: '15px',
   },
@@ -2382,8 +2385,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'space-around',
     padding: '15px 0',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
+    borderTop: '1px solid #e2e8f0',
+    borderBottom: '1px solid #e2e8f0',
   },
   stat: {
     textAlign: 'center',
@@ -2391,51 +2394,52 @@ const styles: { [key: string]: React.CSSProperties } = {
   statValue: {
     fontSize: '1.8rem',
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#1e293b',
   },
   statLabel: {
     fontSize: '0.85rem',
-    color: '#a0aec0',
+    color: '#64748b',
   },
   managers: {
     marginTop: '15px',
     padding: '10px',
-    background: 'rgba(255,255,255,0.05)',
+    background: '#f8fafc',
     borderRadius: '8px',
     textAlign: 'center',
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
+    border: '1px solid #f1f5f9',
   },
   footer: {
     textAlign: 'center',
     marginTop: '40px',
     paddingTop: '20px',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
+    borderTop: '1px solid #e2e8f0',
   },
   footerInfo: {
     marginTop: '0',
   },
   footerText: {
-    color: '#d1d5db',
+    color: '#94a3b8',
     fontSize: '0.75rem',
     margin: 0,
   },
   feedbackLink: {
-    color: '#93c5fd',
+    color: '#2563eb',
     textDecoration: 'none',
   },
   legalLinks: {
-    color: '#9ca3af',
+    color: '#94a3b8',
     fontSize: '0.7rem',
     marginTop: '8px',
     margin: 0,
   },
   legalLink: {
-    color: '#9ca3af',
+    color: '#94a3b8',
     textDecoration: 'none',
   },
   versionText: {
-    color: '#9ca3af',
+    color: '#94a3b8',
     fontSize: '0.65rem',
     marginTop: '8px',
   },
@@ -2455,7 +2459,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     overflow: 'auto',
   },
   modal: {
-    background: '#1e293b',
+    background: '#ffffff',
     borderRadius: '16px',
     padding: '15px',
     width: '100%',
@@ -2463,6 +2467,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxHeight: 'calc(100vh - 10px)',
     overflowY: 'auto',
     margin: 'auto',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
   },
   modalHeader: {
     display: 'flex',
@@ -2471,19 +2476,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '15px',
   },
   modalTitle: {
-    color: '#f59e0b',
+    color: '#2563eb',
     margin: 0,
     fontSize: '1.3rem',
   },
   closeBtn: {
     background: 'transparent',
     border: 'none',
-    color: '#a0aec0',
+    color: '#94a3b8',
     fontSize: '1.5rem',
     cursor: 'pointer',
   },
   modalSubtitle: {
-    color: '#a0aec0',
+    color: '#64748b',
     marginBottom: '20px',
   },
   filterGrid: {
@@ -2498,15 +2503,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '5px',
   },
   filterLabel: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.8rem',
   },
   filterSelect: {
     padding: '10px',
     borderRadius: '8px',
-    border: '1px solid #4a5568',
-    background: '#2d3748',
-    color: 'white',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '0.9rem',
   },
   checkboxRow: {
@@ -2516,12 +2521,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '20px',
   },
   checkboxLabel: {
-    color: '#a0aec0',
+    color: '#475569',
     fontSize: '0.9rem',
   },
   searchSubmitBtn: {
     width: '100%',
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
     color: 'white',
     border: 'none',
     padding: '14px',
@@ -2533,7 +2538,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   backToFiltersBtn: {
     background: 'transparent',
     border: 'none',
-    color: '#3b82f6',
+    color: '#2563eb',
     cursor: 'pointer',
     marginBottom: '15px',
     fontSize: '0.9rem',
@@ -2541,9 +2546,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   noResults: {
     textAlign: 'center',
     padding: '30px',
+    color: '#1e293b',
   },
   noResultsHint: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
   },
   resultsList: {
@@ -2558,13 +2564,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
   },
   resultCard: {
-    background: 'rgba(255,255,255,0.05)',
+    background: '#f8fafc',
     borderRadius: '12px',
     padding: '15px',
     textDecoration: 'none',
-    color: '#fff',
+    color: '#1e293b',
     display: 'block',
-    border: '1px solid transparent',
+    border: '1px solid #e2e8f0',
     transition: 'all 0.2s',
   },
   resultStationInfo: {
@@ -2574,10 +2580,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '5px',
   },
   resultStationGroup: {
-    background: 'rgba(255,255,255,0.03)',
+    background: '#f8fafc',
     borderRadius: '12px',
     padding: '12px',
     marginBottom: '12px',
+    border: '1px solid #e2e8f0',
   },
   resultStationHeader: {
     display: 'flex',
@@ -2587,17 +2594,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   resultStationName: {
     fontWeight: 'bold',
-    color: '#f59e0b',
+    color: '#2563eb',
   },
   resultCityBadge: {
-    background: 'rgba(59, 130, 246, 0.2)',
-    color: '#60a5fa',
+    background: '#eff6ff',
+    color: '#2563eb',
     padding: '3px 8px',
     borderRadius: '6px',
     fontSize: '0.8rem',
   },
   resultAddress: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.85rem',
     marginBottom: '10px',
   },
@@ -2607,12 +2614,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
   },
   resultWheelCard: {
-    background: 'rgba(16, 185, 129, 0.1)',
-    border: '1px solid rgba(16, 185, 129, 0.3)',
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
     borderRadius: '8px',
     padding: '10px 14px',
     textDecoration: 'none',
-    color: '#fff',
+    color: '#1e293b',
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
@@ -2620,24 +2627,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.2s',
   },
   resultWheelTaken: {
-    background: 'rgba(239, 68, 68, 0.1)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
+    background: '#fef2f2',
+    border: '1px solid #fecaca',
     opacity: 0.7,
   },
   resultWheelNumber: {
     fontWeight: 'bold',
     fontSize: '1.1rem',
-    color: '#f59e0b',
+    color: '#2563eb',
   },
   resultWheelSpecs: {
     display: 'flex',
     gap: '6px',
     fontSize: '0.8rem',
-    color: '#a0aec0',
+    color: '#64748b',
   },
   resultDonutBadge: {
-    background: 'rgba(168, 85, 247, 0.3)',
-    color: '#a855f7',
+    background: '#f3e8ff',
+    color: '#9333ea',
     padding: '1px 5px',
     borderRadius: '4px',
     fontSize: '0.7rem',
@@ -2651,27 +2658,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '15px',
   },
   resultAvailable: {
-    color: '#10b981',
+    color: '#16a34a',
     fontWeight: 'bold',
   },
   resultTotal: {
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
   },
   // Vehicle modal styles
   vehicleModal: {
-    background: '#1e293b',
+    background: '#ffffff',
     borderRadius: '12px',
     padding: '14px',
     width: '100%',
     maxWidth: '450px',
     maxHeight: '90vh',
     overflowY: 'auto',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
   },
   betaWarning: {
-    background: 'rgba(251, 191, 36, 0.15)',
-    border: '1px solid rgba(251, 191, 36, 0.3)',
-    color: '#fbbf24',
+    background: '#fffbeb',
+    border: '1px solid #fde68a',
+    color: '#d97706',
     padding: '10px 15px',
     borderRadius: '10px',
     textAlign: 'center',
@@ -2687,15 +2695,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     flex: 1,
     padding: '14px 18px',
     borderRadius: '10px',
-    border: '2px solid #4a5568',
-    background: '#2d3748',
-    color: 'white',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontSize: '1.2rem',
     textAlign: 'center',
     letterSpacing: '2px',
   },
   vehicleLookupBtn: {
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
     color: 'white',
     border: 'none',
     padding: '14px 20px',
@@ -2705,12 +2713,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1.2rem',
   },
   vehicleError: {
-    background: 'rgba(239, 68, 68, 0.2)',
-    color: '#fca5a5',
+    background: '#fef2f2',
+    color: '#ef4444',
     padding: '12px',
     borderRadius: '10px',
     textAlign: 'center',
     marginBottom: '15px',
+    border: '1px solid #fecaca',
   },
   vehicleResultSection: {
     display: 'flex',
@@ -2718,8 +2727,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '15px',
   },
   vehicleInfoCard: {
-    background: 'rgba(59, 130, 246, 0.1)',
-    border: '1px solid rgba(59, 130, 246, 0.3)',
+    background: '#eff6ff',
+    border: '1px solid #bfdbfe',
     borderRadius: '12px',
     padding: '15px',
     textAlign: 'center',
@@ -2727,7 +2736,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   vehicleInfoTitle: {
     fontSize: '1.2rem',
     fontWeight: 'bold',
-    color: '#60a5fa',
+    color: '#2563eb',
     marginBottom: '8px',
     wordBreak: 'break-word' as const,
   },
@@ -2736,12 +2745,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     flexWrap: 'wrap' as const,
     gap: '10px 20px',
-    color: '#a0aec0',
+    color: '#64748b',
     fontSize: '0.9rem',
   },
   vehicleFitmentCard: {
-    background: 'rgba(16, 185, 129, 0.1)',
-    border: '1px solid rgba(16, 185, 129, 0.3)',
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
     borderRadius: '12px',
     padding: '15px',
   },
@@ -2761,14 +2770,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    background: 'rgba(30, 41, 59, 0.5)',
+    background: '#f1f5f9',
     padding: '10px 18px',
     borderRadius: '12px',
     minWidth: '70px',
+    border: '1px solid #e2e8f0',
   },
   fitmentLabel: {
     fontSize: '0.7rem',
-    color: '#94a3b8',
+    color: '#64748b',
     marginBottom: '4px',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
@@ -2776,7 +2786,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   fitmentValue: {
     fontSize: '1.1rem',
     fontWeight: 'bold',
-    color: '#f1f5f9',
+    color: '#1e293b',
   },
   allowedSizesRow: {
     display: 'flex',
@@ -2785,18 +2795,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
     marginBottom: '12px',
     padding: '8px 16px',
-    background: 'rgba(34, 197, 94, 0.1)',
+    background: '#f0fdf4',
     borderRadius: '8px',
-    border: '1px solid rgba(34, 197, 94, 0.2)',
+    border: '1px solid #bbf7d0',
   },
   allowedSizesLabel: {
     fontSize: '0.8rem',
-    color: '#86efac',
+    color: '#16a34a',
   },
   allowedSizesValue: {
     fontSize: '0.9rem',
     fontWeight: 'bold',
-    color: '#4ade80',
+    color: '#16a34a',
   },
   fitmentActionsRow: {
     display: 'flex',
@@ -2808,40 +2818,40 @@ const styles: { [key: string]: React.CSSProperties } = {
   rimSizeSelect: {
     padding: '8px 12px',
     borderRadius: '8px',
-    border: '1px solid #475569',
-    background: '#1e293b',
-    color: '#f1f5f9',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#1e293b',
     fontWeight: 'bold',
     fontSize: '0.85rem',
     cursor: 'pointer',
   },
   pcdBadge: {
-    background: 'rgba(16, 185, 129, 0.3)',
-    color: '#34d399',
+    background: '#dcfce7',
+    color: '#16a34a',
     padding: '8px 16px',
     borderRadius: '20px',
     fontWeight: 'bold',
     fontSize: '1rem',
   },
   rimBadge: {
-    background: 'rgba(59, 130, 246, 0.3)',
-    color: '#60a5fa',
+    background: '#dbeafe',
+    color: '#2563eb',
     padding: '8px 16px',
     borderRadius: '20px',
     fontWeight: 'bold',
     fontSize: '1rem',
   },
   centerBoreBadge: {
-    background: 'rgba(168, 85, 247, 0.3)',
-    color: '#c084fc',
+    background: '#f3e8ff',
+    color: '#9333ea',
     padding: '8px 16px',
     borderRadius: '20px',
     fontWeight: 'bold',
     fontSize: '1rem',
   },
   sourceLink: {
-    background: 'rgba(59, 130, 246, 0.15)',
-    color: '#93c5fd',
+    background: '#eff6ff',
+    color: '#2563eb',
     padding: '8px 12px',
     borderRadius: '8px',
     fontWeight: '500',
@@ -2850,45 +2860,46 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
-    border: '1px solid rgba(59, 130, 246, 0.3)',
+    border: '1px solid #bfdbfe',
     transition: 'all 0.2s ease',
   },
   vehicleWheelResults: {
     marginTop: '10px',
   },
   vehicleResultsHeader: {
-    color: '#10b981',
+    color: '#16a34a',
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: '5px',
     fontSize: '0.95rem',
   },
   vehicleResultsNote: {
-    color: '#a0aec0',
+    color: '#64748b',
     textAlign: 'center',
     marginBottom: '12px',
     fontSize: '0.8rem',
   },
   noVehicleResults: {
     textAlign: 'center',
-    color: '#fbbf24',
+    color: '#d97706',
     padding: '15px',
-    background: 'rgba(251, 191, 36, 0.1)',
+    background: '#fffbeb',
     borderRadius: '10px',
+    border: '1px solid #fde68a',
   },
   noFitmentCard: {
-    background: 'rgba(251, 191, 36, 0.1)',
-    border: '1px solid rgba(251, 191, 36, 0.3)',
+    background: '#fffbeb',
+    border: '1px solid #fde68a',
     borderRadius: '12px',
     padding: '20px',
     textAlign: 'center',
-    color: '#fbbf24',
+    color: '#d97706',
     display: 'flex',
     flexDirection: 'column',
     gap: '10px',
   },
   wheelSizeLink: {
-    color: '#60a5fa',
+    color: '#2563eb',
     textDecoration: 'none',
     fontSize: '0.9rem',
   },
@@ -2910,14 +2921,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
   },
   addModelModal: {
-    background: '#1f2937',
+    background: '#ffffff',
     borderRadius: '12px',
     padding: '14px',
     maxWidth: '480px',
     width: '100%',
     maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.12)',
   },
   addModelForm: {
     display: 'flex',
@@ -2936,15 +2947,15 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   formLabel: {
     fontSize: '0.9rem',
-    color: '#d1d5db',
+    color: '#475569',
     fontWeight: '500',
   },
   formInput: {
     padding: '10px',
-    background: '#374151',
-    border: '1px solid #4b5563',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
-    color: '#fff',
+    color: '#1e293b',
     fontSize: '1rem',
   },
   formActions: {
@@ -2966,9 +2977,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   cancelBtn: {
     flex: 1,
     padding: '12px',
-    background: '#6b7280',
-    color: '#fff',
-    border: 'none',
+    background: '#f1f5f9',
+    color: '#475569',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
     fontSize: '1rem',
     cursor: 'pointer',
@@ -2978,26 +2989,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     top: '100%',
     left: 0,
     right: 0,
-    background: '#1f2937',
-    border: '1px solid #4b5563',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
     marginTop: '4px',
     maxHeight: '200px',
     overflowY: 'auto',
     zIndex: 1000,
-    boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
   },
   suggestionItem: {
     padding: '10px 12px',
     cursor: 'pointer',
-    borderBottom: '1px solid #374151',
-    color: '#d1d5db',
+    borderBottom: '1px solid #f1f5f9',
+    color: '#1e293b',
     fontSize: '0.95rem',
   },
   reportErrorBtn: {
-    background: 'rgba(239, 68, 68, 0.2)',
-    color: '#fca5a5',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
+    background: '#fef2f2',
+    color: '#ef4444',
+    border: '1px solid #fecaca',
     padding: '8px 12px',
     borderRadius: '8px',
     cursor: 'pointer',
