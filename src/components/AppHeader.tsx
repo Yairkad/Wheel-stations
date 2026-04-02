@@ -37,10 +37,10 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
   const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
   const [activeRole, setActiveRole] = useState<string | null>(null)
   const [showRoleMenu, setShowRoleMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Helper to clear all sessions and redirect to login
     const forceLogout = (reason: string) => {
       console.log(`Force logout: ${reason}`)
       Object.keys(localStorage).forEach(key => {
@@ -48,26 +48,20 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
           localStorage.removeItem(key)
         }
       })
-      // Redirect to login if not already there
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login'
       }
     }
 
-    // Find user session from localStorage
     const sessionKeys = Object.keys(localStorage).filter(key => key.startsWith('station_session_'))
     if (sessionKeys.length > 0) {
       try {
         const session = JSON.parse(localStorage.getItem(sessionKeys[0]) || '{}')
-
-        // Check session version - force logout if outdated
         if (!session.version || session.version < SESSION_VERSION) {
           forceLogout('Session version outdated')
           return
         }
-
         if (session.manager) {
-          // Make sure stationId is set correctly from the session key or manager data
           const stationIdFromKey = sessionKeys[0].replace('station_session_', '')
           setUserSession({
             ...session,
@@ -79,24 +73,19 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
           })
         }
       } catch {
-        // Invalid session
         forceLogout('Invalid session data')
         return
       }
     }
 
-    // Also check operator session
     const operatorSession = localStorage.getItem('operator_session')
     if (operatorSession) {
       try {
         const session = JSON.parse(operatorSession)
-
-        // Check session version for operator too
         if (!session.version || session.version < SESSION_VERSION) {
           forceLogout('Operator session version outdated')
           return
         }
-
         if (session.operator) {
           setUserSession({
             manager: {
@@ -112,13 +101,11 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
           })
         }
       } catch {
-        // Invalid session
         forceLogout('Invalid operator session data')
         return
       }
     }
 
-    // Load unified auth roles for role switcher
     try {
       const storedRoles = localStorage.getItem('auth_roles')
       const storedActiveRole = localStorage.getItem('active_role')
@@ -126,7 +113,6 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
         setAuthRoles(JSON.parse(storedRoles))
         if (storedActiveRole) setActiveRole(storedActiveRole)
       } else {
-        // Fallback: synthesize a single role from legacy session keys
         const stationKey = Object.keys(localStorage).find(k => k.startsWith('station_session_'))
         const operatorRaw = localStorage.getItem('operator_session')
         const superRaw = localStorage.getItem('super_manager_session')
@@ -141,8 +127,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
         } else if (operatorRaw) {
           const s = JSON.parse(operatorRaw)
           if (s.user) {
-            const label = s.role === 'manager' ? 'מוקדן' : 'מוקדן'
-            setAuthRoles([{ role: 'operator', label, data: s.user }])
+            setAuthRoles([{ role: 'operator', label: 'מוקדן', data: s.user }])
             setActiveRole('operator')
           }
         } else if (superRaw) {
@@ -161,7 +146,6 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
     setIsLoading(false)
   }, [])
 
-  // Close menus on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (showProfileMenu && !(e.target as Element).closest('.profile-dropdown')) {
@@ -174,6 +158,11 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showProfileMenu, showRoleMenu])
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setShowMobileMenu(false)
+  }, [pathname])
 
   const handleLogout = () => {
     Object.keys(localStorage).forEach(key => {
@@ -218,18 +207,14 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
     setShowFormSubmenu(false)
   }
 
-  // Check if current page is user's own station
   const isOwnStation = currentStationId && userSession?.stationId === currentStationId
   const isOnStationsPage = pathname === '/stations'
   const isOnSearchPage = pathname === '/search'
 
-  // Get user initials for avatar
   const getUserInitials = (fullName: string | undefined) => {
-    if (!fullName) return '👤'
+    if (!fullName) return '?'
     const parts = fullName.trim().split(' ').filter(p => p.length > 0)
-    if (parts.length >= 2) {
-      return parts[0][0] + parts[1][0]
-    }
+    if (parts.length >= 2) return parts[0][0] + parts[1][0]
     return fullName.substring(0, 2)
   }
 
@@ -255,494 +240,562 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
     }
   }
 
-  const currentRoleLabel = authRoles.find(r => r.role === activeRole)?.label
-    ?? authRoles[0]?.label
+  const currentRoleLabel = authRoles.find(r => r.role === activeRole)?.label ?? authRoles[0]?.label
 
-  if (isLoading) {
-    return null
-  }
+  if (isLoading || !userSession) return null
 
-  if (!userSession) {
-    return null // Don't show header if not logged in
-  }
+  const dropdownMenuContent = (
+    <>
+      <div style={styles.menuUserInfo}>
+        <div style={styles.menuStationNameLarge}>{userSession.manager.full_name}</div>
+        <div style={styles.menuUserPhone}>{userSession.stationName || userSession.manager.station_name || 'התחנה שלי'}</div>
+      </div>
+
+      <div style={styles.dropdownDivider} />
+
+      {userSession.stationId && (
+        <>
+          {!isOwnStation && (
+            <Link href={`/${userSession.stationId}`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              <span>התחנה שלי</span>
+            </Link>
+          )}
+
+          {(isOwnStation || isOnStationsPage || isOnSearchPage) && (
+            <>
+              <Link href={`/search?from=${userSession.stationId}`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <span>חיפוש רכב</span>
+              </Link>
+              <Link href={`/${userSession.stationId}?action=add`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                <span>הוסף גלגל</span>
+              </Link>
+              <Link href={`/${userSession.stationId}?action=excel`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/>
+                </svg>
+                <span>יבוא/יצוא Excel</span>
+              </Link>
+              <Link href={`/${userSession.stationId}?action=settings`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+                </svg>
+                <span>הגדרות תחנה</span>
+              </Link>
+              <Link href={`/${userSession.stationId}?action=notifications`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                </svg>
+                <span>הפעל התראות</span>
+              </Link>
+
+              <div style={styles.submenuContainer}>
+                <button
+                  style={{ ...styles.dropdownItem, ...styles.submenuTrigger }}
+                  onClick={(e) => { e.stopPropagation(); setShowFormSubmenu(!showFormSubmenu) }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                  </svg>
+                  <span>קישור לטופס השאלה</span>
+                  <span style={styles.submenuArrow}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      {showFormSubmenu ? <polyline points="18 15 12 9 6 15"/> : <polyline points="6 9 12 15 18 9"/>}
+                    </svg>
+                  </span>
+                </button>
+                {showFormSubmenu && (
+                  <div style={styles.submenu}>
+                    <Link href={`/sign/${userSession.stationId}`} style={styles.submenuItem} onClick={() => { setShowProfileMenu(false); setShowFormSubmenu(false) }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                      </svg>
+                      <span>פתח טופס</span>
+                    </Link>
+                    <button style={styles.submenuItem} onClick={handleCopyFormLink}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                      </svg>
+                      <span>העתק קישור</span>
+                    </button>
+                    <button style={styles.submenuItem} onClick={handleWhatsAppForm}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                      </svg>
+                      <span>שלח בוואטסאפ</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div style={styles.dropdownDivider} />
+
+              <Link href={`/${userSession.stationId}?action=password`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+                <span>שינוי סיסמא</span>
+              </Link>
+              <Link href={`/${userSession.stationId}?action=recovery`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span>תעודת שחזור</span>
+              </Link>
+            </>
+          )}
+        </>
+      )}
+
+      <Link href="/guide?tab=manager" style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>מדריך למנהלים</span>
+      </Link>
+
+      <div style={styles.dropdownDivider} />
+
+      <button style={{ ...styles.dropdownItem, ...styles.dropdownItemDanger }} onClick={handleLogout}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>התנתק</span>
+      </button>
+    </>
+  )
 
   return (
     <>
       <style>{`
-        @media (max-width: 768px) {
-          .app-header {
-            padding: 10px 12px !important;
-            gap: 8px !important;
-          }
-          .app-header-right {
-            gap: 6px !important;
-          }
-          .app-header-btn {
-            padding: 6px 10px !important;
-            font-size: 12px !important;
-          }
-          .app-header-btn .btn-text-full {
-            display: none !important;
-          }
-          .app-header-btn .btn-text-short {
-            display: inline !important;
-          }
-          .app-header-btn span:first-child {
-            font-size: 16px !important;
-          }
-          .station-indicator {
-            display: none !important;
-          }
-          .profile-name {
-            font-size: 12px !important;
-          }
-          .profile-role {
-            display: none !important;
-          }
-          .profile-avatar {
-            width: 32px !important;
-            height: 32px !important;
-            font-size: 12px !important;
-          }
-          .profile-arrow {
-            display: none !important;
-          }
+        .header-nav { display: flex; align-items: center; gap: 6px; padding-right: 10px; }
+        .header-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; padding: 0 14px; border-right: 1px solid rgba(226,232,240,0.6); border-left: 1px solid rgba(226,232,240,0.6); height: 54px; flex-shrink: 0; }
+        .hamburger-btn { display: none !important; }
+
+        @media (max-width: 640px) {
+          .header-nav { display: none !important; }
+          .header-logo-text { display: none !important; }
+          .hamburger-btn { display: flex !important; }
+          .station-indicator { display: none !important; }
+          .profile-info { display: none !important; }
+          .profile-role { display: none !important; }
+          .role-chip { display: none !important; }
+          .app-header { padding: 0 10px !important; }
         }
-        @media (max-width: 480px) {
-          .app-header-btn {
-            padding: 6px 8px !important;
-          }
-          .profile-info {
-            display: none !important;
-          }
+        @media (max-width: 380px) {
+          .header-logo { padding: 0 8px !important; }
         }
         @media all and (display-mode: standalone) {
-          .app-header {
-            padding-top: max(12px, env(safe-area-inset-top, 12px)) !important;
+          .app-header-wrap {
+            padding-top: env(safe-area-inset-top, 0px) !important;
           }
           .app-header-spacer {
             height: calc(70px + env(safe-area-inset-top, 0px)) !important;
           }
         }
       `}</style>
-      <header className="app-header" style={styles.header}>
-        {/* Right side - Profile (RTL) */}
-        <div style={styles.headerRight}>
-          {/* Role Switcher */}
-          {authRoles.length > 0 && currentRoleLabel && (
-            <div ref={roleMenuRef} style={{ position: 'relative' }}>
-              {authRoles.length === 1 ? (
-                <span style={styles.roleStatic}>{currentRoleLabel}</span>
-              ) : (
-                <>
-                  <button
-                    style={styles.roleBtn}
-                    onClick={() => setShowRoleMenu(!showRoleMenu)}
-                    aria-haspopup="menu"
-                    aria-expanded={showRoleMenu}
-                  >
-                    {currentRoleLabel}
-                    <span style={{ fontSize: '10px', color: '#2563eb' }}>▼</span>
-                  </button>
-                  {showRoleMenu && (
-                    <div style={styles.roleDropdown} role="menu">
-                      {authRoles.map((r) => (
-                        <button
-                          key={r.role}
-                          role="menuitem"
-                          style={{
-                            ...styles.roleOption,
-                            ...(r.role === activeRole ? styles.roleOptionActive : {}),
-                          }}
-                          onClick={() => navigateToRole(r)}
-                        >
-                          <span style={{ fontSize: '11px', width: '14px' }}>
-                            {r.role === activeRole ? '✓' : ''}
-                          </span>
-                          {r.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
 
-          {/* Profile Dropdown */}
+      {/* Floating glass header */}
+      <div className="app-header-wrap" style={styles.headerWrap}>
+        <header className="app-header" style={styles.header}>
+
+          {/* ── RIGHT (RTL start): Avatar ── */}
           <div className="profile-dropdown" style={styles.profileDropdown}>
             <button
               style={styles.profileBtn}
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               aria-haspopup="menu"
               aria-expanded={showProfileMenu}
-              aria-controls="profile-menu"
               aria-label={`תפריט פרופיל - ${userSession.manager.full_name}`}
+              title={userSession.manager.full_name}
             >
-              <div style={{position: 'relative', flexShrink: 0}}>
-                <div className="profile-avatar" style={styles.profileAvatar}>
-                  {getUserInitials(userSession.manager.full_name)}
-                </div>
-                {userSession.manager.is_primary && (
-                  <span
-                    title="מנהל ראשי"
-                    style={{
-                      position: 'absolute', bottom: '-4px', left: '-4px',
-                      fontSize: '12px', lineHeight: 1,
-                      filter: 'drop-shadow(0 0 3px #f59e0b)',
-                    }}
-                  >⭐</span>
-                )}
+              <div className="profile-avatar" style={styles.profileAvatar}>
+                {getUserInitials(userSession.manager.full_name)}
               </div>
-              <div className="profile-info" style={styles.profileInfo}>
-                <div className="profile-name" style={styles.profileName}>{userSession.manager.full_name}</div>
-                <div className="profile-role" style={styles.profileRole}>
-                  {userSession.manager.is_primary ? '⭐ מנהל ראשי' : getRoleDisplay(userSession.manager.role)}
-                </div>
-              </div>
-              <span className="profile-arrow" style={styles.profileArrow}>▼</span>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" style={{ flexShrink: 0 }}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
             </button>
 
             {showProfileMenu && (
               <div id="profile-menu" role="menu" style={styles.dropdownMenu}>
-                {/* User info section */}
-                <div style={styles.menuUserInfo}>
-                  <div style={{...styles.menuStationNameLarge, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
-                    {userSession.manager.is_primary && <span title="מנהל ראשי" style={{filter: 'drop-shadow(0 0 4px #f59e0b)'}}>⭐</span>}
-                    {userSession.manager.full_name}
-                  </div>
-                  <div style={styles.menuUserPhone}>{userSession.stationName || userSession.manager.station_name || 'התחנה שלי'}</div>
-                  {userSession.manager.is_primary && (
-                    <div style={{fontSize: '11px', color: '#f59e0b', marginTop: '4px'}}>הרשאות עריכה מלאות</div>
-                  )}
-                </div>
-
-                <div style={styles.dropdownDivider} />
-
-                {/* My Station - show if user has a station */}
-                {userSession.stationId && (
-                  <>
-                    {/* Go to my station - only show if not on own station */}
-                    {!isOwnStation && (
-                      <Link
-                        href={`/${userSession.stationId}`}
-                        style={styles.dropdownItem}
-                        onClick={() => setShowProfileMenu(false)}
-                      >
-                        <span>🏠</span>
-                        <span>התחנה שלי</span>
-                      </Link>
-                    )}
-
-                    {/* Station management actions - only show on own station or search/home pages */}
-                    {(isOwnStation || isOnStationsPage || isOnSearchPage) && (
-                      <>
-                        <Link
-                          href={`/search?from=${userSession.stationId}`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>🔍</span>
-                          <span>חיפוש רכב</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=add`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>➕</span>
-                          <span>הוסף גלגל</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=excel`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>📊</span>
-                          <span>יבוא/יצוא Excel</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=settings`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>⚙️</span>
-                          <span>הגדרות תחנה</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=notifications`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>🔔</span>
-                          <span>הפעל התראות</span>
-                        </Link>
-
-                        {/* Form link submenu */}
-                        <div style={styles.submenuContainer}>
-                          <button
-                            style={{...styles.dropdownItem, ...styles.submenuTrigger}}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setShowFormSubmenu(!showFormSubmenu)
-                            }}
-                          >
-                            <span>🔗</span>
-                            <span>קישור לטופס השאלה</span>
-                            <span style={styles.submenuArrow}>{showFormSubmenu ? '▲' : '▼'}</span>
-                          </button>
-                          {showFormSubmenu && (
-                            <div style={styles.submenu}>
-                              <Link
-                                href={`/sign/${userSession.stationId}`}
-                                style={styles.submenuItem}
-                                onClick={() => {
-                                  setShowProfileMenu(false)
-                                  setShowFormSubmenu(false)
-                                }}
-                              >
-                                <span>📝</span>
-                                <span>פתח טופס</span>
-                              </Link>
-                              <button
-                                style={styles.submenuItem}
-                                onClick={handleCopyFormLink}
-                              >
-                                <span>📋</span>
-                                <span>העתק קישור</span>
-                              </button>
-                              <button
-                                style={styles.submenuItem}
-                                onClick={handleWhatsAppForm}
-                              >
-                                <span>💬</span>
-                                <span>שלח בוואטסאפ</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        <div style={styles.dropdownDivider} />
-
-                        {/* Account actions */}
-                        <Link
-                          href={`/${userSession.stationId}?action=password`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>🔑</span>
-                          <span>שינוי סיסמא</span>
-                        </Link>
-                        <Link
-                          href={`/${userSession.stationId}?action=recovery`}
-                          style={styles.dropdownItem}
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <span>📄</span>
-                          <span>תעודת שחזור</span>
-                        </Link>
-                      </>
-                    )}
-                  </>
-                )}
-
-                {/* Always show guide and logout */}
-                <Link
-                  href="/guide?tab=manager"
-                  style={styles.dropdownItem}
-                  onClick={() => setShowProfileMenu(false)}
-                >
-                  <span>📖</span>
-                  <span>מדריך למנהלים</span>
-                </Link>
-
-                <div style={styles.dropdownDivider} />
-
-                <button
-                  style={{...styles.dropdownItem, ...styles.dropdownItemDanger}}
-                  onClick={handleLogout}
-                >
-                  <span>🚪</span>
-                  <span>התנתק</span>
-                </button>
+                {dropdownMenuContent}
               </div>
             )}
           </div>
-        </div>
 
-        {/* Left side - Buttons (RTL) */}
-        <div className="app-header-right" style={styles.headerLeft}>
-          {/* Station Indicator */}
-          {currentStationId && (
-            <div className="station-indicator" style={{...styles.stationIndicator, ...(isOwnStation ? styles.stationIndicatorOwn : styles.stationIndicatorOther)}}>
-              <span>{isOwnStation ? '🏠' : '👁️'}</span>
-              <span>{isOwnStation ? 'התחנה שלי' : 'צפייה בתחנה אחרת'}</span>
+          {/* ── Logo ── */}
+          <a className="header-logo" href="/stations" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 14px', borderRight: '1px solid rgba(226,232,240,0.6)', borderLeft: '1px solid rgba(226,232,240,0.6)', height: '54px', flexShrink: 0 }}>
+            <div style={styles.logoIcon}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+                <line x1="12" y1="2" x2="12" y2="9"/>
+                <line x1="12" y1="15" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="9" y2="12"/>
+                <line x1="15" y1="12" x2="22" y2="12"/>
+              </svg>
             </div>
-          )}
+            <span className="header-logo-text" style={styles.logoText}>
+              גלגל<span style={{ color: '#2563eb' }}>נט</span>
+            </span>
+          </a>
 
-          {/* All Stations Button */}
-          <Link href="/stations" className="app-header-btn" style={{...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {})}}>
-            <span>🏪</span>
-            <span className="btn-text-full">כל התחנות</span>
-            <span className="btn-text-short" style={{display: 'none'}}>תחנות</span>
-          </Link>
-
-          {/* Search Button */}
-          <Link href="/search" className="app-header-btn" style={{...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {})}}>
-            <span>🔍</span>
-            <span className="btn-text-full">חיפוש רכב</span>
-            <span className="btn-text-short" style={{display: 'none'}}>חיפוש</span>
-          </Link>
-
-          {/* Alerts Bell - only when there are notifications */}
-          {notificationCount !== undefined && notificationCount > 0 && userSession?.stationId && (
+          {/* ── Nav buttons (desktop) ── */}
+          <nav className="header-nav">
             <Link
-              href={`/${userSession.stationId}?tab=alerts`}
+              href="/stations"
               className="app-header-btn"
-              style={{...styles.btn, ...styles.btnAlerts, position: 'relative'}}
+              style={{ ...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {}) }}
             >
-              <span>🔔</span>
-              <span className="btn-text-full">התראות</span>
-              <span className="btn-text-short" style={{display: 'none'}}>התראות</span>
-              <span style={styles.alertBadge}>{notificationCount}</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              <span>כל התחנות</span>
             </Link>
-          )}
-        </div>
-      </header>
-      {/* Spacer to push content below fixed header */}
+            <Link
+              href="/search"
+              className="app-header-btn"
+              style={{ ...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {}) }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <span>חיפוש רכב</span>
+            </Link>
+          </nav>
+
+          {/* ── Spacer ── */}
+          <div style={{ flex: 1 }} />
+
+          {/* ── LEFT (RTL end): station indicator, alerts, role, hamburger ── */}
+          <div style={styles.headerLeft}>
+            {/* Station indicator */}
+            {currentStationId && (
+              <div
+                className="station-indicator"
+                style={{ ...styles.stationIndicator, ...(isOwnStation ? styles.stationIndicatorOwn : styles.stationIndicatorOther) }}
+              >
+                {isOwnStation ? (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                  </svg>
+                ) : (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+                <span>{isOwnStation ? 'התחנה שלי' : 'צפייה בתחנה אחרת'}</span>
+              </div>
+            )}
+
+            {/* Alerts bell */}
+            {notificationCount !== undefined && notificationCount > 0 && userSession?.stationId && (
+              <Link
+                href={`/${userSession.stationId}?tab=alerts`}
+                style={{ ...styles.alertsBtn, position: 'relative' }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                </svg>
+                <span style={styles.alertBadge}>{notificationCount}</span>
+              </Link>
+            )}
+
+            {/* Role chip */}
+            {authRoles.length > 0 && currentRoleLabel && (
+              <div ref={roleMenuRef} style={{ position: 'relative' }} className="role-chip">
+                {authRoles.length === 1 ? (
+                  <span style={styles.roleStatic}>{currentRoleLabel}</span>
+                ) : (
+                  <>
+                    <button
+                      style={styles.roleBtn}
+                      onClick={() => setShowRoleMenu(!showRoleMenu)}
+                      aria-haspopup="menu"
+                      aria-expanded={showRoleMenu}
+                    >
+                      {currentRoleLabel}
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </button>
+                    {showRoleMenu && (
+                      <div style={styles.roleDropdown} role="menu">
+                        {authRoles.map((r) => (
+                          <button
+                            key={r.role}
+                            role="menuitem"
+                            style={{ ...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}) }}
+                            onClick={() => navigateToRole(r)}
+                          >
+                            {r.role === activeRole && (
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                            )}
+                            {r.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Hamburger (mobile only) */}
+            <button
+              className="hamburger-btn"
+              style={styles.hamburgerBtn}
+              onClick={() => setShowMobileMenu(true)}
+              aria-label="תפריט"
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.2" strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+      </div>
+
+      {/* Spacer */}
       <div className="app-header-spacer" style={styles.headerSpacer} />
+
+      {/* ── Mobile Drawer ── */}
+      {showMobileMenu && (
+        <div style={styles.drawerOverlay} onClick={() => setShowMobileMenu(false)}>
+          <div style={styles.drawer} onClick={(e) => e.stopPropagation()}>
+            {/* Drawer header */}
+            <div style={styles.drawerHeader}>
+              <div style={styles.drawerAvatar}>{getUserInitials(userSession.manager.full_name)}</div>
+              <div>
+                <div style={styles.drawerName}>{userSession.manager.full_name}</div>
+                <div style={styles.drawerRoleBadge}>{currentRoleLabel || getRoleDisplay(userSession.manager.role)}</div>
+              </div>
+              <button style={styles.drawerClose} onClick={() => setShowMobileMenu(false)} aria-label="סגור">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Nav items */}
+            <div style={styles.drawerNav}>
+              <Link href="/stations" style={{ ...styles.drawerItem, ...(isOnStationsPage ? styles.drawerItemActive : {}) }} onClick={() => setShowMobileMenu(false)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                כל התחנות
+              </Link>
+              <Link href="/search" style={{ ...styles.drawerItem, ...(isOnSearchPage ? styles.drawerItemActive : {}) }} onClick={() => setShowMobileMenu(false)}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                חיפוש רכב
+              </Link>
+              {notificationCount !== undefined && notificationCount > 0 && userSession?.stationId && (
+                <Link href={`/${userSession.stationId}?tab=alerts`} style={styles.drawerItem} onClick={() => setShowMobileMenu(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                  </svg>
+                  התראות
+                  <span style={styles.drawerBadge}>{notificationCount}</span>
+                </Link>
+              )}
+              {userSession.stationId && (
+                <Link href={`/${userSession.stationId}`} style={styles.drawerItem} onClick={() => setShowMobileMenu(false)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  התחנה שלי
+                </Link>
+              )}
+            </div>
+
+            {/* Logout */}
+            <div style={styles.drawerFooter}>
+              <button style={styles.drawerLogout} onClick={() => { setShowMobileMenu(false); handleLogout() }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                התנתק
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  header: {
+  /* ── Header wrap (adds top padding for floating) ── */
+  headerWrap: {
     position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
-    background: '#ffffff',
-    borderBottom: '1px solid #e2e8f0',
-    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-    padding: '12px 20px',
+    padding: '8px 12px 0',
+  },
+  /* ── Glassmorphism header ── */
+  header: {
+    background: 'rgba(255,255,255,0.82)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    border: '1px solid rgba(255,255,255,0.9)',
+    boxShadow: '0 4px 20px rgba(37,99,235,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+    borderRadius: '16px',
+    padding: '0 14px',
+    height: '54px',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '15px',
+    gap: '0',
     direction: 'rtl',
   },
   headerSpacer: {
     height: '70px',
   },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  headerLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  btn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '8px 14px',
-    borderRadius: '9px',
-    border: '1px solid #e2e8f0',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: 600,
-    transition: 'all 0.15s',
-    textDecoration: 'none',
-    color: '#475569',
-    background: '#f8fafc',
-  },
-  btnSearch: {
-    background: '#f0fdf4',
-    border: '1px solid #bbf7d0',
-    color: '#16a34a',
-  },
-  btnStations: {
-    background: '#eff6ff',
-    border: '1px solid #bfdbfe',
-    color: '#2563eb',
-  },
-  btnAlerts: {
-    background: '#fffbeb',
-    border: '1px solid #fde68a',
-    color: '#d97706',
-  },
-  alertBadge: {
-    position: 'absolute' as const,
-    top: '-6px',
-    left: '-6px',
-    background: '#ef4444',
-    color: 'white',
-    fontSize: '0.7rem',
-    fontWeight: 700,
-    minWidth: '18px',
-    height: '18px',
+  /* ── Logo ── */
+  logoIcon: {
+    width: '30px',
+    height: '30px',
+    background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
     borderRadius: '9px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '0 4px',
+    boxShadow: '0 2px 8px rgba(37,99,235,0.28)',
+    flexShrink: 0,
+  },
+  logoText: {
+    fontSize: '15px',
+    fontWeight: 800,
+    color: '#1e293b',
+    letterSpacing: '-0.3px',
+  },
+  /* ── Nav buttons ── */
+  btn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '7px 12px',
+    borderRadius: '10px',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 600,
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+  },
+  btnStations: {
+    background: 'rgba(37,99,235,0.10)',
+    color: '#2563eb',
+  },
+  btnSearch: {
+    background: 'rgba(22,163,74,0.10)',
+    color: '#16a34a',
   },
   btnActive: {
-    boxShadow: '0 0 0 2px #2563eb',
-    transform: 'scale(1.02)',
+    boxShadow: '0 0 0 2px currentColor',
+    opacity: 1,
+  },
+  /* ── Left cluster ── */
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
   },
   stationIndicator: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    padding: '6px 12px',
+    gap: '5px',
+    padding: '5px 10px',
     borderRadius: '20px',
-    fontSize: '13px',
+    fontSize: '12px',
+    fontWeight: 600,
   },
   stationIndicatorOwn: {
-    background: '#f0fdf4',
-    border: '1px solid #bbf7d0',
+    background: 'rgba(22,163,74,0.10)',
     color: '#16a34a',
   },
   stationIndicatorOther: {
-    background: '#fffbeb',
-    border: '1px solid #fde68a',
-    color: '#d97706',
+    background: 'rgba(234,179,8,0.12)',
+    color: '#ca8a04',
+  },
+  alertsBtn: {
+    width: '34px',
+    height: '34px',
+    background: 'rgba(234,179,8,0.12)',
+    borderRadius: '9px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    border: 'none',
+    flexShrink: 0,
+  },
+  alertBadge: {
+    position: 'absolute' as const,
+    top: '-5px',
+    left: '-5px',
+    background: '#ef4444',
+    color: 'white',
+    fontSize: '9px',
+    fontWeight: 700,
+    minWidth: '16px',
+    height: '16px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0 3px',
+    border: '1.5px solid rgba(255,255,255,0.9)',
   },
   roleStatic: {
-    background: '#eff6ff',
-    border: '1px solid #bfdbfe',
+    background: 'rgba(37,99,235,0.08)',
     color: '#2563eb',
-    fontSize: '13px',
-    fontWeight: '600',
-    padding: '5px 14px',
+    fontSize: '12px',
+    fontWeight: 600,
+    padding: '5px 12px',
     borderRadius: '20px',
     whiteSpace: 'nowrap',
   } as React.CSSProperties,
   roleBtn: {
-    background: '#eff6ff',
-    border: '1px solid #bfdbfe',
+    background: 'rgba(37,99,235,0.08)',
     color: '#2563eb',
-    fontSize: '13px',
-    fontWeight: '600',
+    fontSize: '12px',
+    fontWeight: 600,
     padding: '5px 10px',
     borderRadius: '20px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: '5px',
     fontFamily: 'inherit',
     whiteSpace: 'nowrap',
-    transition: 'background 0.15s',
+    border: 'none',
   } as React.CSSProperties,
   roleDropdown: {
     position: 'absolute',
     top: 'calc(100% + 8px)',
-    right: 0,
+    left: 0,
     background: '#ffffff',
     border: '1px solid #e2e8f0',
     borderRadius: '10px',
@@ -759,61 +812,78 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#1e293b',
     fontSize: '13px',
     cursor: 'pointer',
-    fontWeight: '500',
+    fontWeight: 500,
     background: 'transparent',
     border: 'none',
     width: '100%',
     textAlign: 'right' as const,
     fontFamily: 'inherit',
-    transition: 'background 0.15s',
   } as React.CSSProperties,
   roleOptionActive: {
     color: '#2563eb',
-    fontWeight: '700',
+    fontWeight: 700,
   } as React.CSSProperties,
+  hamburgerBtn: {
+    width: '34px',
+    height: '34px',
+    background: 'rgba(255,255,255,0.7)',
+    border: '1px solid rgba(226,232,240,0.7)',
+    borderRadius: '9px',
+    display: 'none',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  /* ── Profile avatar button ── */
   profileDropdown: {
     position: 'relative',
   },
   profileBtn: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    background: '#f8fafc',
-    border: '1px solid #e2e8f0',
-    borderRadius: '10px',
-    padding: '8px 14px',
+    gap: '5px',
+    background: 'rgba(255,255,255,0.8)',
+    border: '1px solid rgba(226,232,240,0.8)',
+    borderRadius: '50px',
+    padding: '4px 8px 4px 6px',
     cursor: 'pointer',
-    transition: 'all 0.15s',
     color: '#1e293b',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
   },
   profileAvatar: {
-    width: '36px',
-    height: '36px',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+    width: '32px',
+    height: '32px',
+    background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontWeight: 'bold',
-    fontSize: '14px',
+    fontWeight: 700,
+    fontSize: '13px',
     color: 'white',
+    flexShrink: 0,
+  },
+  primaryStar: {
+    position: 'absolute' as const,
+    bottom: '-3px',
+    left: '-3px',
+    lineHeight: 1,
+    filter: 'drop-shadow(0 0 3px rgba(245,158,11,0.5))',
   },
   profileInfo: {
     textAlign: 'right' as const,
   },
   profileName: {
     fontWeight: 600,
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#1e293b',
   },
   profileRole: {
     fontSize: '11px',
     color: '#64748b',
   },
-  profileArrow: {
-    color: '#94a3b8',
-    fontSize: '10px',
-  },
+  /* ── Profile dropdown menu ── */
   dropdownMenu: {
     position: 'absolute',
     top: 'calc(100% + 8px)',
@@ -830,17 +900,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    padding: '12px 16px',
+    padding: '11px 16px',
     cursor: 'pointer',
-    transition: 'background 0.15s',
     borderBottom: '1px solid #f1f5f9',
     textDecoration: 'none',
     color: '#1e293b',
     background: 'none',
-    border: 'none',
     width: '100%',
     textAlign: 'right' as const,
-    fontSize: '14px',
+    fontSize: '13px',
+    fontFamily: 'inherit',
+    fontWeight: 500,
   },
   dropdownItemDanger: {
     color: '#ef4444',
@@ -856,20 +926,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center' as const,
     borderBottom: '1px solid #e2e8f0',
   },
-  menuUserLabel: {
-    fontSize: '11px',
-    color: '#94a3b8',
-    marginBottom: '4px',
-    textTransform: 'uppercase' as const,
-  },
   menuStationNameLarge: {
     fontWeight: 700,
-    fontSize: '16px',
+    fontSize: '15px',
     color: '#2563eb',
-    marginBottom: '6px',
+    marginBottom: '4px',
   },
   menuUserPhone: {
-    fontSize: '13px',
+    fontSize: '12px',
     color: '#64748b',
   },
   submenuContainer: {
@@ -880,7 +944,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   submenuArrow: {
     marginRight: 'auto',
-    fontSize: '10px',
     color: '#94a3b8',
   },
   submenu: {
@@ -893,7 +956,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '10px',
     padding: '10px 16px 10px 30px',
     cursor: 'pointer',
-    transition: 'background 0.15s',
     borderBottom: '1px solid #f1f5f9',
     textDecoration: 'none',
     color: '#475569',
@@ -902,5 +964,131 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     textAlign: 'right' as const,
     fontSize: '13px',
+    fontFamily: 'inherit',
+  },
+  /* ── Mobile drawer ── */
+  drawerOverlay: {
+    position: 'fixed' as const,
+    inset: 0,
+    background: 'rgba(15,23,42,0.4)',
+    zIndex: 2000,
+    display: 'flex',
+    justifyContent: 'flex-end',
+    direction: 'rtl',
+  },
+  drawer: {
+    background: '#ffffff',
+    width: '280px',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    direction: 'rtl',
+    boxShadow: '-4px 0 24px rgba(0,0,0,0.12)',
+    overflowY: 'auto',
+  },
+  drawerHeader: {
+    background: 'linear-gradient(135deg, #dbeafe 0%, #faf5ff 100%)',
+    padding: '20px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    borderBottom: '1px solid #e2e8f0',
+    position: 'relative' as const,
+  },
+  drawerAvatar: {
+    width: '46px',
+    height: '46px',
+    background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '15px',
+    fontWeight: 700,
+    color: 'white',
+    flexShrink: 0,
+  },
+  drawerName: {
+    fontSize: '15px',
+    fontWeight: 700,
+    color: '#1e293b',
+    marginBottom: '4px',
+  },
+  drawerRoleBadge: {
+    display: 'inline-block',
+    fontSize: '11px',
+    fontWeight: 600,
+    color: '#2563eb',
+    background: '#eff6ff',
+    border: '1px solid #bfdbfe',
+    padding: '2px 9px',
+    borderRadius: '10px',
+  },
+  drawerClose: {
+    position: 'absolute' as const,
+    top: '14px',
+    left: '14px',
+    background: 'rgba(255,255,255,0.7)',
+    border: '1px solid #e2e8f0',
+    borderRadius: '8px',
+    width: '30px',
+    height: '30px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  drawerNav: {
+    flex: 1,
+    padding: '8px 0',
+    borderBottom: '1px solid #f1f5f9',
+  },
+  drawerItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '13px 18px',
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#475569',
+    textDecoration: 'none',
+    borderBottom: '1px solid #f8fafc',
+    cursor: 'pointer',
+  },
+  drawerItemActive: {
+    color: '#2563eb',
+    background: '#eff6ff',
+  },
+  drawerBadge: {
+    marginRight: 'auto',
+    background: '#ef4444',
+    color: 'white',
+    fontSize: '10px',
+    fontWeight: 700,
+    minWidth: '18px',
+    height: '18px',
+    borderRadius: '9px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0 4px',
+  },
+  drawerFooter: {
+    padding: '8px 0 12px',
+  },
+  drawerLogout: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '13px 18px',
+    fontSize: '14px',
+    fontWeight: 600,
+    color: '#ef4444',
+    background: 'none',
+    border: 'none',
+    width: '100%',
+    textAlign: 'right' as const,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
   },
 }
