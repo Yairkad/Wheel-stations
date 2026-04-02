@@ -395,7 +395,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
         }
         @media all and (display-mode: standalone) {
           .app-header-wrap {
-            padding-top: env(safe-area-inset-top, 0px) !important;
+            padding-top: max(8px, env(safe-area-inset-top, 8px)) !important;
           }
           .app-header-spacer {
             height: calc(70px + env(safe-area-inset-top, 0px)) !important;
@@ -795,7 +795,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   roleDropdown: {
     position: 'absolute',
     top: 'calc(100% + 8px)',
-    left: 0,
+    right: 0,
     background: '#ffffff',
     border: '1px solid #e2e8f0',
     borderRadius: '10px',
@@ -903,6 +903,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '11px 16px',
     cursor: 'pointer',
     borderBottom: '1px solid #f1f5f9',
+    border: 'none',
     textDecoration: 'none',
     color: '#1e293b',
     background: 'none',
