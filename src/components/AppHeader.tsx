@@ -37,7 +37,6 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
   const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
   const [activeRole, setActiveRole] = useState<string | null>(null)
   const [showRoleMenu, setShowRoleMenu] = useState(false)
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -159,12 +158,7 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showProfileMenu, showRoleMenu])
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setShowMobileMenu(false)
-  }, [pathname])
-
-  const handleLogout = () => {
+const handleLogout = () => {
     Object.keys(localStorage).forEach(key => {
       if (
         key.startsWith('station_session_') ||
@@ -376,22 +370,9 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
   return (
     <>
       <style>{`
-        .header-nav { display: flex; align-items: center; gap: 6px; padding-right: 10px; }
-        .header-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; padding: 0 14px; border-right: 1px solid rgba(226,232,240,0.6); border-left: 1px solid rgba(226,232,240,0.6); height: 54px; flex-shrink: 0; }
-        .hamburger-btn { display: none !important; }
-
         @media (max-width: 640px) {
-          .header-nav { display: none !important; }
-          .header-logo-text { display: none !important; }
-          .hamburger-btn { display: flex !important; }
           .station-indicator { display: none !important; }
-          .profile-info { display: none !important; }
-          .profile-role { display: none !important; }
           .role-chip { display: none !important; }
-          .app-header { padding: 0 10px !important; }
-        }
-        @media (max-width: 380px) {
-          .header-logo { padding: 0 8px !important; }
         }
         @media all and (display-mode: standalone) {
           .app-header-wrap {
@@ -420,6 +401,9 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
               <div className="profile-avatar" style={styles.profileAvatar}>
                 {getUserInitials(userSession.manager.full_name)}
               </div>
+              <span style={styles.profileFirstName}>
+                {userSession.manager.full_name?.trim().split(' ')[0] ?? ''}
+              </span>
               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" style={{ flexShrink: 0 }}>
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
@@ -432,45 +416,6 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
             )}
           </div>
 
-          {/* ── Logo ── */}
-          <a className="header-logo" href="/stations" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 14px', borderRight: '1px solid rgba(226,232,240,0.6)', borderLeft: '1px solid rgba(226,232,240,0.6)', height: '54px', flexShrink: 0 }}>
-            <div style={styles.logoIcon}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="3"/>
-                <line x1="12" y1="2" x2="12" y2="9"/>
-                <line x1="12" y1="15" x2="12" y2="22"/>
-                <line x1="2" y1="12" x2="9" y2="12"/>
-                <line x1="15" y1="12" x2="22" y2="12"/>
-              </svg>
-            </div>
-          </a>
-
-          {/* ── Nav buttons (desktop) ── */}
-          <nav className="header-nav">
-            <Link
-              href="/stations"
-              className="app-header-btn"
-              style={{ ...styles.btn, ...styles.btnStations, ...(isOnStationsPage ? styles.btnActive : {}) }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                <polyline points="9 22 9 12 15 12 15 22"/>
-              </svg>
-              <span>כל התחנות</span>
-            </Link>
-            <Link
-              href="/search"
-              className="app-header-btn"
-              style={{ ...styles.btn, ...styles.btnSearch, ...(isOnSearchPage ? styles.btnActive : {}) }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <span>חיפוש רכב</span>
-            </Link>
-          </nav>
 
           {/* ── Spacer ── */}
           <div style={{ flex: 1 }} />
@@ -552,19 +497,6 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
               </div>
             )}
 
-            {/* Hamburger (mobile only) */}
-            <button
-              className="hamburger-btn"
-              style={styles.hamburgerBtn}
-              onClick={() => setShowMobileMenu(true)}
-              aria-label="תפריט"
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.2" strokeLinecap="round">
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            </button>
           </div>
         </header>
       </div>
@@ -572,70 +504,6 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
       {/* Spacer */}
       <div className="app-header-spacer" style={styles.headerSpacer} />
 
-      {/* ── Mobile Drawer ── */}
-      {showMobileMenu && (
-        <div style={styles.drawerOverlay} onClick={() => setShowMobileMenu(false)}>
-          <div style={styles.drawer} onClick={(e) => e.stopPropagation()}>
-            {/* Drawer header */}
-            <div style={styles.drawerHeader}>
-              <div style={styles.drawerAvatar}>{getUserInitials(userSession.manager.full_name)}</div>
-              <div>
-                <div style={styles.drawerName}>{userSession.manager.full_name}</div>
-                <div style={styles.drawerRoleBadge}>{currentRoleLabel || getRoleDisplay(userSession.manager.role)}</div>
-              </div>
-              <button style={styles.drawerClose} onClick={() => setShowMobileMenu(false)} aria-label="סגור">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.2" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-
-            {/* Nav items */}
-            <div style={styles.drawerNav}>
-              <Link href="/stations" style={{ ...styles.drawerItem, ...(isOnStationsPage ? styles.drawerItemActive : {}) }} onClick={() => setShowMobileMenu(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                </svg>
-                כל התחנות
-              </Link>
-              <Link href="/search" style={{ ...styles.drawerItem, ...(isOnSearchPage ? styles.drawerItemActive : {}) }} onClick={() => setShowMobileMenu(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                חיפוש רכב
-              </Link>
-              {notificationCount !== undefined && notificationCount > 0 && userSession?.stationId && (
-                <Link href={`/${userSession.stationId}?tab=alerts`} style={styles.drawerItem} onClick={() => setShowMobileMenu(false)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
-                  </svg>
-                  התראות
-                  <span style={styles.drawerBadge}>{notificationCount}</span>
-                </Link>
-              )}
-              {userSession.stationId && (
-                <Link href={`/${userSession.stationId}`} style={styles.drawerItem} onClick={() => setShowMobileMenu(false)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                  </svg>
-                  התחנה שלי
-                </Link>
-              )}
-            </div>
-
-            {/* Logout */}
-            <div style={styles.drawerFooter}>
-              <button style={styles.drawerLogout} onClick={() => { setShowMobileMenu(false); handleLogout() }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-                התנתק
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }
@@ -868,17 +736,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: 1,
     filter: 'drop-shadow(0 0 3px rgba(245,158,11,0.5))',
   },
-  profileInfo: {
-    textAlign: 'right' as const,
-  },
-  profileName: {
-    fontWeight: 600,
+  profileFirstName: {
     fontSize: '13px',
+    fontWeight: 600,
     color: '#1e293b',
-  },
-  profileRole: {
-    fontSize: '11px',
-    color: '#64748b',
+    whiteSpace: 'nowrap' as const,
   },
   /* ── Profile dropdown menu ── */
   dropdownMenu: {
