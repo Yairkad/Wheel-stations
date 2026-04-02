@@ -444,9 +444,6 @@ export default function AppHeader({ currentStationId, notificationCount }: AppHe
                 <line x1="15" y1="12" x2="22" y2="12"/>
               </svg>
             </div>
-            <span className="header-logo-text" style={styles.logoText}>
-              גלגל<span style={{ color: '#2563eb' }}>נט</span>
-            </span>
           </a>
 
           {/* ── Nav buttons (desktop) ── */}
