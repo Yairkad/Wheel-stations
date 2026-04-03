@@ -187,8 +187,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   loginBtnFixed: {
     position: 'fixed' as const,
-    top: '18px',
-    left: '18px',
+    top: 'calc(env(safe-area-inset-top, 0px) + 18px)',
+    left: 'calc(env(safe-area-inset-left, 0px) + 18px)',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '7px',

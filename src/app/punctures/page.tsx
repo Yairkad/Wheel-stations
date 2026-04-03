@@ -399,7 +399,12 @@ export default function PuncturesPage() {
       {/* ── Header ── */}
       <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0 z-10">
         <div className="flex items-center gap-2 px-3 py-2">
-          <a href="/" className="text-gray-400 hover:text-gray-600 transition-colors text-lg leading-none" title="חזרה לדף הראשי">←</a>
+          <a href="/" title="חזרה לדף הראשי" style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'20px', background:'rgba(255,255,255,0.9)', border:'1px solid #e2e8f0', color:'#475569', fontSize:'12px', fontWeight:600, textDecoration:'none', flexShrink:0, boxShadow:'0 1px 4px rgba(0,0,0,0.05)' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            דף הבית
+          </a>
           <h1 className="text-base font-bold text-gray-800 whitespace-nowrap">🔧 פנצ׳ריות לילה</h1>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי שם, עיר..."
