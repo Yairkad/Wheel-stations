@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { VERSION } from '@/lib/version'
 
 export default function PublicHomePage() {
   const router = useRouter()
@@ -10,63 +11,90 @@ export default function PublicHomePage() {
   return (
     <div style={styles.page}>
       <style>{`
-        .staff-btn:hover { border-color: #3b82f6 !important; color: #60a5fa !important; }
         .nav-card:hover {
-          transform: translateY(-10px) !important;
-          box-shadow: 0 25px 50px rgba(0,0,0,0.15) !important;
+          transform: translateY(-4px) !important;
+          box-shadow: 0 12px 40px rgba(37,99,235,0.13) !important;
+          border-color: #bfdbfe !important;
         }
-        .nav-card:hover .card-icon {
-          background: rgba(255,255,255,0.3) !important;
-          transform: scale(1.1);
+        .nav-card:hover .card-icon-wrap {
+          transform: scale(1.05);
         }
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+        .login-btn:hover {
+          background: #2563eb !important;
+          color: #fff !important;
+          border-color: #2563eb !important;
+          box-shadow: 0 4px 14px rgba(37,99,235,0.25) !important;
         }
         @media (max-width: 480px) {
           .cards-container { flex-direction: column !important; align-items: center !important; }
-          .nav-card { width: 100% !important; max-width: 280px !important; }
-          .main-title { font-size: 1.5rem !important; }
-          .main-sub { font-size: 0.9rem !important; }
+          .nav-card { width: 100% !important; max-width: 300px !important; }
+          .main-title { font-size: 1.6rem !important; }
         }
       `}</style>
 
-      {/* Hidden login button top-left */}
-      <Link href="/admin" style={styles.adminBtn} className="admin-btn">⚙️</Link>
-
       <div style={styles.container}>
         {/* Logo */}
-        <div style={styles.logo}>
-          <Image src="/logo.wheels.png" alt="גלגלים" width={80} height={80} style={{ objectFit: 'contain' }} />
+        <div style={styles.logoWrap}>
+          <Image src="/logo.wheels.png" alt="מערכת גלגלים" width={64} height={64} style={{ objectFit: 'contain' }} />
         </div>
 
         <h1 className="main-title" style={styles.title}>מערכת גלגלים</h1>
-        <p className="main-sub" style={styles.subtitle}>בחר שירות</p>
+        <p style={styles.subtitle}>בחר שירות</p>
 
         {/* Cards */}
         <div className="cards-container" style={styles.cardsContainer}>
           <Link href="/reverse-search" style={styles.card} className="nav-card">
-            <div style={styles.cardIcon} className="card-icon">🔍</div>
+            <div style={styles.cardIconWrap} className="card-icon-wrap">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
             <div style={styles.cardTitle}>חיפוש גלגל תואם</div>
             <div style={styles.cardDesc}>הזן פרטי רכב ומצא גלגל תואם</div>
           </Link>
 
           <Link href="/punctures" style={styles.card} className="nav-card">
-            <div style={styles.cardIcon} className="card-icon">🔧</div>
+            <div style={{ ...styles.cardIconWrap, background: '#f0fdf4', border: '1px solid #bbf7d0' }} className="card-icon-wrap">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+                <line x1="12" y1="2" x2="12" y2="9"/>
+                <line x1="12" y1="15" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="9" y2="12"/>
+                <line x1="15" y1="12" x2="22" y2="12"/>
+              </svg>
+            </div>
             <div style={styles.cardTitle}>פנצ׳ריות לילה</div>
             <div style={styles.cardDesc}>פנצ׳ריות פתוחות עכשיו בסביבתך</div>
           </Link>
         </div>
 
-        {/* Staff login link */}
+        {/* Login button */}
         <button
-          className="staff-btn"
-          style={styles.staffBtn}
+          className="login-btn"
+          style={styles.loginBtn}
           onClick={() => router.push('/login')}
         >
-          התחברות
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          התחברות לצוות
         </button>
       </div>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <div style={styles.footerLinks}>
+          <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
+          <span style={styles.footerDot}>•</span>
+          <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
+          <span style={styles.footerDot}>•</span>
+          <Link href="/accessibility" style={styles.footerLink}>נגישות</Link>
+        </div>
+        <p style={styles.footerVersion}>גרסה {VERSION}</p>
+      </footer>
     </div>
   )
 }
@@ -75,61 +103,49 @@ const styles: { [key: string]: React.CSSProperties } = {
   page: {
     minHeight: '100vh',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%)',
+    background: 'linear-gradient(135deg, #dbeafe 0%, #f0fdf4 50%, #faf5ff 100%)',
     direction: 'rtl',
     fontFamily: "'Segoe UI', Rubik, Arial, sans-serif",
-    padding: '20px',
+    padding: '40px 20px 20px',
     position: 'relative',
-  },
-  adminBtn: {
-    position: 'absolute',
-    top: '20px',
-    left: '20px',
-    width: '40px',
-    height: '40px',
-    background: 'rgba(255,255,255,0.1)',
-    border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: '10px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '18px',
-    cursor: 'pointer',
-    opacity: 0,
-    transition: 'all 0.3s ease',
-    textDecoration: 'none',
-    zIndex: 10,
   },
   container: {
     textAlign: 'center',
     width: '100%',
-    maxWidth: '550px',
+    maxWidth: '580px',
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  logo: {
-    width: '100px',
-    height: '100px',
-    background: 'rgba(255,255,255,0.1)',
+  logoWrap: {
+    width: '96px',
+    height: '96px',
+    background: 'rgba(255,255,255,0.85)',
     backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.2)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(226,232,240,0.8)',
     borderRadius: '28px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     margin: '0 auto 24px',
-    boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-    animation: 'float 3s ease-in-out infinite',
+    boxShadow: '0 8px 32px rgba(37,99,235,0.10)',
     overflow: 'hidden',
   },
   title: {
-    color: '#fff',
-    fontSize: '2rem',
+    color: '#1e293b',
+    fontSize: '2.2rem',
     fontWeight: '800',
     margin: '0 0 8px',
+    letterSpacing: '-0.5px',
   },
   subtitle: {
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '1rem',
     margin: '0 0 36px',
   },
@@ -141,51 +157,86 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: 'wrap',
   },
   card: {
-    width: '200px',
-    background: 'rgba(255,255,255,0.08)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255,255,255,0.15)',
+    width: '210px',
+    background: 'rgba(255,255,255,0.82)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(226,232,240,0.9)',
     borderRadius: '20px',
-    padding: '32px 22px',
+    padding: '30px 20px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '12px',
     cursor: 'pointer',
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
     textDecoration: 'none',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 20px rgba(37,99,235,0.07)',
   },
-  cardIcon: {
-    width: '70px',
-    height: '70px',
-    background: 'rgba(255,255,255,0.15)',
+  cardIconWrap: {
+    width: '68px',
+    height: '68px',
+    background: '#eff6ff',
+    border: '1px solid #bfdbfe',
     borderRadius: '18px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '32px',
-    transition: 'all 0.3s ease',
+    transition: 'transform 0.2s ease',
   },
   cardTitle: {
-    color: '#fff',
-    fontSize: '1.1rem',
+    color: '#1e293b',
+    fontSize: '1rem',
     fontWeight: '700',
   },
   cardDesc: {
-    color: '#94a3b8',
+    color: '#64748b',
     fontSize: '0.8rem',
-    lineHeight: '1.4',
+    lineHeight: '1.5',
   },
-  staffBtn: {
-    background: 'transparent',
-    border: '1px solid #334155',
+  loginBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    background: 'rgba(255,255,255,0.8)',
+    border: '1px solid #e2e8f0',
     color: '#475569',
-    fontSize: '13px',
-    padding: '7px 20px',
-    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 600,
+    padding: '10px 22px',
+    borderRadius: '20px',
     cursor: 'pointer',
     transition: 'all 0.2s',
     fontFamily: 'inherit',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+  },
+  footer: {
+    marginTop: '40px',
+    textAlign: 'center',
+    paddingBottom: '8px',
+  },
+  footerLinks: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    flexWrap: 'wrap',
+    marginBottom: '6px',
+  },
+  footerLink: {
+    color: '#64748b',
+    fontSize: '12px',
+    textDecoration: 'none',
+    fontWeight: 500,
+  },
+  footerDot: {
+    color: '#cbd5e1',
+    fontSize: '12px',
+  },
+  footerVersion: {
+    color: '#94a3b8',
+    fontSize: '11px',
+    margin: 0,
   },
 }

@@ -141,6 +141,12 @@ export default function LoginPage() {
         router.push('/admin/punctures')
         break
       }
+      case 'admin': {
+        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
+        localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd: password }))
+        router.push('/admin')
+        break
+      }
     }
   }
 
@@ -188,85 +194,106 @@ export default function LoginPage() {
   }
 
   const responsiveStyles = `
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-    .admin-btn {
-      opacity: 0 !important;
-      background: transparent !important;
-      border-color: transparent !important;
-    }
-    .admin-btn:hover {
-      opacity: 1 !important;
-      background: rgba(255,255,255,0.15) !important;
-      border-color: rgba(255,255,255,0.2) !important;
-      transform: rotate(45deg);
-    }
     .role-card:hover {
-      background: rgba(255,255,255,0.12) !important;
-      border-color: rgba(99,179,237,0.5) !important;
-      transform: translateY(-3px);
+      background: #eff6ff !important;
+      border-color: #bfdbfe !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(37,99,235,0.10) !important;
     }
-    @media (max-width: 768px) {
-      .form-card { padding: 30px 25px !important; max-width: 380px !important; }
+    .form-input:focus {
+      border-color: #93c5fd !important;
+      background: #ffffff !important;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    }
+    .form-submit:hover:not(:disabled) {
+      opacity: 0.92;
+      transform: translateY(-1px);
     }
     @media (max-width: 480px) {
-      .form-card { padding: 25px 20px !important; margin: 10px !important; }
-      .form-input { padding: 14px !important; font-size: 15px !important; }
-      .form-submit { padding: 14px !important; font-size: 16px !important; }
-      .form-logo { width: 70px !important; height: 70px !important; font-size: 32px !important; }
-      .form-title { font-size: 1.3rem !important; }
+      .form-card { padding: 28px 20px !important; margin: 12px !important; }
+      .form-input { font-size: 15px !important; }
     }
   `
 
   // Role picker (multiple roles found)
   if (roles) {
-    const roleIcons: Record<string, string> = {
-      station_manager: '🏪',
-      operator: '🎧',
-      district_manager: '👑',
-      editor: '✏️',
+    const roleConfig: Record<string, { color: string; bg: string; border: string; icon: React.ReactNode }> = {
+      station_manager: {
+        color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+      },
+      operator: {
+        color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.08 2.18 2 2 0 012.07 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.26 7.74a16 16 0 006 6l1.1-1.1a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>,
+      },
+      district_manager: {
+        color: '#d97706', bg: '#fffbeb', border: '#fde68a',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
+      },
+      editor: {
+        color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+      },
+      admin: {
+        color: '#dc2626', bg: '#fef2f2', border: '#fecaca',
+        icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+      },
     }
 
     return (
       <div style={styles.container}>
         <style>{responsiveStyles}</style>
         <div style={styles.formCard} className="form-card">
-          <div style={{ fontSize: '40px', textAlign: 'center', marginBottom: '8px' }}>🔀</div>
+          <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+            <div style={{ width: '52px', height: '52px', background: 'linear-gradient(135deg, #2563eb, #7c3aed)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', boxShadow: '0 4px 14px rgba(37,99,235,0.25)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+          </div>
           <h1 style={styles.formTitle} className="form-title">בחר תפקיד</h1>
-          <p style={{ ...styles.formSubtitle, marginBottom: '24px' }}>נמצאו מספר תפקידים עבור חשבון זה</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {roles.map((r) => (
-              <button
-                key={r.role}
-                className="role-card"
-                onClick={() => {
-                  localStorage.setItem('active_role', r.role)
-                  toast.success(`שלום ${r.data.full_name as string}`)
-                  applyRole(r)
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '14px',
-                  padding: '16px 20px',
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  textAlign: 'right',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <span style={{ fontSize: '28px' }}>{roleIcons[r.role]}</span>
-                <span>{r.label}</span>
-              </button>
-            ))}
+          <p style={{ ...styles.formSubtitle, marginBottom: '20px' }}>נמצאו מספר תפקידים עבור חשבון זה</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {roles.map((r) => {
+              const cfg = roleConfig[r.role] ?? { color: '#475569', bg: '#f8fafc', border: '#e2e8f0', icon: null }
+              return (
+                <button
+                  key={r.role}
+                  className="role-card"
+                  onClick={() => {
+                    localStorage.setItem('active_role', r.role)
+                    toast.success(`שלום ${r.data.full_name as string}`)
+                    applyRole(r)
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    padding: '14px 18px',
+                    background: cfg.bg,
+                    border: `1px solid ${cfg.border}`,
+                    borderRadius: '12px',
+                    color: cfg.color,
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s',
+                    textAlign: 'right' as const,
+                    fontFamily: 'inherit',
+                    width: '100%',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <span style={{ flexShrink: 0, color: cfg.color }}>{cfg.icon}</span>
+                  <span style={{ flex: 1 }}>{r.label}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ opacity: 0.4 }}>
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -278,8 +305,12 @@ export default function LoginPage() {
     <div style={styles.container}>
       <style>{responsiveStyles}</style>
 
-      <Link href="/admin" style={styles.adminBtn} className="admin-btn">⚙️</Link>
-      <Link href="/" style={styles.backHomeBtn}>← דף הבית</Link>
+      <Link href="/" style={styles.backHomeBtn}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        דף הבית
+      </Link>
 
       <div style={styles.formCard} className="form-card">
         <div style={styles.formLogo} className="form-logo">
@@ -426,7 +457,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    background: '#f1f5f9',
+    background: 'linear-gradient(135deg, #dbeafe 0%, #f0fdf4 50%, #faf5ff 100%)',
     padding: '20px',
     direction: 'rtl',
     position: 'relative',
@@ -434,46 +465,31 @@ const styles: { [key: string]: React.CSSProperties } = {
   backHomeBtn: {
     position: 'absolute',
     top: '20px',
-    right: '20px',
-    color: '#64748b',
+    left: '20px',
+    color: '#475569',
     fontSize: '13px',
     fontWeight: 600,
     textDecoration: 'none',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    padding: '6px 12px',
+    padding: '7px 14px',
     borderRadius: '20px',
-    background: '#ffffff',
-    border: '1px solid #e2e8f0',
-    transition: 'all 0.15s',
-  },
-  adminBtn: {
-    position: 'absolute',
-    top: '20px',
-    left: '20px',
-    width: '40px',
-    height: '40px',
-    background: '#f8fafc',
-    border: '1px solid #e2e8f0',
-    borderRadius: '10px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '18px',
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-    zIndex: 10,
-    textDecoration: 'none'
+    background: 'rgba(255,255,255,0.75)',
+    border: '1px solid rgba(226,232,240,0.8)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
   },
   formCard: {
-    background: '#ffffff',
-    border: '1px solid #e2e8f0',
+    background: 'rgba(255,255,255,0.85)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255,255,255,0.9)',
     borderRadius: '24px',
-    padding: '40px 35px',
+    padding: '40px 36px',
     width: '100%',
     maxWidth: '420px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+    boxShadow: '0 8px 40px rgba(37,99,235,0.10), 0 2px 8px rgba(0,0,0,0.04)',
   },
   formLogo: {
     width: '80px',
@@ -516,6 +532,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
   },
   passwordWrapper: {
     position: 'relative',
@@ -533,6 +550,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
   },
   toggleButton: {
     position: 'absolute',
@@ -540,9 +558,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    fontSize: '18px',
     padding: '4px',
     color: '#94a3b8',
+    display: 'flex',
+    alignItems: 'center',
   },
   error: {
     background: '#fef2f2',
@@ -557,13 +576,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '14px',
     borderRadius: '12px',
     border: 'none',
-    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
     color: '#fff',
     fontSize: '1rem',
     fontWeight: '700',
     cursor: 'pointer',
-    transition: 'opacity 0.2s',
+    transition: 'opacity 0.2s, transform 0.15s',
     fontFamily: 'inherit',
+    boxShadow: '0 4px 14px rgba(37,99,235,0.30)',
   },
   footer: {
     marginTop: '32px',

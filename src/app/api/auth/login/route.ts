@@ -9,8 +9,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 type Supa = SupabaseClient<any, any, any>
 
 export interface RoleResult {
-  role: 'station_manager' | 'operator' | 'district_manager' | 'editor'
-  label: 'מנהל תחנה' | 'מוקדן' | 'מנהל מחוז' | 'עורך'
+  role: 'station_manager' | 'operator' | 'district_manager' | 'editor' | 'admin'
+  label: 'מנהל תחנה' | 'מוקדן' | 'מנהל מחוז' | 'עורך' | 'ניהול מערכת'
   data: Record<string, unknown>
 }
 
@@ -172,6 +172,18 @@ async function checkDistrictManager(supabase: Supa, phone: string, password: str
   }
 }
 
+async function checkAdmin(_supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
+  const adminPassword = process.env.WHEELS_ADMIN_PASSWORD
+  const adminPhone = process.env.ADMIN_PHONE
+  if (!adminPassword || password !== adminPassword) return null
+  if (adminPhone && phone.replace(/\D/g, '') !== adminPhone.replace(/\D/g, '')) return null
+  return {
+    role: 'admin',
+    label: 'ניהול מערכת',
+    data: { full_name: 'מנהל מערכת' },
+  }
+}
+
 async function checkEditor(supabase: Supa, phone: string, password: string): Promise<RoleResult | null> {
   const cleanPhone = phone.replace(/\D/g, '')
   const { data } = await supabase
@@ -221,11 +233,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const [stationManager, operator, districtManager, editor] = await Promise.all([
+    const [stationManager, operator, districtManager, editor, admin] = await Promise.all([
       checkStationManager(supabase, phone, password),
       checkOperator(supabase, phone, password),
       checkDistrictManager(supabase, phone, password),
       checkEditor(supabase, phone, password),
+      checkAdmin(supabase, phone, password),
     ])
 
     console.log('[auth/login] results:', {
@@ -233,9 +246,10 @@ export async function POST(request: NextRequest) {
       operator: !!operator,
       districtManager: !!districtManager,
       editor: !!editor,
+      admin: !!admin,
     })
 
-    const roles: RoleResult[] = [stationManager, operator, districtManager, editor].filter(
+    const roles: RoleResult[] = [stationManager, operator, districtManager, editor, admin].filter(
       (r): r is RoleResult => r !== null
     )
 
