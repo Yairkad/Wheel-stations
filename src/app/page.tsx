@@ -32,10 +32,20 @@ export default function PublicHomePage() {
         }
       `}</style>
 
+      {/* Login button — top left */}
+      <button className="login-btn" style={styles.loginBtnFixed} onClick={() => router.push('/login')}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        התחברות
+      </button>
+
       <div style={styles.container}>
         {/* Logo */}
         <div style={styles.logoWrap}>
-          <Image src="/logo.wheels.png" alt="מערכת גלגלים" width={64} height={64} style={{ objectFit: 'contain' }} />
+          <Image src="/logo.wheels.png" alt="מערכת גלגלים" width={96} height={96} style={{ objectFit: 'cover', display: 'block' }} />
         </div>
 
         <h1 className="main-title" style={styles.title}>מערכת גלגלים</h1>
@@ -69,19 +79,6 @@ export default function PublicHomePage() {
           </Link>
         </div>
 
-        {/* Login button */}
-        <button
-          className="login-btn"
-          style={styles.loginBtn}
-          onClick={() => router.push('/login')}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
-          </svg>
-          התחברות לצוות
-        </button>
       </div>
 
       {/* Footer */}
@@ -125,17 +122,11 @@ const styles: { [key: string]: React.CSSProperties } = {
   logoWrap: {
     width: '96px',
     height: '96px',
-    background: 'rgba(255,255,255,0.85)',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
-    border: '1px solid rgba(226,232,240,0.8)',
-    borderRadius: '28px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: '24px',
+    display: 'block',
     margin: '0 auto 24px',
-    boxShadow: '0 8px 32px rgba(37,99,235,0.10)',
     overflow: 'hidden',
+    boxShadow: '0 8px 32px rgba(37,99,235,0.12)',
   },
   title: {
     color: '#1e293b',
@@ -194,22 +185,27 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.8rem',
     lineHeight: '1.5',
   },
-  loginBtn: {
+  loginBtnFixed: {
+    position: 'fixed' as const,
+    top: '18px',
+    left: '18px',
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '8px',
-    background: 'rgba(255,255,255,0.8)',
-    border: '1px solid #e2e8f0',
+    gap: '7px',
+    background: 'rgba(255,255,255,0.80)',
+    border: '1px solid rgba(226,232,240,0.85)',
     color: '#475569',
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: 600,
-    padding: '10px 22px',
+    padding: '8px 16px',
     borderRadius: '20px',
     cursor: 'pointer',
     transition: 'all 0.2s',
     fontFamily: 'inherit',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    zIndex: 100,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
   },
   footer: {
     marginTop: '40px',
