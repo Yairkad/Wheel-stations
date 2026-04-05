@@ -372,7 +372,8 @@ const handleLogout = () => {
       <style>{`
         @media (max-width: 640px) {
           .station-indicator { display: none !important; }
-          .role-chip { display: none !important; }
+          .profile-name { display: none !important; }
+          .nav-btn-text { display: none !important; }
         }
         @media all and (display-mode: standalone) {
           .app-header-wrap {
@@ -401,7 +402,7 @@ const handleLogout = () => {
               <div className="profile-avatar" style={styles.profileAvatar}>
                 {getUserInitials(userSession.manager.full_name)}
               </div>
-              <span style={styles.profileFirstName}>
+              <span className="profile-name" style={styles.profileFirstName}>
                 {userSession.manager.full_name?.trim().split(' ')[0] ?? ''}
               </span>
               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" style={{ flexShrink: 0 }}>
@@ -416,6 +417,19 @@ const handleLogout = () => {
             )}
           </div>
 
+
+          {/* ── Search button ── */}
+          {userSession.stationId && (
+            <Link
+              href={`/search?from=${userSession.stationId}`}
+              style={{ ...styles.navBtn, ...(pathname === '/search' ? styles.navBtnActive : {}) }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <span className="nav-btn-text">חיפוש</span>
+            </Link>
+          )}
 
           {/* ── Spacer ── */}
           <div style={{ flex: 1 }} />
@@ -579,6 +593,27 @@ const styles: { [key: string]: React.CSSProperties } = {
   btnActive: {
     boxShadow: '0 0 0 2px currentColor',
     opacity: 1,
+  },
+  /* ── Nav buttons ── */
+  navBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    padding: '6px 11px',
+    borderRadius: '10px',
+    background: 'rgba(22,163,74,0.09)',
+    color: '#16a34a',
+    fontSize: '13px',
+    fontWeight: 600,
+    textDecoration: 'none',
+    whiteSpace: 'nowrap' as const,
+    border: 'none',
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  navBtnActive: {
+    background: 'rgba(22,163,74,0.18)',
+    boxShadow: '0 0 0 1.5px #16a34a40',
   },
   /* ── Left cluster ── */
   headerLeft: {
