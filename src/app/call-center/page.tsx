@@ -76,6 +76,10 @@ export default function CallCenterPage() {
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
 
+  // Profile dropdown
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+
   // Dropdown menu
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
@@ -143,16 +147,15 @@ export default function CallCenterPage() {
     } catch { /* ignore */ }
   }, [])
 
-  // Close role menu on outside click
+  // Close menus on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (showRoleMenu && roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) {
-        setShowRoleMenu(false)
-      }
+      if (showRoleMenu && roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) setShowRoleMenu(false)
+      if (showProfileMenu && profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) setShowProfileMenu(false)
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [showRoleMenu])
+  }, [showRoleMenu, showProfileMenu])
 
   // Fetch data when manager is set
   useEffect(() => {
@@ -259,6 +262,11 @@ export default function CallCenterPage() {
   }
 
   // Navigate to operator page while keeping manager session
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ').filter(p => p.length > 0)
+    return parts.length >= 2 ? parts[0][0] + parts[1][0] : name.substring(0, 2)
+  }
+
   const navigateToRole = (r: RoleResult) => {
     localStorage.setItem('active_role', r.role)
     setActiveRole(r.role)
@@ -473,147 +481,78 @@ export default function CallCenterPage() {
     <div style={styles.pageWrapper}>
       {/* Responsive styles */}
       <style>{`
-        /* Tablet breakpoint (768px) */
+        @media (max-width: 640px) {
+          .cc-profile-name { display: none !important; }
+          .cc-search-text { display: none !important; }
+        }
         @media (max-width: 768px) {
-          .cc-header-content {
-            gap: 8px !important;
-          }
-          .cc-header-buttons {
-            flex-wrap: wrap !important;
-            justify-content: flex-end !important;
-          }
           .cc-stats-row {
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 8px !important;
             padding: 10px !important;
           }
-          .cc-stat-card {
-            padding: 10px !important;
-          }
-          .cc-stat-value {
-            font-size: 1rem !important;
-          }
-          .cc-tabs {
-            flex-wrap: wrap !important;
-          }
-          .cc-tab {
-            flex: 1 1 45% !important;
-          }
-          .cc-list-item {
-            flex-direction: column !important;
-            gap: 10px !important;
-            align-items: stretch !important;
-          }
-          .cc-code-box {
-            align-self: flex-start !important;
-          }
+          .cc-stat-card { padding: 10px !important; }
+          .cc-stat-value { font-size: 1rem !important; }
+          .cc-tabs { flex-wrap: wrap !important; }
+          .cc-tab { flex: 1 1 45% !important; }
+          .cc-list-item { flex-direction: column !important; gap: 10px !important; align-items: stretch !important; }
+          .cc-code-box { align-self: flex-start !important; }
         }
-
-        /* Mobile breakpoint (480px) */
         @media (max-width: 480px) {
-          .cc-header-content {
-            flex-direction: row !important;
-            align-items: center !important;
-            gap: 8px !important;
-          }
-          .cc-header-logo {
-            flex: 1 !important;
-            min-width: 0 !important;
-          }
-          .cc-logo-icon {
-            display: none !important;
-          }
-          .cc-header-title {
-            font-size: 0.95rem !important;
-            white-space: nowrap !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-          }
-          .cc-header-subtitle {
-            display: none !important;
-          }
-          .cc-header-buttons {
-            justify-content: flex-end !important;
-            flex-wrap: nowrap !important;
-            gap: 6px !important;
-          }
-          .cc-btn-text {
-            display: none !important;
-          }
-          .cc-btn-logout-text {
-            display: none !important;
-          }
-          .cc-btn-logout-icon {
-            display: inline !important;
-          }
-          .cc-stats-row {
-            grid-template-columns: 1fr 1fr 1fr !important;
-            gap: 6px !important;
-          }
-          .cc-stat-card {
-            padding: 8px !important;
-            gap: 6px !important;
-          }
-          .cc-stat-icon {
-            width: 28px !important;
-            height: 28px !important;
-            font-size: 0.8rem !important;
-          }
-          .cc-stat-label {
-            font-size: 0.6rem !important;
-          }
-          .cc-stat-value {
-            font-size: 0.9rem !important;
-          }
-          .cc-tab {
-            flex: 1 1 100% !important;
-            padding: 10px !important;
-            font-size: 0.85rem !important;
-          }
-          .cc-section {
-            padding: 15px !important;
-          }
-          .cc-section-title {
-            font-size: 0.95rem !important;
-          }
-          .cc-btn-add {
-            padding: 6px 10px !important;
-            font-size: 0.75rem !important;
-          }
-          .cc-btn-primary {
-            padding: 8px 14px !important;
-            font-size: 0.8rem !important;
-          }
-          .cc-btn-logout, .cc-btn-settings {
-            padding: 6px 10px !important;
-            font-size: 0.8rem !important;
-          }
-          .cc-modal {
-            max-width: calc(100% - 30px) !important;
-            padding: 15px !important;
-          }
-          .cc-history-item {
-            flex-direction: column !important;
-            gap: 8px !important;
-          }
-          .cc-history-datetime {
-            flex-direction: row !important;
-            justify-content: flex-start !important;
-            gap: 8px !important;
-          }
+          .cc-stats-row { gap: 6px !important; }
+          .cc-stat-card { padding: 8px !important; gap: 6px !important; }
+          .cc-stat-icon { width: 28px !important; height: 28px !important; }
+          .cc-stat-label { font-size: 0.6rem !important; }
+          .cc-stat-value { font-size: 0.9rem !important; }
+          .cc-tab { flex: 1 1 100% !important; padding: 10px !important; font-size: 0.85rem !important; }
+          .cc-section { padding: 15px !important; }
+          .cc-section-title { font-size: 0.95rem !important; }
+          .cc-btn-add { padding: 6px 10px !important; font-size: 0.75rem !important; }
+          .cc-modal { max-width: calc(100% - 30px) !important; padding: 15px !important; }
+          .cc-history-item { flex-direction: column !important; gap: 8px !important; }
+          .cc-history-datetime { flex-direction: row !important; justify-content: flex-start !important; gap: 8px !important; }
+        }
+        @media all and (display-mode: standalone) {
+          .cc-glass-header-wrap { padding-top: max(8px, env(safe-area-inset-top, 8px)) !important; }
+          .cc-glass-spacer { height: calc(70px + env(safe-area-inset-top, 0px)) !important; }
         }
       `}</style>
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerContent} className="cc-header-content">
-          <div style={styles.headerLogo} className="cc-header-logo">
-            <div style={styles.logoIcon} className="cc-logo-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
-            <div>
-              <h1 style={styles.headerTitle} className="cc-header-title">{manager.call_center_name}</h1>
-              <p style={styles.headerSubtitle} className="cc-header-subtitle">{manager.title} - {manager.full_name}</p>
-            </div>
+
+      {/* Glass header */}
+      <div className="cc-glass-header-wrap" style={styles.glassHeaderWrap}>
+        <header style={styles.glassHeader}>
+
+          {/* Avatar / profile dropdown (RTL start = right) */}
+          <div ref={profileMenuRef} style={{ position: 'relative' }}>
+            <button style={styles.profileBtn} onClick={() => setShowProfileMenu(!showProfileMenu)}>
+              <div style={styles.avatar}>{getInitials(manager.full_name)}</div>
+              <span className="cc-profile-name" style={styles.profileName}>{manager.full_name.trim().split(' ')[0]}</span>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" style={{flexShrink:0}}><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            {showProfileMenu && (
+              <div style={styles.profileDropdown}>
+                <div style={styles.profileInfo}>
+                  <div style={styles.profileInfoName}>{manager.full_name}</div>
+                  <div style={styles.profileInfoSub}>{manager.title} · {manager.call_center_name}</div>
+                </div>
+                <div style={styles.profileDivider}/>
+                <button style={styles.profileItem} onClick={() => { setShowChangePassword(true); setShowProfileMenu(false) }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  שינוי סיסמה
+                </button>
+                <button style={{...styles.profileItem, color:'#ef4444'}} onClick={handleLogout}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  יציאה
+                </button>
+              </div>
+            )}
           </div>
-          <div style={styles.headerButtons} className="cc-header-buttons">
+
+          {/* Spacer */}
+          <div style={{flex:1}}/>
+
+          {/* Right cluster: role chip + search (RTL end = left) */}
+          <div style={styles.headerRight}>
             {/* Role chip */}
             {authRoles.length > 0 && currentRoleLabel && (
               <div ref={roleMenuRef} style={{ position: 'relative' }}>
@@ -638,12 +577,16 @@ export default function CallCenterPage() {
                 )}
               </div>
             )}
-            <button style={styles.btnPrimary} className="cc-btn-primary" onClick={handleWorkAsOperator} title="חיפוש גלגלים"><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span className="cc-btn-text">חיפוש גלגלים</span></span></button>
-            <button style={styles.btnSettings} className="cc-btn-settings" onClick={() => setShowChangePassword(true)} title="שינוי סיסמה"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-            <button style={styles.btnLogout} className="cc-btn-logout" onClick={handleLogout} title="יציאה"><span className="cc-btn-logout-text">יציאה</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cc-btn-logout-icon" style={{display:'none'}}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+            {/* Search */}
+            <button style={styles.searchBtn} onClick={handleWorkAsOperator}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span className="cc-search-text">חיפוש גלגלים</span>
+            </button>
           </div>
-        </div>
+
+        </header>
       </div>
+      <div className="cc-glass-spacer" style={styles.glassSpacer}/>
 
       {/* Stats */}
       <div style={styles.statsRow} className="cc-stats-row">
@@ -1031,56 +974,123 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#64748b',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
-  header: {
-    background: '#ffffff',
-    borderBottom: '1px solid #e2e8f0',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-    padding: '15px 20px',
+  glassHeaderWrap: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    padding: '8px 12px 0',
   },
-  headerContent: {
-    maxWidth: '800px',
-    margin: '0 auto',
+  glassHeader: {
+    background: 'rgba(255,255,255,0.82)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    border: '1px solid rgba(255,255,255,0.9)',
+    boxShadow: '0 4px 20px rgba(124,58,237,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+    borderRadius: '16px',
+    padding: '0 14px',
+    height: '54px',
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    direction: 'rtl' as const,
   },
-  headerLogo: {
+  glassSpacer: {
+    height: '70px',
+  },
+  profileBtn: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    gap: '5px',
+    background: 'rgba(255,255,255,0.8)',
+    border: '1px solid rgba(226,232,240,0.8)',
+    borderRadius: '50px',
+    padding: '4px 8px 4px 6px',
+    cursor: 'pointer',
+    color: '#1e293b',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
   },
-  logoIcon: {
-    width: '45px',
-    height: '45px',
+  avatar: {
+    width: '32px',
+    height: '32px',
     background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    borderRadius: '12px',
+    borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '1.3rem',
-  },
-  headerTitle: {
-    color: '#1e293b',
-    fontSize: '1.2rem',
     fontWeight: 700,
-    margin: 0,
+    fontSize: '13px',
+    color: 'white',
+    flexShrink: 0,
   },
-  headerSubtitle: {
+  profileName: {
+    fontSize: '13px',
+    fontWeight: 600,
+    color: '#1e293b',
+    whiteSpace: 'nowrap' as const,
+  },
+  profileDropdown: {
+    position: 'absolute' as const,
+    top: 'calc(100% + 8px)',
+    right: 0,
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
+    zIndex: 200,
+    minWidth: '200px',
+    overflow: 'hidden',
+  },
+  profileInfo: {
+    padding: '12px 16px',
+  },
+  profileInfoName: {
+    fontSize: '0.9rem',
+    fontWeight: 700,
+    color: '#1e293b',
+  },
+  profileInfoSub: {
+    fontSize: '0.75rem',
     color: '#7c3aed',
-    fontSize: '0.85rem',
-    margin: 0,
+    marginTop: '2px',
   },
-  btnLogout: {
-    padding: '8px 12px',
-    borderRadius: '8px',
-    border: '1px solid #ef4444',
-    background: 'transparent',
-    color: '#ef4444',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
+  profileDivider: {
+    height: '1px',
+    background: '#f1f5f9',
+  },
+  profileItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
+    gap: '10px',
+    width: '100%',
+    padding: '10px 16px',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    color: '#374151',
+    textAlign: 'right' as const,
+    fontFamily: 'inherit',
+    direction: 'rtl' as const,
+  },
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  searchBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    padding: '6px 11px',
+    borderRadius: '10px',
+    background: 'rgba(22,163,74,0.09)',
+    color: '#16a34a',
+    fontSize: '13px',
+    fontWeight: 600,
+    border: 'none',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
   },
   roleStatic: {
     display: 'inline-block',
@@ -1134,33 +1144,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: '#f3f0ff',
     color: '#7c3aed',
     fontWeight: 600,
-  },
-  btnSettings: {
-    padding: '8px 12px',
-    borderRadius: '8px',
-    border: '1px solid #64748b',
-    background: 'transparent',
-    color: '#94a3b8',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  },
-  headerButtons: {
-    display: 'flex',
-    gap: '10px',
-    alignItems: 'center',
-  },
-  btnPrimary: {
-    padding: '10px 20px',
-    borderRadius: '10px',
-    border: 'none',
-    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-    color: 'white',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-    fontWeight: 600,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
   },
   statsRow: {
     display: 'grid',
