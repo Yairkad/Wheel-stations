@@ -720,7 +720,7 @@ export default function WheelsAdminPage() {
           .stats-row-responsive {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 12px !important;
-            margin-top: -40px !important;
+            margin-top: 16px !important;
           }
           .stat-value-responsive {
             font-size: 1.5rem !important;
@@ -1758,7 +1758,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
     gap: '12px',
-    margin: '-40px auto 20px',
+    margin: '24px auto 20px',
     position: 'relative',
     zIndex: 10,
     maxWidth: '1300px',

@@ -337,7 +337,7 @@ export default function CallCentersAdminPage() {
           .stats-row-responsive {
             grid-template-columns: repeat(3, 1fr) !important;
             gap: 8px !important;
-            margin-top: -30px !important;
+            margin-top: 16px !important;
           }
         }
         @media (max-width: 480px) {
@@ -816,7 +816,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '12px',
-    margin: '-40px auto 20px',
+    margin: '24px auto 20px',
     maxWidth: '1000px',
     padding: '0 20px',
   },

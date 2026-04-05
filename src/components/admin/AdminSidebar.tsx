@@ -75,6 +75,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
       display: 'flex', flexDirection: 'column', height: '100%',
       background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
       borderLeft: '1px solid #334155',
+      direction: 'rtl',
     }}>
       {/* Logo */}
       <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid #1e293b' }}>

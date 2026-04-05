@@ -313,7 +313,7 @@ export default function ErrorReportsPage() {
           .stats-row-responsive {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 10px !important;
-            margin-top: -30px !important;
+            margin-top: 16px !important;
           }
           .stat-value-responsive {
             font-size: 1.2rem !important;
@@ -963,7 +963,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
     gap: '12px',
-    margin: '-40px auto 20px',
+    margin: '24px auto 20px',
     position: 'relative',
     zIndex: 10,
     maxWidth: '1300px',
