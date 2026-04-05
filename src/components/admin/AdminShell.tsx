@@ -17,17 +17,17 @@ export function AdminShell({ children, onLogout }: AdminShellProps) {
       `}</style>
       <div style={{
         display: 'flex',
-        flexDirection: 'row-reverse', /* sidebar on right for RTL */
+        direction: 'ltr',
         minHeight: '100vh',
         background: '#f8fafc',
       }}>
-        <AdminSidebar onLogout={onLogout} />
         <main
           className="admin-shell-content"
           style={{ flex: 1, minWidth: 0, overflowX: 'hidden' }}
         >
           {children}
         </main>
+        <AdminSidebar onLogout={onLogout} />
       </div>
     </>
   )
