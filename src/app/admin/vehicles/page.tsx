@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminShell } from '@/components/admin/AdminShell'
 
 interface VehicleModel {
   id: string
@@ -1268,6 +1268,7 @@ function VehiclesAdminPage() {
   }
 
   return (
+    <AdminShell onLogout={logout}>
     <div style={styles.pageWrapper}>
       {/* Responsive CSS */}
       <style>{`
@@ -1331,13 +1332,6 @@ function VehiclesAdminPage() {
         }
       `}</style>
 
-      <AdminHeader
-        title="ניהול מאגר דגמי רכבים"
-        subtitle="גרידה והוספת דגמים למאגר PCD"
-        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>}
-        iconBg="linear-gradient(135deg, #3b82f6, #1d4ed8)"
-        onLogout={logout}
-      />
 
       {/* Stats */}
       <div style={styles.statsRow} className="stats-row-responsive">
@@ -2629,6 +2623,7 @@ function VehiclesAdminPage() {
         </button>
       )}
     </div>
+    </AdminShell>
   )
 }
 

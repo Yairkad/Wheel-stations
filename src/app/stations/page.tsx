@@ -1222,18 +1222,18 @@ export default function WheelStationsPage() {
             {/* Tabs */}
             <div style={{
               display: 'flex',
-              gap: '0',
+              flexDirection: 'column',
+              gap: '6px',
               marginBottom: '16px',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: '1px solid #4b5563'
             }}>
               <button
                 onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
-                  flex: 1,
+                  width: '100%',
                   padding: '10px 16px',
-                  border: 'none',
+                  border: '1px solid',
+                  borderColor: vehicleSearchTab === 'plate' ? '#3b82f6' : '#4b5563',
+                  borderRadius: '8px',
                   background: vehicleSearchTab === 'plate' ? '#3b82f6' : 'transparent',
                   color: vehicleSearchTab === 'plate' ? '#fff' : '#9ca3af',
                   cursor: 'pointer',
@@ -1247,10 +1247,11 @@ export default function WheelStationsPage() {
               <button
                 onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
-                  flex: 1,
+                  width: '100%',
                   padding: '10px 16px',
-                  border: 'none',
-                  borderRight: '1px solid #4b5563',
+                  border: '1px solid',
+                  borderColor: vehicleSearchTab === 'model' ? '#3b82f6' : '#4b5563',
+                  borderRadius: '8px',
                   background: vehicleSearchTab === 'model' ? '#3b82f6' : 'transparent',
                   color: vehicleSearchTab === 'model' ? '#fff' : '#9ca3af',
                   cursor: 'pointer',

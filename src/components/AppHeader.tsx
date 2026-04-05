@@ -25,9 +25,10 @@ interface UserSession {
 interface AppHeaderProps {
   currentStationId?: string
   notificationCount?: number
+  pushEnabled?: boolean
 }
 
-export default function AppHeader({ currentStationId, notificationCount }: AppHeaderProps) {
+export default function AppHeader({ currentStationId, notificationCount, pushEnabled }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [userSession, setUserSession] = useState<UserSession | null>(null)
@@ -443,7 +444,7 @@ const handleLogout = () => {
             )}
 
             {/* Alerts bell */}
-            {notificationCount !== undefined && notificationCount > 0 && userSession?.stationId && (
+            {userSession?.stationId && (pushEnabled || (notificationCount !== undefined && notificationCount > 0)) && (
               <Link
                 href={`/${userSession.stationId}?tab=alerts`}
                 style={{ ...styles.alertsBtn, position: 'relative' }}
@@ -452,7 +453,17 @@ const handleLogout = () => {
                   <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                   <path d="M13.73 21a2 2 0 01-3.46 0"/>
                 </svg>
-                <span style={styles.alertBadge}>{notificationCount}</span>
+                {notificationCount !== undefined && notificationCount > 0 && (
+                  <span style={styles.alertBadge}>{notificationCount}</span>
+                )}
+                {pushEnabled && (
+                  <span style={{
+                    position: 'absolute', top: 0, right: 0,
+                    width: 7, height: 7, borderRadius: '50%',
+                    background: '#22c55e',
+                    border: '1.5px solid #fff',
+                  }} />
+                )}
               </Link>
             )}
 

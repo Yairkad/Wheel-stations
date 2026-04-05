@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePunctureAdminAuth } from '@/hooks/usePunctureAdminAuth'
 import { HoursFields, HoursState, emptyHours, parseHoursState, hoursToString } from '@/components/punctures/HoursFields'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminShell } from '@/components/admin/AdminShell'
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
@@ -557,16 +557,8 @@ export default function PuncturesAdminPage() {
   const statusLabel = { pending: 'ממתינות', approved: 'מאושרות', rejected: 'נדחו' }
 
   return (
+    <AdminShell onLogout={logout}>
     <div dir="rtl" style={{ minHeight: '100vh', background: '#f1f5f9', fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
-
-      <AdminHeader
-        title="ניהול פנצ׳ריות לילה"
-        subtitle={role === 'admin' ? 'מנהל ראשי' : 'מנהל פנצ׳ריות'}
-        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
-        iconBg="linear-gradient(135deg, #f59e0b, #d97706)"
-        onLogout={logout}
-        hideNav={role !== 'admin'}
-      />
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', padding: '0 24px', background: '#ffffff' }}>
@@ -798,6 +790,7 @@ export default function PuncturesAdminPage() {
         />
       )}
     </div>
+    </AdminShell>
   )
 }
 

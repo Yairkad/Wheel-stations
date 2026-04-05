@@ -406,9 +406,6 @@ export default function PuncturesPage() {
             דף הבית
           </a>
           <h1 className="text-base font-bold text-gray-800 whitespace-nowrap flex items-center gap-1"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>פנצ׳ריות לילה</h1>
-          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            placeholder="חיפוש לפי שם, עיר..."
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" />
         </div>
       </header>
 
@@ -424,12 +421,17 @@ export default function PuncturesPage() {
           {/* Filter strip */}
           <div className="flex-shrink-0 border-b border-gray-200 px-3 py-2 space-y-2">
 
+            {/* Search row */}
+            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              placeholder="חיפוש לפי שם, עיר..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
             {/* Row 1: region + nearby button */}
             <div className="flex gap-2">
               <select
                 value={regionFilter}
                 onChange={e => setRegionFilter(e.target.value as Region | '')}
-                className="flex-1 border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-0"
+                className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-0"
               >
                 <option value="">כל האזורים</option>
                 {REGIONS.map(r => (
@@ -438,7 +440,7 @@ export default function PuncturesPage() {
               </select>
               <button onClick={handleNearby} disabled={geoLoading}
                 title="הקרוב אלי"
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap flex-shrink-0">
+                className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap flex-shrink-0">
                 {geoLoading
                   ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   : <svg viewBox="0 0 24 24" width="15" height="15" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>}

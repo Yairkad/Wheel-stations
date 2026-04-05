@@ -5,7 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminShell } from '@/components/admin/AdminShell'
 
 interface Manager {
   id?: string
@@ -692,6 +692,7 @@ export default function WheelsAdminPage() {
   }
 
   return (
+    <AdminShell onLogout={logout}>
     <div style={styles.pageWrapper}>
       <style>{`
         @media (max-width: 768px) {
@@ -790,12 +791,6 @@ export default function WheelsAdminPage() {
         }
       `}</style>
 
-      <AdminHeader
-        title="ניהול תחנות גלגלים"
-        subtitle="מערכת ניהול תחנות והשאלות"
-        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg>}
-        onLogout={logout}
-      />
 
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">
@@ -1504,6 +1499,7 @@ export default function WheelsAdminPage() {
         <span style={styles.footerVersion}>גרסה {VERSION}</span>
       </footer>
     </div>
+    </AdminShell>
   )
 }
 

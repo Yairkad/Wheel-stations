@@ -1816,7 +1816,7 @@ ${formUrl}`
       style={{display: 'none'}}
       onChange={handleExcelUpload}
     />
-    <AppHeader currentStationId={stationId} notificationCount={alertCount} />
+    <AppHeader currentStationId={stationId} notificationCount={alertCount} pushEnabled={pushEnabled} />
     <div style={styles.container}>
       <style>{`
         /* Desktop styles for Add Wheel Modal */
@@ -2913,7 +2913,7 @@ ${formUrl}`
                       <button
                         style={{
                           ...styles.optionsBtn,
-                          background: openOptionsMenu === wheel.id ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : 'linear-gradient(135deg, #6b7280, #4b5563)',
+                          ...(openOptionsMenu === wheel.id && { background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }),
                         }}
                         onClick={(e) => {
                           e.stopPropagation()
@@ -5617,9 +5617,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.85rem',
   },
   optionsBtn: {
-    background: '#f8fafc',
+    background: 'linear-gradient(135deg, #6b7280, #4b5563)',
     border: '1px solid #e2e8f0',
-    color: '#475569',
+    color: '#fff',
     padding: '8px 14px',
     borderRadius: '8px',
     cursor: 'pointer',

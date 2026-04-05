@@ -5,7 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminShell } from '@/components/admin/AdminShell'
 
 interface ErrorReport {
   id: string
@@ -285,6 +285,7 @@ export default function ErrorReportsPage() {
   }
 
   return (
+    <AdminShell onLogout={logout}>
     <div style={styles.pageWrapper}>
       <style>{`
         @media (max-width: 768px) {
@@ -367,13 +368,6 @@ export default function ErrorReportsPage() {
         }
       `}</style>
 
-      <AdminHeader
-        title="דיווחי שגיאות"
-        subtitle="ניהול דיווחים על טעויות במאגר"
-        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>}
-        iconBg="linear-gradient(135deg, #f59e0b, #d97706)"
-        onLogout={logout}
-      />
 
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">
@@ -867,6 +861,7 @@ export default function ErrorReportsPage() {
         <span style={styles.footerVersion}>גרסה {VERSION}</span>
       </footer>
     </div>
+    </AdminShell>
   )
 }
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
-import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AdminShell } from '@/components/admin/AdminShell'
 
 interface Operator {
   id: string
@@ -308,6 +308,7 @@ export default function CallCentersAdminPage() {
   }
 
   return (
+    <AdminShell onLogout={logout}>
     <div style={styles.pageWrapper}>
       <style>{`
         @media (max-width: 768px) {
@@ -355,13 +356,6 @@ export default function CallCentersAdminPage() {
         }
       `}</style>
 
-      <AdminHeader
-        title="ניהול מוקדים"
-        subtitle="סניפים, מנהלים ומוקדנים"
-        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>}
-        iconBg="linear-gradient(135deg, #8b5cf6, #7c3aed)"
-        onLogout={logout}
-      />
 
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">
@@ -729,6 +723,7 @@ export default function CallCentersAdminPage() {
         <span style={styles.footerVersion}>גרסה {VERSION}</span>
       </footer>
     </div>
+    </AdminShell>
   )
 }
 

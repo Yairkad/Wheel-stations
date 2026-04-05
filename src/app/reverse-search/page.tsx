@@ -594,8 +594,7 @@ export default function ReverseSearchPage() {
               onClick={() => { setSearchTab('model'); setVehicleError(null) }}
               style={{
                 ...styles.tab,
-                ...(searchTab === 'model' ? styles.tabActive : {}),
-                borderRight: '1px solid #4b5563'
+                ...(searchTab === 'model' ? styles.tabActive : {})
               }}
             >
               יצרן ודגם
@@ -909,18 +908,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   tabBar: {
     display: 'flex',
-    gap: '0',
+    flexDirection: 'column' as const,
+    gap: '6px',
     marginBottom: '16px',
-    borderRadius: '9px',
-    overflow: 'hidden',
-    border: '1px solid #e2e8f0',
-    background: '#f8fafc',
   },
   tab: {
-    flex: 1,
+    width: '100%',
     padding: '10px 16px',
-    border: 'none',
-    background: 'transparent',
+    border: '1px solid #e2e8f0',
+    borderRadius: '9px',
+    background: '#f8fafc',
     color: '#64748b',
     cursor: 'pointer',
     fontWeight: 'normal' as const,

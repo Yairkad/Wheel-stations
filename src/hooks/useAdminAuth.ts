@@ -42,7 +42,7 @@ export function useAdminAuth(): AdminAuth {
     localStorage.removeItem('wheels_admin_auth')
     setIsAuthenticated(false)
     setPassword('')
-    router.push('/admin/login')
+    router.push('/')
   }
 
   return { isAuthenticated, password, isLoading, logout }
