@@ -1,8 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
+
+interface RoleResult {
+  role: string
+  label: string
+  data: Record<string, unknown>
+}
 
 interface Manager {
   id: string
@@ -64,6 +70,12 @@ export default function CallCenterPage() {
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
 
+  // Role switching
+  const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
+  const [activeRole, setActiveRole] = useState<string | null>(null)
+  const [showRoleMenu, setShowRoleMenu] = useState(false)
+  const roleMenuRef = useRef<HTMLDivElement>(null)
+
   // Dropdown menu
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
 
@@ -118,6 +130,29 @@ export default function CallCenterPage() {
     // No valid manager session - redirect to login
     window.location.href = '/login'
   }, [])
+
+  // Load auth_roles for role switching
+  useEffect(() => {
+    try {
+      const storedRoles = localStorage.getItem('auth_roles')
+      const storedActiveRole = localStorage.getItem('active_role')
+      if (storedRoles) {
+        setAuthRoles(JSON.parse(storedRoles))
+        setActiveRole(storedActiveRole || 'manager')
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  // Close role menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showRoleMenu && roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) {
+        setShowRoleMenu(false)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showRoleMenu])
 
   // Fetch data when manager is set
   useEffect(() => {
@@ -224,6 +259,21 @@ export default function CallCenterPage() {
   }
 
   // Navigate to operator page while keeping manager session
+  const navigateToRole = (r: RoleResult) => {
+    localStorage.setItem('active_role', r.role)
+    setActiveRole(r.role)
+    setShowRoleMenu(false)
+    const d = r.data
+    switch (r.role) {
+      case 'station_manager': window.location.href = `/${d.station_id as string}`; break
+      case 'operator': window.location.href = (d as {sub_role?: string}).sub_role === 'manager' ? '/call-center' : '/operator'; break
+      case 'district_manager': window.location.href = '/super-manager'; break
+      case 'editor': window.location.href = '/admin/punctures'; break
+    }
+  }
+
+  const currentRoleLabel = authRoles.find(r => r.role === activeRole)?.label ?? authRoles[0]?.label
+
   const handleWorkAsOperator = () => {
     if (!manager) return
 
@@ -426,13 +476,11 @@ export default function CallCenterPage() {
         /* Tablet breakpoint (768px) */
         @media (max-width: 768px) {
           .cc-header-content {
-            flex-direction: column !important;
-            gap: 12px !important;
-            align-items: stretch !important;
+            gap: 8px !important;
           }
           .cc-header-buttons {
-            justify-content: center !important;
             flex-wrap: wrap !important;
+            justify-content: flex-end !important;
           }
           .cc-stats-row {
             grid-template-columns: repeat(3, 1fr) !important;
@@ -463,19 +511,40 @@ export default function CallCenterPage() {
 
         /* Mobile breakpoint (480px) */
         @media (max-width: 480px) {
-          .cc-header-logo {
-            flex-direction: column !important;
-            text-align: center !important;
+          .cc-header-content {
+            flex-direction: row !important;
+            align-items: center !important;
             gap: 8px !important;
           }
+          .cc-header-logo {
+            flex: 1 !important;
+            min-width: 0 !important;
+          }
           .cc-logo-icon {
-            margin: 0 auto !important;
+            display: none !important;
           }
           .cc-header-title {
-            font-size: 1rem !important;
+            font-size: 0.95rem !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
           }
           .cc-header-subtitle {
-            font-size: 0.75rem !important;
+            display: none !important;
+          }
+          .cc-header-buttons {
+            justify-content: flex-end !important;
+            flex-wrap: nowrap !important;
+            gap: 6px !important;
+          }
+          .cc-btn-text {
+            display: none !important;
+          }
+          .cc-btn-logout-text {
+            display: none !important;
+          }
+          .cc-btn-logout-icon {
+            display: inline !important;
           }
           .cc-stats-row {
             grid-template-columns: 1fr 1fr 1fr !important;
@@ -545,9 +614,33 @@ export default function CallCenterPage() {
             </div>
           </div>
           <div style={styles.headerButtons} className="cc-header-buttons">
-            <button style={styles.btnPrimary} className="cc-btn-primary" onClick={handleWorkAsOperator}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חיפוש גלגלים</span></button>
-            <button style={styles.btnSettings} className="cc-btn-settings" onClick={() => setShowChangePassword(true)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-            <button style={styles.btnLogout} className="cc-btn-logout" onClick={handleLogout}>יציאה</button>
+            {/* Role chip */}
+            {authRoles.length > 0 && currentRoleLabel && (
+              <div ref={roleMenuRef} style={{ position: 'relative' }}>
+                {authRoles.length === 1 ? (
+                  <span style={styles.roleStatic}>{currentRoleLabel}</span>
+                ) : (
+                  <>
+                    <button style={styles.roleBtn} onClick={() => setShowRoleMenu(!showRoleMenu)} aria-haspopup="menu" aria-expanded={showRoleMenu}>
+                      {currentRoleLabel}
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    {showRoleMenu && (
+                      <div style={styles.roleDropdown} role="menu">
+                        {authRoles.map((r) => (
+                          <button key={r.role} role="menuitem" style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {})}} onClick={() => navigateToRole(r)}>
+                            {r.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+            <button style={styles.btnPrimary} className="cc-btn-primary" onClick={handleWorkAsOperator} title="חיפוש גלגלים"><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span className="cc-btn-text">חיפוש גלגלים</span></span></button>
+            <button style={styles.btnSettings} className="cc-btn-settings" onClick={() => setShowChangePassword(true)} title="שינוי סיסמה"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+            <button style={styles.btnLogout} className="cc-btn-logout" onClick={handleLogout} title="יציאה"><span className="cc-btn-logout-text">יציאה</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="cc-btn-logout-icon" style={{display:'none'}}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
           </div>
         </div>
       </div>
@@ -978,13 +1071,69 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
   },
   btnLogout: {
-    padding: '8px 16px',
+    padding: '8px 12px',
     borderRadius: '8px',
     border: '1px solid #ef4444',
     background: 'transparent',
     color: '#ef4444',
     cursor: 'pointer',
     fontSize: '0.85rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  roleStatic: {
+    display: 'inline-block',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    background: '#f3f0ff',
+    color: '#7c3aed',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    border: '1px solid #e9d5ff',
+    whiteSpace: 'nowrap' as const,
+  },
+  roleBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    background: '#f3f0ff',
+    color: '#7c3aed',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    border: '1px solid #e9d5ff',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap' as const,
+  },
+  roleDropdown: {
+    position: 'absolute' as const,
+    top: 'calc(100% + 6px)',
+    right: 0,
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '10px',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+    zIndex: 1000,
+    minWidth: '140px',
+    overflow: 'hidden',
+  },
+  roleOption: {
+    display: 'block',
+    width: '100%',
+    padding: '10px 14px',
+    background: 'transparent',
+    border: 'none',
+    textAlign: 'right' as const,
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    color: '#374151',
+  },
+  roleOptionActive: {
+    background: '#f3f0ff',
+    color: '#7c3aed',
+    fontWeight: 600,
   },
   btnSettings: {
     padding: '8px 12px',
