@@ -314,7 +314,7 @@ export default function LoginPage() {
 
       <div style={styles.formCard} className="form-card">
         <div style={styles.formLogo} className="form-logo">
-          <Image src="/logo.wheels.png" alt="לוגו מערכת גלגלים" width={60} height={60} style={{ objectFit: 'contain' }} />
+          <Image src="/logo.wheels.png" alt="לוגו מערכת גלגלים" width={80} height={80} style={{ objectFit: 'contain' }} />
         </div>
         <h1 style={styles.formTitle} className="form-title">כניסה למערכת</h1>
         <p style={styles.formSubtitle}>הזן טלפון וסיסמה</p>

@@ -1,11 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import { VehicleModelRecord } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
+
+interface RoleResult {
+  role: string
+  label: string
+  data: Record<string, unknown>
+}
 
 interface Operator {
   id: string
@@ -59,7 +65,15 @@ interface FilterOptions {
 
 export default function OperatorPage() {
   const [operator, setOperator] = useState<Operator | null>(null)
-  const [isManager, setIsManager] = useState(false) // Track if user is a manager working as operator
+  const [isManager, setIsManager] = useState(false)
+
+  // Header menus
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+  const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
+  const [activeRole, setActiveRole] = useState<string | null>(null)
+  const [showRoleMenu, setShowRoleMenu] = useState(false)
+  const roleMenuRef = useRef<HTMLDivElement>(null)
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
@@ -314,6 +328,48 @@ export default function OperatorPage() {
       setLoginLoading(false)
     }
   }
+
+  // Load auth_roles for role switching
+  useEffect(() => {
+    try {
+      const storedRoles = localStorage.getItem('auth_roles')
+      const storedActiveRole = localStorage.getItem('active_role')
+      if (storedRoles) {
+        setAuthRoles(JSON.parse(storedRoles))
+        setActiveRole(storedActiveRole || 'operator')
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  // Close menus on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showProfileMenu && profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) setShowProfileMenu(false)
+      if (showRoleMenu && roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) setShowRoleMenu(false)
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showProfileMenu, showRoleMenu])
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(' ').filter(p => p.length > 0)
+    return parts.length >= 2 ? parts[0][0] + parts[1][0] : name.substring(0, 2)
+  }
+
+  const navigateToRole = (r: RoleResult) => {
+    localStorage.setItem('active_role', r.role)
+    setActiveRole(r.role)
+    setShowRoleMenu(false)
+    const d = r.data
+    switch (r.role) {
+      case 'station_manager': window.location.href = `/${d.station_id as string}`; break
+      case 'operator': window.location.href = (d as {sub_role?: string}).sub_role === 'manager' ? '/call-center' : '/operator'; break
+      case 'district_manager': window.location.href = '/super-manager'; break
+      case 'editor': window.location.href = '/admin/punctures'; break
+    }
+  }
+
+  const currentRoleLabel = authRoles.find(r => r.role === activeRole)?.label ?? authRoles[0]?.label
 
   const handleLogout = () => {
     localStorage.removeItem('operator_session')
@@ -755,20 +811,16 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           100% { transform: rotate(360deg); }
         }
 
+        @media (max-width: 640px) {
+          .op-profile-name { display: none !important; }
+        }
+        @media all and (display-mode: standalone) {
+          .op-glass-header-wrap { padding-top: max(8px, env(safe-area-inset-top, 8px)) !important; }
+          .op-glass-spacer { height: calc(70px + env(safe-area-inset-top, 0px)) !important; }
+        }
+
         /* Tablet breakpoint (768px) */
         @media (max-width: 768px) {
-          .operator-header-content {
-            flex-direction: column !important;
-            gap: 12px !important;
-            align-items: stretch !important;
-          }
-          .operator-user-info {
-            justify-content: center !important;
-            flex-wrap: wrap !important;
-          }
-          .operator-header-title {
-            font-size: 1.1rem !important;
-          }
           .operator-search-tabs {
             flex-wrap: wrap !important;
           }
@@ -795,14 +847,6 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
 
         /* Mobile breakpoint (480px) */
         @media (max-width: 480px) {
-          .operator-header-logo {
-            flex-direction: column !important;
-            text-align: center !important;
-            gap: 8px !important;
-          }
-          .operator-logo-icon {
-            margin: 0 auto !important;
-          }
           .operator-search-tab {
             flex: 1 1 100% !important;
             padding: 8px !important;
@@ -814,13 +858,6 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           .operator-section-title {
             font-size: 1rem !important;
           }
-          .operator-btn-logout, .operator-btn-back {
-            padding: 6px 12px !important;
-            font-size: 0.75rem !important;
-          }
-          .operator-user-name {
-            font-size: 0.8rem !important;
-          }
           .operator-modal {
             max-width: calc(100% - 30px) !important;
             padding: 15px !important;
@@ -830,25 +867,68 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           }
         }
       `}</style>
-      {/* Header */}
-      <div style={styles.header}>
-        <div style={styles.headerContent} className="operator-header-content">
-          <div style={styles.headerLogo} className="operator-header-logo">
-            <div style={styles.logoIcon} className="operator-logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
-            <div>
-              <h1 style={styles.headerTitle} className="operator-header-title">ממשק מוקדן</h1>
-              <p style={styles.headerSubtitle}>{operator.call_center_name}</p>
-            </div>
-          </div>
-          <div style={styles.userInfo} className="operator-user-info">
-            <span style={styles.userName} className="operator-user-name">{operator.full_name}</span>
-            {isManager && (
-              <button style={styles.btnBackToManagement} className="operator-btn-back" onClick={handleBackToManagement}>← חזרה לניהול</button>
+      {/* Glass header */}
+      <div className="op-glass-header-wrap" style={styles.glassHeaderWrap}>
+        <header style={styles.glassHeader}>
+
+          {/* Avatar / profile dropdown */}
+          <div ref={profileMenuRef} style={{ position: 'relative' }}>
+            <button style={styles.profileBtn} onClick={() => setShowProfileMenu(!showProfileMenu)}>
+              <div style={styles.avatar}>{getInitials(operator.full_name)}</div>
+              <span className="op-profile-name" style={styles.profileName}>{operator.full_name.trim().split(' ')[0]}</span>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" style={{flexShrink:0}}><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            {showProfileMenu && (
+              <div style={styles.profileDropdown}>
+                <div style={styles.profileInfo}>
+                  <div style={styles.profileInfoName}>{operator.full_name}</div>
+                  <div style={styles.profileInfoSub}>{operator.call_center_name}</div>
+                </div>
+                <div style={styles.profileDivider}/>
+                {isManager && (
+                  <button style={styles.profileItem} onClick={() => { setShowProfileMenu(false); handleBackToManagement() }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    חזרה לניהול
+                  </button>
+                )}
+                <button style={{...styles.profileItem, color:'#ef4444'}} onClick={handleLogout}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  יציאה
+                </button>
+              </div>
             )}
-            <button style={styles.btnLogout} className="operator-btn-logout" onClick={handleLogout}>יציאה</button>
           </div>
-        </div>
+
+          <div style={{flex:1}}/>
+
+          {/* Role chip */}
+          {authRoles.length > 0 && currentRoleLabel && (
+            <div ref={roleMenuRef} style={{ position: 'relative' }}>
+              {authRoles.length === 1 ? (
+                <span style={styles.roleStatic}>{currentRoleLabel}</span>
+              ) : (
+                <>
+                  <button style={styles.roleBtn} onClick={() => setShowRoleMenu(!showRoleMenu)} aria-haspopup="menu" aria-expanded={showRoleMenu}>
+                    {currentRoleLabel}
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {showRoleMenu && (
+                    <div style={styles.roleDropdown} role="menu">
+                      {authRoles.map((r) => (
+                        <button key={r.role} role="menuitem" style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {})}} onClick={() => navigateToRole(r)}>
+                          {r.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+        </header>
       </div>
+      <div className="op-glass-spacer" style={styles.glassSpacer}/>
 
       <div style={styles.container}>
         {/* Search Section */}
@@ -1504,63 +1584,83 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
     textAlign: 'center',
   },
-  header: {
-    background: '#ffffff',
-    borderBottom: '1px solid #e2e8f0',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-    padding: '15px 20px',
+  glassHeaderWrap: {
+    position: 'fixed' as const,
+    top: 0, left: 0, right: 0,
+    zIndex: 1000,
+    padding: '8px 12px 0',
   },
-  headerContent: {
-    maxWidth: '900px',
-    margin: '0 auto',
+  glassHeader: {
+    background: 'rgba(255,255,255,0.82)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    border: '1px solid rgba(255,255,255,0.9)',
+    boxShadow: '0 4px 20px rgba(16,185,129,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+    borderRadius: '16px',
+    padding: '0 14px',
+    height: '54px',
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    direction: 'rtl' as const,
   },
-  headerLogo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
+  glassSpacer: { height: '70px' },
+  profileBtn: {
+    display: 'flex', alignItems: 'center', gap: '5px',
+    background: 'rgba(255,255,255,0.8)',
+    border: '1px solid rgba(226,232,240,0.8)',
+    borderRadius: '50px', padding: '4px 8px 4px 6px',
+    cursor: 'pointer', color: '#1e293b',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
   },
-  logoIcon: {
-    width: '45px',
-    height: '45px',
+  avatar: {
+    width: '32px', height: '32px',
     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.3rem',
+    borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontWeight: 700, fontSize: '13px', color: 'white', flexShrink: 0,
   },
-  headerTitle: {
-    color: '#1e293b',
-    fontSize: '1.2rem',
-    fontWeight: 700,
-    margin: 0,
+  profileName: { fontSize: '13px', fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap' as const },
+  profileDropdown: {
+    position: 'absolute' as const, top: 'calc(100% + 8px)', right: 0,
+    background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)', zIndex: 200, minWidth: '200px', overflow: 'hidden',
   },
-  headerSubtitle: {
-    color: '#16a34a',
-    fontSize: '0.85rem',
-    margin: 0,
+  profileInfo: { padding: '12px 16px' },
+  profileInfoName: { fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' },
+  profileInfoSub: { fontSize: '0.75rem', color: '#10b981', marginTop: '2px' },
+  profileDivider: { height: '1px', background: '#f1f5f9' },
+  profileItem: {
+    display: 'flex', alignItems: 'center', gap: '10px',
+    width: '100%', padding: '10px 16px',
+    background: 'transparent', border: 'none', cursor: 'pointer',
+    fontSize: '0.85rem', color: '#374151',
+    textAlign: 'right' as const, fontFamily: 'inherit', direction: 'rtl' as const,
   },
-  userInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  userName: {
-    color: '#64748b',
-    fontSize: '0.9rem',
-  },
-  btnLogout: {
-    padding: '8px 16px',
-    borderRadius: '8px',
-    border: '1px solid #ef4444',
-    background: 'transparent',
-    color: '#ef4444',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-  },
+  roleStatic: {
+    background: 'rgba(16,185,129,0.09)', color: '#059669',
+    fontSize: '12px', fontWeight: 600, padding: '5px 12px',
+    borderRadius: '20px', whiteSpace: 'nowrap',
+  } as React.CSSProperties,
+  roleBtn: {
+    background: 'rgba(16,185,129,0.09)', color: '#059669',
+    fontSize: '12px', fontWeight: 600, padding: '5px 10px',
+    borderRadius: '20px', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: '5px',
+    fontFamily: 'inherit', whiteSpace: 'nowrap', border: 'none',
+  } as React.CSSProperties,
+  roleDropdown: {
+    position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+    background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px',
+    overflow: 'hidden', minWidth: '150px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.10)', zIndex: 200,
+  } as React.CSSProperties,
+  roleOption: {
+    display: 'flex', alignItems: 'center', gap: '8px',
+    padding: '10px 16px', color: '#1e293b', fontSize: '13px',
+    cursor: 'pointer', fontWeight: 500,
+    background: 'transparent', border: 'none', width: '100%',
+    textAlign: 'right' as const, fontFamily: 'inherit',
+  } as React.CSSProperties,
+  roleOptionActive: { color: '#059669', fontWeight: 700 } as React.CSSProperties,
   btnBackToManagement: {
     padding: '8px 16px',
     borderRadius: '8px',
