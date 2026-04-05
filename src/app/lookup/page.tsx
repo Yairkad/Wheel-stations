@@ -185,7 +185,7 @@ export default function VehicleLookupPage() {
             {/* Vehicle Info */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="text-2xl">🚗</span>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1e293b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>
                 פרטי הרכב
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -220,7 +220,7 @@ export default function VehicleLookupPage() {
             {result.wheel_fitment ? (
               <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-6">
                 <h2 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
-                  <span className="text-2xl">✅</span>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
                   נמצא! מידות גלגל מתאימות
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -261,7 +261,7 @@ export default function VehicleLookupPage() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                     >
-                      🔗 אמת מידות באתר המקור
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> אמת מידות באתר המקור
                     </a>
                   </div>
                 )}
@@ -272,7 +272,7 @@ export default function VehicleLookupPage() {
                     href={`/search?bolt_count=${result.wheel_fitment.bolt_count}&bolt_spacing=${result.wheel_fitment.bolt_spacing}${extractRimSize(result.vehicle.front_tire) ? `&rim_size=${extractRimSize(result.vehicle.front_tire)}` : ''}${districtFilter ? `&district=${districtFilter}` : ''}`}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 transition-colors"
                   >
-                    <span>🔍</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     חפש גלגלים מתאימים במלאי
                     {districtFilter && districts.find(d => d.code === districtFilter) && (
                       <span className="text-sm opacity-90">
@@ -285,7 +285,7 @@ export default function VehicleLookupPage() {
             ) : (
               <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-6">
                 <h2 className="text-lg font-bold text-yellow-800 mb-2 flex items-center gap-2">
-                  <span className="text-2xl">⚠️</span>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                   לא נמצאו מידות גלגל
                 </h2>
                 <p className="text-yellow-700">

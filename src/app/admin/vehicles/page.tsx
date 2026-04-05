@@ -1261,7 +1261,7 @@ function VehiclesAdminPage() {
   if (authLoading || !isAuthenticated) {
     return (
       <div style={styles.loadingContainer}>
-        <div style={styles.loadingSpinner}>🚗</div>
+        <div style={styles.loadingSpinner}><svg className="spinning-wheel" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg></div>
         <p>טוען...</p>
       </div>
     )
@@ -1334,7 +1334,7 @@ function VehiclesAdminPage() {
       <AdminHeader
         title="ניהול מאגר דגמי רכבים"
         subtitle="גרידה והוספת דגמים למאגר PCD"
-        icon="🚗"
+        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>}
         iconBg="linear-gradient(135deg, #3b82f6, #1d4ed8)"
         onLogout={logout}
       />
@@ -1342,14 +1342,14 @@ function VehiclesAdminPage() {
       {/* Stats */}
       <div style={styles.statsRow} className="stats-row-responsive">
         <div style={styles.statCard} className="stat-card-responsive">
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive">📊</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
           <div>
             <div style={styles.statLabel}>דגמים</div>
             <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{vehicles.length}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive">🏭</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-6H4a2 2 0 0 0-2 2v16z"/><path d="M14 2v6h6"/></svg></div>
           <div>
             <div style={styles.statLabel}>יצרנים</div>
             <div style={{...styles.statValue, color: '#22c55e'}} className="stat-value-responsive">{uniqueMakeValues.length}</div>
@@ -1361,13 +1361,13 @@ function VehiclesAdminPage() {
         {/* Actions */}
         <div style={styles.actionsRow} className="actions-row-responsive">
           <button style={styles.btnPrimary} onClick={() => setShowScrapeModal(true)}>
-            🌐 גרידה
+            <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>גרידה</span>
           </button>
           <button style={styles.btnSecondary} onClick={() => setShowAddModal(true)}>
-            ➕ הוספה ידנית
+            <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוספה ידנית</span>
           </button>
           <button style={styles.btnExport} onClick={exportToExcel}>
-            📥 ייצוא לאקסל
+            <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ייצוא לאקסל</span>
           </button>
         </div>
 
@@ -1383,7 +1383,7 @@ function VehiclesAdminPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '1.3rem' }}>📋</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>ערכים מדווחים לתיקון</span>
               </div>
               <button
@@ -1401,7 +1401,7 @@ function VehiclesAdminPage() {
                   fontSize: '0.85rem'
                 }}
               >
-                ✕ סגור
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>סגור</span>
               </button>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '0.9rem' }}>
@@ -1443,7 +1443,7 @@ function VehiclesAdminPage() {
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="🔍 חפש לפי יצרן או דגם..."
+            placeholder="חפש לפי יצרן או דגם..."
             style={styles.searchInput}
           />
         </div>
@@ -1481,7 +1481,7 @@ function VehiclesAdminPage() {
                           onChange={e => setColumnFilters({...columnFilters, make: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                         />
                         {columnFilters.make.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, make: { type: '', value: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, make: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                       {getMakeSuggestionsForFilter().length > 0 && (
@@ -1512,7 +1512,7 @@ function VehiclesAdminPage() {
                           onChange={e => setColumnFilters({...columnFilters, model: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                         />
                         {columnFilters.model.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, model: { type: '', value: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, model: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                       {getModelSuggestionsForFilter().length > 0 && (
@@ -1543,7 +1543,7 @@ function VehiclesAdminPage() {
                           onChange={e => setColumnFilters({...columnFilters, year_from: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                         />
                         {columnFilters.year_from.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                       {getYearSuggestionsForFilter().length > 0 && (
@@ -1574,7 +1574,7 @@ function VehiclesAdminPage() {
                           onChange={e => setColumnFilters({...columnFilters, bolt_count: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                         />
                         {columnFilters.bolt_count.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: '', value: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                       {getBoltCountSuggestionsForFilter().length > 0 && (
@@ -1605,7 +1605,7 @@ function VehiclesAdminPage() {
                           onChange={e => setColumnFilters({...columnFilters, bolt_spacing: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                         />
                         {columnFilters.bolt_spacing.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, bolt_spacing: { type: '', value: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, bolt_spacing: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                       {getBoltSpacingSuggestionsForFilter().length > 0 && (
@@ -1644,7 +1644,7 @@ function VehiclesAdminPage() {
                           onChange={e => setColumnFilters({...columnFilters, center_bore: { type: columnFilters.center_bore.type || 'equals', value: e.target.value }})}
                         />
                         {columnFilters.center_bore.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, center_bore: { type: '', value: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, center_bore: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                       {getCenterBoreSuggestionsForFilter().length > 0 && (
@@ -1675,7 +1675,7 @@ function VehiclesAdminPage() {
                           onChange={e => setColumnFilters({...columnFilters, rim_size: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
                         />
                         {columnFilters.rim_size.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_size: { type: '', value: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_size: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                       {getRimSizeSuggestionsForFilter().length > 0 && (
@@ -1720,7 +1720,7 @@ function VehiclesAdminPage() {
                           }})}
                         />
                         {(columnFilters.rim_sizes_allowed.value || columnFilters.rim_sizes_allowed.valueTo) && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}>✕</button>
+                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         )}
                       </div>
                     </div>
@@ -1743,7 +1743,7 @@ function VehiclesAdminPage() {
                         onClick={resetFilters}
                         title="אפס את כל המסננים"
                       >
-                        🔄
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                       </button>
                     )}
                   </th>
@@ -1758,7 +1758,7 @@ function VehiclesAdminPage() {
                           <>
                             <span>לא נמצאו תוצאות מתאימות לסינון</span>
                             <button style={styles.btnResetFilters} onClick={resetFilters}>
-                              🔄 אפס מסננים
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>אפס מסננים</span>
                             </button>
                           </>
                         ) : (
@@ -1788,13 +1788,13 @@ function VehiclesAdminPage() {
                       <td style={styles.td}>{v.rim_sizes_allowed?.join(', ') || '-'}</td>
                       <td style={styles.td}>
                         {v.source_url ? (
-                          <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa'}}>🔗</a>
+                          <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></a>
                         ) : '-'}
                       </td>
                       <td style={styles.td}>
                         <div style={{display: 'flex', gap: '6px'}}>
-                          <button style={styles.btnEdit} onClick={() => openEditModal(v)}>✏️</button>
-                          <button style={styles.btnDelete} onClick={() => handleDelete(v.id)}>🗑️</button>
+                          <button style={styles.btnEdit} onClick={() => openEditModal(v)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                          <button style={styles.btnDelete} onClick={() => handleDelete(v.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
                         </div>
                       </td>
                     </tr>
@@ -1811,8 +1811,8 @@ function VehiclesAdminPage() {
         <div style={styles.modalOverlay} onClick={() => { setShowScrapeModal(false); setScrapeResult(null); setScrapeError(null); setPlateVehicleInfo(null); setPlateNumber('') }}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🌐 גרידה מ-wheelfitment.eu</h3>
-              <button style={styles.closeBtn} onClick={() => setShowScrapeModal(false)}>✕</button>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>גרידה מ-wheelfitment.eu</span></h3>
+              <button style={styles.closeBtn} onClick={() => setShowScrapeModal(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={styles.modalBody}>
@@ -1822,13 +1822,13 @@ function VehiclesAdminPage() {
                   style={{...styles.tab, ...(scrapeMode === 'plate' ? styles.tabActive : {})}}
                   onClick={() => { setScrapeMode('plate'); setScrapeResult(null); setScrapeError(null) }}
                 >
-                  🚗 לפי מספר רכב
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>לפי מספר רכב</span>
                 </button>
                 <button
                   style={{...styles.tab, ...(scrapeMode === 'manual' ? styles.tabActive : {})}}
                   onClick={() => { setScrapeMode('manual'); setScrapeResult(null); setScrapeError(null) }}
                 >
-                  ✏️ הזנה ידנית
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>הזנה ידנית</span>
                 </button>
               </div>
 
@@ -1855,7 +1855,11 @@ function VehiclesAdminPage() {
                         onClick={handlePlateLookup}
                         disabled={plateLoading}
                       >
-                        {plateLoading ? '🔄' : '🔍'}
+                        {plateLoading ? (
+                          <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1863,7 +1867,7 @@ function VehiclesAdminPage() {
                   {/* Vehicle Info from Plate */}
                   {plateVehicleInfo && (
                     <div style={styles.plateResult}>
-                      <h4 style={styles.plateResultTitle}>📋 פרטי הרכב:</h4>
+                      <h4 style={styles.plateResultTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>פרטי הרכב:</span></h4>
                       <div style={styles.plateResultGrid}>
                         <div><strong>יצרן:</strong> {plateVehicleInfo.manufacturer_he}</div>
                         <div><strong>דגם:</strong> {plateVehicleInfo.model}</div>
@@ -1988,13 +1992,17 @@ function VehiclesAdminPage() {
                 onClick={handleScrape}
                 disabled={scrapeLoading}
               >
-                {scrapeLoading ? '🔄 מחפש...' : '🔍 חפש באתר'}
+                {scrapeLoading ? (
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg className="animate-spin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>מחפש...</span>
+                ) : (
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש באתר</span>
+                )}
               </button>
 
               {/* Scrape Error */}
               {scrapeError && (
                 <div style={styles.scrapeError}>
-                  ❌ {scrapeError}
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{scrapeError}</span>
                   <a
                     href="https://www.wheel-size.com"
                     target="_blank"
@@ -2009,7 +2017,7 @@ function VehiclesAdminPage() {
               {/* Scrape Result */}
               {scrapeResult && (
                 <div style={styles.scrapeResult}>
-                  <h4 style={styles.resultTitle}>✅ נמצאו נתונים!</h4>
+                  <h4 style={styles.resultTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נמצאו נתונים!</span></h4>
                   <div style={styles.resultGrid}>
                     <div style={styles.resultItem}>
                       <span style={styles.resultLabel}>יצרן:</span>
@@ -2052,14 +2060,16 @@ function VehiclesAdminPage() {
                     rel="noopener noreferrer"
                     style={styles.sourceLink}
                   >
-                    🔗 מקור: wheel-size.com
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>מקור: wheel-size.com</span>
                   </a>
                   <button
                     style={styles.btnAddResult}
                     onClick={handleAddScrapedResult}
                     disabled={addLoading}
                   >
-                    {addLoading ? 'מוסיף...' : '➕ הוסף למאגר'}
+                    {addLoading ? 'מוסיף...' : (
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוסף למאגר</span>
+                    )}
                   </button>
                 </div>
               )}
@@ -2075,8 +2085,8 @@ function VehiclesAdminPage() {
         <div style={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>➕ הוספה ידנית</h3>
-              <button style={styles.closeBtn} onClick={() => setShowAddModal(false)}>✕</button>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוספה ידנית</span></h3>
+              <button style={styles.closeBtn} onClick={() => setShowAddModal(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={styles.modalBody}>
@@ -2216,7 +2226,9 @@ function VehiclesAdminPage() {
                 onClick={handleAddManual}
                 disabled={addLoading}
               >
-                {addLoading ? 'מוסיף...' : '✅ הוסף למאגר'}
+                {addLoading ? 'מוסיף...' : (
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הוסף למאגר</span>
+                )}
               </button>
             </div>
           </div>
@@ -2228,8 +2240,8 @@ function VehiclesAdminPage() {
         <div style={styles.modalOverlay} onClick={() => setEditingVehicle(null)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>✏️ עריכת דגם</h3>
-              <button style={styles.closeBtn} onClick={() => setEditingVehicle(null)}>✕</button>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת דגם</span></h3>
+              <button style={styles.closeBtn} onClick={() => setEditingVehicle(null)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={styles.modalBody}>
@@ -2383,7 +2395,9 @@ function VehiclesAdminPage() {
                   onClick={handleUpdateVehicle}
                   disabled={editLoading}
                 >
-                  {editLoading ? 'מעדכן...' : '✅ עדכן'}
+                  {editLoading ? 'מעדכן...' : (
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>עדכן</span>
+                  )}
                 </button>
                 <button
                   style={{
@@ -2398,7 +2412,7 @@ function VehiclesAdminPage() {
                   }}
                   onClick={() => editingVehicle && openMergeModal(editingVehicle)}
                 >
-                  🔗 מזג עם דגם אחר
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>מזג עם דגם אחר</span>
                 </button>
               </div>
             </div>
@@ -2411,8 +2425,8 @@ function VehiclesAdminPage() {
         <div style={styles.modalOverlay} onClick={() => setShowMergeModal(false)}>
           <div style={{...styles.modal, maxWidth: '900px', maxHeight: '85vh', overflowY: 'auto'}} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🔗 מיזוג דגם: {mergeTargetVehicle.make} {mergeTargetVehicle.model}</h3>
-              <button style={styles.closeBtn} onClick={() => setShowMergeModal(false)}>✕</button>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>מיזוג דגם: {mergeTargetVehicle.make} {mergeTargetVehicle.model}</span></h3>
+              <button style={styles.closeBtn} onClick={() => setShowMergeModal(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={styles.modalBody}>
@@ -2483,7 +2497,7 @@ function VehiclesAdminPage() {
                       <div style={{fontSize: '0.9rem', color: '#1e293b'}}>{mergeTargetVehicle.make} {mergeTargetVehicle.model}</div>
                       <div style={{fontSize: '0.8rem', color: '#64748b'}}>{mergeTargetVehicle.year_from}-{mergeTargetVehicle.year_to}</div>
                     </div>
-                    <div style={{fontSize: '1.5rem'}}>➡️</div>
+                    <div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
                     <div style={{textAlign: 'center', padding: '10px', background: '#fffbeb', borderRadius: '8px', border: '1px solid #f59e0b'}}>
                       <div style={{color: '#d97706', fontWeight: 600, marginBottom: '5px'}}>למיזוג (יימחק)</div>
                       <div style={{fontSize: '0.9rem', color: '#1e293b'}}>{selectedMergeTarget.make} {selectedMergeTarget.model}</div>
@@ -2579,7 +2593,11 @@ function VehiclesAdminPage() {
                       onClick={executeMerge}
                       disabled={mergeLoading}
                     >
-                      {mergeLoading ? '🔄 ממזג...' : '✅ בצע מיזוג'}
+                      {mergeLoading ? (
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg className="animate-spin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>ממזג...</span>
+                      ) : (
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>בצע מיזוג</span>
+                      )}
                     </button>
                     <button
                       style={{...styles.btnSecondary, flex: 1}}
@@ -2607,7 +2625,7 @@ function VehiclesAdminPage() {
           style={styles.scrollTopBtn}
           title="חזור למעלה"
         >
-          ⬆️
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
         </button>
       )}
     </div>

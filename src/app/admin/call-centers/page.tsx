@@ -301,7 +301,7 @@ export default function CallCentersAdminPage() {
   if (authLoading || !isAuthenticated) {
     return (
       <div style={styles.loadingContainer}>
-        <div style={styles.loadingSpinner}>🎧</div>
+        <div style={styles.loadingSpinner}><svg className="spinning-wheel" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
         <p>טוען...</p>
       </div>
     )
@@ -358,7 +358,7 @@ export default function CallCentersAdminPage() {
       <AdminHeader
         title="ניהול מוקדים"
         subtitle="סניפים, מנהלים ומוקדנים"
-        icon="🎧"
+        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>}
         iconBg="linear-gradient(135deg, #8b5cf6, #7c3aed)"
         onLogout={logout}
       />
@@ -366,21 +366,21 @@ export default function CallCentersAdminPage() {
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">
         <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>🎧</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
           <div>
             <div style={styles.statLabel}>מוקדים</div>
             <div style={{...styles.statValue, color: '#8b5cf6'}}>{callCenters.length}</div>
           </div>
         </div>
         <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}}>👔</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <div>
             <div style={styles.statLabel}>מנהלים</div>
             <div style={{...styles.statValue, color: '#3b82f6'}}>{totalManagers}</div>
           </div>
         </div>
         <div style={styles.statCard}>
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}}>👤</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <div>
             <div style={styles.statLabel}>מוקדנים</div>
             <div style={{...styles.statValue, color: '#22c55e'}}>{totalOperators}</div>
@@ -393,7 +393,7 @@ export default function CallCentersAdminPage() {
         <div style={styles.section}>
           <div style={styles.sectionHeader}>
             <div style={styles.sectionTitle}>
-              <div style={styles.sectionTitleIcon}>🎧</div>
+              <div style={styles.sectionTitleIcon}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
               רשימת מוקדים
             </div>
             <button style={styles.btnPrimary} onClick={() => setShowAddModal(true)}>
@@ -406,7 +406,7 @@ export default function CallCentersAdminPage() {
               <div style={styles.loading}>טוען...</div>
             ) : callCenters.length === 0 ? (
               <div style={styles.emptyState}>
-                <div style={styles.emptyStateIcon}>🎧</div>
+                <div style={styles.emptyStateIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
                 <div>אין מוקדים עדיין</div>
                 <button style={styles.btnPrimary} onClick={() => setShowAddModal(true)}>
                   צור מוקד ראשון
@@ -432,7 +432,7 @@ export default function CallCentersAdminPage() {
                         onClick={() => setExpandedCenter(isExpanded ? null : center.id)}
                       >
                         <div style={styles.centerColorOrb}>
-                          <span style={{color: 'white', fontSize: '1.3rem'}}>🎧</span>
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
                         </div>
                         <div style={styles.centerInfo}>
                           <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
@@ -443,8 +443,8 @@ export default function CallCentersAdminPage() {
                             }} />
                           </div>
                           <div style={styles.centerMeta}>
-                            <span>👔 {center.call_center_managers?.length || 0} מנהלים</span>
-                            <span>👤 {center.operators?.length || 0} מוקדנים</span>
+                            <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{center.call_center_managers?.length || 0} מנהלים</span>
+                            <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{center.operators?.length || 0} מוקדנים</span>
                           </div>
                         </div>
                         <span style={{...styles.expandIcon, transform: isExpanded ? 'rotate(180deg)' : 'none'}}>▼</span>
@@ -455,7 +455,7 @@ export default function CallCentersAdminPage() {
                           {/* Managers */}
                           <div style={styles.listSection}>
                             <div style={{...styles.listTitle, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                              <span>👔 מנהלים ({center.call_center_managers?.length || 0})</span>
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>מנהלים ({center.call_center_managers?.length || 0})</span>
                               <button
                                 style={{...styles.btnCompact, background: '#3b82f6', color: '#fff', border: 'none', fontSize: '0.75rem', padding: '4px 10px'}}
                                 onClick={() => { setAddManagerCenterId(center.id); setAddManagerForm({ full_name: '', phone: '', title: 'מנהל מוקד', password: '' }) }}
@@ -463,17 +463,17 @@ export default function CallCentersAdminPage() {
                             </div>
                             {center.call_center_managers?.map(manager => (
                               <div key={manager.id} style={{...styles.listItem, alignItems: 'center'}}>
-                                <span style={{flex: 1}}>{manager.full_name} {manager.is_primary && <span style={{color: '#f59e0b', fontSize: '0.75rem'}}>★ ראשי</span>}</span>
+                                <span style={{flex: 1}}>{manager.full_name} {manager.is_primary && <span style={{color: '#f59e0b', fontSize: '0.75rem', display:'inline-flex', alignItems:'center', gap:'2px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>ראשי</span>}</span>
                                 <span style={{color: '#64748b', fontSize: '0.85rem'}}>{manager.phone}</span>
                                 <span style={{color: '#8b5cf6', fontSize: '0.78rem'}}>{manager.title}</span>
                                 <button
                                   style={{background: '#334155', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
                                   onClick={() => { setEditingManager(manager); setEditManagerForm({ full_name: manager.full_name, phone: manager.phone, title: manager.title || '', password: '' }) }}
-                                >✏️</button>
+                                ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
                                 <button
                                   style={{background: '#450a0a', border: 'none', color: '#f87171', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
                                   onClick={() => handleDeleteManager(manager)}
-                                >🗑️</button>
+                                ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
                               </div>
                             ))}
                           </div>
@@ -481,7 +481,7 @@ export default function CallCentersAdminPage() {
                           {/* Operators */}
                           <div style={styles.listSection}>
                             <div style={{...styles.listTitle, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                              <span>👤 מוקדנים ({center.operators?.length || 0})</span>
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>מוקדנים ({center.operators?.length || 0})</span>
                               <button
                                 style={{...styles.btnCompact, background: '#22c55e', color: '#fff', border: 'none', fontSize: '0.75rem', padding: '4px 10px'}}
                                 onClick={() => { setAddOperatorCenterId(center.id); setAddOperatorForm({ full_name: '', phone: '' }) }}
@@ -497,7 +497,7 @@ export default function CallCentersAdminPage() {
                                 <button
                                   style={{background: '#450a0a', border: 'none', color: '#f87171', cursor: 'pointer', padding: '3px 8px', borderRadius: '5px', fontSize: '0.75rem'}}
                                   onClick={() => handleDeleteOperator(operator)}
-                                >🗑️</button>
+                                ><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
                               </div>
                             ))}
                           </div>
@@ -509,14 +509,18 @@ export default function CallCentersAdminPage() {
                               onClick={() => handleToggleActive(center)}
                               disabled={actionLoading}
                             >
-                              {center.is_active ? '🔴 השבת' : '🟢 הפעל'}
+                              {center.is_active ? (
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="#ef4444" stroke="none"><circle cx="12" cy="12" r="12"/></svg>השבת</span>
+                              ) : (
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="12"/></svg>הפעל</span>
+                              )}
                             </button>
                             <button
                               style={{...styles.btnCompact, ...styles.btnCompactDelete}}
                               onClick={() => handleDeleteCallCenter(center)}
                               disabled={actionLoading}
                             >
-                              🗑️ מחק
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>
                             </button>
                           </div>
                         </div>
@@ -535,7 +539,7 @@ export default function CallCentersAdminPage() {
         <div style={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>➕ מוקד חדש</h3>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>מוקד חדש</span></h3>
             </div>
 
             <div style={styles.modalBody}>
@@ -606,7 +610,7 @@ export default function CallCentersAdminPage() {
       {showConfirmDialog && confirmDialogData && (
         <div style={styles.modalOverlay} onClick={() => { setShowConfirmDialog(false); setConfirmDialogData(null) }}>
           <div style={styles.confirmDialog} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.confirmTitle}>🗑️ {confirmDialogData.title}</h3>
+            <h3 style={styles.confirmTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>{confirmDialogData.title}</span></h3>
             <p style={styles.confirmMessage}>{confirmDialogData.message}</p>
             <div style={styles.confirmButtons}>
               <button style={styles.btnCancel} onClick={() => { setShowConfirmDialog(false); setConfirmDialogData(null) }}>
@@ -625,7 +629,7 @@ export default function CallCentersAdminPage() {
         <div style={styles.modalOverlay} onClick={() => setEditingManager(null)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>✏️ עריכת מנהל</h3>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת מנהל</span></h3>
             </div>
             <div style={styles.modalBody}>
               <div style={styles.formGroup}>
@@ -660,7 +664,7 @@ export default function CallCentersAdminPage() {
         <div style={styles.modalOverlay} onClick={() => setAddManagerCenterId(null)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>➕ הוספת מנהל</h3>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוספת מנהל</span></h3>
             </div>
             <div style={styles.modalBody}>
               <div style={styles.formGroup}>
@@ -695,7 +699,7 @@ export default function CallCentersAdminPage() {
         <div style={styles.modalOverlay} onClick={() => setAddOperatorCenterId(null)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>➕ הוספת מוקדן</h3>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוספת מוקדן</span></h3>
             </div>
             <div style={styles.modalBody}>
               <div style={styles.formGroup}>

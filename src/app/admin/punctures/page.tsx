@@ -181,7 +181,7 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
       <div style={{ background: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl', boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>אישור הצעה</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display:'flex', alignItems:'center' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -204,7 +204,7 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
             {resolving && <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#94a3b8' }}>מחלץ מיקום...</div>}
             {!resolving && lat && lng && (
               <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
-                ✓ lat: {lat}, lng: {lng}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',marginLeft:'3px'}}><polyline points="20 6 9 17 4 12"/></svg> lat: {lat}, lng: {lng}
               </div>
             )}
           </div>
@@ -278,7 +278,7 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
       <div style={{ background: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl', boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>עריכת חנות</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display:'flex', alignItems:'center' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -301,7 +301,7 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
             {resolving && <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#94a3b8' }}>מחלץ מיקום...</div>}
             {!resolving && form.lat && form.lng && (
               <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
-                ✓ lat: {form.lat}, lng: {form.lng}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',marginLeft:'3px'}}><polyline points="20 6 9 17 4 12"/></svg> lat: {form.lat}, lng: {form.lng}
               </div>
             )}
           </div>
@@ -377,7 +377,7 @@ function AddShopModal({ authPayload, onDone, onClose }: {
       <div style={{ background: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 24, direction: 'rtl', boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#1e293b' }}>הוספת חנות חדשה</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display:'flex', alignItems:'center' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -403,7 +403,7 @@ function AddShopModal({ authPayload, onDone, onClose }: {
             <GeoSearch onSelect={(la, ln) => { set('lat', la); set('lng', ln) }} dark />
             {form.lat && form.lng && (
               <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#4ade80' }}>
-                ✓ lat: {form.lat}, lng: {form.lng}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',marginLeft:'3px'}}><polyline points="20 6 9 17 4 12"/></svg> lat: {form.lat}, lng: {form.lng}
               </div>
             )}
           </div>
@@ -562,7 +562,7 @@ export default function PuncturesAdminPage() {
       <AdminHeader
         title="ניהול פנצ׳ריות לילה"
         subtitle={role === 'admin' ? 'מנהל ראשי' : 'מנהל פנצ׳ריות'}
-        icon="🔧"
+        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>}
         iconBg="linear-gradient(135deg, #f59e0b, #d97706)"
         onLogout={logout}
         hideNav={role !== 'admin'}

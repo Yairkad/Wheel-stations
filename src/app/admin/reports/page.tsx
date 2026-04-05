@@ -278,7 +278,7 @@ export default function ErrorReportsPage() {
   if (authLoading || !isAuthenticated) {
     return (
       <div style={styles.loadingContainer}>
-        <div style={styles.loadingSpinner}>📋</div>
+        <div style={styles.loadingSpinner}><svg className="spinning-wheel" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
         <p>טוען...</p>
       </div>
     )
@@ -370,7 +370,7 @@ export default function ErrorReportsPage() {
       <AdminHeader
         title="דיווחי שגיאות"
         subtitle="ניהול דיווחים על טעויות במאגר"
-        icon="📋"
+        icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>}
         iconBg="linear-gradient(135deg, #f59e0b, #d97706)"
         onLogout={logout}
       />
@@ -378,28 +378,28 @@ export default function ErrorReportsPage() {
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">
         <div style={styles.statCard} className="stat-card-responsive">
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}} className="stat-icon-responsive">⏳</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}} className="stat-icon-responsive"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <div>
             <div style={styles.statLabel}>ממתינים</div>
             <div style={{...styles.statValue, color: '#f59e0b'}} className="stat-value-responsive">{pendingCount + missingPendingCount}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive">👁️</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
           <div>
             <div style={styles.statLabel}>נבדקו</div>
             <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{reviewedCount + missingReports.filter(r => r.status === 'reviewed').length}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive">✅</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'}} className="stat-icon-responsive"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div>
             <div style={styles.statLabel}>תוקנו</div>
             <div style={{...styles.statValue, color: '#22c55e'}} className="stat-value-responsive">{fixedCount + missingAddedCount}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
-          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} className="stat-icon-responsive">📊</div>
+          <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}} className="stat-icon-responsive"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
           <div>
             <div style={styles.statLabel}>סה״כ</div>
             <div style={{...styles.statValue, color: '#8b5cf6'}} className="stat-value-responsive">{reports.length + missingReports.length}</div>
@@ -412,7 +412,7 @@ export default function ErrorReportsPage() {
         <div style={styles.section}>
           <div style={styles.sectionHeader} className="section-header-responsive">
             <div style={styles.sectionTitle}>
-              <div style={styles.sectionTitleIcon}>📋</div>
+              <div style={styles.sectionTitleIcon}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
               דיווחים
             </div>
             <div style={styles.filterContainer}>
@@ -435,7 +435,7 @@ export default function ErrorReportsPage() {
               <div style={styles.loading}>טוען...</div>
             ) : filteredReports.length === 0 ? (
               <div style={styles.emptyState}>
-                <div style={styles.emptyIcon}>📭</div>
+                <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
                 <div style={styles.emptyText}>אין דיווחים {statusFilter !== 'all' ? 'בסטטוס זה' : ''}</div>
               </div>
             ) : (
@@ -460,9 +460,9 @@ export default function ErrorReportsPage() {
                       </div>
                     </div>
                     <div style={styles.reportMeta}>
-                      <span>📅 {new Date(report.created_at).toLocaleDateString('he-IL')}</span>
-                      {report.image_url && <span>📷 יש תמונה</span>}
-                      {report.notes && <span>💬 יש הערות</span>}
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{new Date(report.created_at).toLocaleDateString('he-IL')}</span>
+                      {report.image_url && <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>יש תמונה</span>}
+                      {report.notes && <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>יש הערות</span>}
                     </div>
                     {report.notes && (
                       <div style={styles.reportNotes}>
@@ -480,7 +480,7 @@ export default function ErrorReportsPage() {
         <div style={styles.section}>
           <div style={styles.sectionHeader} className="section-header-responsive">
             <div style={styles.sectionTitle}>
-              <div style={{...styles.sectionTitleIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}}>🚗</div>
+              <div style={{...styles.sectionTitleIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg></div>
               דיווחי רכבים חסרים
               {missingPendingCount > 0 && (
                 <span style={{
@@ -515,7 +515,7 @@ export default function ErrorReportsPage() {
               <div style={styles.loading}>טוען...</div>
             ) : filteredMissingReports.length === 0 ? (
               <div style={styles.emptyState}>
-                <div style={styles.emptyIcon}>🚗</div>
+                <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg></div>
                 <div style={styles.emptyText}>אין דיווחי רכבים חסרים {missingStatusFilter !== 'all' ? 'בסטטוס זה' : ''}</div>
               </div>
             ) : (
@@ -528,7 +528,7 @@ export default function ErrorReportsPage() {
                   >
                     <div style={styles.reportCardHeader}>
                       <div style={styles.reportVehicle}>
-                        🔢 {report.plate_number}
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>{report.plate_number}</span>
                       </div>
                       <div style={{
                         ...styles.statusBadge,
@@ -540,8 +540,8 @@ export default function ErrorReportsPage() {
                       </div>
                     </div>
                     <div style={styles.reportMeta}>
-                      <span>📅 {new Date(report.created_at).toLocaleDateString('he-IL')}</span>
-                      {report.notes && <span>💬 יש הערות</span>}
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{new Date(report.created_at).toLocaleDateString('he-IL')}</span>
+                      {report.notes && <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>יש הערות</span>}
                     </div>
                     {report.notes && (
                       <div style={styles.reportNotes}>
@@ -561,14 +561,14 @@ export default function ErrorReportsPage() {
         <div style={styles.modalOverlay} onClick={() => setSelectedReport(null)}>
           <div style={styles.modal} className="modal-responsive" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>📋 פרטי דיווח</h3>
-              <button style={styles.closeBtn} onClick={() => setSelectedReport(null)}>✕</button>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>פרטי דיווח</span></h3>
+              <button style={styles.closeBtn} onClick={() => setSelectedReport(null)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={styles.modalBody}>
               {/* Vehicle Info */}
               <div style={styles.infoSection}>
-                <div style={styles.infoSectionTitle}>🚗 פרטי הרכב המדווח</div>
+                <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>פרטי הרכב המדווח</span></div>
                 <div style={styles.infoGrid} className="info-grid-responsive">
                   <div style={styles.infoItem}>
                     <span style={styles.infoLabel}>יצרן:</span>
@@ -587,7 +587,7 @@ export default function ErrorReportsPage() {
 
               {/* Correct Values */}
               <div style={styles.infoSection}>
-                <div style={styles.infoSectionTitle}>✅ הערכים הנכונים (לפי המדווח)</div>
+                <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הערכים הנכונים (לפי המדווח)</span></div>
                 <div style={styles.infoGrid} className="info-grid-responsive">
                   {selectedReport.correct_bolt_count && (
                     <div style={styles.infoItem}>
@@ -625,7 +625,7 @@ export default function ErrorReportsPage() {
               {/* Notes */}
               {selectedReport.notes && (
                 <div style={styles.infoSection}>
-                  <div style={styles.infoSectionTitle}>💬 הערות המדווח</div>
+                  <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>הערות המדווח</span></div>
                   <div style={styles.notesBox}>{selectedReport.notes}</div>
                 </div>
               )}
@@ -633,7 +633,7 @@ export default function ErrorReportsPage() {
               {/* Image */}
               {selectedReport.image_url && (
                 <div style={styles.infoSection}>
-                  <div style={styles.infoSectionTitle}>📷 תמונה מצורפת</div>
+                  <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>תמונה מצורפת</span></div>
                   <a
                     href={selectedReport.image_url}
                     target="_blank"
@@ -647,7 +647,7 @@ export default function ErrorReportsPage() {
 
               {/* Admin Notes */}
               <div style={styles.infoSection}>
-                <div style={styles.infoSectionTitle}>📝 הערות מנהל</div>
+                <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>הערות מנהל</span></div>
                 <textarea
                   value={adminNotes}
                   onChange={e => setAdminNotes(e.target.value)}
@@ -665,28 +665,28 @@ export default function ErrorReportsPage() {
                     onClick={() => updateReportStatus(selectedReport.id, 'pending')}
                     disabled={actionLoading}
                   >
-                    ⏳ ממתין
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ממתין</span>
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnReviewed}}
                     onClick={() => updateReportStatus(selectedReport.id, 'reviewed')}
                     disabled={actionLoading}
                   >
-                    👁️ נבדק
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>נבדק</span>
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnFixed}}
                     onClick={() => updateReportStatus(selectedReport.id, 'fixed')}
                     disabled={actionLoading}
                   >
-                    ✅ תוקן
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>תוקן</span>
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnRejected}}
                     onClick={() => updateReportStatus(selectedReport.id, 'rejected')}
                     disabled={actionLoading}
                   >
-                    ❌ נדחה
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>נדחה</span>
                   </button>
                 </div>
               </div>
@@ -698,13 +698,13 @@ export default function ErrorReportsPage() {
                 onClick={() => deleteReport(selectedReport.id)}
                 disabled={actionLoading}
               >
-                🗑️ מחק
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>
               </button>
               <Link
                 href={`/admin/vehicles?make=${encodeURIComponent(selectedReport.make || '')}&model=${encodeURIComponent(selectedReport.model || '')}&year=${selectedReport.year_from || ''}&report=${selectedReport.id}&bolt_count=${selectedReport.correct_bolt_count || ''}&bolt_spacing=${selectedReport.correct_bolt_spacing || ''}&center_bore=${selectedReport.correct_center_bore || ''}&rim_size=${encodeURIComponent(selectedReport.correct_rim_size || '')}&tire_size=${encodeURIComponent(selectedReport.correct_tire_size || '')}`}
                 style={styles.btnUpdate}
               >
-                ✏️ עדכן במאגר
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עדכן במאגר</span>
               </Link>
               <button style={styles.btnCancel} onClick={() => setSelectedReport(null)}>
                 סגור
@@ -719,14 +719,14 @@ export default function ErrorReportsPage() {
         <div style={styles.modalOverlay} onClick={() => setSelectedMissingReport(null)}>
           <div style={styles.modal} className="modal-responsive" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={{...styles.modalTitle, color: '#3b82f6'}}>🚗 דיווח רכב חסר</h3>
-              <button style={styles.closeBtn} onClick={() => setSelectedMissingReport(null)}>✕</button>
+              <h3 style={{...styles.modalTitle, color: '#3b82f6'}}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg>דיווח רכב חסר</span></h3>
+              <button style={styles.closeBtn} onClick={() => setSelectedMissingReport(null)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={styles.modalBody}>
               {/* Plate Number */}
               <div style={styles.infoSection}>
-                <div style={styles.infoSectionTitle}>🔢 מספר רכב</div>
+                <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>מספר רכב</span></div>
                 <div style={{
                   background: '#eff6ff',
                   border: '1px solid #bfdbfe',
@@ -744,7 +744,7 @@ export default function ErrorReportsPage() {
 
               {/* Report Info */}
               <div style={styles.infoSection}>
-                <div style={styles.infoSectionTitle}>📋 פרטי הדיווח</div>
+                <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>פרטי הדיווח</span></div>
                 <div style={styles.infoGrid} className="info-grid-responsive">
                   <div style={styles.infoItem}>
                     <span style={styles.infoLabel}>תאריך דיווח:</span>
@@ -767,7 +767,7 @@ export default function ErrorReportsPage() {
               {/* Notes */}
               {selectedMissingReport.notes && (
                 <div style={styles.infoSection}>
-                  <div style={styles.infoSectionTitle}>💬 הערות</div>
+                  <div style={styles.infoSectionTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>הערות</span></div>
                   <div style={styles.notesBox}>{selectedMissingReport.notes}</div>
                 </div>
               )}
@@ -788,7 +788,7 @@ export default function ErrorReportsPage() {
                     fontSize: '1rem'
                   }}
                 >
-                  ➕ הוסף למאגר הרכבים
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוסף למאגר הרכבים</span>
                 </Link>
               </div>
 
@@ -801,28 +801,28 @@ export default function ErrorReportsPage() {
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'pending')}
                     disabled={actionLoading}
                   >
-                    ⏳ ממתין
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ממתין</span>
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnReviewed}}
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'reviewed')}
                     disabled={actionLoading}
                   >
-                    👁️ נבדק
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>נבדק</span>
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnFixed}}
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'added')}
                     disabled={actionLoading}
                   >
-                    ✅ נוסף למאגר
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נוסף למאגר</span>
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnRejected}}
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'rejected')}
                     disabled={actionLoading}
                   >
-                    ❌ נדחה
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>נדחה</span>
                   </button>
                 </div>
               </div>
@@ -834,7 +834,7 @@ export default function ErrorReportsPage() {
                 onClick={() => deleteMissingReport(selectedMissingReport.id)}
                 disabled={actionLoading}
               >
-                🗑️ מחק
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>
               </button>
               <button style={styles.btnCancel} onClick={() => setSelectedMissingReport(null)}>
                 סגור
@@ -848,7 +848,7 @@ export default function ErrorReportsPage() {
       {showConfirmDialog && confirmDialogData && (
         <div style={styles.modalOverlay} onClick={() => { setShowConfirmDialog(false); setConfirmDialogData(null) }}>
           <div style={styles.confirmDialog} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.confirmTitle}>🗑️ {confirmDialogData.title}</h3>
+            <h3 style={styles.confirmTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>{confirmDialogData.title}</span></h3>
             <p style={styles.confirmMessage}>{confirmDialogData.message}</p>
             <div style={styles.confirmButtons}>
               <button style={styles.btnCancel} onClick={() => { setShowConfirmDialog(false); setConfirmDialogData(null) }}>

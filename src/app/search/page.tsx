@@ -877,7 +877,7 @@ function SearchPageContent() {
     return (
       <div style={styles.container}>
         <div style={styles.error}>
-          <p>❌ {error}</p>
+          <p><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{error}</span></p>
           <button onClick={fetchStations} style={styles.retryBtn}>נסה שוב</button>
         </div>
       </div>
@@ -1076,7 +1076,7 @@ function SearchPageContent() {
 
       {/* Search Page Header */}
       <header style={styles.searchPageHeader}>
-        <h1 style={styles.searchPageTitle}>🔍 חיפוש גלגל</h1>
+        <h1 style={styles.searchPageTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'8px'}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חיפוש גלגל</span></h1>
         <p style={styles.searchPageSubtitle}>מצא גלגל מתאים לפי מספר רכב או מפרט טכני</p>
       </header>
 
@@ -1086,14 +1086,14 @@ function SearchPageContent() {
           style={{...styles.searchTypeBtn, ...(vehicleSearchTab === 'plate' || showVehicleModal ? styles.searchTypeBtnActive : {})}}
           onClick={openVehicleModal}
         >
-          <span style={styles.searchTypeIcon}>🚗</span>
+          <span style={styles.searchTypeIcon}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg></span>
           <span>חיפוש לפי רכב</span>
         </button>
         <button
           style={{...styles.searchTypeBtn, ...(showSearchModal ? styles.searchTypeBtnActive : {})}}
           onClick={openSearchModal}
         >
-          <span style={styles.searchTypeIcon}>🔧</span>
+          <span style={styles.searchTypeIcon}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
           <span>חיפוש לפי מפרט</span>
         </button>
       </div>
@@ -1128,8 +1128,8 @@ function SearchPageContent() {
         <div style={styles.modalOverlay} onClick={closeSearchModal}>
           <div style={styles.modal} className="wheels-search-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle} className="wheels-modal-title">🔍 חיפוש גלגל</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeSearchModal} aria-label="סגור חיפוש">✕</button>
+              <h3 style={styles.modalTitle} className="wheels-modal-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חיפוש גלגל</span></h3>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeSearchModal} aria-label="סגור חיפוש"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             {!searchResults ? (
@@ -1223,7 +1223,7 @@ function SearchPageContent() {
                   onClick={handleSearch}
                   disabled={searchLoading}
                 >
-                  {searchLoading ? <><span className="wheels-spinner"></span> מחפש...</> : '🔍 חפש'}
+                  {searchLoading ? <><span className="wheels-spinner"></span> מחפש...</> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש</span>}
                 </button>
               </>
             ) : (
@@ -1234,7 +1234,7 @@ function SearchPageContent() {
 
                 {searchResults.length === 0 ? (
                   <div style={styles.noResults}>
-                    <p>😕 לא נמצאו גלגלים מתאימים</p>
+                    <p><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>לא נמצאו גלגלים מתאימים</span></p>
                     <p style={styles.noResultsHint}>נסה לשנות את הפילטרים</p>
                   </div>
                 ) : (
@@ -1249,7 +1249,7 @@ function SearchPageContent() {
                           <div style={styles.resultStationName}>{result.station.name}</div>
                         </div>
                         {result.station.address && (
-                          <div style={styles.resultAddress}>📍 {result.station.address}</div>
+                          <div style={{...styles.resultAddress,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{result.station.address}</div>
                         )}
                         <div style={styles.resultWheelsList}>
                           {result.wheels.map(wheel => (
@@ -1273,7 +1273,7 @@ function SearchPageContent() {
                                 ...styles.resultWheelStatus,
                                 color: wheel.is_available ? '#10b981' : '#ef4444'
                               }}>
-                                {wheel.is_available ? '✅ זמין' : '🔴 מושאל'}
+                                {wheel.is_available ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>זמין</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="#ef4444"><circle cx="12" cy="12" r="12"/></svg>מושאל</span>}
                               </div>
                             </Link>
                           ))}
@@ -1294,7 +1294,7 @@ function SearchPageContent() {
           <div style={{...styles.modal, maxWidth: '500px'}} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>נמצאו מספר מפרטים לרכב זה</h3>
-              <button style={styles.closeBtn} onClick={() => setShowModelSelectionModal(false)}>✕</button>
+              <button style={styles.closeBtn} onClick={() => setShowModelSelectionModal(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={{padding: '15px'}}>
@@ -1344,7 +1344,7 @@ function SearchPageContent() {
                           cursor: 'pointer'
                         }}
                       >
-                        ⚠️ דווח שגיאה
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>דווח שגיאה</span>
                       </button>
                     </div>
                   </div>
@@ -1359,7 +1359,7 @@ function SearchPageContent() {
               ))}
 
               <p style={{color: '#64748b', fontSize: '12px', marginTop: '10px'}}>
-                💡 בחר את המפרט הנכון. אם יש מידע שגוי - לחץ &quot;דווח שגיאה&quot; והאדמין יטפל
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>בחר את המפרט הנכון. אם יש מידע שגוי - לחץ &quot;דווח שגיאה&quot; והאדמין יטפל</span>
               </p>
             </div>
           </div>
@@ -1371,13 +1371,13 @@ function SearchPageContent() {
         <div style={styles.modalOverlay} onClick={closeVehicleModal}>
           <div style={styles.vehicleModal} className="wheels-vehicle-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle} className="wheels-modal-title">🚗 חיפוש לפי רכב</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeVehicleModal} aria-label="סגור חיפוש רכב">✕</button>
+              <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}} className="wheels-modal-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>חיפוש לפי רכב</h3>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeVehicleModal} aria-label="סגור חיפוש רכב"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             {/* Beta warning */}
             <div style={styles.betaWarning}>
-              ⚠️ פיצ'ר בפיתוח - יתכנו טעויות בזיהוי מידות הגלגל
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>פיצ&apos;ר בפיתוח - יתכנו טעויות בזיהוי מידות הגלגל</span>
             </div>
 
             {/* Tabs */}
@@ -1406,7 +1406,7 @@ function SearchPageContent() {
                   transition: 'all 0.2s'
                 }}
               >
-                🔢 מספר רכב
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>מספר רכב</span>
               </button>
               <button
                 role="tab"
@@ -1426,7 +1426,7 @@ function SearchPageContent() {
                   transition: 'all 0.2s'
                 }}
               >
-                🚘 יצרן ודגם
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>יצרן ודגם</span>
               </button>
             </div>
 
@@ -1450,8 +1450,8 @@ function SearchPageContent() {
                   style={styles.vehicleLookupBtn}
                 >
                   {vehicleLoading ? (
-                    <span className="spinning-wheel">🛞</span>
-                  ) : '🔍'}
+                    <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  ) : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
                 </button>
               </div>
             )}
@@ -1589,8 +1589,8 @@ function SearchPageContent() {
                   }}
                 >
                   {modelSearchLoading ? (
-                    <span className="spinning-wheel">🛞</span>
-                  ) : '🔍 חפש'}
+                    <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  ) : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש</span>}
                 </button>
               </div>
             )}
@@ -1598,7 +1598,7 @@ function SearchPageContent() {
             {/* Error message with external links and add model button */}
             {vehicleError && vehicleSearchTab === 'model' && modelSearchMake && modelSearchModel && (
               <div style={{...styles.noFitmentCard, marginTop: '10px'}}>
-                ⚠️ לא נמצא מידע לפי פרטי הרכב שהוזנו
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא נמצא מידע לפי פרטי הרכב שהוזנו</span>
                 <div style={styles.externalLinks}>
                   <a
                     href="https://www.wheel-size.com"
@@ -1628,7 +1628,7 @@ function SearchPageContent() {
                   })}
                   style={styles.addModelBtn}
                 >
-                  ➕ הוסף דגם זה למאגר
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוסף דגם זה למאגר</span>
                 </button>
                 <button
                   onClick={async () => {
@@ -1669,7 +1669,7 @@ function SearchPageContent() {
                     justifyContent: 'center'
                   }}
                 >
-                  📝 דווח על רכב חסר
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>דווח על רכב חסר</span>
                 </button>
               </div>
             )}
@@ -1677,7 +1677,7 @@ function SearchPageContent() {
             {/* Error message for plate search */}
             {vehicleError && vehicleSearchTab === 'plate' && (
               <div style={styles.vehicleError}>
-                ❌ {vehicleError}
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{vehicleError}</span>
                 <button
                   onClick={() => setVehicleSearchTab('model')}
                   style={{
@@ -1697,7 +1697,7 @@ function SearchPageContent() {
                     justifyContent: 'center'
                   }}
                 >
-                  🔍 חפש לפי דגם ושנה
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש לפי דגם ושנה</span>
                 </button>
                 <a
                   href={`https://www.find-car.co.il/car/private/${vehiclePlate.replace(/\D/g, '')}`}
@@ -1719,7 +1719,7 @@ function SearchPageContent() {
                     textDecoration: 'none',
                   }}
                 >
-                  🔗 חפש במקור חיצוני (find-car.co.il)
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>חפש במקור חיצוני (find-car.co.il)</span>
                 </a>
               </div>
             )}
@@ -1741,7 +1741,7 @@ function SearchPageContent() {
                     fontSize: '0.9rem',
                     color: '#92400e'
                   }}>
-                    <span>⚠️</span>
+                    <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
                     <div>
                       <strong>רכב ייבוא אישי{vehicleResult.vehicle.origin_country ? ` מ${vehicleResult.vehicle.origin_country}` : ''}</strong>
                       <div style={{ fontSize: '0.8rem', marginTop: '2px' }}>
@@ -1757,9 +1757,9 @@ function SearchPageContent() {
                     {vehicleResult.vehicle.manufacturer} {vehicleResult.vehicle.model}
                   </div>
                   <div style={styles.vehicleInfoDetails} className="wheels-vehicle-info-details">
-                    <span>📅 {vehicleResult.vehicle.year}</span>
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{vehicleResult.vehicle.year}</span>
                     {vehicleResult.vehicle.front_tire && (
-                      <span style={{ direction: 'ltr' }}>🛞 {vehicleResult.vehicle.front_tire}</span>
+                      <span style={{ direction: 'ltr', display:'inline-flex',alignItems:'center',gap:'4px' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>{vehicleResult.vehicle.front_tire}</span>
                     )}
                   </div>
                 </div>
@@ -1770,9 +1770,9 @@ function SearchPageContent() {
                     {/* Source indicator - external only when scraped live (find_car_scrape) */}
                     <div style={styles.sourceIndicator} title={vehicleResult.source === 'find_car_scrape' ? 'מידע נגרד כעת ממקור חיצוני' : 'מידע מהמאגר הפנימי'}>
                       {vehicleResult.source === 'find_car_scrape' ? (
-                        <span style={styles.sourceVerified}>🌐 מקור חיצוני</span>
+                        <span style={{...styles.sourceVerified,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>מקור חיצוני</span>
                       ) : (
-                        <span style={styles.sourceInternal}>📊 מאגר פנימי</span>
+                        <span style={{...styles.sourceInternal,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>מאגר פנימי</span>
                       )}
                     </div>
                     {/* Main specs row */}
@@ -1828,7 +1828,7 @@ function SearchPageContent() {
                           style={styles.sourceLink}
                           title="אמת מידות באתר המקור"
                         >
-                          🔗 אמת מידות
+                          <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>אמת מידות</span>
                         </a>
                       )}
                       <button
@@ -1836,7 +1836,7 @@ function SearchPageContent() {
                         style={styles.reportErrorBtn}
                         title="דווח על טעות במידות"
                       >
-                        🔧 דווח על טעות
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>דווח על טעות</span>
                       </button>
                     </div>
 
@@ -1857,7 +1857,7 @@ function SearchPageContent() {
                         return (
                           <div style={styles.vehicleWheelResults}>
                             <div style={styles.vehicleResultsHeader}>
-                              ✅ נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים</span>
                             </div>
                             {vehicleRimSize && (
                               <div style={styles.vehicleResultsNote}>
@@ -1903,12 +1903,12 @@ function SearchPageContent() {
                                       </div>
                                       {rimMismatch && (
                                         <div style={{color: '#dc2626', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <span style={{fontSize: '14px'}}>⛔</span> קוטר לא תואם
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> קוטר לא תואם
                                         </div>
                                       )}
                                       {!rimMismatch && cbNeedsRing && (
                                         <div style={{color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <span style={{fontSize: '14px'}}>⚠️</span> יתכן ונדרש טבעת מירכוז
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> יתכן ונדרש טבעת מירכוז
                                         </div>
                                       )}
                                     </Link>
@@ -1922,7 +1922,7 @@ function SearchPageContent() {
                       } else if (vehicleSearchResults) {
                         return (
                           <div style={styles.noVehicleResults}>
-                            😕 לא נמצאו גלגלים מתאימים במלאי
+                            <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>לא נמצאו גלגלים מתאימים במלאי</span>
                           </div>
                         )
                       }
@@ -1931,7 +1931,7 @@ function SearchPageContent() {
                   </div>
                 ) : (
                   <div style={styles.noFitmentCard}>
-                    ⚠️ לא נמצא מידע לפי פרטי הרכב שהוזנו
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא נמצא מידע לפי פרטי הרכב שהוזנו</span>
                     <button
                       onClick={() => {
                         // Switch to model search tab with vehicle data pre-filled
@@ -1945,7 +1945,7 @@ function SearchPageContent() {
                       }}
                       style={styles.addModelBtn}
                     >
-                      🔍 חפש לפי יצרן ודגם
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש לפי יצרן ודגם</span>
                     </button>
                   </div>
                 )}
@@ -1960,8 +1960,8 @@ function SearchPageContent() {
         <div style={styles.modalOverlay} onClick={() => setShowErrorReportModal(false)}>
           <div style={{...styles.vehicleModal, maxWidth: '500px'}} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🔧 דווח על טעות במידות</h3>
-              <button style={styles.modalClose} onClick={() => setShowErrorReportModal(false)}>✕</button>
+              <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>דווח על טעות במידות</h3>
+              <button style={styles.modalClose} onClick={() => setShowErrorReportModal(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={{padding: '20px'}}>
@@ -1978,7 +1978,7 @@ function SearchPageContent() {
 
               <div style={{marginBottom: '16px'}}>
                 <label style={{display: 'block', marginBottom: '6px', fontWeight: 600, color: '#475569'}}>
-                  📷 צילום מסך (מומלץ)
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>צילום מסך (מומלץ)</span>
                 </label>
                 <label style={{
                   display: 'block',
@@ -1992,7 +1992,7 @@ function SearchPageContent() {
                   color: '#94a3b8',
                   fontSize: '0.9rem'
                 }}>
-                  {errorReportImage ? `✓ ${errorReportImage.name}` : '📁 לחץ לבחירת תמונה'}
+                  {errorReportImage ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{errorReportImage.name}</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>לחץ לבחירת תמונה</span>}
                   <input
                     type="file"
                     accept="image/*"
@@ -2088,7 +2088,7 @@ function SearchPageContent() {
                   cursor: errorReportLoading ? 'not-allowed' : 'pointer'
                 }}
               >
-                {errorReportLoading ? '⏳ שולח...' : '📤 שלח דיווח'}
+                {errorReportLoading ? <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg className="spinning-wheel" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>שולח...</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>שלח דיווח</span>}
               </button>
             </div>
           </div>
@@ -2100,8 +2100,8 @@ function SearchPageContent() {
         <div style={styles.modalOverlay} onClick={() => setShowManagerLoginModal(false)}>
           <div style={styles.vehicleModal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🔐 התחברות מנהל</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowManagerLoginModal(false)} aria-label="סגור התחברות">✕</button>
+              <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>התחברות מנהל</h3>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowManagerLoginModal(false)} aria-label="סגור התחברות"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={{ padding: '20px 0' }}>
@@ -2143,7 +2143,7 @@ function SearchPageContent() {
                     cursor: loginLoading ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {loginLoading ? 'מתחבר...' : '🔓 התחבר'}
+                  {loginLoading ? 'מתחבר...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>התחבר</span>}
                 </button>
               </div>
             </div>
@@ -2185,7 +2185,7 @@ function SearchPageContent() {
                 onClick={() => setShowAddModelModal(false)}
                 aria-label="סגור הוספת דגם"
               >
-                ✕
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
 
@@ -2426,7 +2426,7 @@ function SearchPageContent() {
                   disabled={addModelLoading}
                   style={styles.submitBtn}
                 >
-                  {addModelLoading ? 'מוסיף...' : '✅ הוסף למאגר'}
+                  {addModelLoading ? 'מוסיף...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הוסף למאגר</span>}
                 </button>
                 <button
                   onClick={() => setShowAddModelModal(false)}

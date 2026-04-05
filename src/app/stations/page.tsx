@@ -789,7 +789,7 @@ export default function WheelStationsPage() {
     return (
       <div style={styles.container}>
         <div style={styles.error}>
-          <p>❌ {error}</p>
+          <p style={{display:'flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> {error}</p>
           <button onClick={fetchStations} style={styles.retryBtn}>נסה שוב</button>
         </div>
       </div>
@@ -947,7 +947,7 @@ export default function WheelStationsPage() {
             style={styles.clearFilterBtn}
             aria-label="נקה חיפוש"
           >
-            ✕
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         )}
       </div>
@@ -1002,7 +1002,7 @@ export default function WheelStationsPage() {
                 )}
               </div>
               {station.address && (
-                <div style={styles.address}>📍 {station.address}</div>
+                <div style={{...styles.address, display:'flex', alignItems:'center', gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {station.address}</div>
               )}
               {station.cities?.name && (
                 <div style={styles.cityName}>{station.cities.name}</div>
@@ -1019,7 +1019,7 @@ export default function WheelStationsPage() {
               </div>
               {station.wheel_station_managers.length > 0 && (
                 <div style={styles.managers}>
-                  📞 {station.wheel_station_managers.length} אנשי קשר
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.58 2.72h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.56 6.56l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> {station.wheel_station_managers.length} אנשי קשר</span>
                 </div>
               )}
             </Link>
@@ -1057,8 +1057,8 @@ export default function WheelStationsPage() {
         <div style={styles.modalOverlay} onClick={closeSearchModal}>
           <div style={styles.modal} className="wheels-search-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle} className="wheels-modal-title">🔍 חיפוש גלגל</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeSearchModal} aria-label="סגור חיפוש">✕</button>
+              <h3 style={styles.modalTitle} className="wheels-modal-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חיפוש גלגל</span></h3>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeSearchModal} aria-label="סגור חיפוש"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             {!searchResults ? (
@@ -1138,7 +1138,7 @@ export default function WheelStationsPage() {
                   onClick={handleSearch}
                   disabled={searchLoading}
                 >
-                  {searchLoading ? <><span className="wheels-spinner"></span> מחפש...</> : '🔍 חפש'}
+                  {searchLoading ? <><span className="wheels-spinner"></span> מחפש...</> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חפש</span>}
                 </button>
               </>
             ) : (
@@ -1149,7 +1149,7 @@ export default function WheelStationsPage() {
 
                 {searchResults.length === 0 ? (
                   <div style={styles.noResults}>
-                    <p>😕 לא נמצאו גלגלים מתאימים</p>
+                    <p style={{display:'flex',alignItems:'center',gap:'6px',justifyContent:'center'}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> לא נמצאו גלגלים מתאימים</p>
                     <p style={styles.noResultsHint}>נסה לשנות את הפילטרים</p>
                   </div>
                 ) : (
@@ -1164,7 +1164,7 @@ export default function WheelStationsPage() {
                           <div style={styles.resultStationName}>{result.station.name}</div>
                         </div>
                         {result.station.address && (
-                          <div style={styles.resultAddress}>📍 {result.station.address}</div>
+                          <div style={{...styles.resultAddress, display:'flex', alignItems:'center', gap:'4px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {result.station.address}</div>
                         )}
                         <div style={styles.resultWheelsList}>
                           {result.wheels.map(wheel => (
@@ -1187,7 +1187,10 @@ export default function WheelStationsPage() {
                                 ...styles.resultWheelStatus,
                                 color: wheel.is_available ? '#10b981' : '#ef4444'
                               }}>
-                                {wheel.is_available ? '✅ זמין' : '🔴 מושאל'}
+                                {wheel.is_available
+                                  ? <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> זמין</span>
+                                  : <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" strokeWidth="1"><circle cx="12" cy="12" r="10"/></svg> מושאל</span>
+                                }
                               </div>
                             </Link>
                           ))}
@@ -1207,13 +1210,13 @@ export default function WheelStationsPage() {
         <div style={styles.modalOverlay} onClick={closeVehicleModal}>
           <div style={styles.vehicleModal} className="wheels-vehicle-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle} className="wheels-modal-title">🚗 חיפוש לפי רכב</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeVehicleModal} aria-label="סגור חיפוש רכב">✕</button>
+              <h3 style={styles.modalTitle} className="wheels-modal-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg> חיפוש לפי רכב</span></h3>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeVehicleModal} aria-label="סגור חיפוש רכב"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             {/* Beta warning */}
             <div style={styles.betaWarning}>
-              ⚠️ פיצ'ר בפיתוח - יתכנו טעויות בזיהוי מידות הגלגל
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> פיצ'ר בפיתוח - יתכנו טעויות בזיהוי מידות הגלגל</span>
             </div>
 
             {/* Tabs */}
@@ -1239,7 +1242,7 @@ export default function WheelStationsPage() {
                   transition: 'all 0.2s'
                 }}
               >
-                🔢 מספר רכב
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="7" y1="2" x2="7" y2="6"/><line x1="17" y1="2" x2="17" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> מספר רכב</span>
               </button>
               <button
                 onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
@@ -1256,7 +1259,7 @@ export default function WheelStationsPage() {
                   transition: 'all 0.2s'
                 }}
               >
-                🚘 יצרן ודגם
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg> יצרן ודגם</span>
               </button>
             </div>
 
@@ -1280,8 +1283,8 @@ export default function WheelStationsPage() {
                   style={styles.vehicleLookupBtn}
                 >
                   {vehicleLoading ? (
-                    <span className="spinning-wheel">🛞</span>
-                  ) : '🔍'}
+                    <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg>
+                  ) : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
                 </button>
               </div>
             )}
@@ -1419,8 +1422,8 @@ export default function WheelStationsPage() {
                   }}
                 >
                   {modelSearchLoading ? (
-                    <span className="spinning-wheel">🛞</span>
-                  ) : '🔍 חפש'}
+                    <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg>
+                  ) : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חפש</span>}
                 </button>
               </div>
             )}
@@ -1428,7 +1431,7 @@ export default function WheelStationsPage() {
             {/* Error message with external links and add model button */}
             {vehicleError && vehicleSearchTab === 'model' && modelSearchMake && modelSearchModel && (
               <div style={{...styles.noFitmentCard, marginTop: '10px'}}>
-                ⚠️ לא נמצא מידע לפי פרטי הרכב שהוזנו
+                <span style={{display:'flex',alignItems:'center',gap:'5px',marginBottom:'8px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> לא נמצא מידע לפי פרטי הרכב שהוזנו</span>
                 <div style={styles.externalLinks}>
                   <a
                     href="https://www.wheel-size.com"
@@ -1458,7 +1461,7 @@ export default function WheelStationsPage() {
                   })}
                   style={styles.addModelBtn}
                 >
-                  ➕ הוסף דגם זה למאגר
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> הוסף דגם זה למאגר</span>
                 </button>
                 <button
                   onClick={async () => {
@@ -1499,7 +1502,7 @@ export default function WheelStationsPage() {
                     justifyContent: 'center'
                   }}
                 >
-                  📝 דווח על רכב חסר
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> דווח על רכב חסר</span>
                 </button>
               </div>
             )}
@@ -1507,7 +1510,7 @@ export default function WheelStationsPage() {
             {/* Error message for plate search */}
             {vehicleError && vehicleSearchTab === 'plate' && (
               <div style={styles.vehicleError}>
-                ❌ {vehicleError}
+                <span style={{display:'flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> {vehicleError}</span>
                 <button
                   onClick={() => setVehicleSearchTab('model')}
                   style={{
@@ -1527,7 +1530,7 @@ export default function WheelStationsPage() {
                     justifyContent: 'center'
                   }}
                 >
-                  🔍 חפש לפי דגם ושנה
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חפש לפי דגם ושנה</span>
                 </button>
                 <a
                   href={`https://www.find-car.co.il/car/private/${vehiclePlate.replace(/\D/g, '')}`}
@@ -1549,7 +1552,7 @@ export default function WheelStationsPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  🔗 חפש במקור חיצוני (find-car.co.il)
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> חפש במקור חיצוני (find-car.co.il)</span>
                 </a>
               </div>
             )}
@@ -1571,7 +1574,7 @@ export default function WheelStationsPage() {
                     fontSize: '0.9rem',
                     color: '#92400e'
                   }}>
-                    <span>⚠️</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     <div>
                       <strong>רכב ייבוא אישי{vehicleResult.vehicle.origin_country ? ` מ${vehicleResult.vehicle.origin_country}` : ''}</strong>
                       <div style={{ fontSize: '0.8rem', marginTop: '2px' }}>
@@ -1587,9 +1590,9 @@ export default function WheelStationsPage() {
                     {vehicleResult.vehicle.manufacturer} {vehicleResult.vehicle.model}
                   </div>
                   <div style={styles.vehicleInfoDetails} className="wheels-vehicle-info-details">
-                    <span>📅 {vehicleResult.vehicle.year}</span>
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> {vehicleResult.vehicle.year}</span>
                     {vehicleResult.vehicle.front_tire && (
-                      <span style={{ direction: 'ltr' }}>🛞 {vehicleResult.vehicle.front_tire}</span>
+                      <span style={{ direction: 'ltr', display:'inline-flex', alignItems:'center', gap:'3px' }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg> {vehicleResult.vehicle.front_tire}</span>
                     )}
                   </div>
                 </div>
@@ -1650,7 +1653,7 @@ export default function WheelStationsPage() {
                           style={styles.sourceLink}
                           title="אמת מידות באתר המקור"
                         >
-                          🔗 אמת מידות
+                          <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> אמת מידות</span>
                         </a>
                       )}
                       <button
@@ -1658,7 +1661,7 @@ export default function WheelStationsPage() {
                         style={styles.reportErrorBtn}
                         title="דווח על טעות במידות"
                       >
-                        🔧 דווח על טעות
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> דווח על טעות</span>
                       </button>
                     </div>
 
@@ -1679,7 +1682,10 @@ export default function WheelStationsPage() {
                         return (
                           <div style={styles.vehicleWheelResults}>
                             <div style={styles.vehicleResultsHeader}>
-                              ✅ נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+                                נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים
+                              </span>
                             </div>
                             {vehicleRimSize && (
                               <div style={styles.vehicleResultsNote}>
@@ -1715,7 +1721,7 @@ export default function WheelStationsPage() {
                                       </div>
                                       {rimMismatch && (
                                         <div style={{color: '#dc2626', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <span style={{fontSize: '14px'}}>⛔</span> קוטר לא תואם
+                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> קוטר לא תואם
                                         </div>
                                       )}
                                     </Link>
@@ -1729,7 +1735,10 @@ export default function WheelStationsPage() {
                       } else if (vehicleSearchResults) {
                         return (
                           <div style={styles.noVehicleResults}>
-                            😕 לא נמצאו גלגלים מתאימים במלאי
+                            <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                            לא נמצאו גלגלים מתאימים במלאי
+                          </span>
                           </div>
                         )
                       }
@@ -1738,7 +1747,10 @@ export default function WheelStationsPage() {
                   </div>
                 ) : (
                   <div style={styles.noFitmentCard}>
-                    ⚠️ לא נמצא מידע לפי פרטי הרכב שהוזנו
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      לא נמצא מידע לפי פרטי הרכב שהוזנו
+                    </span>
                     <button
                       onClick={() => {
                         // Switch to model search tab with vehicle data pre-filled
@@ -1752,7 +1764,10 @@ export default function WheelStationsPage() {
                       }}
                       style={styles.addModelBtn}
                     >
-                      🔍 חפש לפי יצרן ודגם
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        חפש לפי יצרן ודגם
+                      </span>
                     </button>
                   </div>
                 )}
@@ -1767,8 +1782,8 @@ export default function WheelStationsPage() {
         <div style={styles.modalOverlay} onClick={() => setShowErrorReportModal(false)}>
           <div style={{...styles.vehicleModal, maxWidth: '500px'}} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🔧 דווח על טעות במידות</h3>
-              <button style={styles.modalClose} onClick={() => setShowErrorReportModal(false)}>✕</button>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>דווח על טעות במידות</span></h3>
+              <button style={styles.modalClose} onClick={() => setShowErrorReportModal(false)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={{padding: '20px'}}>
@@ -1785,7 +1800,7 @@ export default function WheelStationsPage() {
 
               <div style={{marginBottom: '16px'}}>
                 <label style={{display: 'block', marginBottom: '6px', fontWeight: 500, color: '#e2e8f0'}}>
-                  📷 צילום מסך (מומלץ)
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>צילום מסך (מומלץ)</span>
                 </label>
                 <label style={{
                   display: 'block',
@@ -1799,7 +1814,11 @@ export default function WheelStationsPage() {
                   color: '#94a3b8',
                   fontSize: '0.9rem'
                 }}>
-                  {errorReportImage ? `✓ ${errorReportImage.name}` : '📁 לחץ לבחירת תמונה'}
+                  {errorReportImage ? (
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{errorReportImage.name}</span>
+                  ) : (
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>לחץ לבחירת תמונה</span>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
@@ -1895,7 +1914,11 @@ export default function WheelStationsPage() {
                   cursor: errorReportLoading ? 'not-allowed' : 'pointer'
                 }}
               >
-                {errorReportLoading ? '⏳ שולח...' : '📤 שלח דיווח'}
+                {errorReportLoading ? (
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" strokeOpacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" strokeOpacity="0.75"/></svg>שולח...</span>
+                ) : (
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>שלח דיווח</span>
+                )}
               </button>
             </div>
           </div>
@@ -1907,8 +1930,8 @@ export default function WheelStationsPage() {
         <div style={styles.modalOverlay} onClick={() => setShowManagerLoginModal(false)}>
           <div style={styles.vehicleModal} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>🔐 התחברות מנהל</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowManagerLoginModal(false)} aria-label="סגור התחברות">✕</button>
+              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>התחברות מנהל</span></h3>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowManagerLoginModal(false)} aria-label="סגור התחברות"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={{ padding: '20px 0' }}>
@@ -1950,7 +1973,9 @@ export default function WheelStationsPage() {
                     cursor: loginLoading ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {loginLoading ? 'מתחבר...' : '🔓 התחבר'}
+                  {loginLoading ? 'מתחבר...' : (
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>התחבר</span>
+                  )}
                 </button>
               </div>
             </div>
@@ -1963,8 +1988,8 @@ export default function WheelStationsPage() {
         <div style={styles.modalOverlay} onClick={() => setShowAddModelModal(false)}>
           <div style={styles.addModelModal} className="wheels-add-model-modal" onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle} className="wheels-modal-title">➕ הוסף דגם רכב למאגר</h3>
-              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowAddModelModal(false)} aria-label="סגור הוספת דגם">✕</button>
+              <h3 style={styles.modalTitle} className="wheels-modal-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוסף דגם רכב למאגר</span></h3>
+              <button style={styles.closeBtn} className="wheels-close-btn" onClick={() => setShowAddModelModal(false)} aria-label="סגור הוספת דגם"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div style={styles.addModelForm}>
@@ -2180,7 +2205,9 @@ export default function WheelStationsPage() {
                   disabled={addModelLoading}
                   style={styles.submitBtn}
                 >
-                  {addModelLoading ? 'מוסיף...' : '✅ הוסף למאגר'}
+                  {addModelLoading ? 'מוסיף...' : (
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הוסף למאגר</span>
+                  )}
                 </button>
                 <button
                   onClick={() => setShowAddModelModal(false)}

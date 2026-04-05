@@ -29,10 +29,10 @@ export default function FeedbackPage() {
   const [stationName, setStationName] = useState('')
   const [attachments, setAttachments] = useState<AttachedFile[]>([])
 
-  const typeOptions = [
-    { value: 'bug', label: 'דיווח על באג', emoji: '🐛', color: 'border-red-300 bg-red-50 text-red-800', selected: 'border-red-500 bg-red-100 ring-2 ring-red-500' },
-    { value: 'suggestion', label: 'הצעת שיפור', emoji: '💡', color: 'border-blue-300 bg-blue-50 text-blue-800', selected: 'border-blue-500 bg-blue-100 ring-2 ring-blue-500' },
-    { value: 'other', label: 'אחר', emoji: '📝', color: 'border-gray-300 bg-gray-50 text-gray-800', selected: 'border-gray-500 bg-gray-100 ring-2 ring-gray-500' },
+  const typeOptions: Array<{ value: string; label: string; icon: React.ReactNode; color: string; selected: string }> = [
+    { value: 'bug', label: 'דיווח על באג', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>, color: 'border-red-300 bg-red-50 text-red-800', selected: 'border-red-500 bg-red-100 ring-2 ring-red-500' },
+    { value: 'suggestion', label: 'הצעת שיפור', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>, color: 'border-blue-300 bg-blue-50 text-blue-800', selected: 'border-blue-500 bg-blue-100 ring-2 ring-blue-500' },
+    { value: 'other', label: 'אחר', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>, color: 'border-gray-300 bg-gray-50 text-gray-800', selected: 'border-gray-500 bg-gray-100 ring-2 ring-gray-500' },
   ]
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,7 +153,7 @@ export default function FeedbackPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center p-4" dir="rtl">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="text-6xl mb-4">✅</div>
+          <div className="mb-4 flex justify-center"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">תודה על המשוב!</h1>
           <p className="text-gray-600 mb-6">
             הפידבק שלך נשלח בהצלחה. נבדוק אותו בהקדם.
@@ -189,7 +189,7 @@ export default function FeedbackPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">📣 שליחת פידבק</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> שליחת פידבק</h1>
               <p className="text-sm sm:text-base text-gray-600">דווח על באג או שלח הצעה לשיפור מערכת הגלגלים</p>
             </div>
             <Link
@@ -197,7 +197,7 @@ export default function FeedbackPage() {
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium text-sm sm:text-base"
             >
               <span>סגור</span>
-              <span>✕</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </Link>
           </div>
 
@@ -217,7 +217,7 @@ export default function FeedbackPage() {
                       type === option.value ? option.selected : option.color
                     } hover:scale-105`}
                   >
-                    <div className="text-2xl mb-1">{option.emoji}</div>
+                    <div className="mb-1 flex justify-center">{option.icon}</div>
                     <div className="text-sm font-medium">{option.label}</div>
                   </button>
                 ))}
@@ -279,7 +279,7 @@ export default function FeedbackPage() {
                   className="hidden"
                   disabled={sending}
                 />
-                <div className="text-4xl mb-2">📎</div>
+                <div className="mb-2 flex justify-center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div>
                 <p className="text-gray-600 font-medium">לחץ להעלאת קובץ</p>
                 <p className="text-xs text-gray-500 mt-1">
                   תמונות או סרטונים - עד 25MB
@@ -294,8 +294,11 @@ export default function FeedbackPage() {
                       className="flex items-center justify-between bg-gray-50 rounded-lg p-3 border"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">
-                          {file.type.startsWith('video/') ? '🎬' : '🖼️'}
+                        <span>
+                          {file.type.startsWith('video/')
+                            ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                            : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                          }
                         </span>
                         <div>
                           <p className="font-medium text-gray-900 text-sm">{file.name}</p>
@@ -308,7 +311,7 @@ export default function FeedbackPage() {
                         className="text-red-500 hover:text-red-700 p-1"
                         disabled={sending}
                       >
-                        ✕
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                       </button>
                     </div>
                   ))}
@@ -398,11 +401,11 @@ export default function FeedbackPage() {
               >
                 {sending ? (
                   <span className="flex items-center justify-center gap-2">
-                    <span className="animate-spin">⏳</span>
+                    <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                     שולח...
                   </span>
                 ) : (
-                  '📤 שלח פידבק'
+                  <span className="flex items-center justify-center gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> שלח פידבק</span>
                 )}
               </button>
             </div>
@@ -412,7 +415,7 @@ export default function FeedbackPage() {
         {/* Info Box */}
         <div className="bg-gray-100 rounded-xl p-4">
           <p className="text-sm text-gray-700 text-center">
-            <strong>💡 טיפ:</strong> ככל שתפרט יותר, נוכל לטפל בבעיה טוב יותר
+            <strong className="inline-flex items-center gap-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> טיפ:</strong> ככל שתפרט יותר, נוכל לטפל בבעיה טוב יותר
           </p>
         </div>
       </div>

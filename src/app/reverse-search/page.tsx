@@ -417,7 +417,7 @@ export default function ReverseSearchPage() {
         </p>
         <div style={styles.betaBadge}>BETA</div>
         <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '8px 0 0', fontStyle: 'italic' }}>
-          ⚠️ המידע מבוסס על נתוני יצרן בלבד — יש לוודא התאמה פיזית לפני שימוש בפועל
+          <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> המידע מבוסס על נתוני יצרן בלבד — יש לוודא התאמה פיזית לפני שימוש בפועל</span>
         </p>
       </div>
 
@@ -432,7 +432,7 @@ export default function ReverseSearchPage() {
             color: pageMode === 'reverse' ? '#000' : '#9ca3af'
           }}
         >
-          🔍 חיפוש הפוך
+          <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חיפוש הפוך</span>
         </button>
         <button
           onClick={() => setPageMode('compare')}
@@ -443,7 +443,7 @@ export default function ReverseSearchPage() {
             color: pageMode === 'compare' ? '#000' : '#9ca3af'
           }}
         >
-          ⚖️ השוואה מיידית
+          <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> השוואה מיידית</span>
         </button>
       </div>
 
@@ -478,7 +478,7 @@ export default function ReverseSearchPage() {
                       onKeyDown={e => e.key === 'Enter' && handleLookupCompareVehicle(which)}
                       placeholder="מספר רישוי..." style={{...styles.input, flex: 1}} dir="ltr" />
                     <button onClick={() => handleLookupCompareVehicle(which)} disabled={v.loading} style={styles.searchBtn}>
-                      {v.loading ? <span className="spinning-wheel">🛞</span> : '🔍'}
+                      {v.loading ? <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
                     </button>
                   </div>
                 ) : (
@@ -491,7 +491,7 @@ export default function ReverseSearchPage() {
                       <input type="text" inputMode="numeric" value={v.year} onChange={e => set(prev => ({...prev, year: e.target.value, result: null}))}
                         placeholder="שנה" style={{...styles.input, flex: 1}} dir="ltr" />
                       <button onClick={() => handleLookupCompareVehicle(which)} disabled={v.loading} style={styles.searchBtn}>
-                        {v.loading ? <span className="spinning-wheel">🛞</span> : '🔍'}
+                        {v.loading ? <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
                       </button>
                     </div>
                   </div>
@@ -512,8 +512,8 @@ export default function ReverseSearchPage() {
                       </span>
                     )}
                     <button onClick={() => set(prev => ({...prev, result: null, plate: '', make: '', model: '', year: ''}))}
-                      style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.8rem', marginRight: '6px' }}>
-                      ✕
+                      style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '2px', marginRight: '6px', display: 'inline-flex', alignItems: 'center' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
                   </div>
                 )}
@@ -527,25 +527,31 @@ export default function ReverseSearchPage() {
             if (!outcome) return null
             const bgColor = outcome.overall === 'compatible' ? 'rgba(16,185,129,0.15)' : outcome.overall === 'with_ring' ? 'rgba(251,191,36,0.15)' : 'rgba(239,68,68,0.15)'
             const borderColor = outcome.overall === 'compatible' ? '#10b981' : outcome.overall === 'with_ring' ? '#fbbf24' : '#ef4444'
-            const icon = outcome.overall === 'compatible' ? '✅' : outcome.overall === 'with_ring' ? '🟡' : '❌'
+            const icon = outcome.overall === 'compatible'
+              ? <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+              : outcome.overall === 'with_ring'
+              ? <svg width="44" height="44" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1"><circle cx="12" cy="12" r="10"/></svg>
+              : <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
             const title = outcome.overall === 'compatible' ? 'מתאים!' : outcome.overall === 'with_ring' ? 'מתאים עם טבעת מרכוז' : 'לא מתאים'
             return (
               <div style={{ background: bgColor, border: `2px solid ${borderColor}`, borderRadius: '14px', padding: '20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '6px' }}>{icon}</div>
+                <div style={{ marginBottom: '6px', display: 'flex', justifyContent: 'center' }}>{icon}</div>
                 <div style={{ fontSize: '1.3rem', fontWeight: 700, color: borderColor, marginBottom: '14px' }}>{title}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'right', fontSize: '0.9rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#9ca3af' }}>חישוק ברגים (PCD)</span>
                     <span style={{ fontWeight: 600, color: outcome.pcdMatch ? '#10b981' : '#ef4444' }}>
-                      {outcome.pcdMatch ? `✓ זהה (${cmpA.result!.wheel_fitment!.pcd})` : `✗ שונה (${cmpA.result!.wheel_fitment!.pcd} vs ${cmpB.result!.wheel_fitment!.pcd})`}
+                      {outcome.pcdMatch
+                        ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>{`זהה (${cmpA.result!.wheel_fitment!.pcd})`}</span>
+                        : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>{`שונה (${cmpA.result!.wheel_fitment!.pcd} vs ${cmpB.result!.wheel_fitment!.pcd})`}</span>}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#9ca3af' }}>קוטר פנימי (CB)</span>
                     <span style={{ fontWeight: 600, color: outcome.cbLevel === 'exact' ? '#10b981' : outcome.cbLevel === 'with_ring' ? '#fbbf24' : outcome.cbLevel === 'no_fit' ? '#ef4444' : '#9ca3af' }}>
-                      {outcome.cbLevel === 'exact' && `✓ זהה${outcome.cbDiff !== null ? ` (${cmpA.result!.wheel_fitment!.center_bore}mm)` : ''}`}
+                      {outcome.cbLevel === 'exact' && <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>{`זהה${outcome.cbDiff !== null ? ` (${cmpA.result!.wheel_fitment!.center_bore}mm)` : ''}`}</span>}
                       {outcome.cbLevel === 'with_ring' && `מומלץ טבעת מרכוז (+${outcome.cbDiff}mm)`}
-                      {outcome.cbLevel === 'no_fit' && `✗ לא מתאים (${outcome.cbDiff !== null ? `${outcome.cbDiff}mm` : 'שונה'})`}
+                      {outcome.cbLevel === 'no_fit' && <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>{`לא מתאים (${outcome.cbDiff !== null ? `${outcome.cbDiff}mm` : 'שונה'})`}</span>}
                       {outcome.cbLevel === 'unknown' && 'לא ידוע'}
                     </span>
                   </div>
@@ -553,8 +559,10 @@ export default function ReverseSearchPage() {
                     <span style={{ color: '#9ca3af' }}>גודל חישוק</span>
                     <span style={{ fontWeight: 600, color: outcome.rimOverlap ? '#10b981' : '#fbbf24' }}>
                       {outcome.rimOverlap
-                        ? outcome.commonRimSizes.length > 0 ? `✓ R${outcome.commonRimSizes.join('/')}` : '✓ לא ידוע'
-                        : `⚠️ שים לב - גדלים שונים (R${cmpA.result!.wheel_fitment!.rim_sizes_allowed?.join('/')} vs R${cmpB.result!.wheel_fitment!.rim_sizes_allowed?.join('/')})`}
+                        ? outcome.commonRimSizes.length > 0
+                          ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>{`R${outcome.commonRimSizes.join('/')}`}</span>
+                          : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>לא ידוע</span>
+                        : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{`שים לב - גדלים שונים (R${cmpA.result!.wheel_fitment!.rim_sizes_allowed?.join('/')} vs R${cmpB.result!.wheel_fitment!.rim_sizes_allowed?.join('/')})`}</span>}
                     </span>
                   </div>
                 </div>
@@ -613,7 +621,7 @@ export default function ReverseSearchPage() {
                 disabled={isLoading}
                 style={styles.searchBtn}
               >
-                {isLoading ? <span className="spinning-wheel">🛞</span> : '🔍'}
+                {isLoading ? <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
               </button>
             </div>
           )}
@@ -712,7 +720,7 @@ export default function ReverseSearchPage() {
                 disabled={isLoading}
                 style={{ ...styles.searchBtn, width: '100%', padding: '12px', justifyContent: 'center' }}
               >
-                {isLoading ? <span className="spinning-wheel">🛞</span> : 'חפש רכבים תואמים'}
+                {isLoading ? <><svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg></> : 'חפש רכבים תואמים'}
               </button>
             </div>
           )}
@@ -750,7 +758,7 @@ export default function ReverseSearchPage() {
           {/* Loading */}
           {reverseLoading && (
             <div style={styles.loadingBox}>
-              <span className="spinning-wheel" style={{ fontSize: '2rem' }}>🛞</span>
+              <svg className="spinning-wheel" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="2" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="22" y2="12"/></svg>
               <p>מחפש רכבים תואמים...</p>
             </div>
           )}

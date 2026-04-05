@@ -54,7 +54,7 @@ function GuideContent() {
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
-              🎧 מדריך למוקדנים
+              <span className="inline-flex items-center gap-2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> מדריך למוקדנים</span>
             </button>
             <button
               onClick={() => setActiveGuide('manager')}
@@ -64,7 +64,7 @@ function GuideContent() {
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
-              🔧 מדריך למנהלי תחנות
+              <span className="inline-flex items-center gap-2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> מדריך למנהלי תחנות</span>
             </button>
           </div>
         )}
@@ -95,7 +95,7 @@ function OperatorGuide() {
     <div className="space-y-8">
       <section>
         <h2 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🎧</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
           ברוכים הבאים לממשק המוקדן
         </h2>
         <p className="text-gray-700 leading-relaxed">
@@ -106,7 +106,7 @@ function OperatorGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔐</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           התחברות למערכת
         </h2>
         <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
@@ -117,20 +117,20 @@ function OperatorGuide() {
         </ol>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
           <p className="text-blue-800">
-            <strong>💡 טיפ:</strong> ההתחברות נשמרת במכשיר למשך 12 שעות - לא תצטרכו להתחבר שוב בכל שיחה.
+            <strong className="inline-flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> טיפ:</strong> ההתחברות נשמרת במכשיר למשך 12 שעות - לא תצטרכו להתחבר שוב בכל שיחה.
           </p>
         </div>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔍</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           חיפוש גלגל - 3 דרכים
         </h2>
         <p className="text-gray-700 mb-4">בממשק המוקדן יש 3 טאבים לחיפוש. בחרו את הדרך המתאימה לפי המידע שקיבלתם מהפונה:</p>
 
         <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-          <h3 className="font-semibold text-gray-800">🔢 טאב מספר רכב (מומלץ):</h3>
+          <h3 className="font-semibold text-gray-800 flex items-center gap-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="7" y1="2" x2="7" y2="6"/><line x1="17" y1="2" x2="17" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> טאב מספר רכב (מומלץ):</h3>
           <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
             <li>בקשו מהפונה את מספר הרכב (7-8 ספרות)</li>
             <li>הזינו את המספר ולחצו חיפוש</li>
@@ -140,7 +140,7 @@ function OperatorGuide() {
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4 space-y-3 mt-3">
-          <h3 className="font-semibold text-gray-800">🚘 טאב יצרן ודגם:</h3>
+          <h3 className="font-semibold text-gray-800 flex items-center gap-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg> טאב יצרן ודגם:</h3>
           <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
             <li>הקלידו יצרן (בעברית או אנגלית) - תופיע השלמה אוטומטית</li>
             <li>בחרו דגם מהרשימה</li>
@@ -149,13 +149,13 @@ function OperatorGuide() {
           </ol>
           <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mt-2">
             <p className="text-yellow-800 text-sm">
-              <strong>⚠️ שימו לב:</strong> אם יש כמה מפרטים אפשריים לאותו דגם, יופיע מודאל לבחירת המפרט הנכון (PCD, CB שונים).
+              <strong className="inline-flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> שימו לב:</strong> אם יש כמה מפרטים אפשריים לאותו דגם, יופיע מודאל לבחירת המפרט הנכון (PCD, CB שונים).
             </p>
           </div>
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4 space-y-3 mt-3">
-          <h3 className="font-semibold text-gray-800">🔧 טאב לפי מפרט:</h3>
+          <h3 className="font-semibold text-gray-800 flex items-center gap-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> טאב לפי מפרט:</h3>
           <p className="text-gray-600 mb-2">כשהפונה יודע את מידות הגלגל שלו:</p>
           <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
             <li>סננו לפי: כמות ברגים, מרווח ברגים (PCD), גודל ג&apos;אנט, קדח מרכזי (CB)</li>
@@ -167,7 +167,7 @@ function OperatorGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📊</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           קריאת תוצאות החיפוש
         </h2>
         <p className="text-gray-700 mb-4">
@@ -177,7 +177,7 @@ function OperatorGuide() {
         <h3 className="font-semibold text-gray-800 mb-2">תגיות צבעוניות:</h3>
         <div className="space-y-2 mr-4">
           <div className="flex items-center gap-2">
-            <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">✓ מתאים</span>
+            <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>מתאים</span>
             <span className="text-gray-600">- גודל החישוק תואם בדיוק לרכב</span>
           </div>
           <div className="flex items-center gap-2">
@@ -185,7 +185,7 @@ function OperatorGuide() {
             <span className="text-gray-600">- חישוק קטן יותר מהמקורי (ניתן לשימוש זמני)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm font-medium">🍩 דונאט</span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm font-medium"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> דונאט</span>
             <span className="text-gray-600">- גלגל חירום (נסיעה עד 80 קמ&quot;ש בלבד)</span>
           </div>
         </div>
@@ -193,11 +193,11 @@ function OperatorGuide() {
         <h3 className="font-semibold text-gray-800 mt-4 mb-2">אזהרות CB (קדח מרכזי):</h3>
         <div className="space-y-2 mr-4">
           <div className="flex items-start gap-2">
-            <span className="text-red-600 font-bold">⚠️ אדום</span>
+            <span className="inline-flex items-center gap-1 text-red-600 font-bold"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> אדום</span>
             <span className="text-gray-600">- קדח הגלגל קטן מקדח הרכב - הגלגל לא יתאים פיזית</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-orange-600 font-bold">⚠️ כתום</span>
+            <span className="inline-flex items-center gap-1 text-orange-600 font-bold"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> כתום</span>
             <span className="text-gray-600">- הפרש של 2 מ&quot;מ ומעלה - ייתכן צורך בטבעת מרכוז</span>
           </div>
         </div>
@@ -205,7 +205,7 @@ function OperatorGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📤</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           שליחת פרטים לפונה
         </h2>
         <ol className="list-decimal list-inside text-gray-700 space-y-3 mr-4">
@@ -226,14 +226,14 @@ function OperatorGuide() {
         </ol>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
           <p className="text-blue-800">
-            <strong>💡 טיפ:</strong> הלינק כולל אוטומטית את מספר הגלגל ואת מזהה המוקדן שלכם למעקב.
+            <strong className="inline-flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> טיפ:</strong> הלינק כולל אוטומטית את מספר הגלגל ואת מזהה המוקדן שלכם למעקב.
           </p>
         </div>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">❓</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           שאלות נפוצות למוקדנים
         </h2>
         <div className="space-y-4">
@@ -270,7 +270,7 @@ function ManagerGuide() {
     <div className="space-y-8">
       <section>
         <h2 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔧</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           מדריך למנהלי תחנות
         </h2>
         <p className="text-gray-700 leading-relaxed">
@@ -281,7 +281,7 @@ function ManagerGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔐</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           התחברות למערכת
         </h2>
         <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
@@ -293,7 +293,7 @@ function ManagerGuide() {
         </ol>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
           <p className="text-blue-800">
-            <strong>💡 טיפ:</strong> ההתחברות נשמרת במכשיר - לא תצטרכו להתחבר שוב בכל כניסה.
+            <strong className="inline-flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> טיפ:</strong> ההתחברות נשמרת במכשיר - לא תצטרכו להתחבר שוב בכל כניסה.
           </p>
         </div>
 
@@ -306,14 +306,14 @@ function ManagerGuide() {
         </ol>
         <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mt-2">
           <p className="text-yellow-800 text-sm">
-            <strong>⚠️ חשוב:</strong> אם אין לכם תעודת שחזור, פנו למנהל המערכת. ראו בהמשך כיצד להוריד תעודת שחזור מההגדרות.
+            <strong className="inline-flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> חשוב:</strong> אם אין לכם תעודת שחזור, פנו למנהל המערכת. ראו בהמשך כיצד להוריד תעודת שחזור מההגדרות.
           </p>
         </div>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📦</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           ניהול מלאי גלגלים
         </h2>
 
@@ -364,7 +364,7 @@ function ManagerGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📝</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           טיפול בבקשות השאלה
         </h2>
 
@@ -397,7 +397,7 @@ function ManagerGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔄</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
           החזרת גלגלים
         </h2>
         <ol className="list-decimal list-inside text-gray-700 space-y-2 mr-4">
@@ -409,7 +409,7 @@ function ManagerGuide() {
         </ol>
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
           <p className="text-red-800">
-            <strong>⚠️ חשוב:</strong> בדקו את הגלגל לפני סימון ההחזרה.
+            <strong className="inline-flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> חשוב:</strong> בדקו את הגלגל לפני סימון ההחזרה.
             אם יש נזק, תעדו אותו ושקלו ניכוי מהפיקדון.
           </p>
         </div>
@@ -417,7 +417,7 @@ function ManagerGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">⚙️</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           הגדרות תחנה
         </h2>
         <p className="text-gray-700 mb-4">רק מנהל ראשי יכול לשנות את הגדרות התחנה:</p>
@@ -466,14 +466,14 @@ function ManagerGuide() {
             <li>שמרו את התעודה במקום בטוח (הדפסה או שמירה בטלפון)</li>
           </ol>
           <p className="text-green-800 mt-2 text-sm">
-            <strong>💡 מומלץ:</strong> הורידו את התעודה מיד לאחר הגדרת התחנה ושמרו אותה במקום נגיש.
+            <strong className="inline-flex items-center gap-1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> מומלץ:</strong> הורידו את התעודה מיד לאחר הגדרת התחנה ושמרו אותה במקום נגיש.
           </p>
         </div>
       </section>
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📊</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           דוחות וסטטיסטיקות
         </h2>
         <ul className="list-disc list-inside text-gray-700 space-y-2 mr-4">
@@ -486,7 +486,7 @@ function ManagerGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📱</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
           שיתוף בוואטסאפ
         </h2>
         <p className="text-gray-700 mb-2">
@@ -501,7 +501,7 @@ function ManagerGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">❓</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           שאלות נפוצות למנהלים
         </h2>
         <div className="space-y-4">
@@ -534,7 +534,7 @@ function ManagerGuide() {
 
       <section>
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="text-2xl">📞</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.58 2.72h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.56 6.56l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           תמיכה
         </h2>
         <p className="text-gray-700">

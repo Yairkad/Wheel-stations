@@ -415,7 +415,7 @@ export default function OperatorPage() {
         setResults(transformedResults)
 
         if (transformedResults.length === 0) {
-          toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
+          toast('לא נמצאו גלגלים מתאימים')
         } else {
           const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
           toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
@@ -560,7 +560,7 @@ export default function OperatorPage() {
       setResults(transformedResults)
 
       if (transformedResults.length === 0) {
-        toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
+        toast('לא נמצאו גלגלים מתאימים')
       } else {
         const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
         toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
@@ -645,7 +645,7 @@ export default function OperatorPage() {
       setResults(transformedResults)
 
       if (transformedResults.length === 0) {
-        toast('לא נמצאו גלגלים מתאימים', { icon: '😕' })
+        toast('לא נמצאו גלגלים מתאימים')
       } else {
         const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
         toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
@@ -738,7 +738,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
     return (
       <div style={styles.loginContainer}>
         <div style={{color: '#94a3b8', textAlign: 'center'}}>
-          <div style={{fontSize: '2rem', marginBottom: '10px'}}>🔄</div>
+          <div style={{marginBottom: '10px'}}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg></div>
           מעביר לדף ההתחברות...
         </div>
       </div>
@@ -834,7 +834,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
       <div style={styles.header}>
         <div style={styles.headerContent} className="operator-header-content">
           <div style={styles.headerLogo} className="operator-header-logo">
-            <div style={styles.logoIcon} className="operator-logo-icon">🎧</div>
+            <div style={styles.logoIcon} className="operator-logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
             <div>
               <h1 style={styles.headerTitle} className="operator-header-title">ממשק מוקדן</h1>
               <p style={styles.headerSubtitle}>{operator.call_center_name}</p>
@@ -853,7 +853,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
       <div style={styles.container}>
         {/* Search Section */}
         <div style={styles.section} className="operator-section">
-          <h3 style={styles.sectionTitle} className="operator-section-title">🔍 חיפוש גלגל לרכב</h3>
+          <h3 style={styles.sectionTitle} className="operator-section-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חיפוש גלגל לרכב</span></h3>
 
           {/* Search Tabs - 3 options */}
           <div style={styles.searchTabs} className="operator-search-tabs">
@@ -862,21 +862,21 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
               className="operator-search-tab"
               onClick={() => { setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
-              🔢 מספר רכב
+              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="7" y1="2" x2="7" y2="6"/><line x1="17" y1="2" x2="17" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> מספר רכב</span>
             </button>
             <button
               style={{...styles.searchTab, ...(searchTab === 'model' ? styles.searchTabActive : {})}}
               className="operator-search-tab"
               onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
-              🚘 יצרן ודגם
+              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg> יצרן ודגם</span>
             </button>
             <button
               style={{...styles.searchTab, ...(searchTab === 'spec' ? styles.searchTabActive : {})}}
               className="operator-search-tab"
               onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
             >
-              🔧 לפי מפרט
+              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> לפי מפרט</span>
             </button>
           </div>
 
@@ -894,7 +894,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                 dir="ltr"
               />
               <button style={styles.searchBtn} onClick={handleSearch} disabled={searchLoading}>
-                {searchLoading ? <span style={styles.spinner}></span> : '🔍'}
+                {searchLoading ? <span style={styles.spinner}></span> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
               </button>
             </div>
           )}
@@ -993,7 +993,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                   disabled={searchLoading}
                   style={{...styles.searchBtn, flex: 1, padding: '12px'}}
                 >
-                  {searchLoading ? <span style={styles.spinner}></span> : '🔍 חפש'}
+                  {searchLoading ? <span style={styles.spinner}></span> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חפש</span>}
                 </button>
                 {(make || model || year) && (
                   <button
@@ -1001,7 +1001,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                     style={styles.clearBtn}
                     title="נקה שדות"
                   >
-                    ✕
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 )}
               </div>
@@ -1078,7 +1078,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                 disabled={searchLoading}
                 style={{...styles.searchBtn, width: '100%', padding: '12px'}}
               >
-                {searchLoading ? <span style={styles.spinner}></span> : '🔍 חפש'}
+                {searchLoading ? <span style={styles.spinner}></span> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש</span>}
               </button>
             </div>
           )}
@@ -1105,7 +1105,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                     rel="noopener noreferrer"
                     style={styles.sourceLink}
                   >
-                    🔗 אמת מידות
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> אמת מידות</span>
                   </a>
                 )}
               </div>
@@ -1204,7 +1204,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                         >
                           <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
                           <div style={styles.wheelSpecs}>{wheel.rim_size}&quot;</div>
-                          <div style={{fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600}}>📌 בהשאלה</div>
+                          <div style={{fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600, display:'flex', alignItems:'center', gap:'2px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> בהשאלה</div>
                         </div>
                       )
                     }
@@ -1222,7 +1222,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                         <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
                         <div style={styles.wheelSpecs}>{wheel.pcd} | {wheel.rim_size}&quot;{wheel.center_bore ? ` | CB ${wheel.center_bore}` : ''}</div>
                         {wheel.is_donut && (
-                          <div style={styles.donutBadge}>🍩 דונאט</div>
+                          <div style={{...styles.donutBadge, display:'flex', alignItems:'center', gap:'3px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> דונאט</div>
                         )}
                         {sizeMatch && (
                           <div style={{
@@ -1230,7 +1230,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                             marginTop: '4px',
                             color: sizeMatch === 'exact' ? '#10b981' : '#f59e0b'
                           }}>
-                            {sizeMatch === 'exact' ? '✓ מתאים' : '↓ קטן יותר'}
+                            {sizeMatch === 'exact' ? <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>מתאים</span> : '↓ קטן יותר'}
                           </div>
                         )}
                         {(() => {
@@ -1239,12 +1239,12 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                           if (!vCB || !wCB) return null
                           if (wCB < vCB) return (
                             <div style={{fontSize: '0.7rem', marginTop: '4px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '2px'}}>
-                              ⚠️ CB גלגל ({wCB}) קטן מהרכב ({vCB})
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> CB גלגל ({wCB}) קטן מהרכב ({vCB})
                             </div>
                           )
                           if ((wCB - vCB) >= 2) return (
                             <div style={{fontSize: '0.7rem', marginTop: '4px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '2px'}}>
-                              ⚠️ יתכן ונדרש טבעת מירכוז
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> יתכן ונדרש טבעת מירכוז
                             </div>
                           )
                           return null
@@ -1315,7 +1315,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                           cursor: 'pointer'
                         }}
                       >
-                        ⚠️ דווח שגיאה
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> דווח שגיאה</span>
                       </button>
                     </div>
                   </div>
@@ -1330,7 +1330,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
               ))}
 
               <p style={{color: '#94a3b8', fontSize: '12px', marginTop: '10px'}}>
-                💡 בחר את המפרט הנכון. אם יש מידע שגוי - לחץ &quot;דווח שגיאה&quot; והאדמין יטפל
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> בחר את המפרט הנכון. אם יש מידע שגוי - לחץ &quot;דווח שגיאה&quot; והאדמין יטפל</span>
               </p>
             </div>
           </div>
@@ -1384,7 +1384,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                 style={{...styles.copyBtn, ...(copied ? styles.copyBtnCopied : {})}}
                 onClick={copyMessage}
               >
-                {copied ? '✓ הועתק!' : '📋 העתק הודעה'}
+                {copied ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> הועתק!</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> העתק הודעה</span>}
               </button>
 
               <button
@@ -1397,7 +1397,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                 }}
                 onClick={copyLinkForDriver}
               >
-                {copiedLink ? '✓ הלינק הועתק!' : '🚗 העתק לינק לכונן (ללא ווצאפ)'}
+                {copiedLink ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> הלינק הועתק!</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg> העתק לינק לכונן (ללא ווצאפ)</span>}
               </button>
             </div>
           </div>

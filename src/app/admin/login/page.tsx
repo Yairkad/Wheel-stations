@@ -56,12 +56,11 @@ export default function AdminLoginPage() {
           .login-logo-responsive {
             width: 60px !important;
             height: 60px !important;
-            font-size: 1.7rem !important;
           }
         }
       `}</style>
       <div style={styles.loginBox} className="login-box-responsive">
-        <div style={styles.loginLogoIcon} className="login-logo-responsive">🔐</div>
+        <div style={styles.loginLogoIcon} className="login-logo-responsive"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
         <h1 style={styles.loginTitle} className="login-title-responsive">ניהול תחנות גלגלים</h1>
         <p style={styles.loginSubtitle}>הזן סיסמת מנהל</p>
         <div style={{ position: 'relative' }}>
@@ -91,7 +90,10 @@ export default function AdminLoginPage() {
               opacity: 0.7,
             }}
           >
-            {showPassword ? '🙈' : '👁️'}
+            {showPassword
+              ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            }
           </button>
         </div>
         {passwordError && <div style={styles.errorText}>{passwordError}</div>}
@@ -132,7 +134,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '2rem',
     margin: '0 auto 20px',
     boxShadow: '0 8px 25px rgba(34, 197, 94, 0.3)',
   },

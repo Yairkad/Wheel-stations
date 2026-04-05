@@ -1134,11 +1134,11 @@ ${signFormUrl}
   const handleReturn = async (wheel: Wheel) => {
     const borrowInfo = wheel.current_borrow
     const depositInfo = borrowInfo?.deposit_type && borrowInfo.deposit_type !== 'none'
-      ? `\n\n⚠️ תזכורת: יש להחזיר פיקדון!\nסוג: ${borrowInfo.deposit_type === 'cash' ? 'מזומן' : borrowInfo.deposit_type === 'credit_card' ? 'כרטיס אשראי' : borrowInfo.deposit_type === 'id' ? 'תעודת זהות' : borrowInfo.deposit_type}${borrowInfo.deposit_details ? `\nפרטים: ${borrowInfo.deposit_details}` : ''}`
+      ? `\n\nתזכורת: יש להחזיר פיקדון!\nסוג: ${borrowInfo.deposit_type === 'cash' ? 'מזומן' : borrowInfo.deposit_type === 'credit_card' ? 'כרטיס אשראי' : borrowInfo.deposit_type === 'id' ? 'תעודת זהות' : borrowInfo.deposit_type}${borrowInfo.deposit_details ? `\nפרטים: ${borrowInfo.deposit_details}` : ''}`
       : ''
 
     showConfirm({
-      title: '📥 החזרת גלגל',
+      title: 'החזרת גלגל',
       message: `להחזיר את גלגל #${wheel.wheel_number}?${depositInfo}`,
       confirmText: 'החזר',
       variant: 'info',
@@ -1353,7 +1353,7 @@ ${signFormUrl}
   // Delete wheel
   const handleDeleteWheel = async (wheel: Wheel) => {
     showConfirm({
-      title: '🗑️ מחיקת גלגל',
+      title: 'מחיקת גלגל',
       message: `למחוק את גלגל #${wheel.wheel_number}? פעולה זו אינה ניתנת לביטול`,
       confirmText: 'מחק',
       variant: 'danger',
@@ -1799,7 +1799,7 @@ ${formUrl}`
     return (
       <div style={styles.container}>
         <div style={styles.error}>
-          <p>❌ {error || 'תחנה לא נמצאה'}</p>
+          <p><span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{error || 'תחנה לא נמצאה'}</span></p>
           <Link href="/" style={styles.backLink}>← חזרה לרשימת התחנות</Link>
         </div>
       </div>
@@ -2028,7 +2028,7 @@ ${formUrl}`
             </div>
           )}
         </div>
-        {station.address && <p style={styles.stationAddress}>📍 {station.address}</p>}
+        {station.address && <p style={{...styles.stationAddress,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>{station.address}</p>}
 
         {/* Mini alert bar - replaces the old full banner */}
         {isManager && alertCount > 0 && activeTab !== 'alerts' && (
@@ -2042,7 +2042,7 @@ ${formUrl}`
               width: '100%', fontSize: '0.9rem', color: '#dc2626', fontWeight: 600
             }}
           >
-            <span>⚠️</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span>{alertCount} התראות חדשות</span>
             <span style={{ marginRight: 'auto', color: '#9ca3af', fontSize: '0.8rem' }}>עבור להתראות ←</span>
           </button>
@@ -2055,13 +2055,13 @@ ${formUrl}`
               style={{...styles.tabBtn, ...(activeTab === 'wheels' ? styles.tabBtnActive : {})}}
               onClick={() => setActiveTab('wheels')}
             >
-              🛞 מלאי גלגלים
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>מלאי גלגלים</span>
             </button>
             <button
               style={{...styles.tabBtn, ...(activeTab === 'tracking' ? styles.tabBtnActive : {}), position: 'relative'}}
               onClick={() => setActiveTab('tracking')}
             >
-              📊 מעקב השאלות
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>מעקב השאלות</span>
               {borrowStats.pending > 0 && (
                 <span style={styles.pendingIndicator}>{borrowStats.pending}</span>
               )}
@@ -2070,7 +2070,7 @@ ${formUrl}`
               style={{...styles.tabBtn, ...(activeTab === 'alerts' ? styles.tabBtnActive : {}), position: 'relative'}}
               onClick={() => setActiveTab('alerts')}
             >
-              🔔 התראות
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>התראות</span>
               {alertCount > 0 && (
                 <span style={styles.pendingIndicator}>{alertCount}</span>
               )}
@@ -2177,8 +2177,8 @@ ${formUrl}`
                             {new Date(borrow.borrow_date || borrow.created_at).toLocaleDateString('he-IL')}
                           </div>
                           {borrow.referred_by_name && (
-                            <div style={{...styles.borrowerInfoCell, color: '#a855f7', fontSize: '0.7rem'}}>
-                              📞 הופנה ע&quot;י: {borrow.referred_by_name}
+                            <div style={{...styles.borrowerInfoCell, color: '#a855f7', fontSize: '0.7rem', display:'inline-flex',alignItems:'center',gap:'3px'}}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.72 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.63 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.91 5.91l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>הופנה ע&quot;י: {borrow.referred_by_name}
                             </div>
                           )}
                         </td>
@@ -2207,17 +2207,17 @@ ${formUrl}`
                         </td>
                         <td style={styles.trackingTd}>
                           {borrow.status === 'pending' ? (
-                            <span style={styles.statusPending}>🔔 ממתין לאישור</span>
+                            <span style={{...styles.statusPending,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>ממתין לאישור</span>
                           ) : borrow.status === 'returned' ? (
-                            <span style={styles.statusReturned}>🔙 הוחזר</span>
+                            <span style={{...styles.statusReturned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>הוחזר</span>
                           ) : borrow.status === 'rejected' ? (
-                            <span style={styles.statusOverdue}>❌ נדחה</span>
+                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>נדחה</span>
                           ) : borrow.is_signed ? (
-                            <span style={styles.statusSigned}>✅ מושאל (חתום)</span>
+                            <span style={{...styles.statusSigned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>מושאל (חתום)</span>
                           ) : isOverdue ? (
-                            <span style={styles.statusOverdue}>⚠️ מושאל (לא חתום)</span>
+                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>מושאל (לא חתום)</span>
                           ) : (
-                            <span style={styles.statusWaiting}>📝 מושאל</span>
+                            <span style={{...styles.statusWaiting,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>מושאל</span>
                           )}
                         </td>
                         <td style={styles.trackingTd}>
@@ -2229,14 +2229,14 @@ ${formUrl}`
                                   onClick={() => handleBorrowAction(borrow.id, 'approve')}
                                   disabled={approvalLoading === borrow.id}
                                 >
-                                  {approvalLoading === borrow.id ? '...' : '✅ אשר'}
+                                  {approvalLoading === borrow.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>אשר</span>}
                                 </button>
                                 <button
                                   style={styles.rejectBtn}
                                   onClick={() => handleBorrowAction(borrow.id, 'reject')}
                                   disabled={approvalLoading === borrow.id}
                                 >
-                                  ❌
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                                 </button>
                               </>
                             )}
@@ -2247,7 +2247,7 @@ ${formUrl}`
                                 rel="noopener noreferrer"
                                 style={styles.whatsappBtn}
                               >
-                                📱 שלח טופס
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>שלח טופס</span>
                               </a>
                             )}
                             {borrow.status === 'borrowed' && (
@@ -2258,7 +2258,7 @@ ${formUrl}`
                                   if (wheel) handleReturn(wheel)
                                 }}
                               >
-                                🔙 החזר
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>החזר</span>
                               </button>
                             )}
                             {borrow.form_id && (
@@ -2268,7 +2268,7 @@ ${formUrl}`
                                 rel="noopener noreferrer"
                                 style={styles.viewFormBtn}
                               >
-                                📄 צפה בטופס
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>צפה בטופס</span>
                               </a>
                             )}
                           </div>
@@ -2280,7 +2280,7 @@ ${formUrl}`
                     <tr>
                       <td colSpan={5} style={{padding: '40px'}}>
                         <div style={styles.emptyState}>
-                          <div style={styles.emptyIcon}>📋</div>
+                          <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
                           <div style={styles.emptyTitle}>אין רשומות להצגה</div>
                           <div style={styles.emptyText}>כשתהיינה השאלות או החזרות, הן יופיעו כאן</div>
                         </div>
@@ -2294,7 +2294,7 @@ ${formUrl}`
               <div className="mobile-cards" style={{display: 'none', flexDirection: 'column', gap: '12px'}}>
                 {borrows.length === 0 ? (
                   <div style={styles.emptyState}>
-                    <div style={styles.emptyIcon}>📋</div>
+                    <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
                     <div style={styles.emptyTitle}>אין רשומות להצגה</div>
                     <div style={styles.emptyText}>כשתהיינה השאלות או החזרות, הן יופיעו כאן</div>
                   </div>
@@ -2329,17 +2329,17 @@ ${formUrl}`
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           {!isExpanded && <span style={{color: '#9ca3af', fontSize: '12px'}}>{borrow.wheels?.wheel_number || '-'}</span>}
                           {borrow.status === 'pending' ? (
-                            <span style={styles.statusPending}>🔔 ממתין</span>
+                            <span style={{...styles.statusPending,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>ממתין</span>
                           ) : borrow.status === 'returned' ? (
-                            <span style={styles.statusReturned}>🔙 הוחזר</span>
+                            <span style={{...styles.statusReturned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>הוחזר</span>
                           ) : borrow.status === 'rejected' ? (
-                            <span style={styles.statusOverdue}>❌ נדחה</span>
+                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>נדחה</span>
                           ) : borrow.is_signed ? (
-                            <span style={styles.statusSigned}>✅ חתום</span>
+                            <span style={{...styles.statusSigned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>חתום</span>
                           ) : isOverdue ? (
-                            <span style={styles.statusOverdue}>⚠️ לא חתום</span>
+                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא חתום</span>
                           ) : (
-                            <span style={styles.statusWaiting}>📝 מושאל</span>
+                            <span style={{...styles.statusWaiting,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>מושאל</span>
                           )}
                         </div>
                       </div>
@@ -2393,14 +2393,14 @@ ${formUrl}`
                                   onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'approve') }}
                                   disabled={approvalLoading === borrow.id}
                                 >
-                                  {approvalLoading === borrow.id ? '...' : '✅ אשר'}
+                                  {approvalLoading === borrow.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>אשר</span>}
                                 </button>
                                 <button
                                   style={styles.rejectBtn}
                                   onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'reject') }}
                                   disabled={approvalLoading === borrow.id}
                                 >
-                                  ❌
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                                 </button>
                               </>
                             )}
@@ -2412,7 +2412,7 @@ ${formUrl}`
                                 style={{...styles.whatsappBtn, flex: 1, textAlign: 'center'}}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                📱 שלח טופס
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>שלח טופס</span>
                               </a>
                             )}
                             {borrow.status === 'borrowed' && (
@@ -2424,7 +2424,7 @@ ${formUrl}`
                                   if (wheel) handleReturn(wheel)
                                 }}
                               >
-                                🔙 החזר
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>החזר</span>
                               </button>
                             )}
                             {borrow.form_id && (
@@ -2435,7 +2435,7 @@ ${formUrl}`
                                 style={{...styles.viewFormBtn, flex: 1, textAlign: 'center'}}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                📄 צפה בטופס
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>צפה בטופס</span>
                               </a>
                             )}
                           </div>
@@ -2463,7 +2463,7 @@ ${formUrl}`
               border: '1px solid #fecaca'
             }}>
               <h3 style={{ color: '#f87171', margin: '0 0 12px 0', fontSize: '1rem' }}>
-                🗑️ גלגלים שנמחקו ({deletedWheels.length})
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>גלגלים שנמחקו ({deletedWheels.length})</span>
               </h3>
               {[...deletedWheels]
                 .sort((a, b) => {
@@ -2508,7 +2508,7 @@ ${formUrl}`
                           opacity: restoringWheel === wheel.id ? 0.6 : 1
                         }}
                       >
-                        {restoringWheel === wheel.id ? '...' : '↩️ שחזר'}
+                        {restoringWheel === wheel.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>שחזר</span>}
                       </button>
                       {!isDismissed && (
                         <button
@@ -2519,7 +2519,7 @@ ${formUrl}`
                             fontSize: '0.8rem', whiteSpace: 'nowrap'
                           }}
                         >
-                          ראיתי ✓
+                          <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}>ראיתי <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                         </button>
                       )}
                     </div>
@@ -2538,7 +2538,7 @@ ${formUrl}`
               border: '1px solid #fde68a'
             }}>
               <h3 style={{ color: '#92400e', margin: '0 0 12px 0', fontSize: '1rem' }}>
-                ⏰ השאלות ארוכות ({overdueBorrows.length})
+                <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>השאלות ארוכות ({overdueBorrows.length})</span>
               </h3>
               {[...overdueBorrows]
                 .sort((a, b) => {
@@ -2579,7 +2579,7 @@ ${formUrl}`
                           fontSize: '0.8rem', whiteSpace: 'nowrap', flexShrink: 0
                         }}
                       >
-                        ראיתי ✓
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}>ראיתי <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                       </button>
                     )}
                   </div>
@@ -2591,7 +2591,7 @@ ${formUrl}`
           {/* Empty state */}
           {deletedWheels.length === 0 && overdueBorrows.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
-              <span style={{ fontSize: '2rem', display: 'block', marginBottom: '10px' }}>✅</span>
+              <span style={{ display: 'block', marginBottom: '10px' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
               <p>אין התראות כרגע</p>
             </div>
           )}
@@ -2604,7 +2604,7 @@ ${formUrl}`
       {/* Filters */}
       <div style={styles.filters}>
         <div style={styles.filtersHeader}>
-          <h3 style={styles.filtersTitle}>🔍 סינון</h3>
+          <h3 style={{...styles.filtersTitle,display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>סינון</h3>
           <div style={{display: 'flex', gap: '8px'}}>
             {hasActiveFilters && (
               <button
@@ -2619,7 +2619,7 @@ ${formUrl}`
                 }}
                 onClick={clearAllFilters}
               >
-                🗑️ נקה הכל
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>נקה הכל</span>
               </button>
             )}
             <button
@@ -2741,7 +2741,7 @@ ${formUrl}`
             {/* Tire Size Filter */}
             <div style={{marginTop: '12px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', border: '1px dashed #3b82f6'}}>
               <label style={{...styles.filterLabel, marginBottom: '8px', display: 'block', color: '#3b82f6'}}>
-                🛞 חיפוש לפי מידת גלגל (מחפש במספר גלגל והערות)
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>חיפוש לפי מידת גלגל (מחפש במספר גלגל והערות)</span>
               </label>
               <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
                 <input
@@ -2778,7 +2778,7 @@ ${formUrl}`
             aria-label="תצוגת כרטיסים"
             aria-pressed={viewMode === 'cards'}
           >
-            🎴
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="9" height="9"/><rect x="13" y="3" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/></svg>
           </button>
           <button
             style={{...styles.viewBtn, ...(viewMode === 'table' ? styles.viewBtnActive : {})}}
@@ -2786,7 +2786,7 @@ ${formUrl}`
             aria-label="תצוגת טבלה"
             aria-pressed={viewMode === 'table'}
           >
-            📋
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
         </div>
         <div style={styles.resultsCount}>
@@ -2799,7 +2799,7 @@ ${formUrl}`
         <div style={styles.grid} className="station-grid">
           {filteredWheels.length === 0 && (
             <div style={styles.emptyStateCard}>
-              <div style={styles.emptyIcon}>🛞</div>
+              <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
               <div style={styles.emptyTitle}>לא נמצאו גלגלים</div>
               <div style={styles.emptyText}>נסה לשנות את הסינון או להוסיף גלגלים חדשים</div>
             </div>
@@ -2835,7 +2835,7 @@ ${formUrl}`
                     fontWeight: 'bold',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
                   }}>
-                    ⚠️ לא זמין
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא זמין</span>
                   </span>
                 )}
                 <span style={{
@@ -2865,7 +2865,7 @@ ${formUrl}`
                     fontSize: '0.85rem',
                   }}>
                     <div style={{ color: '#f59e0b', fontWeight: 'bold', marginBottom: '4px' }}>
-                      ⚠️ לא זמין זמנית
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא זמין זמנית</span>
                     </div>
                     <div style={{ color: '#a0aec0', fontSize: '0.8rem' }}>
                       סיבה: {wheel.unavailable_reason === 'maintenance' ? 'תחזוקה' :
@@ -2883,10 +2883,10 @@ ${formUrl}`
                 {/* Borrower info when wheel is taken - only for managers */}
                 {isManager && !wheel.is_available && wheel.current_borrow && (
                   <div style={styles.borrowerInfo}>
-                    <div style={styles.borrowerName}>👤 {wheel.current_borrow.borrower_name}</div>
-                    <div style={styles.borrowerPhone}>📱 {wheel.current_borrow.borrower_phone}</div>
+                    <div style={{...styles.borrowerName,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{wheel.current_borrow.borrower_name}</div>
+                    <div style={{...styles.borrowerPhone,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>{wheel.current_borrow.borrower_phone}</div>
                     {wheel.current_borrow.borrow_date && (
-                      <div style={styles.borrowDate}>📅 {new Date(wheel.current_borrow.borrow_date).toLocaleDateString('he-IL')}</div>
+                      <div style={{...styles.borrowDate,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{new Date(wheel.current_borrow.borrow_date).toLocaleDateString('he-IL')}</div>
                     )}
                   </div>
                 )}
@@ -2904,7 +2904,7 @@ ${formUrl}`
                         onClick={() => handleMarkAvailable(wheel)}
                         disabled={actionLoading}
                       >
-                        ✅ החזר לזמין
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>החזר לזמין</span>
                       </button>
                     )}
 
@@ -2920,7 +2920,7 @@ ${formUrl}`
                           setOpenOptionsMenu(openOptionsMenu === wheel.id ? null : wheel.id)
                         }}
                       >
-                        ⚙️ אפשרויות
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>אפשרויות</span>
                       </button>
 
                       {/* Dropdown menu */}
@@ -2935,7 +2935,7 @@ ${formUrl}`
                                 setOpenOptionsMenu(null)
                               }}
                             >
-                              📥 החזר גלגל
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>החזר גלגל</span>
                             </button>
                           )}
 
@@ -2948,7 +2948,7 @@ ${formUrl}`
                               style={{...styles.optionItem, textDecoration: 'none', display: 'block'}}
                               onClick={() => setOpenOptionsMenu(null)}
                             >
-                              📄 צפייה בטופס
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>צפייה בטופס</span>
                             </a>
                           )}
 
@@ -2961,7 +2961,7 @@ ${formUrl}`
                                 setOpenOptionsMenu(null)
                               }}
                             >
-                              💬 שלח קישור בוואטסאפ
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>שלח קישור בוואטסאפ</span>
                             </button>
                           )}
 
@@ -2975,7 +2975,7 @@ ${formUrl}`
                                 setOpenOptionsMenu(null)
                               }}
                             >
-                              ✍️ הזן השאלה ידנית
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>הזן השאלה ידנית</span>
                             </button>
                           )}
 
@@ -2989,7 +2989,7 @@ ${formUrl}`
                                 setOpenOptionsMenu(null)
                               }}
                             >
-                              ⚠️ סמן כלא זמין
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>סמן כלא זמין</span>
                             </button>
                           )}
 
@@ -3018,7 +3018,7 @@ ${formUrl}`
                               setOpenOptionsMenu(null)
                             }}
                           >
-                            ✏️ ערוך גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}
+                            <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>ערוך גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}</span>
                           </button>
 
                           {/* Delete wheel - disabled for borrowed wheels */}
@@ -3035,7 +3035,7 @@ ${formUrl}`
                               setOpenOptionsMenu(null)
                             }}
                           >
-                            🗑️ מחק גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}
+                            <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>מחק גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}</span>
                           </button>
                         </div>
                       )}
@@ -3069,7 +3069,7 @@ ${formUrl}`
                 <tr>
                   <td colSpan={8} style={{padding: '40px'}}>
                     <div style={styles.emptyState}>
-                      <div style={styles.emptyIcon}>🛞</div>
+                      <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
                       <div style={styles.emptyTitle}>לא נמצאו גלגלים</div>
                       <div style={styles.emptyText}>נסה לשנות את הסינון או להוסיף גלגלים חדשים</div>
                     </div>
@@ -3131,7 +3131,7 @@ ${formUrl}`
           }}
           aria-label="צור קשר עם מנהל"
         >
-          📞
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.72 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.63 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.91 5.91l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </button>
       )}
 
@@ -3139,7 +3139,7 @@ ${formUrl}`
       {showContactsModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowContactsModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="contacts-modal-title" style={{...styles.modal, maxWidth: '350px'}} onClick={e => e.stopPropagation()}>
-            <h3 id="contacts-modal-title" style={styles.modalTitle}>📞 צור קשר עם מנהל</h3>
+            <h3 id="contacts-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.72 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.63 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.91 5.91l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>צור קשר עם מנהל</h3>
             <div style={{display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px'}}>
               {station.wheel_station_managers.map(manager => {
                 const cleanPhone = manager.phone.replace(/\D/g, '')
@@ -3164,7 +3164,7 @@ ${formUrl}`
                           fontSize: '16px',
                           lineHeight: 1,
                           filter: 'drop-shadow(0 0 4px #f59e0b)',
-                        }}>⭐</span>
+                        }}><svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
                       )}
                     </div>
                     <div style={{display: 'flex', gap: '8px'}}>
@@ -3183,7 +3183,7 @@ ${formUrl}`
                         }}
                         aria-label={`התקשר ל${manager.full_name}`}
                       >
-                        📞
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.72 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.63 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.91 5.91l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                       </a>
                       <a
                         href={`https://wa.me/${internationalPhone}`}
@@ -3202,7 +3202,7 @@ ${formUrl}`
                         }}
                         aria-label={`שלח וואטסאפ ל${manager.full_name}`}
                       >
-                        💬
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                       </a>
                     </div>
                   </div>
@@ -3254,7 +3254,7 @@ ${formUrl}`
                 </div>
               </div>
             )}
-            <h3 id="manual-borrow-modal-title" style={styles.modalTitle}>✍️ הזנת השאלה ידנית</h3>
+            <h3 id="manual-borrow-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>הזנת השאלה ידנית</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
               רישום השאלה ללא טופס דיגיטלי (לשימוש כשהפונה לא יכול למלא טופס)
             </p>
@@ -3419,7 +3419,7 @@ ${formUrl}`
                 onClick={handleManualBorrow}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : '✅ רשום השאלה'}
+                {actionLoading ? 'שומר...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>רשום השאלה</span>}
               </button>
             </div>
           </div>
@@ -3430,7 +3430,7 @@ ${formUrl}`
       {showWhatsAppModal && whatsAppWheel && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowWhatsAppModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="whatsapp-modal-title" style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
-            <h3 id="whatsapp-modal-title" style={styles.modalTitle}>💬 שליחת קישור לטופס בוואטסאפ</h3>
+            <h3 id="whatsapp-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>שליחת קישור לטופס בוואטסאפ</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
               שלח הודעת וואטסאפ עם קישור לטופס השאלה. הגלגל ומספר הטלפון יהיו מוגדרים מראש.
             </p>
@@ -3515,7 +3515,7 @@ ${formUrl}`
                 }}
                 onClick={copyWhatsAppText}
               >
-                📋 העתק טקסט
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>העתק טקסט</span>
               </button>
             </div>
             <button
@@ -3535,7 +3535,7 @@ ${formUrl}`
               }}
               onClick={sendWhatsAppLink}
             >
-              💬 שלח בוואטסאפ
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>שלח בוואטסאפ</span>
             </button>
           </div>
         </div>
@@ -3545,7 +3545,7 @@ ${formUrl}`
       {showUnavailableModal && selectedWheelForUnavailable && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowUnavailableModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="unavailable-modal-title" style={{...styles.modal, maxWidth: '450px'}} onClick={e => e.stopPropagation()}>
-            <h3 id="unavailable-modal-title" style={styles.modalTitle}>⚠️ סימון גלגל כלא זמין זמנית</h3>
+            <h3 id="unavailable-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>סימון גלגל כלא זמין זמנית</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
               הגלגל יסומן כלא זמין להשאלה עד שתחזיר אותו לזמין
             </p>
@@ -3656,7 +3656,7 @@ ${formUrl}`
                 onClick={handleMarkUnavailable}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : '⚠️ סמן כלא זמין'}
+                {actionLoading ? 'שומר...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>סמן כלא זמין</span>}
               </button>
             </div>
           </div>
@@ -3667,7 +3667,7 @@ ${formUrl}`
       {showLoginModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowLoginModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="login-modal-title" style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 id="login-modal-title" style={styles.modalTitle}>🔐 כניסת מנהל</h3>
+            <h3 id="login-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>כניסת מנהל</h3>
             <p style={styles.modalSubtitle}>הזן את פרטי ההתחברות שלך</p>
             <div style={styles.formGroup}>
               <label style={styles.label}>שם משתמש</label>
@@ -3707,7 +3707,7 @@ ${formUrl}`
                     opacity: 0.7,
                   }}
                 >
-                  {showLoginPassword ? '🙈' : '👁️'}
+                  {showLoginPassword ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                 </button>
               </div>
             </div>
@@ -3750,7 +3750,7 @@ ${formUrl}`
       {showAddWheelModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false) }}>
           <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
-            <h3 id="add-wheel-modal-title" style={styles.modalTitle} className="add-wheel-modal-title">➕ הוספת גלגל חדש</h3>
+            <h3 id="add-wheel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוספת גלגל חדש</h3>
             <div style={styles.formRow} className="add-wheel-form-row">
               <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>מספר גלגל *</label>
@@ -3826,7 +3826,7 @@ ${formUrl}`
                   {predefinedCategories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
-                  <option value="__custom__">➕ קטגוריה אחרת...</option>
+                  <option value="__custom__">+ קטגוריה אחרת...</option>
                 </select>
               ) : (
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -3843,7 +3843,7 @@ ${formUrl}`
                     onClick={() => { setShowCustomCategory(false); setWheelForm({...wheelForm, category: ''}) }}
                     style={{ ...styles.smallBtn, background: '#4a5568' }}
                   >
-                    ✕
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
               )}
@@ -3890,7 +3890,7 @@ ${formUrl}`
       {showEditWheelModal && selectedWheel && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
           <div role="dialog" aria-modal="true" aria-label={`עריכת גלגל ${selectedWheel.wheel_number}`} style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>✏️ עריכת גלגל #{selectedWheel.wheel_number}</h3>
+            <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת גלגל #{selectedWheel.wheel_number}</h3>
             <div className="add-wheel-form-row" style={styles.formRow}>
               <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>מספר גלגל *</label>
@@ -3966,7 +3966,7 @@ ${formUrl}`
                   {predefinedCategories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
-                  <option value="__custom__">➕ קטגוריה אחרת...</option>
+                  <option value="__custom__">+ קטגוריה אחרת...</option>
                 </select>
               ) : (
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -3983,7 +3983,7 @@ ${formUrl}`
                     onClick={() => { setShowCustomCategory(false); setWheelForm({...wheelForm, category: ''}) }}
                     style={{ ...styles.smallBtn, background: '#4a5568' }}
                   >
-                    ✕
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
               )}
@@ -4030,11 +4030,11 @@ ${formUrl}`
       {showEditDetailsModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowEditDetailsModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="edit-details-modal-title" style={{...styles.modal, maxWidth: '550px'}} onClick={e => e.stopPropagation()}>
-            <h3 id="edit-details-modal-title" style={styles.modalTitle}>⚙️ עריכת פרטי תחנה</h3>
+            <h3 id="edit-details-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>עריכת פרטי תחנה</h3>
 
             {/* Section: Address */}
             <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
-              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📍 כתובת התחנה</h4>
+              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>כתובת התחנה</h4>
               <div style={styles.formGroup}>
                 <input
                   type="text"
@@ -4078,7 +4078,7 @@ ${formUrl}`
 
             {/* Section: Deposit Settings */}
             <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
-              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>💰 הגדרות פיקדון ואמצעי תשלום</h4>
+              <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>הגדרות פיקדון ואמצעי תשלום</h4>
 
               {/* Deposit Amount */}
               <div style={{marginBottom: '16px'}}>
@@ -4102,7 +4102,7 @@ ${formUrl}`
                     checked={editPaymentMethods.cash || false}
                     onChange={e => setEditPaymentMethods({...editPaymentMethods, cash: e.target.checked})}
                   />
-                  <span style={{color: '#fff'}}>💵 מזומן</span>
+                  <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>מזומן</span>
                 </label>
 
                 {/* Bit */}
@@ -4116,7 +4116,7 @@ ${formUrl}`
                         bit: { enabled: e.target.checked, phone: editPaymentMethods.bit?.phone || '' }
                       })}
                     />
-                    <span style={{color: '#fff'}}>📱 ביט</span>
+                    <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>ביט</span>
                   </label>
                   {editPaymentMethods.bit?.enabled && (
                     <input
@@ -4143,7 +4143,7 @@ ${formUrl}`
                         paybox: { enabled: e.target.checked, phone: editPaymentMethods.paybox?.phone || '' }
                       })}
                     />
-                    <span style={{color: '#fff'}}>📦 פייבוקס</span>
+                    <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>פייבוקס</span>
                   </label>
                   {editPaymentMethods.paybox?.enabled && (
                     <input
@@ -4170,7 +4170,7 @@ ${formUrl}`
                         bank_transfer: { enabled: e.target.checked, details: editPaymentMethods.bank_transfer?.details || '' }
                       })}
                     />
-                    <span style={{color: '#fff'}}>🏦 העברה בנקאית</span>
+                    <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>העברה בנקאית</span>
                   </label>
                   {editPaymentMethods.bank_transfer?.enabled && (
                     <textarea
@@ -4192,7 +4192,7 @@ ${formUrl}`
                     checked={editPaymentMethods.id_deposit || false}
                     onChange={e => setEditPaymentMethods({...editPaymentMethods, id_deposit: e.target.checked})}
                   />
-                  <span style={{color: '#fff'}}>🪪 פיקדון ת.ז. (באישור מנהל)</span>
+                  <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>פיקדון ת.ז. (באישור מנהל)</span>
                 </label>
 
                 {/* License Deposit */}
@@ -4202,7 +4202,7 @@ ${formUrl}`
                     checked={editPaymentMethods.license_deposit || false}
                     onChange={e => setEditPaymentMethods({...editPaymentMethods, license_deposit: e.target.checked})}
                   />
-                  <span style={{color: '#fff'}}>🚗 פיקדון רישיון נהיגה (באישור מנהל)</span>
+                  <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>פיקדון רישיון נהיגה (באישור מנהל)</span>
                 </label>
               </div>
 
@@ -4242,7 +4242,7 @@ ${formUrl}`
             {/* Section: Email Notifications - Only for primary manager */}
             {currentManager?.is_primary ? (
               <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
-                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>📧 התראות מייל</h4>
+                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>התראות מייל</h4>
                 <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
                   התראה תישלח למיילים אלו על כל בקשת השאלה חדשה
                 </p>
@@ -4265,7 +4265,7 @@ ${formUrl}`
                         onClick={() => setNotificationEmails(notificationEmails.filter((_, i) => i !== index))}
                         style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem', padding: '4px'}}
                         title="הסר"
-                      >✕</button>
+                      ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                     )}
                   </div>
                 ))}
@@ -4314,9 +4314,9 @@ ${formUrl}`
               </div>
             ) : (
               <div style={{marginBottom: '20px', padding: '15px', background: '#f1f5f9', borderRadius: '10px', opacity: 0.6}}>
-                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>📧 התראות מייל</h4>
-                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
-                  🔒 רק מנהל ראשי יכול לערוך כתובות מייל
+                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>התראות מייל</h4>
+                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0, display:'inline-flex',alignItems:'center',gap:'4px'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>רק מנהל ראשי יכול לערוך כתובות מייל
                 </p>
               </div>
             )}
@@ -4324,7 +4324,7 @@ ${formUrl}`
             {/* Section: Contacts - Only for primary manager */}
             {currentManager?.is_primary ? (
               <div style={{marginBottom: '20px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px'}}>
-                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem'}}>👥 אנשי קשר ({contacts.length}/{station?.max_managers ?? 4})</h4>
+                <h4 style={{margin: '0 0 12px', color: '#f59e0b', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>אנשי קשר ({contacts.length}/{station?.max_managers ?? 4})</h4>
                 {contacts.map((contact, index) => (
                   <div key={index} style={{display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center'}} className="edit-details-contact-row">
                     <div style={{position: 'relative', flex: 1, minWidth: '120px'}}>
@@ -4341,7 +4341,7 @@ ${formUrl}`
                           transform: 'translateY(-50%)',
                           fontSize: '12px', lineHeight: 1, pointerEvents: 'none',
                           filter: 'drop-shadow(0 0 3px #f59e0b)',
-                        }}>⭐</span>
+                        }}><svg width="14" height="14" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
                       )}
                     </div>
                     <input
@@ -4351,12 +4351,12 @@ ${formUrl}`
                       onChange={e => updateContact(index, 'phone', e.target.value)}
                       style={{...styles.input, flex: 1, minWidth: '100px'}}
                     />
-                    <button style={styles.removeBtn} onClick={() => removeContact(index)}>✕</button>
+                    <button style={styles.removeBtn} onClick={() => removeContact(index)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                   </div>
                 ))}
                 <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
                   <button style={{...styles.smallBtn, background: '#3b82f6'}} onClick={addContact} disabled={contacts.length >= (station?.max_managers ?? 4)}>
-                    ➕ הוסף איש קשר
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוסף איש קשר</span>
                   </button>
                   <button style={{...styles.smallBtn, background: '#10b981'}} onClick={handleSaveContacts} disabled={actionLoading}>
                     {actionLoading ? 'שומר...' : 'שמור אנשי קשר'}
@@ -4365,9 +4365,9 @@ ${formUrl}`
               </div>
             ) : (
               <div style={{marginBottom: '20px', padding: '15px', background: '#f1f5f9', borderRadius: '10px', opacity: 0.6}}>
-                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem'}}>👥 אנשי קשר</h4>
-                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0}}>
-                  🔒 רק מנהל ראשי יכול לערוך אנשי קשר
+                <h4 style={{margin: '0 0 8px', color: '#9ca3af', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>אנשי קשר</h4>
+                <p style={{fontSize: '0.85rem', color: '#6b7280', margin: 0, display:'inline-flex',alignItems:'center',gap:'4px'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>רק מנהל ראשי יכול לערוך אנשי קשר
                 </p>
               </div>
             )}
@@ -4381,7 +4381,7 @@ ${formUrl}`
       {showChangePasswordModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowChangePasswordModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="change-password-modal-title" style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
-            <h3 id="change-password-modal-title" style={styles.modalTitle}>🔑 שינוי סיסמא אישית</h3>
+            <h3 id="change-password-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>שינוי סיסמא אישית</h3>
             <p style={{fontSize: '0.9rem', color: '#9ca3af', marginBottom: '20px', textAlign: 'center'}}>
               שנה את הסיסמא האישית שלך
             </p>
@@ -4412,7 +4412,7 @@ ${formUrl}`
                     opacity: 0.7,
                   }}
                 >
-                  {showCurrentPassword ? '🙈' : '👁️'}
+                  {showCurrentPassword ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                 </button>
               </div>
             </div>
@@ -4444,7 +4444,7 @@ ${formUrl}`
                       opacity: 0.7,
                     }}
                   >
-                    {showNewPassword ? '🙈' : '👁️'}
+                    {showNewPassword ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                   </button>
                 </div>
               </div>
@@ -4474,7 +4474,7 @@ ${formUrl}`
                       opacity: 0.7,
                     }}
                   >
-                    {showConfirmPassword ? '🙈' : '👁️'}
+                    {showConfirmPassword ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                   </button>
                 </div>
               </div>
@@ -4503,7 +4503,7 @@ ${formUrl}`
       {showRecoveryCertModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowRecoveryCertModal(false)}>
           <div role="dialog" aria-modal="true" style={{...styles.modal, maxWidth: '440px'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>📄 תעודת שחזור</h3>
+            <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>תעודת שחזור</h3>
             {recoveryLoading ? (
               <p style={{textAlign: 'center', color: '#9ca3af'}}>טוען...</p>
             ) : recoveryData ? (
@@ -4584,7 +4584,7 @@ ${formUrl}`
                     style={{...styles.submitBtn, flex: 1, background: 'linear-gradient(135deg, #f59e0b, #d97706)'}}
                     onClick={handleDownloadCertificate}
                   >
-                    📥 הורד תעודה
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>הורד תעודה</span>
                   </button>
                   <button
                     style={{...styles.cancelBtn, flex: 1}}
@@ -4603,7 +4603,7 @@ ${formUrl}`
       {showForgotPasswordModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowForgotPasswordModal(false)}>
           <div role="dialog" aria-modal="true" style={{...styles.modal, maxWidth: '400px'}} onClick={e => e.stopPropagation()}>
-            <h3 style={styles.modalTitle}>🔓 איפוס סיסמא</h3>
+            <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>איפוס סיסמא</h3>
             {forgotSuccess ? (
               <>
                 <p style={{textAlign: 'center', color: '#10b981', fontSize: '1rem', marginBottom: '16px'}}>
@@ -4674,7 +4674,7 @@ ${formUrl}`
                     transition: 'all 0.2s'
                   }}
                 >
-                  📷 העלה תמונת תעודת שחזור
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>העלה תמונת תעודת שחזור</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -4705,13 +4705,13 @@ ${formUrl}`
       {showExcelModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => setShowExcelModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="excel-modal-title" style={{...styles.modal, maxWidth: '400px', textAlign: 'center'}} onClick={e => e.stopPropagation()}>
-            <h3 id="excel-modal-title" style={styles.modalTitle}>📊 ייבוא / ייצוא נתונים</h3>
+            <h3 id="excel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>ייבוא / ייצוא נתונים</h3>
             <p style={styles.modalSubtitle}>בחר את הפעולה הרצויה</p>
 
             <div style={{display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px'}}>
               {/* Import section with tabs */}
               <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '4px'}}>📤 ייבוא גלגלים:</span>
+                <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '4px', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>ייבוא גלגלים:</span>
 
                 {/* Import mode toggle */}
                 <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
@@ -4728,7 +4728,7 @@ ${formUrl}`
                     }}
                     onClick={() => setImportMode('file')}
                   >
-                    📁 קובץ
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>קובץ</span>
                   </button>
                   <button
                     style={{
@@ -4743,7 +4743,7 @@ ${formUrl}`
                     }}
                     onClick={() => setImportMode('sheets')}
                   >
-                    🔗 Google Sheets
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Google Sheets</span>
                   </button>
                 </div>
 
@@ -4797,24 +4797,24 @@ ${formUrl}`
               </div>
 
               <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '4px'}}>📥 ייצוא לקובץ Excel:</span>
+                <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '4px', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ייצוא לקובץ Excel:</span>
                 <button
                   style={{...styles.excelExportBtn, padding: '10px 16px'}}
                   onClick={() => handleExportExcel('inventory')}
                 >
-                  🛞 מלאי גלגלים בלבד
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>מלאי גלגלים בלבד</span>
                 </button>
                 <button
                   style={{...styles.excelExportBtn, padding: '10px 16px'}}
                   onClick={() => handleExportExcel('history')}
                 >
-                  📋 היסטוריית השאלות בלבד
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>היסטוריית השאלות בלבד</span>
                 </button>
                 <button
                   style={{...styles.excelExportBtn, padding: '10px 16px'}}
                   onClick={() => handleExportExcel('all')}
                 >
-                  📦 הכל (מלאי + היסטוריה)
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>הכל (מלאי + היסטוריה)</span>
                 </button>
               </div>
 
@@ -4824,7 +4824,7 @@ ${formUrl}`
                 style={styles.excelTemplateBtn}
                 onClick={() => setShowExcelModal(false)}
               >
-                📋 הורד תבנית ריקה
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>הורד תבנית ריקה</span>
                 <span style={{display: 'block', fontSize: '0.8rem', marginTop: '5px', opacity: 0.8}}>
                   קובץ עם כותרות בלבד להעתקה
                 </span>

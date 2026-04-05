@@ -170,7 +170,7 @@ function ShopCard({ shop, selected, onClick, onShowMap }: {
 
           {/* Hours — legacy */}
           {legacyHours && (
-            <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-2.5 py-2">🕐 {legacyHours}</div>
+            <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-2.5 py-2 flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{legacyHours}</div>
           )}
 
           {/* Contacts */}
@@ -236,7 +236,7 @@ function ShopCard({ shop, selected, onClick, onShowMap }: {
             <a href={`https://waze.com/ul?ll=${shop.lat},${shop.lng}&navigate=yes`} target="_blank" rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
               className="inline-flex items-center gap-1 text-xs text-cyan-600 hover:underline">
-              🗺 Waze
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Waze
             </a>
             <a href={`https://wa.me/?text=${encodeURIComponent(buildShareText(shop))}`} target="_blank" rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
@@ -285,11 +285,11 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
       <div className="bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-6 max-h-[90vh] overflow-y-auto" dir="rtl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold">הצעת פנצ׳ריה חדשה</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         {sent ? (
           <div className="text-center py-8">
-            <div className="text-4xl mb-3">✅</div>
+            <div className="mb-3 flex justify-center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
             <p className="font-medium">תודה! ההצעה נשלחה לבדיקה.</p>
             <button onClick={onClose} className="mt-4 text-sm text-blue-600 hover:underline">סגור</button>
           </div>
@@ -405,7 +405,7 @@ export default function PuncturesPage() {
             </svg>
             דף הבית
           </a>
-          <h1 className="text-base font-bold text-gray-800 whitespace-nowrap">🔧 פנצ׳ריות לילה</h1>
+          <h1 className="text-base font-bold text-gray-800 whitespace-nowrap flex items-center gap-1"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>פנצ׳ריות לילה</h1>
           <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             placeholder="חיפוש לפי שם, עיר..."
             className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" />

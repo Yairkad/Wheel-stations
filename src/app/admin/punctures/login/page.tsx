@@ -61,7 +61,7 @@ export default function PunctureManagerLoginPage() {
   return (
     <div style={s.page}>
       <div style={s.box}>
-        <div style={s.icon}>🔧</div>
+        <div style={s.icon}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
         <h1 style={s.title}>ניהול פנצ׳ריות לילה</h1>
         <p style={s.sub}>הזן שם משתמש וסיסמה</p>
         <input
@@ -106,7 +106,7 @@ const s: Record<string, React.CSSProperties> = {
     width: 64, height: 64, borderRadius: 16,
     background: '#f59e0b',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: '1.8rem', margin: '0 auto 18px',
+    margin: '0 auto 18px',
     boxShadow: '0 8px 24px rgba(245,158,11,0.3)',
   },
   title:  { fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', margin: '0 0 6px' },

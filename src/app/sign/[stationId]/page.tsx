@@ -319,7 +319,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
     return (
       <div style={styles.container}>
         <div style={styles.loading}>
-          <div style={styles.spinnerEmoji}>🛞</div>
+          <div style={styles.spinnerEmoji}><svg className="spinning-wheel" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
           <p>טוען טופס...</p>
         </div>
       </div>
@@ -490,7 +490,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
             disabled={isPrefilledMode}
           />
           {isPrefilledMode && (
-            <span style={styles.helpText}>🔒 מספר הטלפון הוגדר מראש על ידי מנהל התחנה</span>
+            <span style={{...styles.helpText,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>מספר הטלפון הוגדר מראש על ידי מנהל התחנה</span>
           )}
         </div>
 
@@ -633,7 +633,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
             )}
           </div>
           {(isPrefilledMode || referredBy) && selectedWheelId && (
-            <span style={styles.helpText}>🔒 הגלגל נבחר מראש{referredBy && !isPrefilledMode ? ' על ידי המוקד' : ' על ידי מנהל התחנה'}</span>
+            <span style={{...styles.helpText,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>הגלגל נבחר מראש{referredBy && !isPrefilledMode ? ' על ידי המוקד' : ' על ידי מנהל התחנה'}</span>
           )}
           {wheels.length === 0 && (
             <p style={{ ...styles.helpText, color: '#ef4444' }}>אין גלגלים זמינים כרגע בתחנה זו</p>
@@ -683,7 +683,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                   checked={depositType === 'cash'}
                   onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                 />
-                <span>💵 ₪{effectiveDeposit} מזומן</span>
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>₪{effectiveDeposit} מזומן</span>
               </label>
             )}
 
@@ -698,7 +698,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                     checked={depositType === 'bit'}
                     onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                   />
-                  <span>📱 ₪{effectiveDeposit} בביט ל-{station.payment_methods.bit.phone}</span>
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>₪{effectiveDeposit} בביט ל-{station.payment_methods.bit.phone}</span>
                 </label>
                 {depositType === 'bit' && (
                   <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -721,7 +721,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                       }}
                       style={styles.copyBtn}
                     >
-                      📋 העתק מספר טלפון
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>העתק מספר טלפון</span>
                     </button>
                   </div>
                 )}
@@ -739,7 +739,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                     checked={depositType === 'paybox'}
                     onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                   />
-                  <span>📦 ₪{effectiveDeposit} בפייבוקס ל-{station.payment_methods.paybox.phone}</span>
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>₪{effectiveDeposit} בפייבוקס ל-{station.payment_methods.paybox.phone}</span>
                 </label>
                 {depositType === 'paybox' && (
                   <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -747,7 +747,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                       <strong>מספר לתשלום:</strong> {station.payment_methods.paybox.phone}<br/>
                       <strong>סכום:</strong> ₪{effectiveDeposit}<br/>
                       <span style={{ color: '#f59e0b', fontSize: '14px', marginTop: '4px', display: 'block' }}>
-                        ⚠️ אפליקציית PayBox לא תומכת בפתיחה אוטומטית מטעמי אבטחה. יש לפתוח את האפליקציה באופן ידני.
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>אפליקציית PayBox לא תומכת בפתיחה אוטומטית מטעמי אבטחה. יש לפתוח את האפליקציה באופן ידני.</span>
                       </span>
                     </div>
                     <button
@@ -759,7 +759,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                       }}
                       style={styles.copyBtn}
                     >
-                      📋 העתק מספר טלפון
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>העתק מספר טלפון</span>
                     </button>
                   </div>
                 )}
@@ -777,7 +777,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                     checked={depositType === 'bank_transfer'}
                     onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                   />
-                  <span>🏦 ₪{effectiveDeposit} העברה בנקאית</span>
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>₪{effectiveDeposit} העברה בנקאית</span>
                 </label>
                 {depositType === 'bank_transfer' && (
                   <div style={styles.bankDetails}>
@@ -798,7 +798,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                   checked={depositType === 'id'}
                   onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                 />
-                <span>🪪 פיקדון תעודת זהות (באישור מנהל)</span>
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>פיקדון תעודת זהות (באישור מנהל)</span>
               </label>
             )}
 
@@ -812,7 +812,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                   checked={depositType === 'license'}
                   onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
                 />
-                <span>🚗 פיקדון רישיון נהיגה (באישור מנהל)</span>
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>פיקדון רישיון נהיגה (באישור מנהל)</span>
               </label>
             )}
           </div>
@@ -849,7 +849,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
             <li>במקרים חריגים (באישור מנהל/סג"מ התחנה) ניתן להפקיד כערבון תעודה מזהה במקום פקדון כספי.</li>
           </ul>
           {!canAgreeTerms && (
-            <p style={styles.scrollHint}>👇 גלול למטה כדי להמשיך</p>
+            <p style={{...styles.scrollHint,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>גלול למטה כדי להמשיך</p>
           )}
         </div>
 
@@ -895,7 +895,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
             onClick={clearSignature}
             style={styles.clearBtn}
           >
-            🗑️ נקה חתימה
+            <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>נקה חתימה</span>
           </button>
         </div>
 
@@ -908,7 +908,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
             ...(submitting ? styles.submitBtnDisabled : {})
           }}
         >
-          {submitting ? 'שולח...' : '✅ שליחת הטופס'}
+          {submitting ? 'שולח...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>שליחת הטופס</span>}
         </button>
 
         {/* Guide link */}
@@ -921,7 +921,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
               textDecoration: 'none'
             }}
           >
-            📖 צריכים עזרה? לחצו כאן למדריך למשתמש
+            <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>צריכים עזרה? לחצו כאן למדריך למשתמש</span>
           </a>
         </div>
       </div>

@@ -180,8 +180,8 @@ const WA_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#25D366" s
 
 function buildShareText(shop: PunctureShop): string {
   const address = [shop.city, shop.address].filter(Boolean).join(', ')
-  const lines: string[] = [`🔧 ${shop.name}`]
-  if (address) lines.push(`📍 ${address}`)
+  const lines: string[] = [shop.name]
+  if (address) lines.push(address)
   if (shop.hours_regular)  lines.push(`א׳–ה׳: ${shop.hours_regular}`)
   if (shop.hours_evening)  lines.push(`ערב/לילה: ${shop.hours_evening}`)
   if (shop.hours_friday)   lines.push(`שישי: ${shop.hours_friday}`)

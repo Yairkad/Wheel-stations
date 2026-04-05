@@ -95,7 +95,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center" dir="rtl">
         <div className="text-center">
-          <div className="text-4xl mb-4 animate-spin">📄</div>
+          <div className="mb-4 flex justify-center"><svg className="animate-spin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
           <p className="text-gray-600">טוען טופס...</p>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4" dir="rtl">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="text-6xl mb-4">⏰</div>
+          <div className="mb-4 flex justify-center"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">הטופס פג תוקף</h1>
           <p className="text-gray-600 mb-6">
             טפסים נשמרים במערכת למשך 30 יום בלבד.<br />
@@ -127,7 +127,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4" dir="rtl">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="text-6xl mb-4">❌</div>
+          <div className="mb-4 flex justify-center"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">שגיאה</h1>
           <p className="text-gray-600 mb-6">{error || 'הטופס לא נמצא'}</p>
           <Link
@@ -152,7 +152,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
         <div className={`rounded-xl p-4 mb-4 ${isUrgent ? 'bg-red-100 border-2 border-red-400' : 'bg-amber-100 border border-amber-400'}`}>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{isUrgent ? '⚠️' : '⏳'}</span>
+              <span>{isUrgent ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}</span>
               <div>
                 <p className={`font-bold ${isUrgent ? 'text-red-800' : 'text-amber-800'}`}>
                   {isUrgent ? 'הטופס יפוג בקרוב!' : 'שימו לב'}
@@ -170,7 +170,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
                   : 'bg-amber-600 hover:bg-amber-700 text-white'
               }`}
             >
-              <span>⬇️</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               הורד עותק
             </button>
           </div>
@@ -223,14 +223,14 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
               onClick={handleDownload}
               className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-2"
             >
-              <span>⬇️</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               הורד טופס
             </button>
             <button
               onClick={() => window.print()}
               className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2"
             >
-              <span>🖨️</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
               הדפס
             </button>
             <Link
