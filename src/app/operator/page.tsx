@@ -362,10 +362,45 @@ export default function OperatorPage() {
     setShowRoleMenu(false)
     const d = r.data
     switch (r.role) {
-      case 'station_manager': window.location.href = `/${d.station_id as string}`; break
-      case 'operator': window.location.href = (d as {sub_role?: string}).sub_role === 'manager' ? '/call-center' : '/operator'; break
-      case 'district_manager': window.location.href = '/super-manager'; break
-      case 'editor': window.location.href = '/admin/punctures'; break
+      case 'station_manager': {
+        localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
+          manager: { id: d.id, full_name: d.full_name, phone: d.phone, role: d.role || 'מנהל תחנה', is_primary: d.is_primary || false },
+          stationId: d.station_id, stationName: d.station_name,
+          timestamp: Date.now(), version: SESSION_VERSION,
+        }))
+        window.location.href = `/${d.station_id as string}`
+        break
+      }
+      case 'operator': {
+        localStorage.setItem('operator_session', JSON.stringify({
+          user: { id: d.id, full_name: d.full_name, phone: d.phone, title: d.title, is_primary: d.is_primary },
+          role: (d as {sub_role?: string}).sub_role === 'manager' ? 'manager' : 'operator',
+          callCenterId: d.call_center_id, callCenterName: d.call_center_name,
+          timestamp: Date.now(), version: SESSION_VERSION,
+        }))
+        window.location.href = (d as {sub_role?: string}).sub_role === 'manager' ? '/call-center' : '/operator'
+        break
+      }
+      case 'district_manager': {
+        localStorage.setItem('super_manager_session', JSON.stringify({
+          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
+          timestamp: Date.now(), version: SESSION_VERSION,
+        }))
+        window.location.href = '/super-manager'
+        break
+      }
+      case 'editor': {
+        localStorage.setItem('puncture_manager_auth', JSON.stringify({ expiry: Date.now() + 30 * 24 * 60 * 60 * 1000, phone: d.phone }))
+        window.location.href = '/admin/punctures'
+        break
+      }
+      case 'admin': {
+        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
+        const existing = (() => { try { return JSON.parse(localStorage.getItem('wheels_admin_auth') || '{}') } catch { return {} } })()
+        localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd: existing.pwd || '' }))
+        window.location.href = '/admin'
+        break
+      }
     }
   }
 
@@ -845,8 +880,8 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
           }
         }
 
-        /* Mobile breakpoint (480px) */
-        @media (max-width: 480px) {
+        /* Mobile breakpoint (640px) */
+        @media (max-width: 640px) {
           .operator-search-tab {
             flex: 1 1 100% !important;
             padding: 8px !important;
@@ -1648,7 +1683,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'inherit', whiteSpace: 'nowrap', border: 'none',
   } as React.CSSProperties,
   roleDropdown: {
-    position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+    position: 'absolute', top: 'calc(100% + 8px)', left: 0,
     background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px',
     overflow: 'hidden', minWidth: '150px',
     boxShadow: '0 8px 32px rgba(0,0,0,0.10)', zIndex: 200,

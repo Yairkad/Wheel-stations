@@ -234,6 +234,7 @@ const handleLogout = () => {
           stationId: d.station_id,
           stationName: d.station_name,
           timestamp: Date.now(),
+          version: SESSION_VERSION,
         }))
         router.push(`/${d.station_id as string}`)
         break
@@ -748,7 +749,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   roleDropdown: {
     position: 'absolute',
     top: 'calc(100% + 8px)',
-    right: 0,
+    left: 0,
     background: '#ffffff',
     border: '1px solid #e2e8f0',
     borderRadius: '10px',

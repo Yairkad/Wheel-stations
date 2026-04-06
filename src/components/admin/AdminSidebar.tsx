@@ -93,6 +93,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
           stationId: d.station_id,
           stationName: d.station_name,
           timestamp: Date.now(),
+          version: SESSION_VERSION,
         }))
         router.push(`/${d.station_id as string}`)
         break
