@@ -37,6 +37,28 @@ export async function PATCH(
 
     if (error) throw error
 
+    // Sync password/phone changes to legacy tables (by phone lookup)
+    if (password !== undefined || phone !== undefined) {
+      const { data: user } = await supabase
+        .from('users')
+        .select('phone')
+        .eq('id', userId)
+        .single()
+
+      if (user) {
+        const lookupPhone = user.phone
+        const legacyUpdates: Record<string, unknown> = {}
+        if (password !== undefined) legacyUpdates.password = password
+        if (phone    !== undefined) legacyUpdates.phone    = phone
+
+        await Promise.all([
+          supabase.from('wheel_station_managers').update(legacyUpdates).eq('phone', lookupPhone),
+          supabase.from('call_center_managers').update(legacyUpdates).eq('phone', lookupPhone),
+          supabase.from('super_managers').update(legacyUpdates).eq('phone', lookupPhone),
+        ])
+      }
+    }
+
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
     console.error('PATCH /api/admin/users/[userId] error:', err)
