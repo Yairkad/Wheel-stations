@@ -96,7 +96,7 @@ function DotsMenu({ items }: { items: MenuItem[] }) {
       </button>
       {open && (
         <div style={{
-          position: 'absolute', top: '110%', right: 0, zIndex: 100,
+          position: 'absolute', top: '110%', left: 0, zIndex: 100,
           background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
           boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 160,
           padding: '4px 0', direction: 'rtl',
@@ -187,6 +187,14 @@ export default function UsersPage() {
   const [addCcId,       setAddCcId]       = useState('')
   const [addOpCode,     setAddOpCode]     = useState('')
   const [addTitle,      setAddTitle]      = useState('')
+
+  // Add role modal
+  const [addRoleUser,    setAddRoleUser]    = useState<User | null>(null)
+  const [addRoleType,    setAddRoleType]    = useState<UserRole['role']>('station_manager')
+  const [addRoleStation, setAddRoleStation] = useState('')
+  const [addRoleCc,      setAddRoleCc]      = useState('')
+  const [addRoleOpCode,  setAddRoleOpCode]  = useState('')
+  const [addRoleTitle,   setAddRoleTitle]   = useState('')
 
   // Reference data for add-user dropdowns
   const [stations,     setStations]     = useState<Station[]>([])
@@ -301,6 +309,33 @@ export default function UsersPage() {
       toast.success('משתמשים אוחדו')
     } catch { toast.error('שגיאה במיזוג') }
     finally { setBusy(false) }
+  }
+
+  function resetAddRoleForm() {
+    setAddRoleType('station_manager'); setAddRoleStation(''); setAddRoleCc(''); setAddRoleOpCode(''); setAddRoleTitle('')
+  }
+
+  async function handleAddRole() {
+    if (!addRoleUser) return
+    if (addRoleType === 'station_manager'     && !addRoleStation) { toast.error('יש לבחור תחנה'); return }
+    if ((addRoleType === 'call_center_manager' || addRoleType === 'operator') && !addRoleCc) { toast.error('יש לבחור מוקד'); return }
+    setBusy(true)
+    try {
+      const body: Record<string, unknown> = { admin_password: password, role: addRoleType }
+      if (addRoleStation) body.station_id     = addRoleStation
+      if (addRoleCc)      body.call_center_id = addRoleCc
+      if (addRoleOpCode)  body.operator_code  = addRoleOpCode
+      if (addRoleTitle)   body.title          = addRoleTitle
+      const res  = await fetch(`/api/admin/users/${addRoleUser.id}/roles`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setAddRoleUser(null)
+      resetAddRoleForm()
+      await fetchUsers()
+      toast.success('תפקיד נוסף בהצלחה')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'שגיאה בהוספת תפקיד')
+    } finally { setBusy(false) }
   }
 
   function resetAddForm() {
@@ -451,6 +486,7 @@ export default function UsersPage() {
                 onToggleExpand={() => setExpandedId(expandedId === user.id ? null : user.id)}
                 onEdit={() => { setEditUser(user); setEditName(user.full_name); setEditPhone(user.phone); setEditPass('') }}
                 onToggleActive={() => handleToggleActive(user)}
+                onAddRole={() => { setAddRoleUser(user); resetAddRoleForm() }}
                 onMerge={() => { setMergeSource(user); setMergeTarget('') }}
                 onDelete={() => setDeleteUser(user)}
                 onToggleRole={handleToggleRole}
@@ -513,6 +549,59 @@ export default function UsersPage() {
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={handleMerge} disabled={busy || !mergeTarget} style={btnPrimary}>מזג</button>
             <button onClick={() => setMergeSource(null)} style={btnSecondary}>ביטול</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Add role modal ── */}
+      {addRoleUser && (
+        <Modal title={`הוספת תפקיד — ${addRoleUser.full_name}`} onClose={() => { setAddRoleUser(null); resetAddRoleForm() }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <label style={labelStyle}>תפקיד *</label>
+            <select value={addRoleType} onChange={e => setAddRoleType(e.target.value as UserRole['role'])} style={inputStyle}>
+              {(Object.keys(ROLE_LABELS) as UserRole['role'][]).map(r => (
+                <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+              ))}
+            </select>
+
+            {addRoleType === 'station_manager' && (
+              <>
+                <label style={labelStyle}>תחנה *</label>
+                <select value={addRoleStation} onChange={e => setAddRoleStation(e.target.value)} style={inputStyle}>
+                  <option value="">— בחר תחנה —</option>
+                  {stations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </>
+            )}
+
+            {(addRoleType === 'call_center_manager' || addRoleType === 'operator') && (
+              <>
+                <label style={labelStyle}>מוקד *</label>
+                <select value={addRoleCc} onChange={e => setAddRoleCc(e.target.value)} style={inputStyle}>
+                  <option value="">— בחר מוקד —</option>
+                  {callCenters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </>
+            )}
+
+            {addRoleType === 'operator' && (
+              <>
+                <label style={labelStyle}>קוד מוקדן <span style={{ color: '#94a3b8', fontWeight: 400 }}>(אופציונלי)</span></label>
+                <input value={addRoleOpCode} onChange={e => setAddRoleOpCode(e.target.value)} style={inputStyle} placeholder="קוד כניסה" dir="ltr" />
+              </>
+            )}
+
+            {(addRoleType === 'call_center_manager' || addRoleType === 'station_manager') && (
+              <>
+                <label style={labelStyle}>תואר <span style={{ color: '#94a3b8', fontWeight: 400 }}>(אופציונלי)</span></label>
+                <input value={addRoleTitle} onChange={e => setAddRoleTitle(e.target.value)} style={inputStyle} placeholder="למשל: אחראי משמרת" />
+              </>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+              <button onClick={handleAddRole} disabled={busy} style={{ ...btnPrimary, background: '#2563eb' }}>הוסף תפקיד</button>
+              <button onClick={() => { setAddRoleUser(null); resetAddRoleForm() }} style={btnSecondary}>ביטול</button>
+            </div>
           </div>
         </Modal>
       )}
@@ -613,14 +702,16 @@ interface UserCardProps {
   onToggleExpand: () => void
   onEdit:         () => void
   onToggleActive: () => void
+  onAddRole:      () => void
   onMerge:        () => void
   onDelete:       () => void
   onToggleRole:   (userId: string, roleId: string, current: boolean) => void
 }
 
-function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onMerge, onDelete, onToggleRole }: UserCardProps) {
+function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onToggleRole }: UserCardProps) {
   const menuItems: MenuItem[] = [
     { label: 'עריכת פרטים', onClick: onEdit },
+    { label: 'הוספת תפקיד', onClick: onAddRole },
     { label: user.is_active ? 'השבת משתמש' : 'הפעל משתמש', onClick: onToggleActive },
     { label: 'מיזוג עם משתמש אחר', onClick: onMerge },
     { label: 'מחיקת משתמש', color: '#ef4444', onClick: onDelete },
