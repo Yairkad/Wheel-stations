@@ -353,11 +353,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       m.phone.replace(/\D/g, '') === cleanPhone
     )
 
-    // Try legacy table first
-    if (manager) {
-      if (manager.password !== current_password) {
-        return NextResponse.json({ error: 'סיסמא נוכחית שגויה' }, { status: 401 })
-      }
+    // Try legacy table first (only if password matches)
+    if (manager && manager.password === current_password) {
       const { error: updateError } = await supabase
         .from('wheel_station_managers')
         .update({ password: new_password })
