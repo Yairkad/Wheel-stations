@@ -2634,6 +2634,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#1e293b',
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
+    paddingTop: 16,
   },
   header: {
     background: '#ffffff',

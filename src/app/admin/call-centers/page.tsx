@@ -735,6 +735,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     direction: 'rtl',
     overflowX: 'hidden',
+    paddingTop: 16,
   },
   header: {
     background: '#ffffff',

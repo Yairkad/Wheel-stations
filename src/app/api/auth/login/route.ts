@@ -14,6 +14,21 @@ export interface RoleResult {
   data: Record<string, unknown>
 }
 
+type UnifiedRole = 'super_manager' | 'station_manager' | 'call_center_manager' | 'operator' | 'puncture_manager' | 'admin'
+interface UnifiedRoleRow {
+  id: string
+  role: UnifiedRole
+  is_active: boolean
+  station_id: string | null
+  call_center_id: string | null
+  is_primary: boolean | null
+  title: string | null
+  operator_code: string | null
+  allowed_districts: string[] | null
+  wheel_stations: { id: string; name: string } | { id: string; name: string }[] | null
+  call_centers:   { id: string; name: string; is_active: boolean } | { id: string; name: string; is_active: boolean }[] | null
+}
+
 interface StationManagerRow {
   id: string
   full_name: string
@@ -208,6 +223,56 @@ async function checkEditor(supabase: Supa, phone: string, password: string): Pro
   }
 }
 
+// Queries the new unified users + user_roles tables
+async function checkUnifiedUser(supabase: Supa, phone: string, password: string): Promise<RoleResult[]> {
+  const cleanPhone = phone.replace(/\D/g, '')
+
+  const { data: user } = await supabase
+    .from('users')
+    .select('id, full_name, phone, password, is_active')
+    .eq('phone', cleanPhone)
+    .single()
+
+  if (!user || user.is_active === false || user.password !== password) return []
+
+  const { data: roles } = await supabase
+    .from('user_roles')
+    .select('id, role, is_active, station_id, call_center_id, is_primary, title, operator_code, allowed_districts, wheel_stations(id, name), call_centers(id, name, is_active)')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+
+  if (!roles || roles.length === 0) return []
+
+  const results: RoleResult[] = []
+  for (const r of roles as UnifiedRoleRow[]) {
+    const ws = Array.isArray(r.wheel_stations) ? r.wheel_stations[0] : r.wheel_stations
+    const cc = Array.isArray(r.call_centers)   ? r.call_centers[0]   : r.call_centers
+    switch (r.role) {
+      case 'super_manager':
+        results.push({ role: 'district_manager', label: 'מנהל מחוז', data: { id: user.id, full_name: user.full_name, phone: user.phone, allowed_districts: r.allowed_districts || null } })
+        break
+      case 'station_manager':
+        results.push({ role: 'station_manager', label: 'מנהל תחנה', data: { id: user.id, full_name: user.full_name, phone: user.phone, station_id: r.station_id, station_name: ws?.name, role: r.title || 'מנהל תחנה', is_primary: r.is_primary || false } })
+        break
+      case 'call_center_manager':
+        if (cc?.is_active === false) break
+        results.push({ role: 'operator', label: 'מוקדן', data: { id: user.id, full_name: user.full_name, title: r.title, phone: user.phone, is_primary: r.is_primary, sub_role: 'manager', call_center_id: r.call_center_id, call_center_name: cc?.name } })
+        break
+      case 'operator':
+        if (cc?.is_active === false) break
+        results.push({ role: 'operator', label: 'מוקדן', data: { id: user.id, full_name: user.full_name, phone: user.phone, sub_role: 'operator', call_center_id: r.call_center_id, call_center_name: cc?.name } })
+        break
+      case 'puncture_manager':
+        results.push({ role: 'editor', label: 'עורך', data: { id: user.id, full_name: user.full_name, phone: user.phone } })
+        break
+      case 'admin':
+        results.push({ role: 'admin', label: 'ניהול מערכת', data: { full_name: user.full_name } })
+        break
+    }
+  }
+  return results
+}
+
 // POST /api/auth/login
 // Unified login: checks all 4 role tables in parallel
 // Returns array of matched roles (user may have multiple)
@@ -233,25 +298,22 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const [stationManager, operator, districtManager, editor, admin] = await Promise.all([
+    const [stationManager, operator, districtManager, editor, admin, unifiedRoles] = await Promise.all([
       checkStationManager(supabase, phone, password),
       checkOperator(supabase, phone, password),
       checkDistrictManager(supabase, phone, password),
       checkEditor(supabase, phone, password),
       checkAdmin(supabase, phone, password),
+      checkUnifiedUser(supabase, phone, password),
     ])
 
-    console.log('[auth/login] results:', {
-      stationManager: !!stationManager,
-      operator: !!operator,
-      districtManager: !!districtManager,
-      editor: !!editor,
-      admin: !!admin,
-    })
-
-    const roles: RoleResult[] = [stationManager, operator, districtManager, editor, admin].filter(
+    // Merge old-table results with new unified-table results, deduplicate by role
+    const oldRoles: RoleResult[] = [stationManager, operator, districtManager, editor, admin].filter(
       (r): r is RoleResult => r !== null
     )
+    const seenRoles = new Set(oldRoles.map(r => r.role))
+    const newRoles = unifiedRoles.filter(r => !seenRoles.has(r.role))
+    const roles: RoleResult[] = [...oldRoles, ...newRoles]
 
     if (roles.length === 0) {
       return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })

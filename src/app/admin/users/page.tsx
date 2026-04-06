@@ -9,7 +9,7 @@ import { AdminShell } from '@/components/admin/AdminShell'
 
 interface UserRole {
   id: string
-  role: 'super_manager' | 'station_manager' | 'call_center_manager' | 'operator' | 'puncture_manager'
+  role: 'super_manager' | 'station_manager' | 'call_center_manager' | 'operator' | 'puncture_manager' | 'admin'
   station_id:        string | null
   call_center_id:    string | null
   is_primary:        boolean
@@ -33,6 +33,7 @@ interface User {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<UserRole['role'], string> = {
+  admin:               'אדמין',
   super_manager:       'מנהל-על',
   station_manager:     'מנהל תחנה',
   call_center_manager: 'מנהל מוקד',
@@ -41,6 +42,7 @@ const ROLE_LABELS: Record<UserRole['role'], string> = {
 }
 
 const ROLE_COLORS: Record<UserRole['role'], string> = {
+  admin:               '#0f172a',
   super_manager:       '#7c3aed',
   station_manager:     '#16a34a',
   call_center_manager: '#2563eb',
@@ -84,7 +86,7 @@ function DotsMenu({ items }: { items: MenuItem[] }) {
       </button>
       {open && (
         <div style={{
-          position: 'absolute', top: '110%', left: 0, zIndex: 100,
+          position: 'absolute', top: '110%', right: 0, zIndex: 100,
           background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
           boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 160,
           padding: '4px 0', direction: 'rtl',
@@ -303,6 +305,15 @@ export default function UsersPage() {
   return (
     <AdminShell onLogout={logout}>
       <div dir="rtl" style={{ minHeight: '100vh', background: '#f1f5f9', fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
+      <style>{`
+        @media (max-width: 520px) {
+          .user-badges-row { display: none !important; }
+          .user-badges-inline { display: flex !important; }
+        }
+        @media (min-width: 521px) {
+          .user-badges-inline { display: none !important; }
+        }
+      `}</style>
 
         {/* Page header */}
         <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '20px 24px' }}>
@@ -468,7 +479,7 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
   return (
     <div style={{
       background: '#fff', borderRadius: 12, marginBottom: 8,
-      border: '1px solid #e2e8f0', overflow: 'hidden',
+      border: '1px solid #e2e8f0',
       opacity: user.is_active ? 1 : 0.6,
     }}>
       {/* Row */}
@@ -490,10 +501,27 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
         <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={onToggleExpand}>
           <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{user.full_name}</div>
           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{user.phone}</div>
+          {/* Mobile: badges under the name */}
+          <div className="user-badges-inline" style={{ display: 'none', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+            {user.roles.filter(r => r.is_active).map(r => (
+              <span key={r.id} style={{
+                padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700,
+                background: ROLE_COLORS[r.role] + '18', color: ROLE_COLORS[r.role],
+                border: `1px solid ${ROLE_COLORS[r.role]}40`,
+              }}>
+                {ROLE_LABELS[r.role]}
+              </span>
+            ))}
+            {!user.is_active && (
+              <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700, background: '#f1f5f9', color: '#94a3b8' }}>
+                מושבת
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Role badges */}
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        {/* Role badges — desktop only */}
+        <div className="user-badges-row" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {user.roles.filter(r => r.is_active).map(r => (
             <span key={r.id} style={{
               padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700,

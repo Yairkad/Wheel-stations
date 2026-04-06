@@ -193,6 +193,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
         position: 'fixed', top: 0, right: 0, left: 0, zIndex: 300,
         background: '#0f172a', borderBottom: '1px solid #334155',
         padding: '10px 16px', alignItems: 'center', gap: 12,
+        direction: 'rtl',
       }}>
         <button
           onClick={() => setMobileOpen(v => !v)}
@@ -200,7 +201,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
         >
           {icons.menu}
         </button>
-        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc' }}>גלגלנט — ניהול</span>
+        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc' }}>ניהול</span>
       </div>
 
       {/* Mobile overlay */}
