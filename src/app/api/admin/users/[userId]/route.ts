@@ -43,3 +43,27 @@ export async function PATCH(
     return NextResponse.json({ error: 'שגיאה פנימית' }, { status: 500 })
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  try {
+    const { userId } = await params
+    const body = await request.json()
+    const { admin_password } = body
+
+    if (!verifyAdminPassword(admin_password)) {
+      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    }
+
+    // Roles deleted via CASCADE (user_roles.user_id FK)
+    const { error } = await supabase.from('users').delete().eq('id', userId)
+    if (error) throw error
+
+    return NextResponse.json({ success: true })
+  } catch (err: unknown) {
+    console.error('DELETE /api/admin/users/[userId] error:', err)
+    return NextResponse.json({ error: 'שגיאה פנימית' }, { status: 500 })
+  }
+}

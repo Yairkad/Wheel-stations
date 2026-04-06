@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
@@ -10,14 +10,14 @@ import { AdminShell } from '@/components/admin/AdminShell'
 interface UserRole {
   id: string
   role: 'super_manager' | 'station_manager' | 'call_center_manager' | 'operator' | 'puncture_manager'
-  station_id:      string | null
-  call_center_id:  string | null
-  is_primary:      boolean
-  title:           string | null
-  operator_code:   string | null
+  station_id:        string | null
+  call_center_id:    string | null
+  is_primary:        boolean
+  title:             string | null
+  operator_code:     string | null
   allowed_districts: string[] | null
-  is_active:       boolean
-  station_name?:   string | null
+  is_active:         boolean
+  station_name?:     string | null
   call_center_name?: string | null
 }
 
@@ -33,19 +33,111 @@ interface User {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<UserRole['role'], string> = {
-  super_manager:        'מנהל-על',
-  station_manager:      'מנהל תחנה',
-  call_center_manager:  'מנהל מוקד',
-  operator:             'מוקדן',
-  puncture_manager:     'מנהל פנצ׳ריות',
+  super_manager:       'מנהל-על',
+  station_manager:     'מנהל תחנה',
+  call_center_manager: 'מנהל מוקד',
+  operator:            'מוקדן',
+  puncture_manager:    'מנהל פנצ׳ריות',
 }
 
 const ROLE_COLORS: Record<UserRole['role'], string> = {
-  super_manager:        '#7c3aed',
-  station_manager:      '#16a34a',
-  call_center_manager:  '#2563eb',
-  operator:             '#0891b2',
-  puncture_manager:     '#d97706',
+  super_manager:       '#7c3aed',
+  station_manager:     '#16a34a',
+  call_center_manager: '#2563eb',
+  operator:            '#0891b2',
+  puncture_manager:    '#d97706',
+}
+
+// ── Dots Menu ─────────────────────────────────────────────────────────────────
+
+interface MenuItem {
+  label:   string
+  color?:  string
+  onClick: () => void
+}
+
+function DotsMenu({ items }: { items: MenuItem[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function close(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  return (
+    <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
+        style={{
+          width: 30, height: 30, borderRadius: 8,
+          background: 'transparent', border: '1px solid #e2e8f0',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#64748b', fontSize: '1rem', lineHeight: 1,
+        }}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '110%', left: 0, zIndex: 100,
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 160,
+          padding: '4px 0', direction: 'rtl',
+        }}>
+          {items.map((item, i) => (
+            <button
+              key={i}
+              onClick={e => { e.stopPropagation(); setOpen(false); item.onClick() }}
+              style={{
+                display: 'block', width: '100%', textAlign: 'right',
+                padding: '9px 14px', background: 'none', border: 'none',
+                fontSize: '0.85rem', cursor: 'pointer',
+                color: item.color || '#1e293b',
+                fontWeight: 500,
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 500,
+        background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: '#fff', borderRadius: 14, padding: '24px',
+          width: '100%', maxWidth: 440, direction: 'rtl',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 20 }}>{title}</div>
+        {children}
+      </div>
+    </div>
+  )
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
@@ -53,19 +145,27 @@ const ROLE_COLORS: Record<UserRole['role'], string> = {
 export default function UsersPage() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
 
-  const [users,   setUsers]   = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search,  setSearch]  = useState('')
+  const [users,      setUsers]      = useState<User[]>([])
+  const [loading,    setLoading]    = useState(true)
+  const [search,     setSearch]     = useState('')
   const [roleFilter, setRoleFilter] = useState<UserRole['role'] | 'all'>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [busy,       setBusy]       = useState(false)
 
-  const [actionLoading, setActionLoading] = useState(false)
-  const [resetPasswordId, setResetPasswordId] = useState<string | null>(null)
-  const [newPassword, setNewPassword] = useState('')
+  // Edit modal
+  const [editUser,    setEditUser]    = useState<User | null>(null)
+  const [editName,    setEditName]    = useState('')
+  const [editPhone,   setEditPhone]   = useState('')
+  const [editPass,    setEditPass]    = useState('')
 
-  useEffect(() => {
-    if (isAuthenticated) fetchUsers()
-  }, [isAuthenticated])
+  // Delete confirm modal
+  const [deleteUser, setDeleteUser] = useState<User | null>(null)
+
+  // Merge modal
+  const [mergeSource, setMergeSource] = useState<User | null>(null)  // "delete" side
+  const [mergeTarget, setMergeTarget] = useState<string>('')          // keep_id
+
+  useEffect(() => { if (isAuthenticated) fetchUsers() }, [isAuthenticated])
 
   async function fetchUsers() {
     setLoading(true)
@@ -74,58 +174,97 @@ export default function UsersPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setUsers(data.users || [])
-    } catch (e: unknown) {
+    } catch {
       toast.error('שגיאה בטעינת משתמשים')
     } finally {
       setLoading(false)
     }
   }
 
-  async function handleToggleActive(userId: string, current: boolean) {
-    setActionLoading(true)
+  async function handleToggleActive(user: User) {
+    setBusy(true)
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !current, admin_password: password }),
+        body: JSON.stringify({ is_active: !user.is_active, admin_password: password }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       await fetchUsers()
-      toast.success(current ? 'משתמש הושבת' : 'משתמש הופעל')
-    } catch {
-      toast.error('שגיאה בעדכון')
-    } finally {
-      setActionLoading(false)
-    }
+      toast.success(user.is_active ? 'משתמש הושבת' : 'משתמש הופעל')
+    } catch { toast.error('שגיאה בעדכון') }
+    finally { setBusy(false) }
   }
 
-  async function handleResetPassword(userId: string) {
-    if (!newPassword || newPassword.length < 4) {
-      toast.error('סיסמה חייבת להיות לפחות 4 תווים')
-      return
-    }
-    setActionLoading(true)
+  async function handleSaveEdit() {
+    if (!editUser) return
+    if (!editName.trim()) { toast.error('שם לא יכול להיות ריק'); return }
+    if (!editPhone.trim()) { toast.error('טלפון לא יכול להיות ריק'); return }
+    if (editPass && editPass.length < 4) { toast.error('סיסמה חייבת להיות לפחות 4 תווים'); return }
+    setBusy(true)
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
+      const body: Record<string, string> = {
+        admin_password: password,
+        full_name: editName.trim(),
+        phone: editPhone.trim(),
+      }
+      if (editPass) body.password = editPass
+      const res = await fetch(`/api/admin/users/${editUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: newPassword, admin_password: password }),
+        body: JSON.stringify(body),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      setResetPasswordId(null)
-      setNewPassword('')
-      toast.success('סיסמה עודכנה')
-    } catch {
-      toast.error('שגיאה בעדכון סיסמה')
-    } finally {
-      setActionLoading(false)
-    }
+      setEditUser(null)
+      await fetchUsers()
+      toast.success('פרטים עודכנו')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'שגיאה בעדכון')
+    } finally { setBusy(false) }
+  }
+
+  async function handleDelete() {
+    if (!deleteUser) return
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/admin/users/${deleteUser.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_password: password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setDeleteUser(null)
+      if (expandedId === deleteUser.id) setExpandedId(null)
+      await fetchUsers()
+      toast.success('משתמש נמחק')
+    } catch { toast.error('שגיאה במחיקה') }
+    finally { setBusy(false) }
+  }
+
+  async function handleMerge() {
+    if (!mergeSource || !mergeTarget) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/admin/users/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_password: password, keep_id: mergeTarget, delete_id: mergeSource.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setMergeSource(null)
+      setMergeTarget('')
+      await fetchUsers()
+      toast.success('משתמשים אוחדו')
+    } catch { toast.error('שגיאה במיזוג') }
+    finally { setBusy(false) }
   }
 
   async function handleToggleRole(userId: string, roleId: string, current: boolean) {
-    setActionLoading(true)
+    setBusy(true)
     try {
       const res = await fetch(`/api/admin/users/${userId}/roles/${roleId}`, {
         method: 'PATCH',
@@ -136,67 +275,59 @@ export default function UsersPage() {
       if (!res.ok) throw new Error(data.error)
       await fetchUsers()
       toast.success(current ? 'תפקיד הושבת' : 'תפקיד הופעל')
-    } catch {
-      toast.error('שגיאה בעדכון תפקיד')
-    } finally {
-      setActionLoading(false)
-    }
+    } catch { toast.error('שגיאה בעדכון תפקיד') }
+    finally { setBusy(false) }
   }
 
-  // ── Filter ──────────────────────────────────────────────────────────────────
+  // ── Filter ─────────────────────────────────────────────────────────────────
 
   const filtered = users.filter(u => {
     const q = search.toLowerCase()
-    const matchesSearch = !q ||
-      u.full_name.toLowerCase().includes(q) ||
-      u.phone.includes(q)
-    const matchesRole = roleFilter === 'all' ||
-      u.roles.some(r => r.role === roleFilter)
+    const matchesSearch = !q || u.full_name.toLowerCase().includes(q) || u.phone.includes(q)
+    const matchesRole   = roleFilter === 'all' || u.roles.some(r => r.role === roleFilter)
     return matchesSearch && matchesRole
   })
 
-  // ── Loading / auth ───────────────────────────────────────────────────────────
+  // ── Loading / auth ──────────────────────────────────────────────────────────
 
   if (authLoading || !isAuthenticated) {
     return (
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#f8fafc' }}>
-        <div style={{ color:'#64748b' }}>טוען...</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f8fafc' }}>
+        <div style={{ color: '#64748b' }}>טוען...</div>
       </div>
     )
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <AdminShell onLogout={logout}>
-      <div dir="rtl" style={{ minHeight:'100vh', background:'#f1f5f9', fontFamily:"'Segoe UI', sans-serif", color:'#1e293b' }}>
+      <div dir="rtl" style={{ minHeight: '100vh', background: '#f1f5f9', fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
 
         {/* Page header */}
-        <div style={{ background:'#fff', borderBottom:'1px solid #e2e8f0', padding:'20px 24px' }}>
-          <h1 style={{ margin:0, fontSize:'1.25rem', fontWeight:800 }}>ניהול משתמשים</h1>
-          <p style={{ margin:'4px 0 0', fontSize:'0.8rem', color:'#64748b' }}>
-            {users.length} משתמשים במערכת
-          </p>
+        <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '20px 24px' }}>
+          <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>ניהול משתמשים</h1>
+          <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#64748b' }}>{users.length} משתמשים במערכת</p>
         </div>
 
         {/* Toolbar */}
-        <div style={{ padding:'16px 24px', display:'flex', gap:12, flexWrap:'wrap', alignItems:'center' }}>
+        <div style={{ padding: '16px 24px', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
           <input
             placeholder="חיפוש לפי שם או טלפון..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{
-              flex:1, minWidth:200, padding:'8px 14px', borderRadius:8,
-              border:'1px solid #e2e8f0', fontSize:'0.875rem', background:'#fff',
-              outline:'none', color:'#1e293b',
+              flex: 1, minWidth: 200, padding: '8px 14px', borderRadius: 8,
+              border: '1px solid #e2e8f0', fontSize: '0.875rem', background: '#fff',
+              outline: 'none', color: '#1e293b',
             }}
           />
           <select
             value={roleFilter}
             onChange={e => setRoleFilter(e.target.value as UserRole['role'] | 'all')}
             style={{
-              padding:'8px 14px', borderRadius:8, border:'1px solid #e2e8f0',
-              fontSize:'0.875rem', background:'#fff', color:'#1e293b', cursor:'pointer',
+              padding: '8px 14px', borderRadius: 8, border: '1px solid #e2e8f0',
+              fontSize: '0.875rem', background: '#fff', color: '#1e293b', cursor: 'pointer',
             }}
           >
             <option value="all">כל התפקידים</option>
@@ -204,107 +335,176 @@ export default function UsersPage() {
               <option key={r} value={r}>{ROLE_LABELS[r]}</option>
             ))}
           </select>
-          <div style={{ marginRight:'auto', fontSize:'0.8rem', color:'#64748b' }}>
+          <div style={{ marginRight: 'auto', fontSize: '0.8rem', color: '#64748b' }}>
             {filtered.length} תוצאות
           </div>
         </div>
 
         {/* Users list */}
-        <div style={{ padding:'0 24px 32px' }}>
+        <div style={{ padding: '0 24px 32px' }}>
           {loading ? (
-            <div style={{ textAlign:'center', padding:48, color:'#94a3b8' }}>טוען...</div>
+            <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8' }}>טוען...</div>
           ) : filtered.length === 0 ? (
-            <div style={{ textAlign:'center', padding:48, color:'#94a3b8' }}>לא נמצאו משתמשים</div>
+            <div style={{ textAlign: 'center', padding: 48, color: '#94a3b8' }}>לא נמצאו משתמשים</div>
           ) : (
             filtered.map(user => (
               <UserCard
                 key={user.id}
                 user={user}
                 expanded={expandedId === user.id}
+                busy={busy}
                 onToggleExpand={() => setExpandedId(expandedId === user.id ? null : user.id)}
-                onToggleActive={() => handleToggleActive(user.id, user.is_active)}
-                onResetPassword={() => { setResetPasswordId(user.id); setNewPassword('') }}
+                onEdit={() => { setEditUser(user); setEditName(user.full_name); setEditPhone(user.phone); setEditPass('') }}
+                onToggleActive={() => handleToggleActive(user)}
+                onMerge={() => { setMergeSource(user); setMergeTarget('') }}
+                onDelete={() => setDeleteUser(user)}
                 onToggleRole={handleToggleRole}
-                actionLoading={actionLoading}
-                resetPasswordId={resetPasswordId}
-                newPassword={newPassword}
-                setNewPassword={setNewPassword}
-                onConfirmReset={() => handleResetPassword(user.id)}
-                onCancelReset={() => { setResetPasswordId(null); setNewPassword('') }}
               />
             ))
           )}
         </div>
       </div>
+
+      {/* ── Edit modal ── */}
+      {editUser && (
+        <Modal title={`עריכת משתמש — ${editUser.full_name}`} onClose={() => setEditUser(null)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <label style={labelStyle}>שם מלא</label>
+            <input value={editName} onChange={e => setEditName(e.target.value)} style={inputStyle} />
+            <label style={labelStyle}>טלפון</label>
+            <input value={editPhone} onChange={e => setEditPhone(e.target.value)} style={inputStyle} dir="ltr" />
+            <label style={labelStyle}>סיסמה חדשה <span style={{ color: '#94a3b8', fontWeight: 400 }}>(השאר ריק לשמור קיימת)</span></label>
+            <input type="password" value={editPass} onChange={e => setEditPass(e.target.value)} style={inputStyle} placeholder="לפחות 4 תווים" />
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button onClick={handleSaveEdit} disabled={busy} style={btnPrimary}>שמור</button>
+              <button onClick={() => setEditUser(null)} style={btnSecondary}>ביטול</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Delete confirm modal ── */}
+      {deleteUser && (
+        <Modal title="מחיקת משתמש" onClose={() => setDeleteUser(null)}>
+          <p style={{ margin: '0 0 20px', color: '#64748b', fontSize: '0.9rem' }}>
+            בטוח למחוק את <strong>{deleteUser.full_name}</strong>? הפעולה תמחק גם את כל התפקידים שלו.
+          </p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={handleDelete} disabled={busy} style={{ ...btnPrimary, background: '#ef4444' }}>מחק</button>
+            <button onClick={() => setDeleteUser(null)} style={btnSecondary}>ביטול</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Merge modal ── */}
+      {mergeSource && (
+        <Modal title={`מיזוג — ${mergeSource.full_name}`} onClose={() => setMergeSource(null)}>
+          <p style={{ margin: '0 0 12px', color: '#64748b', fontSize: '0.85rem' }}>
+            בחר את המשתמש שישמר. תפקידי <strong>{mergeSource.full_name}</strong> יעברו אליו והרשומה הכפולה תימחק.
+          </p>
+          <select
+            value={mergeTarget}
+            onChange={e => setMergeTarget(e.target.value)}
+            style={{ ...inputStyle, marginBottom: 16 }}
+          >
+            <option value="">— בחר משתמש לשמירה —</option>
+            {users
+              .filter(u => u.id !== mergeSource.id)
+              .sort((a, b) => a.full_name.localeCompare(b.full_name, 'he'))
+              .map(u => (
+                <option key={u.id} value={u.id}>{u.full_name} ({u.phone})</option>
+              ))}
+          </select>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={handleMerge} disabled={busy || !mergeTarget} style={btnPrimary}>מזג</button>
+            <button onClick={() => setMergeSource(null)} style={btnSecondary}>ביטול</button>
+          </div>
+        </Modal>
+      )}
     </AdminShell>
   )
+}
+
+// ── Shared styles ─────────────────────────────────────────────────────────────
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #e2e8f0',
+  fontSize: '0.875rem', color: '#1e293b', outline: 'none', boxSizing: 'border-box',
+}
+const labelStyle: React.CSSProperties = {
+  fontSize: '0.78rem', fontWeight: 700, color: '#475569',
+}
+const btnPrimary: React.CSSProperties = {
+  flex: 1, padding: '9px 0', borderRadius: 8, background: '#2563eb', color: '#fff',
+  border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
+}
+const btnSecondary: React.CSSProperties = {
+  flex: 1, padding: '9px 0', borderRadius: 8, background: 'transparent', color: '#64748b',
+  border: '1px solid #e2e8f0', fontSize: '0.875rem', cursor: 'pointer',
 }
 
 // ── UserCard ──────────────────────────────────────────────────────────────────
 
 interface UserCardProps {
-  user:            User
-  expanded:        boolean
-  onToggleExpand:  () => void
-  onToggleActive:  () => void
-  onResetPassword: () => void
-  onToggleRole:    (userId: string, roleId: string, current: boolean) => void
-  actionLoading:   boolean
-  resetPasswordId: string | null
-  newPassword:     string
-  setNewPassword:  (v: string) => void
-  onConfirmReset:  () => void
-  onCancelReset:   () => void
+  user:           User
+  expanded:       boolean
+  busy:           boolean
+  onToggleExpand: () => void
+  onEdit:         () => void
+  onToggleActive: () => void
+  onMerge:        () => void
+  onDelete:       () => void
+  onToggleRole:   (userId: string, roleId: string, current: boolean) => void
 }
 
-function UserCard({
-  user, expanded, onToggleExpand, onToggleActive, onResetPassword,
-  onToggleRole, actionLoading, resetPasswordId, newPassword,
-  setNewPassword, onConfirmReset, onCancelReset,
-}: UserCardProps) {
-  const isResetting = resetPasswordId === user.id
+function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onMerge, onDelete, onToggleRole }: UserCardProps) {
+  const menuItems: MenuItem[] = [
+    { label: 'עריכת פרטים', onClick: onEdit },
+    { label: user.is_active ? 'השבת משתמש' : 'הפעל משתמש', onClick: onToggleActive },
+    { label: 'מיזוג עם משתמש אחר', onClick: onMerge },
+    { label: 'מחיקת משתמש', color: '#ef4444', onClick: onDelete },
+  ]
 
   return (
     <div style={{
-      background:'#fff', borderRadius:12, marginBottom:8,
-      border:'1px solid #e2e8f0', overflow:'hidden',
+      background: '#fff', borderRadius: 12, marginBottom: 8,
+      border: '1px solid #e2e8f0', overflow: 'hidden',
       opacity: user.is_active ? 1 : 0.6,
     }}>
       {/* Row */}
-      <div
-        style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 16px', cursor:'pointer' }}
-        onClick={onToggleExpand}
-      >
-        {/* Avatar */}
-        <div style={{
-          width:38, height:38, borderRadius:'50%', flexShrink:0,
-          background: user.is_active ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e2e8f0',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          color:'#fff', fontWeight:800, fontSize:'0.95rem',
-        }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
+        {/* Avatar — clickable to expand */}
+        <div
+          style={{
+            width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
+            background: user.is_active ? 'linear-gradient(135deg,#22c55e,#16a34a)' : '#e2e8f0',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer',
+          }}
+          onClick={onToggleExpand}
+        >
           {user.full_name.charAt(0)}
         </div>
 
-        {/* Name + phone */}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontWeight:700, fontSize:'0.9rem', color:'#1e293b' }}>{user.full_name}</div>
-          <div style={{ fontSize:'0.78rem', color:'#64748b' }}>{user.phone}</div>
+        {/* Name + phone — clickable to expand */}
+        <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={onToggleExpand}>
+          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{user.full_name}</div>
+          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{user.phone}</div>
         </div>
 
         {/* Role badges */}
-        <div style={{ display:'flex', gap:4, flexWrap:'wrap', justifyContent:'flex-end' }}>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {user.roles.filter(r => r.is_active).map(r => (
             <span key={r.id} style={{
-              padding:'2px 8px', borderRadius:12, fontSize:'0.7rem', fontWeight:700,
-              background: ROLE_COLORS[r.role] + '18',
-              color: ROLE_COLORS[r.role],
+              padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700,
+              background: ROLE_COLORS[r.role] + '18', color: ROLE_COLORS[r.role],
               border: `1px solid ${ROLE_COLORS[r.role]}40`,
             }}>
               {ROLE_LABELS[r.role]}
             </span>
           ))}
           {!user.is_active && (
-            <span style={{ padding:'2px 8px', borderRadius:12, fontSize:'0.7rem', fontWeight:700, background:'#f1f5f9', color:'#94a3b8' }}>
+            <span style={{ padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700, background: '#f1f5f9', color: '#94a3b8' }}>
               מושבת
             </span>
           )}
@@ -313,115 +513,57 @@ function UserCard({
         {/* Chevron */}
         <svg
           width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2"
-          style={{ flexShrink:0, transform: expanded ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}
+          style={{ flexShrink: 0, transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', cursor: 'pointer' }}
+          onClick={onToggleExpand}
         >
           <polyline points="6 9 12 15 18 9"/>
         </svg>
+
+        {/* Dots menu */}
+        <DotsMenu items={menuItems} />
       </div>
 
-      {/* Expanded */}
+      {/* Expanded — roles */}
       {expanded && (
-        <div style={{ borderTop:'1px solid #f1f5f9', padding:'16px' }}>
-
-          {/* Roles table */}
-          {user.roles.length > 0 && (
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:'0.75rem', fontWeight:700, color:'#64748b', marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>
+        <div style={{ borderTop: '1px solid #f1f5f9', padding: '16px' }}>
+          {user.roles.length === 0 ? (
+            <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>אין תפקידים</div>
+          ) : (
+            <>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 תפקידים
               </div>
               {user.roles.map(role => (
                 <div key={role.id} style={{
-                  display:'flex', alignItems:'center', gap:8, padding:'8px 10px',
-                  background:'#f8fafc', borderRadius:8, marginBottom:4,
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
+                  background: '#f8fafc', borderRadius: 8, marginBottom: 4,
                 }}>
                   <span style={{
-                    width:10, height:10, borderRadius:'50%', flexShrink:0,
+                    width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
                     background: role.is_active ? ROLE_COLORS[role.role] : '#cbd5e1',
                   }} />
-                  <span style={{ fontSize:'0.85rem', fontWeight:600, flex:1 }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, flex: 1 }}>
                     {ROLE_LABELS[role.role]}
-                    {role.station_name     && <span style={{ color:'#64748b', fontWeight:400 }}> — {role.station_name}</span>}
-                    {role.call_center_name && <span style={{ color:'#64748b', fontWeight:400 }}> — {role.call_center_name}</span>}
-                    {role.is_primary       && <span style={{ color:'#f59e0b', fontSize:'0.7rem', marginRight:4 }}> ★ ראשי</span>}
+                    {role.station_name     && <span style={{ color: '#64748b', fontWeight: 400 }}> — {role.station_name}</span>}
+                    {role.call_center_name && <span style={{ color: '#64748b', fontWeight: 400 }}> — {role.call_center_name}</span>}
+                    {role.is_primary       && <span style={{ color: '#f59e0b', fontSize: '0.7rem', marginRight: 4 }}> ★ ראשי</span>}
                   </span>
                   {role.operator_code && (
-                    <span style={{ fontSize:'0.72rem', color:'#64748b', background:'#e2e8f0', padding:'1px 6px', borderRadius:6 }}>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', background: '#e2e8f0', padding: '1px 6px', borderRadius: 6 }}>
                       קוד: {role.operator_code}
                     </span>
                   )}
-                  <button
-                    onClick={() => onToggleRole(user.id, role.id, role.is_active)}
-                    disabled={actionLoading}
-                    style={{
-                      padding:'3px 10px', borderRadius:6, fontSize:'0.72rem', fontWeight:600,
-                      border:'1px solid', cursor:'pointer',
-                      background: role.is_active ? 'transparent' : '#f0fdf4',
+                  <DotsMenu items={[
+                    {
+                      label: role.is_active ? 'השבת תפקיד' : 'הפעל תפקיד',
                       color: role.is_active ? '#ef4444' : '#16a34a',
-                      borderColor: role.is_active ? '#fecaca' : '#bbf7d0',
-                    }}
-                  >
-                    {role.is_active ? 'השבת תפקיד' : 'הפעל תפקיד'}
-                  </button>
+                      onClick: () => onToggleRole(user.id, role.id, role.is_active),
+                    },
+                  ]} />
                 </div>
               ))}
-            </div>
+            </>
           )}
-
-          {/* Reset password */}
-          {isResetting && (
-            <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:12 }}>
-              <input
-                type="password"
-                placeholder="סיסמה חדשה (מינ׳ 4 תווים)"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                autoFocus
-                style={{
-                  flex:1, padding:'7px 12px', borderRadius:8, border:'1px solid #e2e8f0',
-                  fontSize:'0.85rem', color:'#1e293b', outline:'none',
-                }}
-              />
-              <button
-                onClick={onConfirmReset}
-                disabled={actionLoading}
-                style={{ padding:'7px 14px', borderRadius:8, background:'#2563eb', color:'#fff', border:'none', fontSize:'0.82rem', fontWeight:700, cursor:'pointer' }}
-              >
-                שמור
-              </button>
-              <button
-                onClick={onCancelReset}
-                style={{ padding:'7px 14px', borderRadius:8, background:'transparent', color:'#64748b', border:'1px solid #e2e8f0', fontSize:'0.82rem', cursor:'pointer' }}
-              >
-                ביטול
-              </button>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-            <button
-              onClick={onResetPassword}
-              disabled={actionLoading || isResetting}
-              style={{
-                padding:'7px 14px', borderRadius:8, fontSize:'0.82rem', fontWeight:600,
-                background:'transparent', color:'#2563eb', border:'1px solid #bfdbfe', cursor:'pointer',
-              }}
-            >
-              איפוס סיסמה
-            </button>
-            <button
-              onClick={onToggleActive}
-              disabled={actionLoading}
-              style={{
-                padding:'7px 14px', borderRadius:8, fontSize:'0.82rem', fontWeight:600,
-                background:'transparent', cursor:'pointer',
-                color:       user.is_active ? '#ef4444' : '#16a34a',
-                border:      `1px solid ${user.is_active ? '#fecaca' : '#bbf7d0'}`,
-              }}
-            >
-              {user.is_active ? 'השבת משתמש' : 'הפעל משתמש'}
-            </button>
-          </div>
         </div>
       )}
     </div>
