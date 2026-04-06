@@ -39,7 +39,8 @@ async function checkAdmin(phone: string, password: string): Promise<RoleResult |
 }
 
 // Queries the unified users + user_roles tables
-async function checkUnifiedUser(supabase: ReturnType<typeof createClient>, phone: string, password: string): Promise<RoleResult[]> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function checkUnifiedUser(supabase: ReturnType<typeof createClient<any>>, phone: string, password: string): Promise<RoleResult[]> {
   const cleanPhone = phone.replace(/\D/g, '')
 
   const { data: user } = await supabase
