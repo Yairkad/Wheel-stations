@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminPassword } from '@/lib/admin-auth'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,7 +16,7 @@ export async function PATCH(
     const body = await request.json()
     const { admin_password, is_active, is_primary } = body
 
-    if (!verifyAdminPassword(admin_password)) {
+    if (!await verifyAdminAuth(admin_password)) {
       return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
     }
 

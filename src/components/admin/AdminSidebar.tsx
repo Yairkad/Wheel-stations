@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
+import { SESSION_VERSION } from '@/lib/version'
 import type { RoleResult } from '@/app/api/auth/login/route'
 
 const icons = {
@@ -86,10 +87,45 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
     setShowRolePick(false)
     const d = r.data
     switch (r.role) {
-      case 'station_manager':  router.push(`/${d.station_id as string}`); break
-      case 'operator':         router.push(d.sub_role === 'manager' ? '/call-center' : '/operator'); break
-      case 'district_manager': router.push('/super-manager'); break
-      case 'editor':           router.push('/admin/punctures'); break
+      case 'station_manager': {
+        localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
+          manager: { id: d.id, full_name: d.full_name, phone: d.phone, role: d.role || 'מנהל תחנה', is_primary: d.is_primary || false },
+          stationId: d.station_id,
+          stationName: d.station_name,
+          timestamp: Date.now(),
+        }))
+        router.push(`/${d.station_id as string}`)
+        break
+      }
+      case 'operator': {
+        localStorage.setItem('operator_session', JSON.stringify({
+          user: { id: d.id, full_name: d.full_name, phone: d.phone, title: d.title, is_primary: d.is_primary },
+          role: d.sub_role === 'manager' ? 'manager' : 'operator',
+          callCenterId: d.call_center_id,
+          callCenterName: d.call_center_name,
+          timestamp: Date.now(),
+          version: SESSION_VERSION,
+        }))
+        router.push(d.sub_role === 'manager' ? '/call-center' : '/operator')
+        break
+      }
+      case 'district_manager': {
+        localStorage.setItem('super_manager_session', JSON.stringify({
+          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
+          timestamp: Date.now(),
+          version: SESSION_VERSION,
+        }))
+        router.push('/super-manager')
+        break
+      }
+      case 'editor': {
+        localStorage.setItem('puncture_manager_auth', JSON.stringify({
+          expiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
+          phone: d.phone,
+        }))
+        router.push('/admin/punctures')
+        break
+      }
     }
   }
 

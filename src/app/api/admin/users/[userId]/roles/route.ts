@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminPassword } from '@/lib/admin-auth'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +17,7 @@ export async function POST(
     const body = await request.json()
     const { admin_password, role, station_id, call_center_id, operator_code, title, allowed_districts } = body
 
-    if (!verifyAdminPassword(admin_password)) {
+    if (!await verifyAdminAuth(admin_password)) {
       return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
     }
     if (!role) return NextResponse.json({ error: 'תפקיד חובה' }, { status: 400 })
