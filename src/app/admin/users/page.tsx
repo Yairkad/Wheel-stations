@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
@@ -155,12 +156,13 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function UsersPage() {
+function UsersPageInner() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const searchParams = useSearchParams()
 
   const [users,      setUsers]      = useState<User[]>([])
   const [loading,    setLoading]    = useState(true)
-  const [search,     setSearch]     = useState('')
+  const [search,     setSearch]     = useState(searchParams.get('phone') || '')
   const [roleFilter, setRoleFilter] = useState<UserRole['role'] | 'all'>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [busy,       setBusy]       = useState(false)
@@ -875,5 +877,13 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
         </div>
       )}
     </div>
+  )
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>טוען...</div>}>
+      <UsersPageInner />
+    </Suspense>
   )
 }

@@ -961,7 +961,7 @@ function StationCard({
                         lineHeight: 1,
                       }}
                     >⭐</span>
-                    <span style={{color: '#1e293b'}}>{m.full_name}</span>
+                    <Link href={`/admin/users?phone=${encodeURIComponent(m.phone)}`} style={{color: '#2563eb', textDecoration: 'none', fontWeight: 600}} onClick={e => e.stopPropagation()}>{m.full_name}</Link>
                     <span style={{color: '#64748b'}}>- {m.phone}</span>
                     <span style={{
                       marginRight: '8px',

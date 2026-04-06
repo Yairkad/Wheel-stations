@@ -349,9 +349,17 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       const hasOldStationSession = Object.keys(localStorage).some(key => key.startsWith('wheel_manager_'))
       const hasSuperManagerSession = localStorage.getItem('super_manager_session')
 
-      if (hasAnyStationSession || hasOperatorSession || hasOldStationSession || hasSuperManagerSession) {
+      const hasAdminSession = (() => {
+        try {
+          const a = localStorage.getItem('wheels_admin_auth')
+          if (!a) return false
+          const { expiry } = JSON.parse(a)
+          return expiry && Date.now() < expiry
+        } catch { return false }
+      })()
+
+      if (hasAnyStationSession || hasOperatorSession || hasOldStationSession || hasSuperManagerSession || hasAdminSession) {
         // User is logged in elsewhere - allow viewing this station as guest (not manager)
-        // isManager stays false, no manager controls shown
         return
       }
 
