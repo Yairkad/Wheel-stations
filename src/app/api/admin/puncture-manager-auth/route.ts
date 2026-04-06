@@ -13,17 +13,31 @@ export async function POST(request: NextRequest) {
   }
 
   const cleanPhone = phone.replace(/\D/g, '')
-  const { data: manager, error } = await supabase
-    .from('puncture_managers')
-    .select('id, full_name, phone, is_active')
+
+  const { data: user } = await supabase
+    .from('users')
+    .select('id, full_name, phone, password, is_active')
     .eq('phone', cleanPhone)
-    .eq('password', password)
-    .eq('is_active', true)
     .single()
 
-  if (error || !manager) {
+  if (!user || !user.is_active || user.password !== password) {
     return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
   }
 
-  return NextResponse.json({ success: true, manager })
+  const { data: roleRow } = await supabase
+    .from('user_roles')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('role', 'puncture_manager')
+    .eq('is_active', true)
+    .single()
+
+  if (!roleRow) {
+    return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+  }
+
+  return NextResponse.json({
+    success: true,
+    manager: { id: user.id, full_name: user.full_name, phone: user.phone, is_active: user.is_active }
+  })
 }

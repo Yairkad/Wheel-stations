@@ -7,7 +7,6 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 5 attempts per minute per IP
     const clientIp = getClientIp(request)
     const rateLimit = checkRateLimit(`auth:${clientIp}`, { maxRequests: 5, windowMs: 60 * 1000 })
 
@@ -24,70 +23,64 @@ export async function POST(request: NextRequest) {
     const password = body.password?.trim()
 
     if (!phone || !password) {
-      return NextResponse.json(
-        { error: 'Missing phone or password' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing phone or password' }, { status: 400 })
     }
 
-    // Try to find manager in wheel stations (using personal password)
     const cleanPhone = phone.replace(/\D/g, '')
-    const { data: wheelManagers, error: wheelError } = await supabase
-      .from('wheel_station_managers')
-      .select('*, wheel_stations(id, name)')
 
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, full_name, phone, password, is_active')
+      .eq('phone', cleanPhone)
+      .single()
 
-    if (wheelManagers && wheelManagers.length > 0) {
-      // Find manager by phone
-      const manager = wheelManagers.find((m: { phone: string }) =>
-        m.phone.replace(/\D/g, '') === cleanPhone
-      )
-
-      if (manager) {
-        const station = manager.wheel_stations
-
-        // Verify personal password
-        if (manager.password !== password) {
-          return NextResponse.json(
-            { error: 'סיסמה שגויה' },
-            { status: 401 }
-          )
-        }
-
-        return NextResponse.json({
-          success: true,
-          manager: {
-            id: manager.id,
-            full_name: manager.full_name,
-            phone: manager.phone,
-            station_id: station.id,
-            station_name: station.name,
-            role: manager.role || 'מנהל תחנה',
-            is_primary: manager.is_primary || false,
-            type: 'wheel_station'
-          }
-        })
-      }
+    if (!user || !user.is_active) {
+      return NextResponse.json({ error: 'מספר טלפון לא נמצא במערכת' }, { status: 401 })
     }
 
-    // Try to find manager in city managers (equipment cabinets)
-    const { data: cityManagers, error: cityError } = await supabase
+    if (user.password !== password) {
+      return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
+    }
+
+    // Find their station_manager role
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id, station_id, is_primary, title, wheel_stations(id, name)')
+      .eq('user_id', user.id)
+      .eq('role', 'station_manager')
+      .eq('is_active', true)
+      .single()
+
+    if (roleRow) {
+      const ws = Array.isArray(roleRow.wheel_stations) ? roleRow.wheel_stations[0] : roleRow.wheel_stations as { id: string; name: string } | null
+      return NextResponse.json({
+        success: true,
+        manager: {
+          id: user.id,
+          full_name: user.full_name,
+          phone: user.phone,
+          station_id: ws?.id,
+          station_name: ws?.name,
+          role: roleRow.title || 'מנהל תחנה',
+          is_primary: roleRow.is_primary || false,
+          type: 'wheel_station'
+        }
+      })
+    }
+
+    // Try city_managers (equipment cabinets) — still in old table
+    const { data: cityManagers } = await supabase
       .from('city_managers')
       .select('*, cities(id, name, password)')
       .eq('phone', phone)
       .limit(1)
 
-
     if (cityManagers && cityManagers.length > 0) {
       const manager = cityManagers[0]
       const city = manager.cities
 
-      // Verify password (city password)
       if (city?.password !== password) {
-        return NextResponse.json(
-          { error: 'סיסמה שגויה' },
-          { status: 401 }
-        )
+        return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
       }
 
       return NextResponse.json({
@@ -103,14 +96,10 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // No manager found with this phone number
-    return NextResponse.json(
-      { error: 'מספר טלפון לא נמצא במערכת' },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: 'מספר טלפון לא נמצא במערכת' }, { status: 401 })
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Auth error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'שגיאה פנימית' }, { status: 500 })
   }
 }

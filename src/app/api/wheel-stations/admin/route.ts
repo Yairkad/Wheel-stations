@@ -27,14 +27,6 @@ export async function GET() {
         is_active,
         max_managers,
         cities (name),
-        wheel_station_managers (
-          id,
-          full_name,
-          phone,
-          role,
-          is_primary,
-          password
-        ),
         wheels (
           id,
           is_available,
@@ -48,14 +40,45 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch stations' }, { status: 500 })
     }
 
-    // Calculate wheel stats for each station (exclude soft-deleted wheels)
+    // For each station, fetch its managers from user_roles + users
+    const stationIds = (stations || []).map(s => s.id)
+    const roleRows = stationIds.length > 0
+      ? (await supabase
+          .from('user_roles')
+          .select('station_id, is_primary, title, users(id, full_name, phone, password)')
+          .eq('role', 'station_manager')
+          .eq('is_active', true)
+          .in('station_id', stationIds)
+        ).data
+      : []
+
+    // Group managers by station_id
+    const managersByStation: Record<string, { id: string; full_name: string; phone: string; role: string; is_primary: boolean; password: string | null }[]> = {}
+    for (const r of (roleRows || [])) {
+      const sid = r.station_id as string
+      if (!managersByStation[sid]) managersByStation[sid] = []
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string; password: string | null } | null
+      if (u) {
+        managersByStation[sid].push({
+          id: u.id,
+          full_name: u.full_name,
+          phone: u.phone,
+          role: (r.title as string) || 'מנהל תחנה',
+          is_primary: (r.is_primary as boolean) || false,
+          password: u.password,
+        })
+      }
+    }
+
+    // Calculate wheel stats and attach managers
     const stationsWithStats = stations?.map(station => {
       const activeWheels = (station.wheels || []).filter((w: { deleted_at: string | null }) => !w.deleted_at)
       return {
         ...station,
+        wheel_station_managers: managersByStation[station.id] || [],
         totalWheels: activeWheels.length,
         availableWheels: activeWheels.filter((w: { is_available: boolean }) => w.is_available).length,
-        wheels: undefined // Don't send individual wheels
+        wheels: undefined
       }
     })
 
@@ -72,7 +95,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { admin_password, name, address, city_id, district, managers } = body
 
-    // Verify admin password
     try {
       if (!verifyAdminPassword(admin_password)) {
         return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
@@ -85,18 +107,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שם תחנה הוא שדה חובה' }, { status: 400 })
     }
 
-    // Create station
-    const stationData: {
-      name: string
-      address?: string
-      city_id?: string
-      district?: string
-      is_active: boolean
-    } = {
+    const stationData: { name: string; address?: string; city_id?: string; district?: string; is_active: boolean } = {
       name,
       is_active: true
     }
-
     if (address) stationData.address = address
     if (city_id) stationData.city_id = city_id
     if (district) stationData.district = district
@@ -112,23 +126,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שגיאה ביצירת תחנה' }, { status: 500 })
     }
 
-    // Add managers if provided (with personal passwords)
+    // Add managers to unified tables if provided
     if (managers && managers.length > 0) {
-      const managersWithStation = managers.map((m: { full_name: string; phone: string; role?: string; is_primary?: boolean; password?: string }) => ({
-        station_id: station.id,
-        full_name: m.full_name,
-        phone: m.phone,
-        role: m.role || 'מנהל תחנה',
-        is_primary: m.is_primary || false,
-        password: m.password || null
-      }))
+      for (const m of managers as { full_name: string; phone: string; role?: string; is_primary?: boolean; password?: string }[]) {
+        const cleanPhone = m.phone.replace(/\D/g, '')
 
-      const { error: managersError } = await supabase
-        .from('wheel_station_managers')
-        .insert(managersWithStation)
+        // Upsert user
+        let userId: string | null = null
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('phone', cleanPhone)
+          .single()
 
-      if (managersError) {
-        console.error('Error adding managers:', managersError)
+        if (existingUser) {
+          userId = existingUser.id
+        } else {
+          const { data: newUser } = await supabase
+            .from('users')
+            .insert({ full_name: m.full_name, phone: cleanPhone, password: m.password || null, is_active: true })
+            .select('id')
+            .single()
+          userId = newUser?.id || null
+        }
+
+        if (userId) {
+          const { error: rErr } = await supabase.from('user_roles').insert({
+            user_id: userId,
+            role: 'station_manager',
+            station_id: station.id,
+            title: m.role || 'מנהל תחנה',
+            is_primary: m.is_primary || false,
+            is_active: true,
+          })
+          if (rErr) throw rErr
+        }
       }
     }
 

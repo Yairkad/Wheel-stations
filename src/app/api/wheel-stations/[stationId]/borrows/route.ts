@@ -87,12 +87,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     let operatorNames: Record<string, string> = {}
     if (referredByIds.length > 0) {
-      const { data: operators } = await supabase
-        .from('operators')
+      const { data: operatorUsers } = await supabase
+        .from('users')
         .select('id, full_name')
         .in('id', referredByIds)
 
-      operators?.forEach(op => {
+      operatorUsers?.forEach(op => {
         operatorNames[op.id] = op.full_name
       })
     }

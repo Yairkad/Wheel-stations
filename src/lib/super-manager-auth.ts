@@ -10,38 +10,33 @@ export async function verifySuperManager(
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   const cleanPhone = phone.replace(/\D/g, '')
 
-  const { data, error } = await supabase
-    .from('super_managers')
-    .select('id, phone, password, full_name, is_active, allowed_districts')
-    .limit(50)
+  const { data: user } = await supabase
+    .from('users')
+    .select('id, full_name, phone, password, is_active')
+    .eq('phone', cleanPhone)
+    .single()
 
-  if (error || !data) {
-    return { success: false, error: 'שגיאה באימות' }
-  }
+  if (!user) return { success: false, error: 'מספר הטלפון לא נמצא' }
+  if (!user.is_active) return { success: false, error: 'החשבון אינו פעיל' }
+  if (user.password !== password) return { success: false, error: 'סיסמא שגויה' }
 
-  const manager = data.find(
-    (m: { phone: string }) => m.phone.replace(/\D/g, '') === cleanPhone
-  )
+  const { data: roleRow } = await supabase
+    .from('user_roles')
+    .select('id, allowed_districts')
+    .eq('user_id', user.id)
+    .eq('role', 'super_manager')
+    .eq('is_active', true)
+    .single()
 
-  if (!manager) {
-    return { success: false, error: 'מספר הטלפון לא נמצא' }
-  }
-
-  if (!manager.is_active) {
-    return { success: false, error: 'החשבון אינו פעיל' }
-  }
-
-  if (manager.password !== password) {
-    return { success: false, error: 'סיסמא שגויה' }
-  }
+  if (!roleRow) return { success: false, error: 'אין הרשאת מנהל מחוז' }
 
   return {
     success: true,
     superManager: {
-      id: manager.id,
-      full_name: manager.full_name,
-      phone: manager.phone,
-      allowed_districts: manager.allowed_districts || null
+      id: user.id,
+      full_name: user.full_name,
+      phone: user.phone,
+      allowed_districts: roleRow.allowed_districts || null
     }
   }
 }

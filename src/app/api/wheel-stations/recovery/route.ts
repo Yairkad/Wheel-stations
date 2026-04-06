@@ -24,36 +24,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'הסיסמא חייבת להכיל לפחות 4 תווים' }, { status: 400 })
     }
 
-    // Find manager by phone across all stations
     const cleanPhone = phone.replace(/\D/g, '')
-    const { data: managers } = await supabase
-      .from('wheel_station_managers')
-      .select('id, phone, recovery_key, station_id')
 
-    const manager = managers?.find(m => m.phone.replace(/\D/g, '') === cleanPhone)
-    if (!manager) {
+    const { data: user } = await supabase
+      .from('users')
+      .select('id')
+      .eq('phone', cleanPhone)
+      .single()
+
+    if (!user) {
       return NextResponse.json({ error: 'מספר הטלפון לא נמצא במערכת' }, { status: 404 })
     }
 
-    if (!manager.recovery_key || manager.recovery_key !== recovery_key) {
+    // Find any active station_manager role with matching recovery_key
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id, recovery_key')
+      .eq('user_id', user.id)
+      .eq('role', 'station_manager')
+      .eq('is_active', true)
+      .single()
+
+    if (!roleRow) {
+      return NextResponse.json({ error: 'מספר הטלפון לא נמצא במערכת' }, { status: 404 })
+    }
+
+    if (!roleRow.recovery_key || roleRow.recovery_key !== recovery_key) {
       return NextResponse.json({ error: 'מפתח שחזור שגוי' }, { status: 403 })
     }
 
-    // Reset password and generate new recovery key
     const newRecoveryKey = crypto.randomBytes(32).toString('hex')
-    const { error } = await supabase
-      .from('wheel_station_managers')
-      .update({ password: new_password, recovery_key: newRecoveryKey })
-      .eq('id', manager.id)
 
-    if (error) {
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ password: new_password })
+      .eq('id', user.id)
+
+    if (updateError) {
       return NextResponse.json({ error: 'שגיאה באיפוס הסיסמא' }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'הסיסמא אופסה בהצלחה! יש להוריד תעודת שחזור חדשה.'
-    })
+    await supabase
+      .from('user_roles')
+      .update({ recovery_key: newRecoveryKey })
+      .eq('id', roleRow.id)
+
+    return NextResponse.json({ success: true, message: 'הסיסמא אופסה בהצלחה! יש להוריד תעודת שחזור חדשה.' })
   } catch (error) {
     console.error('Error in POST global recovery:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

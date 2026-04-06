@@ -158,45 +158,41 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ valid: false, error: 'Session expired', expired: true }, { status: 401 })
       }
 
-      // Verify manager still exists and phone matches
-      const { data: station, error } = await supabase
-        .from('wheel_stations')
-        .select(`
-          id,
-          wheel_station_managers (
-            id,
-            full_name,
-            phone,
-            role,
-            is_primary
-          )
-        `)
-        .eq('id', stationId)
+      // Verify manager still exists, phone matches, and has role for this station
+      const cleanPhone = phone.replace(/\D/g, '')
+
+      const { data: user } = await supabase
+        .from('users')
+        .select('id, full_name, phone, is_active')
+        .eq('id', managerId)
+        .eq('phone', cleanPhone)
         .single()
 
-      if (error || !station) {
-        return NextResponse.json({ valid: false, error: 'Station not found' }, { status: 404 })
+      if (!user || !user.is_active) {
+        return NextResponse.json({ valid: false, error: 'Manager not found or phone mismatch' }, { status: 401 })
       }
 
-      // Find manager by ID and verify phone
-      const cleanPhone = phone.replace(/\D/g, '')
-      const manager = station.wheel_station_managers.find(
-        (m: { id: string; phone: string }) =>
-          m.id === managerId && m.phone.replace(/\D/g, '') === cleanPhone
-      )
+      const { data: roleRow } = await supabase
+        .from('user_roles')
+        .select('id, is_primary, title')
+        .eq('user_id', user.id)
+        .eq('role', 'station_manager')
+        .eq('station_id', stationId)
+        .eq('is_active', true)
+        .single()
 
-      if (!manager) {
+      if (!roleRow) {
         return NextResponse.json({ valid: false, error: 'Manager not found or phone mismatch' }, { status: 401 })
       }
 
       return NextResponse.json({
         valid: true,
         manager: {
-          id: manager.id,
-          full_name: manager.full_name,
-          phone: manager.phone,
-          role: manager.role,
-          is_primary: manager.is_primary || false
+          id: user.id,
+          full_name: user.full_name,
+          phone: user.phone,
+          role: roleRow.title || 'מנהל תחנה',
+          is_primary: roleRow.is_primary || false
         }
       })
     } catch {
@@ -235,35 +231,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Phone and password are required' }, { status: 400 })
     }
 
-    // Get station with managers (including their personal passwords)
-    const { data: station, error } = await supabase
-      .from('wheel_stations')
-      .select(`
-        id,
-        wheel_station_managers (
-          id,
-          full_name,
-          phone,
-          role,
-          is_primary,
-          password
-        )
-      `)
-      .eq('id', stationId)
+    // Find user by phone
+    const cleanPhone = phone.replace(/\D/g, '')
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, full_name, phone, password, is_active')
+      .eq('phone', cleanPhone)
       .single()
 
-    if (error || !station) {
-      return NextResponse.json({ error: 'Station not found' }, { status: 404 })
-    }
-
-    // Find manager by phone
-    const cleanPhone = phone.replace(/\D/g, '')
-    const manager = station.wheel_station_managers.find((m: { phone: string }) =>
-      m.phone.replace(/\D/g, '') === cleanPhone
-    )
-
-    if (!manager) {
-      // Record failed attempt for wrong phone
+    if (!user || !user.is_active) {
       const failResult = recordFailedAttempt(ip, stationId)
       if (failResult.locked) {
         return NextResponse.json({
@@ -274,17 +250,37 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }, { status: 401 })
     }
 
-    // Check if manager has a password set
-    if (!manager.password) {
+    // Check if user has a station_manager role for this station
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id, is_primary, title')
+      .eq('user_id', user.id)
+      .eq('role', 'station_manager')
+      .eq('station_id', stationId)
+      .eq('is_active', true)
+      .single()
+
+    if (!roleRow) {
+      const failResult = recordFailedAttempt(ip, stationId)
+      if (failResult.locked) {
+        return NextResponse.json({
+          error: `יותר מדי ניסיונות כניסה. נסה שוב בעוד ${failResult.remainingTime} דקות`,
+          code: 'RATE_LIMITED'
+        }, { status: 429 })
+      }
+      return NextResponse.json({ error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }, { status: 401 })
+    }
+
+    // Check if user has a password set
+    if (!user.password) {
       return NextResponse.json({
         error: 'לא הוגדרה סיסמא אישית. יש לפנות לאדמין להגדרת סיסמא.',
         code: 'NO_PASSWORD_SET'
       }, { status: 400 })
     }
 
-    // Verify personal password
-    if (manager.password !== password) {
-      // Record failed attempt and check if now locked
+    // Verify password
+    if (user.password !== password) {
       const failResult = recordFailedAttempt(ip, stationId)
       if (failResult.locked) {
         return NextResponse.json({
@@ -299,16 +295,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     clearRateLimit(ip, stationId)
 
     // Generate HMAC-signed token
-    const token = createToken(stationId, manager.id)
+    const token = createToken(stationId, user.id)
 
     return NextResponse.json({
       success: true,
       manager: {
-        id: manager.id,
-        full_name: manager.full_name,
-        phone: manager.phone,
-        role: manager.role,
-        is_primary: manager.is_primary || false
+        id: user.id,
+        full_name: user.full_name,
+        phone: user.phone,
+        role: roleRow.title || 'מנהל תחנה',
+        is_primary: roleRow.is_primary || false
       },
       token
     })
@@ -333,51 +329,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'הסיסמא חייבת להכיל לפחות 4 תווים' }, { status: 400 })
     }
 
-    // Get station with managers
-    const { data: station, error } = await supabase
-      .from('wheel_stations')
-      .select(`
-        id,
-        wheel_station_managers (id, phone, password)
-      `)
-      .eq('id', stationId)
-      .single()
-
-    if (error || !station) {
-      return NextResponse.json({ error: 'Station not found' }, { status: 404 })
-    }
-
-    // Find manager by phone
     const cleanPhone = phone.replace(/\D/g, '')
-    const manager = station.wheel_station_managers.find((m: { phone: string }) =>
-      m.phone.replace(/\D/g, '') === cleanPhone
-    )
 
-    // Try legacy table first (only if password matches)
-    if (manager && manager.password === current_password) {
-      const { error: updateError } = await supabase
-        .from('wheel_station_managers')
-        .update({ password: new_password })
-        .eq('id', manager.id)
-      if (updateError) throw updateError
-      // Also sync to unified users table if exists
-      await supabase.from('users').update({ password: new_password }).eq('phone', cleanPhone)
-      return NextResponse.json({ success: true, message: 'הסיסמא שונתה בהצלחה' })
-    }
-
-    // Not in legacy table — check unified users table
-    const { data: unifiedUser } = await supabase
+    const { data: user } = await supabase
       .from('users')
       .select('id, password')
       .eq('phone', cleanPhone)
       .eq('is_active', true)
       .single()
 
-    if (!unifiedUser) {
+    if (!user) {
       return NextResponse.json({ error: 'אינך מנהל תחנה מורשה' }, { status: 403 })
     }
 
-    if (unifiedUser.password !== current_password) {
+    if (user.password !== current_password) {
       return NextResponse.json({ error: 'סיסמא נוכחית שגויה' }, { status: 401 })
     }
 
@@ -385,7 +350,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { data: roleRow } = await supabase
       .from('user_roles')
       .select('id')
-      .eq('user_id', unifiedUser.id)
+      .eq('user_id', user.id)
       .eq('role', 'station_manager')
       .eq('station_id', stationId)
       .eq('is_active', true)
@@ -398,7 +363,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { error: updateError } = await supabase
       .from('users')
       .update({ password: new_password })
-      .eq('id', unifiedUser.id)
+      .eq('id', user.id)
     if (updateError) throw updateError
 
     return NextResponse.json({ success: true, message: 'הסיסמא שונתה בהצלחה' })

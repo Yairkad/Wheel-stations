@@ -25,13 +25,6 @@ export async function GET() {
         city_id,
         district,
         cities (name),
-        wheel_station_managers (
-          id,
-          full_name,
-          phone,
-          role,
-          is_primary
-        ),
         wheels (
           id,
           is_available,
@@ -46,14 +39,35 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch stations' }, { status: 500 })
     }
 
+    // Fetch managers from unified tables
+    const stationIds = (stations || []).map(s => s.id)
+    const managerRoles = stationIds.length > 0
+      ? (await supabase
+          .from('user_roles')
+          .select('station_id, is_primary, title, users(id, full_name, phone)')
+          .eq('role', 'station_manager')
+          .eq('is_active', true)
+          .in('station_id', stationIds)
+        ).data
+      : []
+
+    const managersByStation: Record<string, unknown[]> = {}
+    for (const r of (managerRoles || [])) {
+      const sid = r.station_id as string
+      if (!managersByStation[sid]) managersByStation[sid] = []
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string } | null
+      if (u) managersByStation[sid].push({ id: u.id, full_name: u.full_name, phone: u.phone, role: (r.title as string) || 'מנהל תחנה', is_primary: (r.is_primary as boolean) || false })
+    }
+
     // Calculate wheel stats for each station (exclude soft-deleted wheels)
     const stationsWithStats = stations?.map(station => {
       const activeWheels = (station.wheels || []).filter((w: { deleted_at: string | null }) => !w.deleted_at)
       return {
         ...station,
+        wheel_station_managers: managersByStation[station.id] || [],
         totalWheels: activeWheels.length,
         availableWheels: activeWheels.filter((w: { is_available: boolean }) => w.is_available).length,
-        wheels: undefined // Don't send individual wheels in list view
+        wheels: undefined
       }
     })
 
@@ -116,18 +130,19 @@ export async function POST(request: NextRequest) {
 
     // Add managers if provided
     if (managers && managers.length > 0) {
-      const managersWithStation = managers.map((m: { full_name: string; phone: string; role?: string; is_primary?: boolean }) => ({
-        ...m,
-        station_id: station.id
-      }))
-
-      const { error: managersError } = await supabase
-        .from('wheel_station_managers')
-        .insert(managersWithStation)
-
-      if (managersError) {
-        console.error('Error adding managers:', managersError)
-        // Station was created but managers failed - log but don't fail
+      for (const m of managers as { full_name: string; phone: string; role?: string; is_primary?: boolean; password?: string }[]) {
+        const cleanPhone = m.phone.replace(/\D/g, '')
+        const { data: existingUser } = await supabase.from('users').select('id').eq('phone', cleanPhone).single()
+        let userId: string
+        if (existingUser) {
+          userId = existingUser.id
+        } else {
+          const { data: newUser } = await supabase.from('users').insert({ full_name: m.full_name, phone: cleanPhone, password: m.password || null, is_active: true }).select('id').single()
+          if (!newUser) continue
+          userId = newUser.id
+        }
+        const { error: rErr } = await supabase.from('user_roles').insert({ user_id: userId, role: 'station_manager', station_id: station.id, title: m.role || 'מנהל תחנה', is_primary: m.is_primary || false, is_active: true })
+        if (rErr) throw rErr
       }
     }
 

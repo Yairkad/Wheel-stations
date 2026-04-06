@@ -32,19 +32,31 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'נדרש טלפון וסיסמא' }, { status: 401 })
     }
 
-    // Verify manager credentials
     const cleanPhone = phone.replace(/\D/g, '')
-    const { data: managers } = await supabase
-      .from('wheel_station_managers')
-      .select('id, phone, password, recovery_key, full_name, role, is_primary')
-      .eq('station_id', stationId)
 
-    const manager = managers?.find(m => m.phone.replace(/\D/g, '') === cleanPhone)
-    if (!manager || manager.password !== password) {
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, full_name, phone, password, is_active')
+      .eq('phone', cleanPhone)
+      .single()
+
+    if (!user || !user.is_active || user.password !== password) {
       return NextResponse.json({ error: 'פרטי התחברות שגויים' }, { status: 403 })
     }
 
-    // Get station name for the certificate
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id, is_primary, title, recovery_key')
+      .eq('user_id', user.id)
+      .eq('role', 'station_manager')
+      .eq('station_id', stationId)
+      .eq('is_active', true)
+      .single()
+
+    if (!roleRow) {
+      return NextResponse.json({ error: 'פרטי התחברות שגויים' }, { status: 403 })
+    }
+
     const { data: station } = await supabase
       .from('wheel_stations')
       .select('name')
@@ -52,21 +64,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .single()
 
     // Generate recovery key if doesn't exist
-    let recoveryKey = manager.recovery_key
+    let recoveryKey = roleRow.recovery_key
     if (!recoveryKey) {
       recoveryKey = generateRecoveryKey()
-      await supabase
-        .from('wheel_station_managers')
+      const { error: keyErr } = await supabase
+        .from('user_roles')
         .update({ recovery_key: recoveryKey })
-        .eq('id', manager.id)
+        .eq('id', roleRow.id)
+      if (keyErr) throw keyErr
     }
 
     return NextResponse.json({
       recovery_key: recoveryKey,
-      manager_name: manager.full_name,
+      manager_name: user.full_name,
       station_name: station?.name || '',
-      role: manager.role,
-      is_primary: manager.is_primary
+      role: roleRow.title || 'מנהל תחנה',
+      is_primary: roleRow.is_primary || false,
     })
   } catch (error) {
     console.error('Error in GET recovery:', error)
@@ -89,35 +102,53 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const cleanPhone = phone.replace(/\D/g, '')
-    const { data: managers } = await supabase
-      .from('wheel_station_managers')
-      .select('id, phone, recovery_key')
-      .eq('station_id', stationId)
 
-    const manager = managers?.find(m => m.phone.replace(/\D/g, '') === cleanPhone)
-    if (!manager) {
+    const { data: user } = await supabase
+      .from('users')
+      .select('id')
+      .eq('phone', cleanPhone)
+      .single()
+
+    if (!user) {
       return NextResponse.json({ error: 'מספר הטלפון לא נמצא' }, { status: 404 })
     }
 
-    if (!manager.recovery_key || manager.recovery_key !== recovery_key) {
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id, recovery_key')
+      .eq('user_id', user.id)
+      .eq('role', 'station_manager')
+      .eq('station_id', stationId)
+      .eq('is_active', true)
+      .single()
+
+    if (!roleRow) {
+      return NextResponse.json({ error: 'מספר הטלפון לא נמצא' }, { status: 404 })
+    }
+
+    if (!roleRow.recovery_key || roleRow.recovery_key !== recovery_key) {
       return NextResponse.json({ error: 'מפתח שחזור שגוי' }, { status: 403 })
     }
 
     // Reset password and generate new recovery key
     const newRecoveryKey = generateRecoveryKey()
-    const { error } = await supabase
-      .from('wheel_station_managers')
-      .update({ password: new_password, recovery_key: newRecoveryKey })
-      .eq('id', manager.id)
 
-    if (error) {
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ password: new_password })
+      .eq('id', user.id)
+
+    if (updateError) {
       return NextResponse.json({ error: 'שגיאה באיפוס הסיסמא' }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'הסיסמא אופסה בהצלחה! יש להוריד תעודת שחזור חדשה.'
-    })
+    const { error: keyErr } = await supabase
+      .from('user_roles')
+      .update({ recovery_key: newRecoveryKey })
+      .eq('id', roleRow.id)
+    if (keyErr) throw keyErr
+
+    return NextResponse.json({ success: true, message: 'הסיסמא אופסה בהצלחה! יש להוריד תעודת שחזור חדשה.' })
   } catch (error) {
     console.error('Error in POST recovery:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

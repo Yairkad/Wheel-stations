@@ -26,9 +26,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ managers: {} })
     }
 
-    const { data: managers, error } = await supabase
-      .from('wheel_station_managers')
-      .select('id, full_name, phone, station_id')
+    const { data: roles, error } = await supabase
+      .from('user_roles')
+      .select('station_id, users(id, full_name, phone)')
+      .eq('role', 'station_manager')
+      .eq('is_active', true)
       .in('station_id', stationIds)
 
     if (error) {
@@ -39,16 +41,12 @@ export async function GET(request: NextRequest) {
     // Group by station_id
     const managersMap: Record<string, { id: string; full_name: string; phone: string }[]> = {}
 
-    managers?.forEach(manager => {
-      if (!managersMap[manager.station_id]) {
-        managersMap[manager.station_id] = []
-      }
-      managersMap[manager.station_id].push({
-        id: manager.id,
-        full_name: manager.full_name,
-        phone: manager.phone
-      })
-    })
+    for (const r of (roles || [])) {
+      const sid = r.station_id as string
+      if (!managersMap[sid]) managersMap[sid] = []
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string } | null
+      if (u) managersMap[sid].push({ id: u.id, full_name: u.full_name, phone: u.phone })
+    }
 
     return NextResponse.json({ managers: managersMap })
   } catch (error) {

@@ -4,12 +4,11 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-// Generate a random 4-digit code
 function generateCode(): string {
   return Math.floor(1000 + Math.random() * 9000).toString()
 }
 
-// DELETE - Delete an operator
+// DELETE - Remove an operator's role
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -18,27 +17,26 @@ export async function DELETE(
     const { id } = await params
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // id is user id — deactivate their operator role
     const { error } = await supabase
-      .from('operators')
-      .delete()
-      .eq('id', id)
+      .from('user_roles')
+      .update({ is_active: false })
+      .eq('user_id', id)
+      .eq('role', 'operator')
 
     if (error) {
       console.error('Error deleting operator:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'המוקדן נמחק בהצלחה'
-    })
+    return NextResponse.json({ success: true, message: 'המוקדן נמחק בהצלחה' })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json({ error: 'שגיאה פנימית בשרת' }, { status: 500 })
   }
 }
 
-// PUT - Update an operator (change code, toggle active)
+// PUT - Update an operator
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -51,27 +49,53 @@ export async function PUT(
     const { is_active, regenerate_code, full_name } = body
     const phone = body.phone?.trim()
 
-    const updateData: Record<string, unknown> = {}
-    if (is_active !== undefined) updateData.is_active = is_active
-    if (full_name !== undefined) updateData.full_name = full_name
-    if (phone !== undefined) updateData.phone = phone
-    if (regenerate_code) updateData.code = generateCode()
+    // Update user fields
+    const userUpdate: Record<string, unknown> = {}
+    if (is_active !== undefined) userUpdate.is_active = is_active
+    if (full_name !== undefined) userUpdate.full_name = full_name
+    if (phone !== undefined) userUpdate.phone = phone.replace(/\D/g, '')
 
-    const { data, error } = await supabase
-      .from('operators')
-      .update(updateData)
+    if (Object.keys(userUpdate).length > 0) {
+      const { error: uErr } = await supabase.from('users').update(userUpdate).eq('id', id)
+      if (uErr) throw uErr
+    }
+
+    // Regenerate operator code in user_roles
+    let newCode: string | undefined
+    if (regenerate_code) {
+      newCode = generateCode()
+      const { error: cErr } = await supabase
+        .from('user_roles')
+        .update({ operator_code: newCode })
+        .eq('user_id', id)
+        .eq('role', 'operator')
+      if (cErr) throw cErr
+      const { error: pErr } = await supabase.from('users').update({ password: newCode }).eq('id', id)
+      if (pErr) throw pErr
+    }
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, full_name, phone, is_active')
       .eq('id', id)
-      .select()
       .single()
 
-    if (error) {
-      console.error('Error updating operator:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('operator_code')
+      .eq('user_id', id)
+      .eq('role', 'operator')
+      .single()
 
     return NextResponse.json({
       success: true,
-      operator: data,
+      operator: {
+        id: user?.id,
+        full_name: user?.full_name,
+        phone: user?.phone,
+        code: roleRow?.operator_code,
+        is_active: user?.is_active,
+      },
       message: regenerate_code ? 'קוד חדש נוצר' : 'המוקדן עודכן'
     })
   } catch (error) {

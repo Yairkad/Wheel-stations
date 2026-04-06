@@ -13,14 +13,24 @@ export async function verifyPunctureAccess(body: Record<string, unknown>): Promi
   }
   if (body.pm_phone && body.pm_password) {
     const cleanPhone = (body.pm_phone as string).replace(/\D/g, '')
-    const { data } = await supabase
-      .from('puncture_managers')
-      .select('id')
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, password, is_active')
       .eq('phone', cleanPhone)
-      .eq('password', body.pm_password as string)
+      .single()
+
+    if (!user || !user.is_active || user.password !== body.pm_password) return false
+
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('role', 'puncture_manager')
       .eq('is_active', true)
       .single()
-    return !!data
+
+    return !!roleRow
   }
   return false
 }

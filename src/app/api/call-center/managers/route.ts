@@ -15,26 +15,40 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'חסר מזהה מוקד' }, { status: 400 })
     }
 
-    const { data: managers, error } = await supabase
-      .from('call_center_managers')
-      .select('id, full_name, title, phone, is_primary, is_active, created_at')
+    const { data: roles, error } = await supabase
+      .from('user_roles')
+      .select('id, is_primary, title, created_at, users(id, full_name, phone, is_active)')
       .eq('call_center_id', callCenterId)
+      .eq('role', 'call_center_manager')
+      .eq('is_active', true)
       .order('is_primary', { ascending: false })
-      .order('created_at', { ascending: true })
 
     if (error) {
       console.error('Error fetching managers:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ managers: managers || [] })
+    const managers = (roles || []).map(r => {
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string; is_active: boolean } | null
+      return {
+        id: u?.id,
+        full_name: u?.full_name,
+        title: r.title,
+        phone: u?.phone,
+        is_primary: r.is_primary || false,
+        is_active: u?.is_active ?? true,
+        created_at: r.created_at,
+      }
+    })
+
+    return NextResponse.json({ managers })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json({ error: 'שגיאה פנימית בשרת' }, { status: 500 })
   }
 }
 
-// POST - Create a new manager (only primary manager can do this)
+// POST - Create a new manager
 export async function POST(request: NextRequest) {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -48,48 +62,76 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Check if phone already exists
-    const { data: existingManager } = await supabase
-      .from('call_center_managers')
+    const cleanPhone = phone.replace(/\D/g, '')
+
+    // Check if phone already has a manager role for this call center
+    const { data: existingUser } = await supabase
+      .from('users')
       .select('id')
-      .eq('phone', phone)
+      .eq('phone', cleanPhone)
       .single()
 
-    if (existingManager) {
-      return NextResponse.json({
-        error: 'מספר הטלפון כבר קיים במערכת'
-      }, { status: 400 })
-    }
+    if (existingUser) {
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', existingUser.id)
+        .eq('role', 'call_center_manager')
+        .eq('call_center_id', call_center_id)
+        .eq('is_active', true)
+        .single()
 
-    const { data: manager, error } = await supabase
-      .from('call_center_managers')
-      .insert({
+      if (existingRole) {
+        return NextResponse.json({ error: 'מספר הטלפון כבר קיים במערכת' }, { status: 400 })
+      }
+
+      // Update user info and add role
+      const { error: userUpdErr } = await supabase.from('users').update({ full_name, password }).eq('id', existingUser.id)
+      if (userUpdErr) return NextResponse.json({ error: userUpdErr.message }, { status: 500 })
+
+      const { error: roleError } = await supabase.from('user_roles').insert({
+        user_id: existingUser.id,
+        role: 'call_center_manager',
         call_center_id,
-        full_name,
-        phone,
-        password,
         title: title || 'מנהל מוקד',
-        is_primary: false, // Only admin can create primary manager
-        is_active: true
+        is_primary: false,
+        is_active: true,
       })
-      .select()
+
+      if (roleError) return NextResponse.json({ error: roleError.message }, { status: 500 })
+
+      return NextResponse.json({
+        success: true,
+        manager: { id: existingUser.id, full_name, title: title || 'מנהל מוקד', phone: cleanPhone, is_primary: false, is_active: true },
+        message: 'המנהל נוסף בהצלחה'
+      })
+    }
+
+    // Create new user
+    const { data: newUser, error: userError } = await supabase
+      .from('users')
+      .insert({ full_name, phone: cleanPhone, password, is_active: true })
+      .select('id')
       .single()
 
-    if (error) {
-      console.error('Error creating manager:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (userError || !newUser) {
+      return NextResponse.json({ error: userError?.message || 'שגיאה ביצירת משתמש' }, { status: 500 })
     }
+
+    const { error: roleError } = await supabase.from('user_roles').insert({
+      user_id: newUser.id,
+      role: 'call_center_manager',
+      call_center_id,
+      title: title || 'מנהל מוקד',
+      is_primary: false,
+      is_active: true,
+    })
+
+    if (roleError) return NextResponse.json({ error: roleError.message }, { status: 500 })
 
     return NextResponse.json({
       success: true,
-      manager: {
-        id: manager.id,
-        full_name: manager.full_name,
-        title: manager.title,
-        phone: manager.phone,
-        is_primary: manager.is_primary,
-        is_active: manager.is_active
-      },
+      manager: { id: newUser.id, full_name, title: title || 'מנהל מוקד', phone: cleanPhone, is_primary: false, is_active: true },
       message: 'המנהל נוסף בהצלחה'
     })
   } catch (error) {

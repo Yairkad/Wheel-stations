@@ -1,6 +1,6 @@
 /**
  * Shared station manager authentication helper.
- * Used by multiple API routes to verify a station manager's credentials.
+ * Verifies against the unified users + user_roles tables.
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -19,44 +19,46 @@ export interface VerifyResult {
 }
 
 /**
- * Verifies that a phone+password combination belongs to a manager of the given station.
- * Returns success, isPrimary, and managerId on success.
+ * Verifies that a phone+password combination belongs to a station_manager of the given station.
  */
 export async function verifyStationManager(
   stationId: string,
   phone: string,
   password: string
 ): Promise<VerifyResult> {
-  const { data: station, error } = await supabase
-    .from('wheel_stations')
-    .select(`
-      id,
-      wheel_station_managers (id, phone, password, is_primary, full_name)
-    `)
-    .eq('id', stationId)
+  const cleanPhone = phone.replace(/\D/g, '')
+
+  const { data: user } = await supabase
+    .from('users')
+    .select('id, full_name, password, is_active')
+    .eq('phone', cleanPhone)
     .single()
 
-  if (error || !station) {
-    return { success: false, error: 'Station not found' }
-  }
-
-  const cleanPhone = phone.replace(/\D/g, '')
-  const manager = (station.wheel_station_managers as Array<{
-    id: string; phone: string; password: string; is_primary: boolean; full_name: string
-  }>).find(m => m.phone.replace(/\D/g, '') === cleanPhone)
-
-  if (!manager) {
+  if (!user || user.is_active === false) {
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
   }
 
-  if (manager.password !== password) {
+  if (user.password !== password) {
     return { success: false, error: 'סיסמא שגויה' }
+  }
+
+  const { data: roleRow } = await supabase
+    .from('user_roles')
+    .select('id, is_primary')
+    .eq('user_id', user.id)
+    .eq('role', 'station_manager')
+    .eq('station_id', stationId)
+    .eq('is_active', true)
+    .single()
+
+  if (!roleRow) {
+    return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
   }
 
   return {
     success: true,
-    isPrimary: manager.is_primary || false,
-    managerId: manager.id,
-    managerName: manager.full_name,
+    isPrimary: roleRow.is_primary || false,
+    managerId: user.id,
+    managerName: user.full_name,
   }
 }

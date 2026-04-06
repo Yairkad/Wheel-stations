@@ -18,9 +18,11 @@ export async function GET() {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { data: superManagers, error } = await supabase
-      .from('super_managers')
-      .select('id, full_name, phone, is_active, created_at, allowed_districts')
+    const { data: roles, error } = await supabase
+      .from('user_roles')
+      .select('id, allowed_districts, created_at, users(id, full_name, phone, is_active)')
+      .eq('role', 'super_manager')
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -28,7 +30,19 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch super managers' }, { status: 500 })
     }
 
-    return NextResponse.json({ superManagers: superManagers || [] })
+    const superManagers = (roles || []).map(r => {
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string; is_active: boolean } | null
+      return {
+        id: u?.id,
+        full_name: u?.full_name,
+        phone: u?.phone,
+        is_active: u?.is_active ?? true,
+        allowed_districts: r.allowed_districts || null,
+        created_at: r.created_at,
+      }
+    })
+
+    return NextResponse.json({ superManagers })
   } catch (error) {
     console.error('Error in GET /api/admin/super-managers:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -54,22 +68,43 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const cleanPhone = phone.replace(/\D/g, '')
 
-    const { error } = await supabase
-      .from('super_managers')
-      .insert({
-        full_name,
-        phone: phone.replace(/\D/g, ''),
-        password,
-        is_active: true,
-        allowed_districts: allowed_districts?.length ? allowed_districts : null
-      })
+    // Find or create user
+    let userId: string
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('phone', cleanPhone)
+      .single()
 
-    if (error) {
-      if (error.code === '23505') {
-        return NextResponse.json({ error: 'מספר טלפון זה כבר קיים במערכת' }, { status: 400 })
+    if (existingUser) {
+      await supabase.from('users').update({ full_name, password }).eq('id', existingUser.id)
+      userId = existingUser.id
+    } else {
+      const { data: newUser, error: userError } = await supabase
+        .from('users')
+        .insert({ full_name, phone: cleanPhone, password, is_active: true })
+        .select('id')
+        .single()
+
+      if (userError) {
+        if (userError.code === '23505') return NextResponse.json({ error: 'מספר טלפון זה כבר קיים במערכת' }, { status: 400 })
+        console.error('Error creating user:', userError)
+        return NextResponse.json({ error: 'Failed to create super manager' }, { status: 500 })
       }
-      console.error('Error creating super manager:', error)
+      userId = newUser!.id
+    }
+
+    const { error: roleError } = await supabase.from('user_roles').insert({
+      user_id: userId,
+      role: 'super_manager',
+      allowed_districts: allowed_districts?.length ? allowed_districts : null,
+      is_active: true,
+    })
+
+    if (roleError) {
+      console.error('Error creating role:', roleError)
       return NextResponse.json({ error: 'Failed to create super manager' }, { status: 500 })
     }
 
@@ -96,24 +131,30 @@ export async function PUT(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const updateData: Record<string, unknown> = {}
-    if (full_name !== undefined) updateData.full_name = full_name
-    if (phone !== undefined) updateData.phone = phone.replace(/\D/g, '')
-    if (password !== undefined && password !== '') updateData.password = password
-    if (is_active !== undefined) updateData.is_active = is_active
-    if (allowed_districts !== undefined) updateData.allowed_districts = allowed_districts?.length ? allowed_districts : null
+    // Update user fields
+    const userUpdate: Record<string, unknown> = {}
+    if (full_name !== undefined) userUpdate.full_name = full_name
+    if (phone !== undefined) userUpdate.phone = phone.replace(/\D/g, '')
+    if (password !== undefined && password !== '') userUpdate.password = password
+    if (is_active !== undefined) userUpdate.is_active = is_active
 
-    const { error } = await supabase
-      .from('super_managers')
-      .update(updateData)
-      .eq('id', id)
-
-    if (error) {
-      if (error.code === '23505') {
-        return NextResponse.json({ error: 'מספר טלפון זה כבר קיים במערכת' }, { status: 400 })
+    if (Object.keys(userUpdate).length > 0) {
+      const { error } = await supabase.from('users').update(userUpdate).eq('id', id)
+      if (error) {
+        if (error.code === '23505') return NextResponse.json({ error: 'מספר טלפון זה כבר קיים במערכת' }, { status: 400 })
+        console.error('Error updating user:', error)
+        return NextResponse.json({ error: 'Failed to update super manager' }, { status: 500 })
       }
-      console.error('Error updating super manager:', error)
-      return NextResponse.json({ error: 'Failed to update super manager' }, { status: 500 })
+    }
+
+    // Update role fields
+    if (allowed_districts !== undefined) {
+      const { error: rErr } = await supabase
+        .from('user_roles')
+        .update({ allowed_districts: allowed_districts?.length ? allowed_districts : null })
+        .eq('user_id', id)
+        .eq('role', 'super_manager')
+      if (rErr) return NextResponse.json({ error: 'Failed to update districts' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, message: 'מנהל עליון עודכן בהצלחה' })
@@ -139,10 +180,12 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Deactivate super_manager role; keep the user
     const { error } = await supabase
-      .from('super_managers')
-      .delete()
-      .eq('id', id)
+      .from('user_roles')
+      .update({ is_active: false })
+      .eq('user_id', id)
+      .eq('role', 'super_manager')
 
     if (error) {
       console.error('Error deleting super manager:', error)

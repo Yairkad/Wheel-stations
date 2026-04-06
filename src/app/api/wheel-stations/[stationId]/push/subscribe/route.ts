@@ -34,27 +34,33 @@ export async function POST(
       )
     }
 
-    // Verify manager credentials (using personal password)
+    // Verify manager credentials using unified tables
     const cleanPhone = manager_phone.replace(/\D/g, '')
-    const { data: manager, error: managerError } = await supabase
-      .from('wheel_station_managers')
-      .select('id, phone, password')
-      .eq('station_id', stationId)
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, password, is_active')
+      .eq('phone', cleanPhone)
+      .single()
 
-    if (managerError || !manager || manager.length === 0) {
-      return NextResponse.json({ error: 'תחנה לא נמצאה' }, { status: 404 })
-    }
-
-    const foundManager = manager.find((m: { phone: string; password: string }) =>
-      m.phone.replace(/\D/g, '') === cleanPhone
-    )
-
-    if (!foundManager) {
+    if (!user || !user.is_active) {
       return NextResponse.json({ error: 'מנהל לא נמצא' }, { status: 404 })
     }
 
-    if (foundManager.password !== manager_password) {
+    if (user.password !== manager_password) {
       return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
+    }
+
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('role', 'station_manager')
+      .eq('station_id', stationId)
+      .eq('is_active', true)
+      .single()
+
+    if (!roleRow) {
+      return NextResponse.json({ error: 'מנהל לא נמצא' }, { status: 404 })
     }
 
     // Check if subscription already exists
@@ -140,18 +146,28 @@ export async function DELETE(
       return NextResponse.json({ error: 'חסר endpoint' }, { status: 400 })
     }
 
-    // Verify manager credentials (using personal password)
+    // Verify manager credentials using unified tables
     const cleanPhone = manager_phone.replace(/\D/g, '')
-    const { data: managers } = await supabase
-      .from('wheel_station_managers')
-      .select('id, phone, password')
+    const { data: delUser } = await supabase
+      .from('users')
+      .select('id, password, is_active')
+      .eq('phone', cleanPhone)
+      .single()
+
+    if (!delUser || !delUser.is_active || delUser.password !== manager_password) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+    }
+
+    const { data: delRole } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', delUser.id)
+      .eq('role', 'station_manager')
       .eq('station_id', stationId)
+      .eq('is_active', true)
+      .single()
 
-    const foundManager = managers?.find((m: { phone: string; password: string }) =>
-      m.phone.replace(/\D/g, '') === cleanPhone && m.password === manager_password
-    )
-
-    if (!foundManager) {
+    if (!delRole) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
     }
 

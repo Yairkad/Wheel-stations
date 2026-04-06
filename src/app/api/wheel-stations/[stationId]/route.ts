@@ -37,14 +37,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         payment_methods,
         notification_emails,
         max_managers,
-        cities (name),
-        wheel_station_managers (
-          id,
-          full_name,
-          phone,
-          role,
-          is_primary
-        )
+        cities (name)
       `)
       .eq('id', stationId)
       .single()
@@ -52,6 +45,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (error || !station) {
       return NextResponse.json({ error: 'Station not found' }, { status: 404 })
     }
+
+    // Fetch managers from unified tables
+    const { data: managerRoles } = await supabase
+      .from('user_roles')
+      .select('is_primary, title, users(id, full_name, phone)')
+      .eq('station_id', stationId)
+      .eq('role', 'station_manager')
+      .eq('is_active', true)
+      .order('is_primary', { ascending: false })
+
+    const stationManagers = (managerRoles || []).map(r => {
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string } | null
+      return { id: u?.id, full_name: u?.full_name, phone: u?.phone, role: r.title || 'מנהל תחנה', is_primary: r.is_primary || false }
+    })
+    ;(station as Record<string, unknown>).wheel_station_managers = stationManagers
 
     // Get wheels separately with availability status (exclude soft-deleted)
     const { data: wheels } = await supabase
@@ -198,27 +206,35 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to update station' }, { status: 500 })
     }
 
-    // Update managers if provided
+    // Update managers if provided — deactivate old roles and re-add
     if (managers !== undefined) {
-      // Delete existing managers
-      await supabase
-        .from('wheel_station_managers')
-        .delete()
+      const { error: deactivateErr } = await supabase
+        .from('user_roles')
+        .update({ is_active: false })
         .eq('station_id', stationId)
+        .eq('role', 'station_manager')
+      if (deactivateErr) throw deactivateErr
 
-      // Add new managers
       if (managers.length > 0) {
-        const managersWithStation = managers.map((m: { full_name: string; phone: string; role?: string; is_primary?: boolean }) => ({
-          ...m,
-          station_id: stationId
-        }))
-
-        const { error: managersError } = await supabase
-          .from('wheel_station_managers')
-          .insert(managersWithStation)
-
-        if (managersError) {
-          console.error('Error updating managers:', managersError)
+        for (const m of managers as { full_name: string; phone: string; role?: string; is_primary?: boolean; password?: string }[]) {
+          const cleanPhone = m.phone.replace(/\D/g, '')
+          const { data: existingUser } = await supabase.from('users').select('id').eq('phone', cleanPhone).single()
+          let userId: string
+          if (existingUser) {
+            userId = existingUser.id
+          } else {
+            const { data: newUser, error: uErr } = await supabase.from('users').insert({ full_name: m.full_name, phone: cleanPhone, password: m.password || null, is_active: true }).select('id').single()
+            if (uErr || !newUser) throw uErr || new Error('Failed to create user')
+            userId = newUser.id
+          }
+          const { data: existingRole } = await supabase.from('user_roles').select('id').eq('user_id', userId).eq('role', 'station_manager').eq('station_id', stationId).single()
+          if (existingRole) {
+            const { error: rErr } = await supabase.from('user_roles').update({ is_active: true, is_primary: m.is_primary || false, title: m.role || 'מנהל תחנה' }).eq('id', existingRole.id)
+            if (rErr) throw rErr
+          } else {
+            const { error: rErr } = await supabase.from('user_roles').insert({ user_id: userId, role: 'station_manager', station_id: stationId, title: m.role || 'מנהל תחנה', is_primary: m.is_primary || false, is_active: true })
+            if (rErr) throw rErr
+          }
         }
       }
     }

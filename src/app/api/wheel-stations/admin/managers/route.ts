@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { admin_password, station_id, full_name, phone, password, is_primary } = body
 
-    // Verify admin password
     if (!verifyAdminPassword(admin_password)) {
       return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
     }
@@ -31,66 +30,95 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שם וטלפון הם שדות חובה' }, { status: 400 })
     }
 
-    // Check station exists
-    const { data: station, error: stationError } = await supabase
+    const { data: station } = await supabase
       .from('wheel_stations')
-      .select('id, name')
+      .select('id, name, max_managers')
       .eq('id', station_id)
       .single()
 
-    if (stationError || !station) {
+    if (!station) {
       return NextResponse.json({ error: 'תחנה לא נמצאה' }, { status: 404 })
     }
 
-    // Check current manager count
-    const { data: existingManagers, error: countError } = await supabase
-      .from('wheel_station_managers')
-      .select('id')
+    // Check current manager count for this station
+    const { count } = await supabase
+      .from('user_roles')
+      .select('id', { count: 'exact', head: true })
       .eq('station_id', station_id)
+      .eq('role', 'station_manager')
+      .eq('is_active', true)
 
-    if (countError) {
-      console.error('Error counting managers:', countError)
-      return NextResponse.json({ error: 'שגיאה בבדיקת מנהלים קיימים' }, { status: 500 })
+    const maxManagers = station.max_managers ?? 4
+    if ((count || 0) >= maxManagers) {
+      return NextResponse.json({ error: `ניתן להוסיף עד ${maxManagers} מנהלים לתחנה` }, { status: 400 })
     }
 
-    if (existingManagers && existingManagers.length >= 4) {
-      return NextResponse.json({ error: 'ניתן להוסיף עד 4 מנהלים לתחנה' }, { status: 400 })
-    }
+    const cleanPhone = phone.replace(/\D/g, '')
 
-    // Check if phone already exists for this station
-    const { data: existingPhone } = await supabase
-      .from('wheel_station_managers')
-      .select('id')
+    // Check if this phone already has a station_manager role for this station
+    const { data: existingRole } = await supabase
+      .from('user_roles')
+      .select('id, user_id')
+      .eq('role', 'station_manager')
       .eq('station_id', station_id)
-      .eq('phone', phone)
+      .eq('is_active', true)
+      .limit(1)
+
+    // Find user by phone
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('phone', cleanPhone)
       .single()
 
-    if (existingPhone) {
+    // Check if this specific user already has the role
+    if (existingUser && existingRole && existingRole.some((r: { user_id: string }) => r.user_id === existingUser.id)) {
       return NextResponse.json({ error: 'מספר טלפון זה כבר קיים בתחנה' }, { status: 400 })
     }
 
-    // Add manager
-    const { data: manager, error: insertError } = await supabase
-      .from('wheel_station_managers')
-      .insert({
-        station_id,
-        full_name,
-        phone,
-        role: 'מנהל תחנה',
-        is_primary: is_primary || false,
-        password: password || null
-      })
-      .select()
-      .single()
+    let userId: string
 
-    if (insertError) {
-      console.error('Error adding manager:', insertError)
+    if (existingUser) {
+      userId = existingUser.id
+      if (full_name) {
+        const { error: uErr } = await supabase.from('users').update({ full_name }).eq('id', userId)
+        if (uErr) throw uErr
+      }
+      if (password) {
+        const { error: pErr } = await supabase.from('users').update({ password }).eq('id', userId)
+        if (pErr) throw pErr
+      }
+    } else {
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert({ full_name, phone: cleanPhone, password: password || null, is_active: true })
+        .select('id')
+        .single()
+
+      if (insertError || !newUser) {
+        console.error('Error creating user:', insertError)
+        return NextResponse.json({ error: 'שגיאה בהוספת מנהל' }, { status: 500 })
+      }
+      userId = newUser.id
+    }
+
+    const { error: roleError } = await supabase.from('user_roles').insert({
+      user_id: userId,
+      role: 'station_manager',
+      station_id,
+      title: 'מנהל תחנה',
+      is_primary: is_primary || false,
+      is_active: true,
+    })
+
+    if (roleError) {
+      console.error('Error adding role:', roleError)
       return NextResponse.json({ error: 'שגיאה בהוספת מנהל' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      manager,
+      manager: { id: userId, full_name, phone: cleanPhone, is_primary: is_primary || false },
       message: `${full_name} נוסף כמנהל ב${station.name}`
     }, { status: 201 })
   } catch (error) {

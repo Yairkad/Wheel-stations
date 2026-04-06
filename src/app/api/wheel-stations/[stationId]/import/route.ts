@@ -84,16 +84,25 @@ async function verifyManager(stationId: string, request: NextRequest): Promise<{
         return { success: true, userId: user.id }
       }
 
-      // Check if user is a station manager by phone number
+      // Check if user is a station manager via unified tables
       if (userData?.phone) {
-        const { data: manager } = await supabase
-          .from('wheel_station_managers')
+        const cleanPhone = userData.phone.replace(/\D/g, '')
+        const { data: roleRow } = await supabase
+          .from('user_roles')
           .select('id')
           .eq('station_id', stationId)
-          .eq('phone', userData.phone)
+          .eq('role', 'station_manager')
+          .eq('is_active', true)
+          .limit(1)
+
+        // Also check user_id matches the authenticated user
+        const { data: managerUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('phone', cleanPhone)
           .single()
 
-        if (manager) {
+        if (roleRow && roleRow.length > 0 && managerUser?.id === user.id) {
           return { success: true, userId: user.id }
         }
       }
@@ -107,19 +116,24 @@ async function verifyManager(stationId: string, request: NextRequest): Promise<{
       const { phone, password } = JSON.parse(authHeader)
       const cleanPhone = phone.replace(/\D/g, '')
 
-      // Verify manager exists and personal password is correct
-      const { data: managers } = await supabase
-        .from('wheel_station_managers')
-        .select('id, phone, password')
-        .eq('station_id', stationId)
+      const { data: authUser } = await supabase
+        .from('users')
+        .select('id, password, is_active')
+        .eq('phone', cleanPhone)
+        .single()
 
-      if (managers && managers.length > 0) {
-        const manager = managers.find((m: { phone: string; password: string }) =>
-          m.phone.replace(/\D/g, '') === cleanPhone && m.password === password
-        )
+      if (authUser && authUser.is_active && authUser.password === password) {
+        const { data: roleRow } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', authUser.id)
+          .eq('role', 'station_manager')
+          .eq('station_id', stationId)
+          .eq('is_active', true)
+          .single()
 
-        if (manager) {
-          return { success: true, userId: manager.id }
+        if (roleRow) {
+          return { success: true, userId: authUser.id }
         }
       }
     } catch {

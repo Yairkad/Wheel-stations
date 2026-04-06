@@ -20,10 +20,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'חסר מזהה מוקד' }, { status: 400 })
     }
 
-    const { data: operators, error } = await supabase
-      .from('operators')
-      .select('*')
+    const { data: roles, error } = await supabase
+      .from('user_roles')
+      .select('id, operator_code, created_at, users(id, full_name, phone, is_active)')
       .eq('call_center_id', callCenterId)
+      .eq('role', 'operator')
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -31,7 +33,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ operators: operators || [] })
+    const operators = (roles || []).map(r => {
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string; is_active: boolean } | null
+      return {
+        id: u?.id,
+        full_name: u?.full_name,
+        phone: u?.phone,
+        code: r.operator_code,
+        is_active: u?.is_active ?? true,
+        created_at: r.created_at,
+      }
+    })
+
+    return NextResponse.json({ operators })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json({ error: 'שגיאה פנימית בשרת' }, { status: 500 })
@@ -48,47 +62,77 @@ export async function POST(request: NextRequest) {
     const phone = body.phone?.trim()
 
     if (!call_center_id || !full_name || !phone) {
-      return NextResponse.json({
-        error: 'יש למלא את כל השדות: שם מלא וטלפון'
-      }, { status: 400 })
+      return NextResponse.json({ error: 'יש למלא את כל השדות: שם מלא וטלפון' }, { status: 400 })
     }
 
-    // Check if phone already exists
-    const { data: existingOperator } = await supabase
-      .from('operators')
-      .select('id')
-      .eq('phone', phone)
-      .single()
-
-    if (existingOperator) {
-      return NextResponse.json({
-        error: 'מספר הטלפון כבר קיים במערכת'
-      }, { status: 400 })
-    }
-
-    // Generate random code
+    const cleanPhone = phone.replace(/\D/g, '')
     const code = generateCode()
 
-    const { data: operator, error } = await supabase
-      .from('operators')
-      .insert({
-        call_center_id,
-        full_name,
-        phone,
-        code,
-        is_active: true
-      })
-      .select()
+    // Check if phone already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('phone', cleanPhone)
       .single()
 
-    if (error) {
-      console.error('Error creating operator:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (existingUser) {
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', existingUser.id)
+        .eq('role', 'operator')
+        .eq('call_center_id', call_center_id)
+        .eq('is_active', true)
+        .single()
+
+      if (existingRole) {
+        return NextResponse.json({ error: 'מספר הטלפון כבר קיים במערכת' }, { status: 400 })
+      }
+
+      const { error: roleErr } = await supabase.from('user_roles').insert({
+        user_id: existingUser.id,
+        role: 'operator',
+        call_center_id,
+        operator_code: code,
+        is_active: true,
+      })
+      if (roleErr) return NextResponse.json({ error: roleErr.message }, { status: 500 })
+
+      return NextResponse.json({
+        success: true,
+        operator: { id: existingUser.id, full_name, phone: cleanPhone, code, is_active: true },
+        message: 'המוקדן נוסף בהצלחה'
+      })
+    }
+
+    // Create new user (password = code for operators)
+    const { data: newUser, error: userError } = await supabase
+      .from('users')
+      .insert({ full_name, phone: cleanPhone, password: code, is_active: true })
+      .select('id')
+      .single()
+
+    if (userError || !newUser) {
+      console.error('Error creating user:', userError)
+      return NextResponse.json({ error: userError?.message || 'שגיאה ביצירת מוקדן' }, { status: 500 })
+    }
+
+    const { error: roleError } = await supabase.from('user_roles').insert({
+      user_id: newUser.id,
+      role: 'operator',
+      call_center_id,
+      operator_code: code,
+      is_active: true,
+    })
+
+    if (roleError) {
+      console.error('Error creating operator role:', roleError)
+      return NextResponse.json({ error: roleError.message }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      operator,
+      operator: { id: newUser.id, full_name, phone: cleanPhone, code, is_active: true },
       message: 'המוקדן נוסף בהצלחה'
     })
   } catch (error) {

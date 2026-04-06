@@ -16,11 +16,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'חסר מזהה מוקד' }, { status: 400 })
     }
 
-    // Get operators for this call center
-    const { data: operators } = await supabase
-      .from('operators')
-      .select('id, full_name')
+    // Get operators for this call center via unified user_roles
+    const { data: operatorRoles } = await supabase
+      .from('user_roles')
+      .select('users(id, full_name)')
       .eq('call_center_id', callCenterId)
+      .eq('role', 'operator')
+      .eq('is_active', true)
+
+    const operators = (operatorRoles || []).map(r => {
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string } | null
+      return u ? { id: u.id, full_name: u.full_name } : null
+    }).filter(Boolean) as { id: string; full_name: string }[]
 
     if (!operators || operators.length === 0) {
       return NextResponse.json({ history: [] })
