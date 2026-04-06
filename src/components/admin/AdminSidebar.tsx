@@ -86,12 +86,14 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
     localStorage.setItem('active_role', r.role)
     setShowRolePick(false)
     const d = r.data
+    const pwd = localStorage.getItem('auth_password') || ''
     switch (r.role) {
       case 'station_manager': {
         localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
           manager: { id: d.id, full_name: d.full_name, phone: d.phone, role: d.role || 'מנהל תחנה', is_primary: d.is_primary || false },
           stationId: d.station_id,
           stationName: d.station_name,
+          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
@@ -104,6 +106,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
           role: d.sub_role === 'manager' ? 'manager' : 'operator',
           callCenterId: d.call_center_id,
           callCenterName: d.call_center_name,
+          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
@@ -113,6 +116,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
       case 'district_manager': {
         localStorage.setItem('super_manager_session', JSON.stringify({
           superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
+          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
@@ -123,6 +127,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
         localStorage.setItem('puncture_manager_auth', JSON.stringify({
           expiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
           phone: d.phone,
+          password: pwd,
         }))
         router.push('/admin/punctures')
         break
