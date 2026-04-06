@@ -168,7 +168,8 @@ const handleLogout = () => {
         key === 'super_manager_session' ||
         key === 'puncture_manager_auth' ||
         key === 'auth_roles' ||
-        key === 'active_role'
+        key === 'active_role' ||
+        key === 'auth_password'
       ) {
         localStorage.removeItem(key)
       }
@@ -227,12 +228,14 @@ const handleLogout = () => {
     setActiveRole(r.role)
     setShowRoleMenu(false)
     const d = r.data
+    const pwd = localStorage.getItem('auth_password') || ''
     switch (r.role) {
       case 'station_manager': {
         localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
           manager: { id: d.id, full_name: d.full_name, phone: d.phone, role: d.role || 'מנהל תחנה', is_primary: d.is_primary || false },
           stationId: d.station_id,
           stationName: d.station_name,
+          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
@@ -245,6 +248,7 @@ const handleLogout = () => {
           role: d.sub_role === 'manager' ? 'manager' : 'operator',
           callCenterId: d.call_center_id,
           callCenterName: d.call_center_name,
+          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
@@ -254,6 +258,7 @@ const handleLogout = () => {
       case 'district_manager': {
         localStorage.setItem('super_manager_session', JSON.stringify({
           superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
+          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
@@ -264,13 +269,13 @@ const handleLogout = () => {
         localStorage.setItem('puncture_manager_auth', JSON.stringify({
           expiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
           phone: d.phone,
+          password: pwd,
         }))
         router.push('/admin/punctures')
         break
       }
       case 'admin': {
         const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
-        const pwd = (() => { try { return JSON.parse(localStorage.getItem('wheels_admin_auth') || '{}').pwd || '' } catch { return '' } })()
         localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd }))
         router.push('/admin')
         break

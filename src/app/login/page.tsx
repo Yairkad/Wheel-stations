@@ -170,8 +170,9 @@ export default function LoginPage() {
       }
 
       const foundRoles: RoleResult[] = data.roles
-      // Store all roles for the header switcher
+      // Store all roles + password for the header role switcher
       localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
+      localStorage.setItem('auth_password', password)
 
       if (foundRoles.length === 1) {
         localStorage.setItem('active_role', foundRoles[0].role)
