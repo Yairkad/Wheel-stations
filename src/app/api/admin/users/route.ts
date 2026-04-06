@@ -12,7 +12,7 @@ export async function GET() {
     const [usersResult, rolesResult] = await Promise.all([
       supabase
         .from('users')
-        .select('id, full_name, phone, is_active, created_at')
+        .select('id, full_name, phone, password, is_active, created_at')
         .order('full_name'),
       supabase
         .from('user_roles')

@@ -25,6 +25,7 @@ interface User {
   id:         string
   full_name:  string
   phone:      string
+  password?:  string | null
   is_active:  boolean
   created_at: string
   roles:      UserRole[]
@@ -390,6 +391,22 @@ export default function UsersPage() {
     finally { setBusy(false) }
   }
 
+  async function handleTogglePrimary(userId: string, roleId: string, current: boolean) {
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/roles/${roleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_primary: !current, admin_password: password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      await fetchUsers()
+      toast.success(!current ? 'הוגדר כמנהל ראשי' : 'הוגדר כמנהל משני')
+    } catch { toast.error('שגיאה בעדכון') }
+    finally { setBusy(false) }
+  }
+
   // ── Filter ─────────────────────────────────────────────────────────────────
 
   const filtered = users.filter(u => {
@@ -490,6 +507,7 @@ export default function UsersPage() {
                 onMerge={() => { setMergeSource(user); setMergeTarget('') }}
                 onDelete={() => setDeleteUser(user)}
                 onToggleRole={handleToggleRole}
+                onTogglePrimary={handleTogglePrimary}
               />
             ))
           )}
@@ -696,19 +714,21 @@ const btnSecondary: React.CSSProperties = {
 // ── UserCard ──────────────────────────────────────────────────────────────────
 
 interface UserCardProps {
-  user:           User
-  expanded:       boolean
-  busy:           boolean
-  onToggleExpand: () => void
-  onEdit:         () => void
-  onToggleActive: () => void
-  onAddRole:      () => void
-  onMerge:        () => void
-  onDelete:       () => void
-  onToggleRole:   (userId: string, roleId: string, current: boolean) => void
+  user:             User
+  expanded:         boolean
+  busy:             boolean
+  onToggleExpand:   () => void
+  onEdit:           () => void
+  onToggleActive:   () => void
+  onAddRole:        () => void
+  onMerge:          () => void
+  onDelete:         () => void
+  onToggleRole:     (userId: string, roleId: string, current: boolean) => void
+  onTogglePrimary:  (userId: string, roleId: string, current: boolean) => void
 }
 
-function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onToggleRole }: UserCardProps) {
+function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onToggleRole, onTogglePrimary }: UserCardProps) {
+  const [showPass, setShowPass] = useState(false)
   const menuItems: MenuItem[] = [
     { label: 'עריכת פרטים', onClick: onEdit },
     { label: 'הוספת תפקיד', onClick: onAddRole },
@@ -824,6 +844,11 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
                   )}
                   <DotsMenu items={[
                     {
+                      label: role.is_primary ? 'הגדר כמשני' : 'הגדר כראשי',
+                      color: role.is_primary ? '#64748b' : '#f59e0b',
+                      onClick: () => onTogglePrimary(user.id, role.id, role.is_primary),
+                    },
+                    {
                       label: role.is_active ? 'השבת תפקיד' : 'הפעל תפקיד',
                       color: role.is_active ? '#ef4444' : '#16a34a',
                       onClick: () => onToggleRole(user.id, role.id, role.is_active),
@@ -833,6 +858,20 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
               ))}
             </>
           )}
+
+          {/* Password display */}
+          <div style={{ marginTop: 12, padding: '8px 10px', background: '#f8fafc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>סיסמה:</span>
+            <span style={{ fontSize: '0.82rem', color: '#1e293b', flex: 1, fontFamily: 'monospace', direction: 'ltr' }}>
+              {showPass ? user.password || '—' : '••••••••'}
+            </span>
+            <button
+              onClick={() => setShowPass(v => !v)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              {showPass ? 'הסתר' : 'הצג'}
+            </button>
+          </div>
         </div>
       )}
     </div>

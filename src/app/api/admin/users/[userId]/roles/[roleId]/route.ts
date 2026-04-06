@@ -14,15 +14,19 @@ export async function PATCH(
   try {
     const { roleId } = await params
     const body = await request.json()
-    const { admin_password, is_active } = body
+    const { admin_password, is_active, is_primary } = body
 
     if (!verifyAdminPassword(admin_password)) {
       return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
     }
 
+    const updates: Record<string, unknown> = {}
+    if (is_active  !== undefined) updates.is_active  = is_active
+    if (is_primary !== undefined) updates.is_primary = is_primary
+
     const { error } = await supabase
       .from('user_roles')
-      .update({ is_active })
+      .update(updates)
       .eq('id', roleId)
 
     if (error) throw error
