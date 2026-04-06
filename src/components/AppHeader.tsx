@@ -393,6 +393,13 @@ const handleLogout = () => {
         </>
       )}
 
+      <Link href="/stations" style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        <span>כל התחנות</span>
+      </Link>
+
       <Link href="/guide?tab=manager" style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
           <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -551,6 +558,17 @@ const handleLogout = () => {
                 )}
               </div>
             )}
+
+            {/* All stations button */}
+            <Link
+              href="/stations"
+              style={{ ...styles.navBtn, ...(isOnStationsPage ? styles.navBtnActive : {}) }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+              </svg>
+              <span className="nav-btn-text">כל התחנות</span>
+            </Link>
 
             {/* Search button — far left */}
             {userSession.stationId && (

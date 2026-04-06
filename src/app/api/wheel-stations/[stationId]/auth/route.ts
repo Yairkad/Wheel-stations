@@ -353,30 +353,58 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       m.phone.replace(/\D/g, '') === cleanPhone
     )
 
-    if (!manager) {
+    // Try legacy table first
+    if (manager) {
+      if (manager.password !== current_password) {
+        return NextResponse.json({ error: 'סיסמא נוכחית שגויה' }, { status: 401 })
+      }
+      const { error: updateError } = await supabase
+        .from('wheel_station_managers')
+        .update({ password: new_password })
+        .eq('id', manager.id)
+      if (updateError) throw updateError
+      // Also sync to unified users table if exists
+      await supabase.from('users').update({ password: new_password }).eq('phone', cleanPhone)
+      return NextResponse.json({ success: true, message: 'הסיסמא שונתה בהצלחה' })
+    }
+
+    // Not in legacy table — check unified users table
+    const { data: unifiedUser } = await supabase
+      .from('users')
+      .select('id, password')
+      .eq('phone', cleanPhone)
+      .eq('is_active', true)
+      .single()
+
+    if (!unifiedUser) {
       return NextResponse.json({ error: 'אינך מנהל תחנה מורשה' }, { status: 403 })
     }
 
-    // Verify current password
-    if (manager.password !== current_password) {
+    if (unifiedUser.password !== current_password) {
       return NextResponse.json({ error: 'סיסמא נוכחית שגויה' }, { status: 401 })
     }
 
-    // Update manager's personal password
-    const { error: updateError } = await supabase
-      .from('wheel_station_managers')
-      .update({ password: new_password })
-      .eq('id', manager.id)
+    // Verify this user actually has a station_manager role for this station
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', unifiedUser.id)
+      .eq('role', 'station_manager')
+      .eq('station_id', stationId)
+      .eq('is_active', true)
+      .single()
 
-    if (updateError) {
-      console.error('Error updating password:', updateError)
-      return NextResponse.json({ error: 'Failed to update password' }, { status: 500 })
+    if (!roleRow) {
+      return NextResponse.json({ error: 'אינך מנהל תחנה מורשה' }, { status: 403 })
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'הסיסמא שונתה בהצלחה'
-    })
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ password: new_password })
+      .eq('id', unifiedUser.id)
+    if (updateError) throw updateError
+
+    return NextResponse.json({ success: true, message: 'הסיסמא שונתה בהצלחה' })
   } catch (error) {
     console.error('Error in PUT /api/wheel-stations/[stationId]/auth:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
