@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminPassword } from '@/lib/admin-auth'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { admin_password, full_name, phone, password, allowed_districts } = body
 
-    if (!verifyAdminPassword(admin_password)) {
+    if (!(await verifyAdminAuth(admin_password))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -121,7 +121,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json()
     const { admin_password, id, full_name, phone, password, is_active, allowed_districts } = body
 
-    if (!verifyAdminPassword(admin_password)) {
+    if (!(await verifyAdminAuth(admin_password))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -170,7 +170,7 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json()
     const { admin_password, id } = body
 
-    if (!verifyAdminPassword(admin_password)) {
+    if (!(await verifyAdminAuth(admin_password))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminPassword } from '@/lib/admin-auth'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -7,13 +7,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-function adminOnly(body: Record<string, unknown>): boolean {
-  try { return verifyAdminPassword(body.admin_password as string) } catch { return false }
+async function adminOnly(body: Record<string, unknown>): Promise<boolean> {
+  try { return await verifyAdminAuth(body.admin_password as string) } catch { return false }
 }
 
 export async function GET(request: NextRequest) {
   const params = Object.fromEntries(request.nextUrl.searchParams)
-  if (!adminOnly(params)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await adminOnly(params))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: roles, error } = await supabase
     .from('user_roles')
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  if (!adminOnly(body)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await adminOnly(body))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { full_name, phone, password } = body
   if (!full_name || !phone || !password)
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json()
-  if (!adminOnly(body)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await adminOnly(body))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id, admin_password, ...fields } = body
   void admin_password
@@ -99,7 +99,7 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const body = await request.json()
-  if (!adminOnly(body)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await adminOnly(body))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = body
   if (!id) return NextResponse.json({ error: 'נדרש id' }, { status: 400 })

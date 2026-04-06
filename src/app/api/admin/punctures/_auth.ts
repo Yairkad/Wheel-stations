@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminPassword } from '@/lib/admin-auth'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,7 +9,7 @@ const supabase = createClient(
 // Accepts { admin_password } OR { pm_phone, pm_password }
 export async function verifyPunctureAccess(body: Record<string, unknown>): Promise<boolean> {
   if (body.admin_password) {
-    try { return verifyAdminPassword(body.admin_password as string) } catch (e) { console.error('Admin auth config error:', e); return false }
+    try { return await verifyAdminAuth(body.admin_password as string) } catch (e) { console.error('Admin auth config error:', e); return false }
   }
   if (body.pm_phone && body.pm_password) {
     const cleanPhone = (body.pm_phone as string).replace(/\D/g, '')
