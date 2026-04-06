@@ -37,15 +37,6 @@ interface District {
   updated_at?: string
 }
 
-interface SuperManager {
-  id: string
-  full_name: string
-  phone: string
-  is_active: boolean
-  created_at?: string
-  allowed_districts?: string[] | null
-}
-
 
 export default function WheelsAdminPage() {
   const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
@@ -81,8 +72,6 @@ export default function WheelsAdminPage() {
     name: '',
     address: '',
     district: '' as string,
-    max_managers: 4,
-    managers: [] as Manager[]
   })
 
   // Confirm dialog state
@@ -105,35 +94,10 @@ export default function WheelsAdminPage() {
   const [scrapeError, setScrapeError] = useState<string | null>(null)
   const [addVehicleLoading, setAddVehicleLoading] = useState(false)
 
-  // Add Manager modal state
-  const [showAddManager, setShowAddManager] = useState(false)
-  const [addManagerForm, setAddManagerForm] = useState({
-    station_id: '',
-    full_name: '',
-    phone: '',
-    password: '',
-    is_primary: false
-  })
-  const [addManagerLoading, setAddManagerLoading] = useState(false)
-
-  // Super managers state
-  const [superManagers, setSuperManagers] = useState<SuperManager[]>([])
-  const [showSuperManagerSection, setShowSuperManagerSection] = useState(false)
-  const [showAddSuperManager, setShowAddSuperManager] = useState(false)
-  const [editingSuperManager, setEditingSuperManager] = useState<SuperManager | null>(null)
-  const [superManagerForm, setSuperManagerForm] = useState({
-    full_name: '',
-    phone: '',
-    password: '',
-    allowed_districts: [] as string[],
-  })
-  const [superManagerLoading, setSuperManagerLoading] = useState(false)
-
   useEffect(() => {
     if (isAuthenticated) {
       fetchStations()
       fetchDistricts()
-      fetchSuperManagers()
     }
   }, [isAuthenticated])
 
@@ -145,14 +109,12 @@ export default function WheelsAdminPage() {
         else if (showAddStation) setShowAddStation(false)
         else if (editingDistrict) setEditingDistrict(null)
         else if (showAddDistrict) setShowAddDistrict(false)
-        else if (showAddSuperManager) setShowAddSuperManager(false)
-        else if (editingSuperManager) setEditingSuperManager(null)
         else if (showConfirmDialog) setShowConfirmDialog(false)
       }
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [editingStation, showAddStation, editingDistrict, showAddDistrict, showAddSuperManager, editingSuperManager, showConfirmDialog])
+  }, [editingStation, showAddStation, editingDistrict, showAddDistrict, showConfirmDialog])
 
   const fetchStations = async () => {
     try {
@@ -181,154 +143,11 @@ export default function WheelsAdminPage() {
   }
 
 
-  const fetchSuperManagers = async () => {
-    try {
-      const response = await fetch('/api/admin/super-managers')
-      if (response.ok) {
-        const data = await response.json()
-        setSuperManagers(data.superManagers || [])
-      }
-    } catch (err) {
-      console.error('Error fetching super managers:', err)
-    }
-  }
-
-  const resetSuperManagerForm = () => {
-    setSuperManagerForm({ full_name: '', phone: '', password: '', allowed_districts: [] })
-  }
-
-  const handleAddSuperManager = async () => {
-    if (!superManagerForm.full_name || !superManagerForm.phone || !superManagerForm.password) {
-      toast.error('נא למלא שם, טלפון וסיסמא')
-      return
-    }
-    if (superManagerForm.password.length < 4) {
-      toast.error('הסיסמא חייבת להכיל לפחות 4 תווים')
-      return
-    }
-    setSuperManagerLoading(true)
-    try {
-      const response = await fetch('/api/admin/super-managers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...superManagerForm, admin_password: password })
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create super manager')
-      }
-      await fetchSuperManagers()
-      setShowAddSuperManager(false)
-      resetSuperManagerForm()
-      toast.success('מנהל עליון נוצר בהצלחה!')
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת מנהל עליון')
-    } finally {
-      setSuperManagerLoading(false)
-    }
-  }
-
-  const handleUpdateSuperManager = async () => {
-    if (!editingSuperManager) return
-    if (!superManagerForm.full_name || !superManagerForm.phone) {
-      toast.error('נא למלא שם וטלפון')
-      return
-    }
-    setSuperManagerLoading(true)
-    try {
-      const response = await fetch('/api/admin/super-managers', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: editingSuperManager.id,
-          ...superManagerForm,
-          admin_password: password
-        })
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update super manager')
-      }
-      await fetchSuperManagers()
-      setEditingSuperManager(null)
-      resetSuperManagerForm()
-      toast.success('מנהל עליון עודכן בהצלחה!')
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון מנהל עליון')
-    } finally {
-      setSuperManagerLoading(false)
-    }
-  }
-
-  const handleToggleSuperManagerActive = async (sm: SuperManager) => {
-    setSuperManagerLoading(true)
-    try {
-      const response = await fetch('/api/admin/super-managers', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: sm.id,
-          is_active: !sm.is_active,
-          admin_password: password
-        })
-      })
-      if (!response.ok) throw new Error('Failed to update')
-      await fetchSuperManagers()
-      toast.success(sm.is_active ? `${sm.full_name} הושבת` : `${sm.full_name} הופעל`)
-    } catch {
-      toast.error('שגיאה בעדכון סטטוס')
-    } finally {
-      setSuperManagerLoading(false)
-    }
-  }
-
-  const handleDeleteSuperManager = async (sm: SuperManager) => {
-    setConfirmDialogData({
-      title: 'מחיקת מנהל עליון',
-      message: `האם למחוק את "${sm.full_name}"?`,
-      onConfirm: async () => {
-        setShowConfirmDialog(false)
-        setConfirmDialogData(null)
-        setSuperManagerLoading(true)
-        try {
-          const response = await fetch('/api/admin/super-managers', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: sm.id, admin_password: password })
-          })
-          const data = await response.json()
-          if (!response.ok) {
-            throw new Error(data.error || 'Failed to delete')
-          }
-          await fetchSuperManagers()
-          toast.success('מנהל עליון נמחק!')
-        } catch (err: unknown) {
-          toast.error(err instanceof Error ? err.message : 'שגיאה במחיקת מנהל עליון')
-        } finally {
-          setSuperManagerLoading(false)
-        }
-      }
-    })
-    setShowConfirmDialog(true)
-  }
-
-  const openEditSuperManager = (sm: SuperManager) => {
-    setSuperManagerForm({
-      full_name: sm.full_name,
-      phone: sm.phone,
-      password: '',
-      allowed_districts: sm.allowed_districts || [],
-    })
-    setEditingSuperManager(sm)
-  }
-
   const resetForm = () => {
     setStationForm({
       name: '',
       address: '',
       district: '',
-      max_managers: 4,
-      managers: []
     })
   }
 
@@ -460,9 +279,6 @@ export default function WheelsAdminPage() {
 
   const handleUpdateStation = async () => {
     if (!editingStation) return
-    if (stationForm.max_managers < stationForm.managers.length) {
-      toast(`שים לב: יש ${stationForm.managers.length} מנהלים פעילים אבל המגבלה הוגדרה ל-${stationForm.max_managers}`)
-    }
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/admin/${editingStation.id}`, {
@@ -544,8 +360,6 @@ export default function WheelsAdminPage() {
       name: station.name,
       address: station.address || '',
       district: station.district || '',
-      max_managers: station.max_managers ?? 4,
-      managers: station.wheel_station_managers || []
     })
     setEditingStation(station)
   }
@@ -553,66 +367,6 @@ export default function WheelsAdminPage() {
   const openAddStationModal = () => {
     resetForm()
     setShowAddStation(true)
-  }
-
-  // Add Manager to existing station
-  const handleAddManagerToStation = async () => {
-    if (!addManagerForm.station_id) {
-      toast.error('נא לבחור תחנה')
-      return
-    }
-    if (!addManagerForm.full_name || !addManagerForm.phone) {
-      toast.error('נא למלא שם וטלפון')
-      return
-    }
-    setAddManagerLoading(true)
-    try {
-      const response = await fetch('/api/wheel-stations/admin/managers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...addManagerForm,
-          admin_password: password
-        })
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to add manager')
-      }
-      await fetchStations()
-      setShowAddManager(false)
-      setAddManagerForm({ station_id: '', full_name: '', phone: '', password: '', is_primary: false })
-      toast.success(data.message || 'המנהל נוסף בהצלחה!')
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'שגיאה בהוספת מנהל')
-    } finally {
-      setAddManagerLoading(false)
-    }
-  }
-
-  const addManager = () => {
-    const maxMgr = stationForm.max_managers || 99
-    if (stationForm.managers.length >= maxMgr) {
-      toast.error(`ניתן להוסיף עד ${maxMgr} מנהלים`)
-      return
-    }
-    setStationForm({
-      ...stationForm,
-      managers: [...stationForm.managers, { full_name: '', phone: '', role: 'מנהל תחנה', is_primary: false, password: '' }]
-    })
-  }
-
-  const removeManager = (index: number) => {
-    setStationForm({
-      ...stationForm,
-      managers: stationForm.managers.filter((_, i) => i !== index)
-    })
-  }
-
-  const updateManager = (index: number, field: string, value: string | boolean) => {
-    const updated = [...stationForm.managers]
-    updated[index] = { ...updated[index], [field]: value }
-    setStationForm({ ...stationForm, managers: updated })
   }
 
   // Calculate stats
@@ -835,7 +589,6 @@ export default function WheelsAdminPage() {
             </div>
             <div style={styles.sectionButtons} className="section-buttons">
               <button style={styles.btnGhost} onClick={() => { resetDistrictForm(); setShowAddDistrict(true) }}>+ מחוז</button>
-              <button style={styles.btnGhost} onClick={() => setShowAddManager(true)}>+ מנהל</button>
               <button style={styles.btnPrimary} onClick={() => openAddStationModal()}>+ תחנה</button>
             </div>
           </div>
@@ -1014,83 +767,6 @@ export default function WheelsAdminPage() {
                 </select>
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>מקסימום מנהלים לתחנה</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={stationForm.max_managers || ''}
-                  onChange={e => setStationForm(f => ({...f, max_managers: parseInt(e.target.value) || 0}))}
-                  onBlur={() => setStationForm(f => ({...f, max_managers: Math.max(1, f.max_managers || 1)}))}
-                  style={{...styles.formInput, width: '100px'}}
-                />
-              </div>
-
-              <div style={styles.managersSection}>
-                <div style={styles.managersSectionHeader}>
-                  <label style={styles.formLabel}>מנהלי תחנה ({stationForm.managers.length}/{stationForm.max_managers})</label>
-                  <button style={styles.btnAddManager} onClick={addManager} disabled={stationForm.managers.length >= stationForm.max_managers}>
-                    + הוסף מנהל
-                  </button>
-                </div>
-
-                {stationForm.managers.map((manager, index) => (
-                  <div key={index} style={styles.managerCard}>
-                    <div style={styles.managerRow} className="manager-row-responsive">
-                      <button
-                        type="button"
-                        style={{
-                          ...styles.btnCrownSm,
-                          background: manager.is_primary ? 'rgba(245,158,11,0.15)' : '#f8fafc',
-                          borderColor: manager.is_primary ? '#f59e0b' : '#e2e8f0',
-                          filter: manager.is_primary ? 'drop-shadow(0 0 4px #f59e0b)' : 'grayscale(1) opacity(0.35)',
-                          transition: 'all 0.2s',
-                          fontSize: '13px',
-                        }}
-                        onClick={() => updateManager(index, 'is_primary', !manager.is_primary)}
-                        title={manager.is_primary ? 'מנהל ראשי — לחץ להסרת הרשאות' : 'אין הרשאות — לחץ להגדרה כמנהל ראשי'}
-                      >
-                        ⭐
-                      </button>
-                      <input
-                        type="text"
-                        placeholder="שם מלא"
-                        value={manager.full_name}
-                        onChange={e => updateManager(index, 'full_name', e.target.value)}
-                        style={styles.managerInputCompact}
-                      />
-                      <input
-                        type="tel"
-                        placeholder="טלפון"
-                        value={manager.phone}
-                        onChange={e => updateManager(index, 'phone', e.target.value)}
-                        style={styles.managerInputCompact}
-                      />
-                      <button style={styles.btnDeleteSm} onClick={() => removeManager(index)} title="הסר מנהל"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-                    </div>
-                    <div style={styles.managerPasswordRow}>
-                      <input
-                        type="text"
-                        placeholder="סיסמא אישית (לפחות 4 תווים)"
-                        value={manager.password || ''}
-                        onChange={e => updateManager(index, 'password', e.target.value)}
-                        style={styles.managerPasswordInput}
-                      />
-                      {manager.id && (
-                        <button
-                          type="button"
-                          style={styles.btnResetPassword}
-                          onClick={() => updateManager(index, 'password', '')}
-                          title="איפוס סיסמא"
-                        >
-                          <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>איפוס</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div style={styles.modalFooter}>
@@ -1200,294 +876,6 @@ export default function WheelsAdminPage() {
               </button>
               <button style={styles.confirmDeleteBtn} onClick={confirmDialogData.onConfirm}>
                 מחק
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Manager Modal */}
-      {showAddManager && (
-        <div style={styles.modalOverlay} onClick={() => setShowAddManager(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>הוספת מנהל</span></h3>
-            </div>
-
-            <div style={styles.modalBody}>
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>תחנה *</label>
-                <select
-                  value={addManagerForm.station_id}
-                  onChange={e => setAddManagerForm({...addManagerForm, station_id: e.target.value})}
-                  style={styles.formInput}
-                >
-                  <option value="">בחר תחנה...</option>
-                  {stations.map(station => (
-                    <option key={station.id} value={station.id}>
-                      {station.name} ({station.wheel_station_managers?.length || 0}/{station.max_managers ?? 4} מנהלים)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>שם מלא *</label>
-                <input
-                  type="text"
-                  value={addManagerForm.full_name}
-                  onChange={e => setAddManagerForm({...addManagerForm, full_name: e.target.value})}
-                  style={styles.formInput}
-                  placeholder="ישראל ישראלי"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>טלפון *</label>
-                <input
-                  type="tel"
-                  value={addManagerForm.phone}
-                  onChange={e => setAddManagerForm({...addManagerForm, phone: e.target.value})}
-                  style={styles.formInput}
-                  placeholder="050-1234567"
-                  dir="ltr"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>סיסמא (אופציונלי)</label>
-                <input
-                  type="text"
-                  value={addManagerForm.password}
-                  onChange={e => setAddManagerForm({...addManagerForm, password: e.target.value})}
-                  style={styles.formInput}
-                  placeholder="סיסמא אישית למנהל"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={{...styles.formLabel, display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer'}}>
-                  <input
-                    type="checkbox"
-                    checked={addManagerForm.is_primary}
-                    onChange={e => setAddManagerForm({...addManagerForm, is_primary: e.target.checked})}
-                    style={{width: '18px', height: '18px'}}
-                  />
-                  מנהל ראשי (יכול לערוך מנהלים אחרים)
-                </label>
-              </div>
-            </div>
-
-            <div style={styles.modalFooter}>
-              <button style={styles.btnCancel} onClick={() => setShowAddManager(false)}>
-                ביטול
-              </button>
-              <button
-                style={styles.btnSubmit}
-                onClick={handleAddManagerToStation}
-                disabled={addManagerLoading}
-              >
-                {addManagerLoading ? 'מוסיף...' : 'הוסף מנהל'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Super Managers Section */}
-      <div style={styles.container}>
-        <div style={styles.section}>
-          <div style={styles.sectionHeader} className="section-header-responsive">
-            <div
-              style={{...styles.sectionTitle, cursor: 'pointer'}}
-              onClick={() => setShowSuperManagerSection(!showSuperManagerSection)}
-            >
-              <div style={{...styles.sectionTitleIcon, background: '#7c3aed'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-              מנהלים עליונים
-              <span style={{...styles.sectionCount, background: 'rgba(124, 58, 237, 0.12)', color: '#7c3aed'}}>
-                {superManagers.length} מנהלים
-              </span>
-              <span style={{...styles.expandIcon, transform: showSuperManagerSection ? 'rotate(180deg)' : 'none'}}>▼</span>
-            </div>
-            {showSuperManagerSection && (
-              <div style={styles.sectionButtons} className="section-buttons">
-                <button style={{...styles.btnPrimary, background: '#7c3aed'}} onClick={() => { resetSuperManagerForm(); setShowAddSuperManager(true) }}>+ מנהל עליון</button>
-              </div>
-            )}
-          </div>
-
-          {showSuperManagerSection && (
-            <div style={styles.sectionContent}>
-              {superManagers.length === 0 ? (
-                <div style={styles.loading}>אין מנהלים עליונים</div>
-              ) : (
-                <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                  {superManagers.map(sm => (
-                    <div key={sm.id} style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      padding: '14px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      flexWrap: 'wrap',
-                    }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '10px',
-                        background: sm.is_active ? '#7c3aed' : '#e2e8f0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.1rem',
-                        flexShrink: 0,
-                      }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-                      <div style={{flex: 1, minWidth: '150px'}}>
-                        <div style={{fontWeight: 600, color: '#1e293b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px'}}>
-                          {sm.full_name}
-                          <div style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            background: sm.is_active ? '#22c55e' : '#f59e0b',
-                            boxShadow: sm.is_active ? '0 0 8px rgba(34, 197, 94, 0.5)' : 'none',
-                          }} />
-                        </div>
-                        <div style={{color: '#64748b', fontSize: '0.8rem', direction: 'ltr', textAlign: 'right'}}>{sm.phone}</div>
-                        {sm.allowed_districts?.length ? (
-                          <div style={{fontSize: '0.75rem', color: '#7c3aed', marginTop: '2px'}}>
-                            מחוזות: {sm.allowed_districts.map(code => districts.find(d => d.code === code)?.name || code).join(', ')}
-                          </div>
-                        ) : (
-                          <div style={{fontSize: '0.75rem', color: '#64748b', marginTop: '2px'}}>כל המחוזות</div>
-                        )}
-                      </div>
-                      <div style={{display: 'flex', gap: '6px', flexWrap: 'wrap'}}>
-                        <button style={{...styles.btnCompact, ...styles.btnCompactEdit}} onClick={() => openEditSuperManager(sm)}><span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>ערוך</span></button>
-                        <button
-                          style={{
-                            ...styles.btnCompact,
-                            ...(sm.is_active ? styles.btnCompactToggle : styles.btnCompactToggleActivate)
-                          }}
-                          onClick={() => handleToggleSuperManagerActive(sm)}
-                          disabled={superManagerLoading}
-                        >
-                          {sm.is_active ? (
-                            <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="#ef4444" stroke="none"><circle cx="12" cy="12" r="12"/></svg>השבת</span>
-                          ) : (
-                            <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="12"/></svg>הפעל</span>
-                          )}
-                        </button>
-                        <button style={{...styles.btnCompact, ...styles.btnCompactDelete}} onClick={() => handleDeleteSuperManager(sm)} disabled={superManagerLoading}><span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span></button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Add/Edit Super Manager Modal */}
-      {(showAddSuperManager || editingSuperManager) && (
-        <div style={styles.modalOverlay} onClick={() => { setShowAddSuperManager(false); setEditingSuperManager(null) }}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3 style={{...styles.modalTitle, color: '#7c3aed'}}>
-                {editingSuperManager ? (
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת מנהל עליון</span>
-                ) : (
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>מנהל עליון חדש</span>
-                )}
-              </h3>
-            </div>
-
-            <div style={styles.modalBody}>
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>שם מלא *</label>
-                <input
-                  type="text"
-                  value={superManagerForm.full_name}
-                  onChange={e => setSuperManagerForm({...superManagerForm, full_name: e.target.value})}
-                  style={styles.formInput}
-                  placeholder="ישראל ישראלי"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>טלפון *</label>
-                <input
-                  type="tel"
-                  value={superManagerForm.phone}
-                  onChange={e => setSuperManagerForm({...superManagerForm, phone: e.target.value})}
-                  style={styles.formInput}
-                  placeholder="050-1234567"
-                  dir="ltr"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>
-                  {editingSuperManager ? 'סיסמא חדשה (השאר ריק לשמירת הקיימת)' : 'סיסמא *'}
-                </label>
-                <input
-                  type="text"
-                  value={superManagerForm.password}
-                  onChange={e => setSuperManagerForm({...superManagerForm, password: e.target.value})}
-                  style={styles.formInput}
-                  placeholder="לפחות 4 תווים"
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>הרשאות מחוזות (ריק = גישה לכל המחוזות)</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
-                  {districts.map(d => {
-                    const isSelected = superManagerForm.allowed_districts.includes(d.code)
-                    return (
-                      <button
-                        key={d.code}
-                        type="button"
-                        onClick={() => {
-                          const newDistricts = isSelected
-                            ? superManagerForm.allowed_districts.filter(c => c !== d.code)
-                            : [...superManagerForm.allowed_districts, d.code]
-                          setSuperManagerForm({...superManagerForm, allowed_districts: newDistricts})
-                        }}
-                        style={{
-                          padding: '6px 14px', borderRadius: '8px', fontSize: '0.85rem', cursor: 'pointer',
-                          border: isSelected ? '2px solid #7c3aed' : '1px solid #e2e8f0',
-                          background: isSelected ? '#ede9fe' : '#f8fafc',
-                          color: isSelected ? '#7c3aed' : '#1e293b',
-                          fontWeight: isSelected ? 600 : 400
-                        }}
-                      >
-                        {isSelected && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft:'4px'}}><polyline points="20 6 9 17 4 12"/></svg>}{d.name}
-                      </button>
-                    )
-                  })}
-                </div>
-                {superManagerForm.allowed_districts.length === 0 && (
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
-                    לא נבחרו מחוזות - למנהל תהיה גישה לכל התחנות
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div style={styles.modalFooter}>
-              <button style={styles.btnCancel} onClick={() => { setShowAddSuperManager(false); setEditingSuperManager(null) }}>
-                ביטול
-              </button>
-              <button
-                style={{...styles.btnSubmit, background: '#7c3aed'}}
-                onClick={editingSuperManager ? handleUpdateSuperManager : handleAddSuperManager}
-                disabled={superManagerLoading}
-              >
-                {superManagerLoading ? 'שומר...' : (editingSuperManager ? 'עדכן' : 'צור מנהל עליון')}
               </button>
             </div>
           </div>

@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
+import type { RoleResult } from '@/app/api/auth/login/route'
 
 const icons = {
   stations: (
@@ -64,8 +65,33 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pathname       = usePathname()
+  const router         = useRouter()
   const pendingReports = useAdminPendingReports()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileOpen,   setMobileOpen]   = useState(false)
+  const [otherRoles,   setOtherRoles]   = useState<RoleResult[]>([])
+  const [showRolePick, setShowRolePick] = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('auth_roles')
+      if (stored) {
+        const all: RoleResult[] = JSON.parse(stored)
+        setOtherRoles(all.filter(r => r.role !== 'admin'))
+      }
+    } catch { /* ignore */ }
+  }, [])
+
+  function navigateToRole(r: RoleResult) {
+    localStorage.setItem('active_role', r.role)
+    setShowRolePick(false)
+    const d = r.data
+    switch (r.role) {
+      case 'station_manager':  router.push(`/${d.station_id as string}`); break
+      case 'operator':         router.push(d.sub_role === 'manager' ? '/call-center' : '/operator'); break
+      case 'district_manager': router.push('/super-manager'); break
+      case 'editor':           router.push('/admin/punctures'); break
+    }
+  }
 
   const isActive = (href: string) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
@@ -144,8 +170,54 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* Logout */}
+      {/* Role switcher + Logout */}
       <div style={{ padding: '12px 8px', borderTop: '1px solid #1e293b' }}>
+        {/* Switch role */}
+        {otherRoles.length > 0 && (
+          <div style={{ position: 'relative', marginBottom: 4 }}>
+            <button
+              onClick={() => setShowRolePick(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                width: '100%', padding: '9px 12px', borderRadius: 8,
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500,
+                transition: 'background 0.15s',
+              }}
+              className="sidebar-switch"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span>החלף תפקיד</span>
+            </button>
+            {showRolePick && (
+              <div style={{
+                position: 'absolute', bottom: '110%', right: 0, left: 0,
+                background: '#1e293b', border: '1px solid #334155', borderRadius: 8,
+                overflow: 'hidden', zIndex: 50,
+              }}>
+                {otherRoles.map(r => (
+                  <button
+                    key={r.role}
+                    onClick={() => navigateToRole(r)}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'right',
+                      padding: '10px 14px', background: 'none', border: 'none',
+                      color: '#e2e8f0', fontSize: '0.85rem', cursor: 'pointer',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#334155')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <button
           onClick={onLogout}
           style={{
@@ -169,6 +241,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
       <style>{`
         .sidebar-link:hover { color: #f8fafc !important; background: #1e293b !important; }
         .sidebar-logout:hover { background: rgba(248,113,113,0.1) !important; }
+        .sidebar-switch:hover { background: #1e293b !important; color: #f8fafc !important; }
         @media (max-width: 768px) {
           .admin-sidebar-desktop { display: none !important; }
           .admin-sidebar-mobile-btn { display: flex !important; }

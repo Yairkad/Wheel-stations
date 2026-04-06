@@ -228,10 +228,17 @@ const handleLogout = () => {
     setShowRoleMenu(false)
     const d = r.data
     switch (r.role) {
-      case 'station_manager': router.push(`/${d.station_id as string}`); break
-      case 'operator': router.push(d.sub_role === 'manager' ? '/call-center' : '/operator'); break
+      case 'station_manager':  router.push(`/${d.station_id as string}`); break
+      case 'operator':         router.push(d.sub_role === 'manager' ? '/call-center' : '/operator'); break
       case 'district_manager': router.push('/super-manager'); break
-      case 'editor': router.push('/admin/punctures'); break
+      case 'editor':           router.push('/admin/punctures'); break
+      case 'admin': {
+        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
+        const pwd = (() => { try { return JSON.parse(localStorage.getItem('wheels_admin_auth') || '{}').pwd || '' } catch { return '' } })()
+        localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd }))
+        router.push('/admin')
+        break
+      }
     }
   }
 

@@ -116,12 +116,7 @@ interface Shop {
   google_maps_url: string | null; google_rating: number | null
 }
 
-interface PunctureManager {
-  id: string; full_name: string; phone: string
-  is_active: boolean; created_at: string
-}
-
-type Tab = 'suggestions' | 'shops' | 'managers'
+type Tab = 'suggestions' | 'shops'
 
 // ─── Approve modal ────────────────────────────────────────────────────────────
 
@@ -439,13 +434,6 @@ export default function PuncturesAdminPage() {
   const [addingShop,  setAddingShop]  = useState(false)
   const [shopSearch,  setShopSearch]  = useState('')
 
-  // Managers (admin only)
-  const [managers,    setManagers]    = useState<PunctureManager[]>([])
-  const [mgrLoading,  setMgrLoading]  = useState(false)
-  const [mgrForm,     setMgrForm]     = useState({ full_name: '', phone: '', password: '' })
-  const [mgrSaving,   setMgrSaving]   = useState(false)
-  const [mgrError,    setMgrError]    = useState<string | null>(null)
-
   const payload = authPayload()
 
   // ── fetch suggestions ──
@@ -466,21 +454,10 @@ export default function PuncturesAdminPage() {
     setShopsLoading(false)
   }, [payload])  // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── fetch managers ──
-  const fetchManagers = useCallback(async () => {
-    if (role !== 'admin') return
-    setMgrLoading(true)
-    const p = new URLSearchParams(payload)
-    const res = await fetch(`/api/admin/punctures/managers?${p}`)
-    if (res.ok) setManagers(await res.json())
-    setMgrLoading(false)
-  }, [role, payload])  // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     if (!isAuthenticated) return
     if (tab === 'suggestions') fetchSuggestions(suggStatus)
     if (tab === 'shops')       fetchShops()
-    if (tab === 'managers')    fetchManagers()
   }, [isAuthenticated, tab, suggStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── reject suggestion ──
@@ -514,39 +491,6 @@ export default function PuncturesAdminPage() {
     fetchShops()
   }
 
-  // ── add manager ──
-  const addManager = async () => {
-    setMgrSaving(true); setMgrError(null)
-    const res = await fetch('/api/admin/punctures/managers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, ...mgrForm }),
-    })
-    if (res.ok) { setMgrForm({ full_name: '', phone: '', password: '' }); fetchManagers() }
-    else { const d = await res.json(); setMgrError(d.error ?? 'שגיאה') }
-    setMgrSaving(false)
-  }
-
-  // ── toggle manager active ──
-  const toggleManager = async (mgr: PunctureManager) => {
-    await fetch('/api/admin/punctures/managers', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, id: mgr.id, is_active: !mgr.is_active }),
-    })
-    fetchManagers()
-  }
-
-  // ── delete manager ──
-  const deleteManager = async (id: string) => {
-    if (!confirm('למחוק את המנהל?')) return
-    await fetch('/api/admin/punctures/managers', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, id }),
-    })
-    fetchManagers()
-  }
 
   if (isLoading || !isAuthenticated) return null
 
@@ -562,7 +506,7 @@ export default function PuncturesAdminPage() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', padding: '0 24px', background: '#ffffff' }}>
-        {(['suggestions', 'shops', ...(role === 'admin' ? ['managers'] : [])] as Tab[]).map(t => (
+        {(['suggestions', 'shops'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer',
             fontSize: '0.88rem', fontWeight: 700,
@@ -570,7 +514,7 @@ export default function PuncturesAdminPage() {
             borderBottom: tab === t ? '2px solid #2563eb' : '2px solid transparent',
             transition: 'all 0.15s',
           }}>
-            {t === 'suggestions' ? `הצעות (${suggestions.filter(s => s.status === 'pending').length || ''})` : t === 'shops' ? `חנויות (${shops.length || ''})` : 'מנהלים'}
+            {t === 'suggestions' ? `הצעות (${suggestions.filter(s => s.status === 'pending').length || ''})` : `פנצ'ריות (${shops.length || ''})`}
           </button>
         ))}
       </div>
@@ -655,7 +599,7 @@ export default function PuncturesAdminPage() {
               <button onClick={() => setAddingShop(true)} style={{
                 padding: '9px 16px', background: '#f59e0b', border: 'none',
                 borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' as const,
-              }}>+ הוסף חנות</button>
+              }}>+ הוסף פנצ'ריה</button>
             </div>
             {shopsLoading ? (
               <div style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>טוען...</div>
@@ -707,62 +651,6 @@ export default function PuncturesAdminPage() {
           </div>
         )}
 
-        {/* ── MANAGERS TAB (admin only) ── */}
-        {tab === 'managers' && role === 'admin' && (
-          <div>
-            {/* Add form */}
-            <div style={{ background: '#ffffff', borderRadius: 14, padding: '16px 18px', border: '1px solid #e2e8f0', marginBottom: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <h3 style={{ margin: '0 0 14px', fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>הוסף מנהל חדש</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                <input value={mgrForm.full_name} onChange={e => setMgrForm(p => ({ ...p, full_name: e.target.value }))}
-                  placeholder="שם מלא" style={mgrInp}/>
-                <input value={mgrForm.phone} onChange={e => setMgrForm(p => ({ ...p, phone: e.target.value }))}
-                  placeholder="טלפון" style={{ ...mgrInp, direction: 'ltr' as const }} dir="ltr"/>
-                <input value={mgrForm.password} onChange={e => setMgrForm(p => ({ ...p, password: e.target.value }))}
-                  placeholder="סיסמה" type="password" style={mgrInp}/>
-              </div>
-              {mgrError && <div style={{ color: '#f87171', fontSize: '0.8rem', marginTop: 8 }}>{mgrError}</div>}
-              <button onClick={addManager} disabled={mgrSaving} style={{
-                marginTop: 10, padding: '8px 20px', background: '#f59e0b', border: 'none',
-                borderRadius: 8, color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
-              }}>{mgrSaving ? 'שומר...' : 'הוסף'}</button>
-            </div>
-
-            {mgrLoading ? (
-              <div style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>טוען...</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {managers.map(mgr => (
-                  <div key={mgr.id} style={{
-                    background: '#ffffff', borderRadius: 12, padding: '12px 16px',
-                    border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 12,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                    opacity: mgr.is_active ? 1 : 0.55,
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{mgr.full_name}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#64748b' }} dir="ltr">{mgr.phone}</div>
-                    </div>
-                    <button onClick={() => toggleManager(mgr)} title={mgr.is_active ? 'השבת' : 'הפעל'}
-                      style={{
-                        position: 'relative', width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: mgr.is_active ? '#22c55e' : '#94a3b8', flexShrink: 0,
-                      }}>
-                      <span style={{
-                        position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%', background: '#fff',
-                        transform: mgr.is_active ? 'translateX(18px)' : 'translateX(2px)', transition: 'transform 0.2s',
-                      }}/>
-                    </button>
-                    <button onClick={() => deleteManager(mgr.id)} style={{
-                      padding: '5px 12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-                      borderRadius: 8, color: '#f87171', fontSize: '0.78rem', cursor: 'pointer',
-                    }}>מחק</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Modals */}
@@ -794,8 +682,3 @@ export default function PuncturesAdminPage() {
   )
 }
 
-const mgrInp: React.CSSProperties = {
-  width: '100%', padding: '8px 12px', background: '#f8fafc',
-  border: '1px solid #e2e8f0', borderRadius: 8, color: '#1e293b', fontSize: '0.85rem',
-  boxSizing: 'border-box',
-}
