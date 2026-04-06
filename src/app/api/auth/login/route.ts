@@ -46,7 +46,7 @@ async function checkUnifiedUser(supabase: ReturnType<typeof createClient>, phone
     .from('users')
     .select('id, full_name, phone, password, is_active')
     .eq('phone', cleanPhone)
-    .single()
+    .single() as { data: { id: string; full_name: string; phone: string; password: string | null; is_active: boolean } | null }
 
   if (!user || user.is_active === false || user.password !== password) return []
 
