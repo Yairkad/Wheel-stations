@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
       checkUnifiedUser(supabase, phone, password),
     ])
 
-    const roles: RoleResult[] = [...(admin ? [admin] : []), ...unifiedRoles.filter(r => r.role !== 'admin')]
+    const roles: RoleResult[] = [...(admin ? [admin] : []), ...unifiedRoles.filter(r => admin ? r.role !== 'admin' : true)]
 
     if (roles.length === 0) {
       return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
