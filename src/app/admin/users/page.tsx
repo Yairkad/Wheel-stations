@@ -30,6 +30,16 @@ interface User {
   roles:      UserRole[]
 }
 
+interface Station {
+  id:   string
+  name: string
+}
+
+interface CallCenter {
+  id:   string
+  name: string
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<UserRole['role'], string> = {
@@ -164,10 +174,38 @@ export default function UsersPage() {
   const [deleteUser, setDeleteUser] = useState<User | null>(null)
 
   // Merge modal
-  const [mergeSource, setMergeSource] = useState<User | null>(null)  // "delete" side
-  const [mergeTarget, setMergeTarget] = useState<string>('')          // keep_id
+  const [mergeSource, setMergeSource] = useState<User | null>(null)
+  const [mergeTarget, setMergeTarget] = useState<string>('')
 
-  useEffect(() => { if (isAuthenticated) fetchUsers() }, [isAuthenticated])
+  // Add user modal
+  const [showAdd,       setShowAdd]       = useState(false)
+  const [addName,       setAddName]       = useState('')
+  const [addPhone,      setAddPhone]      = useState('')
+  const [addPass,       setAddPass]       = useState('')
+  const [addRole,       setAddRole]       = useState<UserRole['role']>('station_manager')
+  const [addStationId,  setAddStationId]  = useState('')
+  const [addCcId,       setAddCcId]       = useState('')
+  const [addOpCode,     setAddOpCode]     = useState('')
+  const [addTitle,      setAddTitle]      = useState('')
+
+  // Reference data for add-user dropdowns
+  const [stations,     setStations]     = useState<Station[]>([])
+  const [callCenters,  setCallCenters]  = useState<CallCenter[]>([])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    fetchUsers()
+    fetchRefData()
+  }, [isAuthenticated])
+
+  async function fetchRefData() {
+    const [stRes, ccRes] = await Promise.all([
+      fetch('/api/wheel-stations'),
+      fetch('/api/admin/call-centers'),
+    ])
+    if (stRes.ok) { const d = await stRes.json(); setStations(d.stations || []) }
+    if (ccRes.ok) { const d = await ccRes.json(); setCallCenters(d.callCenters || []) }
+  }
 
   async function fetchUsers() {
     setLoading(true)
@@ -265,6 +303,42 @@ export default function UsersPage() {
     finally { setBusy(false) }
   }
 
+  function resetAddForm() {
+    setAddName(''); setAddPhone(''); setAddPass(''); setAddRole('station_manager')
+    setAddStationId(''); setAddCcId(''); setAddOpCode(''); setAddTitle('')
+  }
+
+  async function handleAddUser() {
+    if (!addName.trim())  { toast.error('שם חובה'); return }
+    if (!addPhone.trim()) { toast.error('טלפון חובה'); return }
+    if (!addPass.trim())  { toast.error('סיסמה חובה'); return }
+    if (addRole === 'station_manager'     && !addStationId) { toast.error('יש לבחור תחנה'); return }
+    if ((addRole === 'call_center_manager' || addRole === 'operator') && !addCcId) { toast.error('יש לבחור מוקד'); return }
+    setBusy(true)
+    try {
+      const body: Record<string, unknown> = {
+        admin_password: password,
+        full_name: addName.trim(),
+        phone: addPhone.trim(),
+        password: addPass,
+        role: addRole,
+      }
+      if (addStationId) body.station_id    = addStationId
+      if (addCcId)      body.call_center_id = addCcId
+      if (addOpCode)    body.operator_code  = addOpCode
+      if (addTitle)     body.title          = addTitle
+      const res  = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setShowAdd(false)
+      resetAddForm()
+      await fetchUsers()
+      toast.success('משתמש נוסף בהצלחה')
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'שגיאה בהוספה')
+    } finally { setBusy(false) }
+  }
+
   async function handleToggleRole(userId: string, roleId: string, current: boolean) {
     setBusy(true)
     try {
@@ -346,9 +420,19 @@ export default function UsersPage() {
               <option key={r} value={r}>{ROLE_LABELS[r]}</option>
             ))}
           </select>
-          <div style={{ marginRight: 'auto', fontSize: '0.8rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
             {filtered.length} תוצאות
           </div>
+          <button
+            onClick={() => { resetAddForm(); setShowAdd(true) }}
+            style={{
+              padding: '8px 16px', borderRadius: 8, background: '#16a34a', color: '#fff',
+              border: 'none', fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}
+          >
+            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>+</span> הוסף משתמש
+          </button>
         </div>
 
         {/* Users list */}
@@ -429,6 +513,72 @@ export default function UsersPage() {
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={handleMerge} disabled={busy || !mergeTarget} style={btnPrimary}>מזג</button>
             <button onClick={() => setMergeSource(null)} style={btnSecondary}>ביטול</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Add user modal ── */}
+      {showAdd && (
+        <Modal title="הוספת משתמש חדש" onClose={() => { setShowAdd(false); resetAddForm() }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <label style={labelStyle}>שם מלא *</label>
+            <input value={addName} onChange={e => setAddName(e.target.value)} style={inputStyle} placeholder="ישראל ישראלי" />
+
+            <label style={labelStyle}>טלפון *</label>
+            <input value={addPhone} onChange={e => setAddPhone(e.target.value)} style={inputStyle} dir="ltr" placeholder="0501234567" />
+
+            <label style={labelStyle}>סיסמה *</label>
+            <input type="password" value={addPass} onChange={e => setAddPass(e.target.value)} style={inputStyle} placeholder="לפחות 4 תווים" />
+
+            <label style={labelStyle}>תפקיד *</label>
+            <select value={addRole} onChange={e => setAddRole(e.target.value as UserRole['role'])} style={inputStyle}>
+              {(Object.keys(ROLE_LABELS) as UserRole['role'][]).map(r => (
+                <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+              ))}
+            </select>
+
+            {/* Station picker */}
+            {addRole === 'station_manager' && (
+              <>
+                <label style={labelStyle}>תחנה *</label>
+                <select value={addStationId} onChange={e => setAddStationId(e.target.value)} style={inputStyle}>
+                  <option value="">— בחר תחנה —</option>
+                  {stations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </>
+            )}
+
+            {/* Call center picker */}
+            {(addRole === 'call_center_manager' || addRole === 'operator') && (
+              <>
+                <label style={labelStyle}>מוקד *</label>
+                <select value={addCcId} onChange={e => setAddCcId(e.target.value)} style={inputStyle}>
+                  <option value="">— בחר מוקד —</option>
+                  {callCenters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </>
+            )}
+
+            {/* Operator code */}
+            {addRole === 'operator' && (
+              <>
+                <label style={labelStyle}>קוד מוקדן <span style={{ color: '#94a3b8', fontWeight: 400 }}>(אופציונלי)</span></label>
+                <input value={addOpCode} onChange={e => setAddOpCode(e.target.value)} style={inputStyle} placeholder="קוד כניסה" dir="ltr" />
+              </>
+            )}
+
+            {/* Title */}
+            {(addRole === 'call_center_manager' || addRole === 'station_manager') && (
+              <>
+                <label style={labelStyle}>תואר <span style={{ color: '#94a3b8', fontWeight: 400 }}>(אופציונלי)</span></label>
+                <input value={addTitle} onChange={e => setAddTitle(e.target.value)} style={inputStyle} placeholder="למשל: אחראי משמרת" />
+              </>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+              <button onClick={handleAddUser} disabled={busy} style={{ ...btnPrimary, background: '#16a34a' }}>הוסף</button>
+              <button onClick={() => { setShowAdd(false); resetAddForm() }} style={btnSecondary}>ביטול</button>
+            </div>
           </div>
         </Modal>
       )}

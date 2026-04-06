@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyAdminPassword } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -56,5 +57,68 @@ export async function GET() {
   } catch (err: unknown) {
     console.error('GET /api/admin/users error:', err)
     return NextResponse.json({ error: 'שגיאה פנימית' }, { status: 500 })
+  }
+}
+
+// POST /api/admin/users — create user + initial role
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { admin_password, full_name, phone, password, role, station_id, call_center_id, operator_code, allowed_districts, title } = body
+
+    if (!verifyAdminPassword(admin_password)) {
+      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    }
+
+    if (!full_name?.trim() || !phone?.trim() || !role) {
+      return NextResponse.json({ error: 'שם, טלפון ותפקיד הם שדות חובה' }, { status: 400 })
+    }
+
+    const cleanPhone = phone.replace(/\D/g, '')
+
+    // Upsert user — if phone exists, update name/password only if provided
+    const { data: existing } = await supabase
+      .from('users')
+      .select('id')
+      .eq('phone', cleanPhone)
+      .single()
+
+    let userId: string
+    if (existing) {
+      userId = existing.id
+      const updates: Record<string, unknown> = { full_name: full_name.trim() }
+      if (password) updates.password = password
+      await supabase.from('users').update(updates).eq('id', userId)
+    } else {
+      const { data: newUser, error: insertErr } = await supabase
+        .from('users')
+        .insert({ full_name: full_name.trim(), phone: cleanPhone, password: password || null })
+        .select('id')
+        .single()
+      if (insertErr) throw insertErr
+      userId = newUser.id
+    }
+
+    // Add role
+    const roleRow: Record<string, unknown> = {
+      user_id:    userId,
+      role,
+      is_active:  true,
+      is_primary: true,
+    }
+    if (station_id)       roleRow.station_id       = station_id
+    if (call_center_id)   roleRow.call_center_id   = call_center_id
+    if (operator_code)    roleRow.operator_code    = operator_code
+    if (title)            roleRow.title            = title
+    if (allowed_districts) roleRow.allowed_districts = allowed_districts
+
+    const { error: roleErr } = await supabase.from('user_roles').insert(roleRow)
+    if (roleErr) throw roleErr
+
+    return NextResponse.json({ success: true, user_id: userId })
+  } catch (err: unknown) {
+    console.error('POST /api/admin/users error:', err)
+    const msg = err instanceof Error ? err.message : 'שגיאה פנימית'
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
