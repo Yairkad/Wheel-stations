@@ -41,7 +41,7 @@ interface ReverseResult {
 }
 
 interface CompareVehicleState {
-  tab: 'plate' | 'model' | 'specs'
+  tab: 'plate' | 'model'
   plate: string
   make: string
   model: string
@@ -322,18 +322,6 @@ export default function ReverseSearchPage() {
 
   // Generic vehicle lookup helper (plate or model)
   const lookupVehicleFitment = async (v: CompareVehicleState): Promise<VehicleResult> => {
-    if (v.tab === 'specs') {
-      const bc = parseInt(v.boltCount)
-      const bs = parseFloat(v.boltSpacing)
-      if (!bc || !bs) throw new Error('נא למלא מספר ברגים ומרווח')
-      const cb = v.centerBore ? parseFloat(v.centerBore) : undefined
-      const rs = v.rimSize ? [parseInt(v.rimSize)] : undefined
-      return {
-        vehicle: { manufacturer: 'מידות ידניות', model: `${bc}×${bs}${cb ? ` CB${cb}` : ''}${rs ? ` R${rs[0]}` : ''}`, year: 0, front_tire: null },
-        wheel_fitment: { pcd: `${bc}×${bs}`, bolt_count: bc, bolt_spacing: bs, center_bore: cb, rim_sizes_allowed: rs },
-        source: 'manual'
-      }
-    }
     if (v.tab === 'plate') {
       const res = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(v.plate.trim())}`)
       const data = await res.json()
@@ -365,7 +353,6 @@ export default function ReverseSearchPage() {
     const set = which === 'A' ? setCmpA : setCmpB
     if (v.tab === 'plate' && !v.plate.trim()) { set(prev => ({...prev, error: 'נא להזין מספר רישוי'})); return }
     if (v.tab === 'model' && (!v.make.trim() || !v.model.trim() || !v.year.trim())) { set(prev => ({...prev, error: 'נא למלא יצרן, דגם ושנה'})); return }
-    if (v.tab === 'specs' && (!v.boltCount || !v.boltSpacing)) { set(prev => ({...prev, error: 'נא למלא מספר ברגים ומרווח'})); return }
     set(prev => ({...prev, loading: true, error: null, result: null}))
     try {
       const result = await lookupVehicleFitment(v)
@@ -514,13 +501,13 @@ export default function ReverseSearchPage() {
                 </div>
                 {/* Mini tabs */}
                 <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                  {(['plate', 'model', 'specs'] as const).map(t => (
+                  {(['plate', 'model'] as const).map(t => (
                     <button key={t} onClick={() => set(prev => ({...prev, tab: t, result: null, error: null}))}
                       style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                         background: v.tab === t ? '#2563eb' : '#f8fafc',
                         color: v.tab === t ? '#ffffff' : '#64748b',
                         borderColor: v.tab === t ? '#2563eb' : '#e2e8f0' }}>
-                      {t === 'plate' ? 'לוחית רישוי' : t === 'model' ? 'יצרן ודגם' : 'מידות גלגל'}
+                      {t === 'plate' ? 'לוחית רישוי' : 'יצרן ודגם'}
                     </button>
                   ))}
                 </div>
@@ -546,29 +533,6 @@ export default function ReverseSearchPage() {
                         placeholder="שנה" style={{...styles.input, flex: 1}} dir="ltr" />
                       <button onClick={() => handleLookupCompareVehicle(which)} disabled={v.loading} style={styles.searchBtn}>
                         {v.loading ? <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
-                      </button>
-                    </div>
-                  </div>
-                )}
-                {v.tab === 'specs' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" inputMode="numeric" value={v.boltCount}
-                        onChange={e => set(prev => ({...prev, boltCount: e.target.value, result: null}))}
-                        placeholder="ברגים (5)" style={{...styles.input, flex: 1}} dir="ltr" />
-                      <input type="text" inputMode="decimal" value={v.boltSpacing}
-                        onChange={e => set(prev => ({...prev, boltSpacing: e.target.value, result: null}))}
-                        placeholder="מרווח (114.3)" style={{...styles.input, flex: 2}} dir="ltr" />
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" inputMode="decimal" value={v.centerBore}
-                        onChange={e => set(prev => ({...prev, centerBore: e.target.value, result: null}))}
-                        placeholder="CB (67.1) — אופציונלי" style={{...styles.input, flex: 2}} dir="ltr" />
-                      <input type="text" inputMode="numeric" value={v.rimSize}
-                        onChange={e => set(prev => ({...prev, rimSize: e.target.value, result: null}))}
-                        placeholder='R (16)' style={{...styles.input, flex: 1}} dir="ltr" />
-                      <button onClick={() => handleLookupCompareVehicle(which)} disabled={v.loading} style={styles.searchBtn}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                       </button>
                     </div>
                   </div>
@@ -835,50 +799,69 @@ export default function ReverseSearchPage() {
           {!showSpecsEditor ? (
             <button
               onClick={() => setShowSpecsEditor(true)}
-              style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 16px', cursor: 'pointer', fontSize: '0.88rem', color: '#475569', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center' }}
+              style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 16px', cursor: 'pointer', fontSize: '0.88rem', color: '#475569', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center', boxSizing: 'border-box' }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              שנה מידות לחיפוש אחר
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              סנן לפי מידות גלגל
             </button>
           ) : (
-            <div style={{ background: '#fff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '14px' }}>
+            <div style={{ background: '#fff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '14px', boxSizing: 'border-box', width: '100%' }}>
               <div style={{ fontWeight: 600, marginBottom: '10px', color: '#2563eb', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                שנה מידות לחיפוש
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                סינון לפי מידות גלגל
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px', marginBottom: '8px' }}>
-                <input
-                  type="text" inputMode="numeric" value={specBoltCount}
-                  onChange={e => setSpecBoltCount(e.target.value)}
-                  placeholder="ברגים (5)"
-                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
-                />
-                <input
-                  type="text" inputMode="decimal" value={specBoltSpacing}
-                  onChange={e => setSpecBoltSpacing(e.target.value)}
-                  placeholder="PCD (114.3)"
-                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
-                />
+
+              {/* Tire size from vehicle */}
+              {vehicleResult?.vehicle?.front_tire && (
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', fontSize: '0.85rem', color: '#1e40af' }}>
+                  <span style={{ color: '#64748b' }}>מידת צמיג מקורית: </span>
+                  <strong>{vehicleResult.vehicle.front_tire}</strong>
+                </div>
+              )}
+
+              {/* Row 1: Bolt count + PCD */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>מספר ברגים · ריווח ברגים (PCD)</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text" inputMode="numeric" value={specBoltCount}
+                    onChange={e => setSpecBoltCount(e.target.value)}
+                    placeholder="5"
+                    style={{ ...styles.input, flex: '0 0 72px', width: '72px', fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
+                  />
+                  <input
+                    type="text" inputMode="decimal" value={specBoltSpacing}
+                    onChange={e => setSpecBoltSpacing(e.target.value)}
+                    placeholder="114.3"
+                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
+                  />
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px', marginBottom: '10px' }}>
-                <input
-                  type="text" inputMode="decimal" value={specCenterBore}
-                  onChange={e => setSpecCenterBore(e.target.value)}
-                  placeholder="CB (67.1) — אופציונלי"
-                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
-                />
-                <input
-                  type="text" inputMode="numeric" value={specRimSize}
-                  onChange={e => setSpecRimSize(e.target.value)}
-                  placeholder='גודל R'
-                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
-                />
+
+              {/* Row 2: CB + Rim size */}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>קוטר מרכזי (CB) · גודל חישוק (R)</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text" inputMode="decimal" value={specCenterBore}
+                    onChange={e => setSpecCenterBore(e.target.value)}
+                    placeholder="67.1 (אופציונלי)"
+                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
+                  />
+                  <input
+                    type="text" inputMode="numeric" value={specRimSize}
+                    onChange={e => setSpecRimSize(e.target.value)}
+                    placeholder='16'
+                    style={{ ...styles.input, flex: '0 0 72px', width: '72px', fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
+                  />
+                </div>
               </div>
+
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button onClick={handleSpecsSearch} disabled={reverseLoading} style={{ ...styles.searchBtn, flex: 1, padding: '10px', justifyContent: 'center', fontSize: '0.9rem' }}>
                   {reverseLoading ? <svg className="spinning-wheel" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> : 'חפש לפי מידות'}
                 </button>
-                <button onClick={() => setShowSpecsEditor(false)} style={{ ...styles.resetBtn, padding: '10px 16px' }}>ביטול</button>
+                <button onClick={() => setShowSpecsEditor(false)} style={{ ...styles.resetBtn, padding: '10px 16px', flexShrink: 0 }}>ביטול</button>
               </div>
             </div>
           )}
