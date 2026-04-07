@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Update user info and add role
-      const { error: userUpdErr } = await supabase.from('users').update({ full_name, password }).eq('id', existingUser.id)
+      const { error: userUpdErr } = await supabase.from('users').update({ full_name, password: password?.trim() }).eq('id', existingUser.id)
       if (userUpdErr) return NextResponse.json({ error: userUpdErr.message }, { status: 500 })
 
       const { error: roleError } = await supabase.from('user_roles').insert({
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     // Create new user
     const { data: newUser, error: userError } = await supabase
       .from('users')
-      .insert({ full_name, phone: cleanPhone, password, is_active: true })
+      .insert({ full_name, phone: cleanPhone, password: password?.trim() || null, is_active: true })
       .select('id')
       .single()
 

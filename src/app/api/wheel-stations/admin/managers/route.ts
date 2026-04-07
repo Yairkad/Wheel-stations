@@ -85,13 +85,13 @@ export async function POST(request: NextRequest) {
         if (uErr) throw uErr
       }
       if (password) {
-        const { error: pErr } = await supabase.from('users').update({ password }).eq('id', userId)
+        const { error: pErr } = await supabase.from('users').update({ password: password.trim() }).eq('id', userId)
         if (pErr) throw pErr
       }
     } else {
       const { data: newUser, error: insertError } = await supabase
         .from('users')
-        .insert({ full_name, phone: cleanPhone, password: password || null, is_active: true })
+        .insert({ full_name, phone: cleanPhone, password: password?.trim() || null, is_active: true })
         .select('id')
         .single()
 

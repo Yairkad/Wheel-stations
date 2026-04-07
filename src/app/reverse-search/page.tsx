@@ -41,11 +41,15 @@ interface ReverseResult {
 }
 
 interface CompareVehicleState {
-  tab: 'plate' | 'model'
+  tab: 'plate' | 'model' | 'specs'
   plate: string
   make: string
   model: string
   year: string
+  boltCount: string
+  boltSpacing: string
+  centerBore: string
+  rimSize: string
   result: VehicleResult | null
   loading: boolean
   error: string | null
@@ -101,7 +105,7 @@ export default function ReverseSearchPage() {
   const [pageMode, setPageMode] = useState<'reverse' | 'compare'>('reverse')
 
   // Compare mode vehicles
-  const emptyVehicle: CompareVehicleState = { tab: 'plate', plate: '', make: '', model: '', year: '', result: null, loading: false, error: null }
+  const emptyVehicle: CompareVehicleState = { tab: 'plate', plate: '', make: '', model: '', year: '', boltCount: '', boltSpacing: '', centerBore: '', rimSize: '', result: null, loading: false, error: null }
   const [cmpA, setCmpA] = useState<CompareVehicleState>(emptyVehicle)
   const [cmpB, setCmpB] = useState<CompareVehicleState>(emptyVehicle)
 
@@ -289,7 +293,7 @@ export default function ReverseSearchPage() {
       case 'exact':
         return { background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(34, 197, 94, 0.4)', color: '#22c55e' }
       case 'with_ring':
-        return { background: 'rgba(251, 191, 36, 0.15)', border: '1px solid rgba(251, 191, 36, 0.4)', color: '#fbbf24' }
+        return { background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(217, 119, 6, 0.4)', color: '#92400e' }
       case 'technical':
         return { background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444' }
       default:
@@ -308,6 +312,18 @@ export default function ReverseSearchPage() {
 
   // Generic vehicle lookup helper (plate or model)
   const lookupVehicleFitment = async (v: CompareVehicleState): Promise<VehicleResult> => {
+    if (v.tab === 'specs') {
+      const bc = parseInt(v.boltCount)
+      const bs = parseFloat(v.boltSpacing)
+      if (!bc || !bs) throw new Error('נא למלא מספר ברגים ומרווח')
+      const cb = v.centerBore ? parseFloat(v.centerBore) : undefined
+      const rs = v.rimSize ? [parseInt(v.rimSize)] : undefined
+      return {
+        vehicle: { manufacturer: 'מידות ידניות', model: `${bc}×${bs}${cb ? ` CB${cb}` : ''}${rs ? ` R${rs[0]}` : ''}`, year: 0, front_tire: null },
+        wheel_fitment: { pcd: `${bc}×${bs}`, bolt_count: bc, bolt_spacing: bs, center_bore: cb, rim_sizes_allowed: rs },
+        source: 'manual'
+      }
+    }
     if (v.tab === 'plate') {
       const res = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(v.plate.trim())}`)
       const data = await res.json()
@@ -339,6 +355,7 @@ export default function ReverseSearchPage() {
     const set = which === 'A' ? setCmpA : setCmpB
     if (v.tab === 'plate' && !v.plate.trim()) { set(prev => ({...prev, error: 'נא להזין מספר רישוי'})); return }
     if (v.tab === 'model' && (!v.make.trim() || !v.model.trim() || !v.year.trim())) { set(prev => ({...prev, error: 'נא למלא יצרן, דגם ושנה'})); return }
+    if (v.tab === 'specs' && (!v.boltCount || !v.boltSpacing)) { set(prev => ({...prev, error: 'נא למלא מספר ברגים ומרווח'})); return }
     set(prev => ({...prev, loading: true, error: null, result: null}))
     try {
       const result = await lookupVehicleFitment(v)
@@ -461,12 +478,12 @@ export default function ReverseSearchPage() {
                   {label}
                 </div>
                 {/* Mini tabs */}
-                <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                  {(['plate', 'model'] as const).map(t => (
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                  {(['plate', 'model', 'specs'] as const).map(t => (
                     <button key={t} onClick={() => set(prev => ({...prev, tab: t, result: null, error: null}))}
                       style={{ padding: '4px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
                         background: v.tab === t ? 'rgba(255,255,255,0.2)' : 'transparent', color: v.tab === t ? 'white' : '#6b7280' }}>
-                      {t === 'plate' ? 'לוחית רישוי' : 'יצרן ודגם'}
+                      {t === 'plate' ? 'לוחית רישוי' : t === 'model' ? 'יצרן ודגם' : 'מידות גלגל'}
                     </button>
                   ))}
                 </div>
@@ -496,6 +513,29 @@ export default function ReverseSearchPage() {
                     </div>
                   </div>
                 )}
+                {v.tab === 'specs' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input type="text" inputMode="numeric" value={v.boltCount}
+                        onChange={e => set(prev => ({...prev, boltCount: e.target.value, result: null}))}
+                        placeholder="ברגים (5)" style={{...styles.input, flex: 1}} dir="ltr" />
+                      <input type="text" inputMode="decimal" value={v.boltSpacing}
+                        onChange={e => set(prev => ({...prev, boltSpacing: e.target.value, result: null}))}
+                        placeholder="מרווח (114.3)" style={{...styles.input, flex: 2}} dir="ltr" />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input type="text" inputMode="decimal" value={v.centerBore}
+                        onChange={e => set(prev => ({...prev, centerBore: e.target.value, result: null}))}
+                        placeholder="CB (67.1) — אופציונלי" style={{...styles.input, flex: 2}} dir="ltr" />
+                      <input type="text" inputMode="numeric" value={v.rimSize}
+                        onChange={e => set(prev => ({...prev, rimSize: e.target.value, result: null}))}
+                        placeholder='R (16)' style={{...styles.input, flex: 1}} dir="ltr" />
+                      <button onClick={() => handleLookupCompareVehicle(which)} disabled={v.loading} style={styles.searchBtn}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {/* Error */}
                 {v.error && <p style={{ color: '#f87171', fontSize: '0.85rem', margin: '6px 0 0' }}>{v.error}</p>}
                 {/* Found */}
@@ -511,7 +551,7 @@ export default function ReverseSearchPage() {
                         {v.result.wheel_fitment.rim_sizes_allowed?.length ? ` · R${v.result.wheel_fitment.rim_sizes_allowed.join('/')}` : ''}
                       </span>
                     )}
-                    <button onClick={() => set(prev => ({...prev, result: null, plate: '', make: '', model: '', year: ''}))}
+                    <button onClick={() => set(prev => ({...prev, result: null, plate: '', make: '', model: '', year: '', boltCount: '', boltSpacing: '', centerBore: '', rimSize: ''}))}
                       style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '2px', marginRight: '6px', display: 'inline-flex', alignItems: 'center' }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                     </button>
@@ -526,11 +566,11 @@ export default function ReverseSearchPage() {
             const outcome = getCompareOutcome()
             if (!outcome) return null
             const bgColor = outcome.overall === 'compatible' ? 'rgba(16,185,129,0.15)' : outcome.overall === 'with_ring' ? 'rgba(251,191,36,0.15)' : 'rgba(239,68,68,0.15)'
-            const borderColor = outcome.overall === 'compatible' ? '#10b981' : outcome.overall === 'with_ring' ? '#fbbf24' : '#ef4444'
+            const borderColor = outcome.overall === 'compatible' ? '#10b981' : outcome.overall === 'with_ring' ? '#d97706' : '#ef4444'
             const icon = outcome.overall === 'compatible'
               ? <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
               : outcome.overall === 'with_ring'
-              ? <svg width="44" height="44" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1"><circle cx="12" cy="12" r="10"/></svg>
+              ? <svg width="44" height="44" viewBox="0 0 24 24" fill="#d97706" stroke="#d97706" strokeWidth="1"><circle cx="12" cy="12" r="10"/></svg>
               : <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
             const title = outcome.overall === 'compatible' ? 'מתאים!' : outcome.overall === 'with_ring' ? 'מתאים עם טבעת מרכוז' : 'לא מתאים'
             return (
@@ -548,7 +588,7 @@ export default function ReverseSearchPage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#9ca3af' }}>קוטר פנימי (CB)</span>
-                    <span style={{ fontWeight: 600, color: outcome.cbLevel === 'exact' ? '#10b981' : outcome.cbLevel === 'with_ring' ? '#fbbf24' : outcome.cbLevel === 'no_fit' ? '#ef4444' : '#9ca3af' }}>
+                    <span style={{ fontWeight: 600, color: outcome.cbLevel === 'exact' ? '#10b981' : outcome.cbLevel === 'with_ring' ? '#d97706' : outcome.cbLevel === 'no_fit' ? '#ef4444' : '#9ca3af' }}>
                       {outcome.cbLevel === 'exact' && <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>{`זהה${outcome.cbDiff !== null ? ` (${cmpA.result!.wheel_fitment!.center_bore}mm)` : ''}`}</span>}
                       {outcome.cbLevel === 'with_ring' && `מומלץ טבעת מרכוז (+${outcome.cbDiff}mm)`}
                       {outcome.cbLevel === 'no_fit' && <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>{`לא מתאים (${outcome.cbDiff !== null ? `${outcome.cbDiff}mm` : 'שונה'})`}</span>}
@@ -557,7 +597,7 @@ export default function ReverseSearchPage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: '#9ca3af' }}>גודל חישוק</span>
-                    <span style={{ fontWeight: 600, color: outcome.rimOverlap ? '#10b981' : '#fbbf24' }}>
+                    <span style={{ fontWeight: 600, color: outcome.rimOverlap ? '#10b981' : '#d97706' }}>
                       {outcome.rimOverlap
                         ? outcome.commonRimSizes.length > 0
                           ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>{`R${outcome.commonRimSizes.join('/')}`}</span>
@@ -822,13 +862,13 @@ export default function ReverseSearchPage() {
                               </span>
                             )}
                             {vehicle.cb_difference !== null && vehicle.cb_difference !== 0 && (
-                              <span style={{ ...styles.detailBadge, color: vehicle.match_level === 'exact' ? '#22c55e' : vehicle.match_level === 'with_ring' ? '#fbbf24' : '#ef4444' }}>
+                              <span style={{ ...styles.detailBadge, color: vehicle.match_level === 'exact' ? '#15803d' : vehicle.match_level === 'with_ring' ? '#92400e' : '#dc2626' }}>
                                 {vehicle.cb_difference > 0 ? '+' : ''}{vehicle.cb_difference}mm
                               </span>
                             )}
                             <span style={{
                               ...styles.matchBadge,
-                              color: vehicle.match_level === 'exact' ? '#22c55e' : vehicle.match_level === 'with_ring' ? '#fbbf24' : '#ef4444'
+                              color: vehicle.match_level === 'exact' ? '#15803d' : vehicle.match_level === 'with_ring' ? '#92400e' : '#dc2626'
                             }}>
                               {getMatchLevelLabel(vehicle.match_level)}
                             </span>

@@ -87,12 +87,12 @@ export async function POST(request: NextRequest) {
     if (existing) {
       userId = existing.id
       const updates: Record<string, unknown> = { full_name: full_name.trim() }
-      if (password) updates.password = password
+      if (password) updates.password = password.trim()
       await supabase.from('users').update(updates).eq('id', userId)
     } else {
       const { data: newUser, error: insertErr } = await supabase
         .from('users')
-        .insert({ full_name: full_name.trim(), phone: cleanPhone, password: password || null })
+        .insert({ full_name: full_name.trim(), phone: cleanPhone, password: password?.trim() || null })
         .select('id')
         .single()
       if (insertErr) throw insertErr

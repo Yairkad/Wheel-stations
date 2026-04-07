@@ -20,7 +20,7 @@ export async function verifyPunctureAccess(body: Record<string, unknown>): Promi
       .eq('phone', cleanPhone)
       .single()
 
-    if (!user || !user.is_active || user.password !== body.pm_password) return false
+    if (!user || !user.is_active || user.password?.trim() !== (body.pm_password as string)?.trim()) return false
 
     const { data: roleRow } = await supabase
       .from('user_roles')

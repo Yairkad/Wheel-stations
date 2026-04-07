@@ -38,7 +38,7 @@ export async function verifyStationManager(
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
   }
 
-  if (user.password !== password) {
+  if (user.password?.trim() !== password?.trim()) {
     return { success: false, error: 'סיסמא שגויה' }
   }
 

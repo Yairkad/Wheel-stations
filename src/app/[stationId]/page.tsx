@@ -837,7 +837,7 @@ ${signFormUrl}
       const response = await fetch(`/api/wheel-stations/${stationId}/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: loginPhone, password: loginPassword })
+        body: JSON.stringify({ phone: loginPhone.trim(), password: loginPassword.trim() })
       })
       const data = await response.json()
       if (!response.ok) {
@@ -5189,6 +5189,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #e2e8f0',
     position: 'relative',
     boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+    display: 'flex',
+    flexDirection: 'column',
   },
   cardTaken: {
     opacity: 0.85,
@@ -5254,6 +5256,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   cardInfo: {
     padding: '12px',
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
   },
   cardSpecs: {
     display: 'flex',
@@ -5580,9 +5585,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   cardActions: {
     display: 'flex',
     gap: '8px',
-    marginTop: '12px',
-    borderTop: '1px solid #e2e8f0',
+    marginTop: 'auto',
     paddingTop: '12px',
+    borderTop: '1px solid #e2e8f0',
   },
   borrowBtn: {
     flex: 1,

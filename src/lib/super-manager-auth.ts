@@ -18,7 +18,7 @@ export async function verifySuperManager(
 
   if (!user) return { success: false, error: 'מספר הטלפון לא נמצא' }
   if (!user.is_active) return { success: false, error: 'החשבון אינו פעיל' }
-  if (user.password !== password) return { success: false, error: 'סיסמא שגויה' }
+  if (user.password?.trim() !== password?.trim()) return { success: false, error: 'סיסמא שגויה' }
 
   const { data: roleRow } = await supabase
     .from('user_roles')

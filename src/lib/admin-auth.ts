@@ -28,9 +28,10 @@ export function verifyAdminPassword(password: string | null): boolean {
  * OR the personal password of a unified admin user (users table + user_roles with role='admin')
  */
 export async function verifyAdminAuth(adminPassword: string | null): Promise<boolean> {
+  const trimmedPassword = adminPassword?.trim() || null
   // First check static admin password (fast path)
-  if (WHEELS_ADMIN_PASSWORD && adminPassword === WHEELS_ADMIN_PASSWORD) return true
-  if (!adminPassword) return false
+  if (WHEELS_ADMIN_PASSWORD && trimmedPassword === WHEELS_ADMIN_PASSWORD.trim()) return true
+  if (!trimmedPassword) return false
 
   // Check if this is a valid unified admin user's password
   const supabase = createClient(
@@ -41,7 +42,7 @@ export async function verifyAdminAuth(adminPassword: string | null): Promise<boo
   const { data: users } = await supabase
     .from('users')
     .select('id')
-    .eq('password', adminPassword)
+    .eq('password', trimmedPassword)
     .eq('is_active', true)
 
   if (!users?.length) return false

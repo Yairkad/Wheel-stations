@@ -79,12 +79,12 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (existingUser) {
-      await supabase.from('users').update({ full_name, password }).eq('id', existingUser.id)
+      await supabase.from('users').update({ full_name, password: password.trim() }).eq('id', existingUser.id)
       userId = existingUser.id
     } else {
       const { data: newUser, error: userError } = await supabase
         .from('users')
-        .insert({ full_name, phone: cleanPhone, password, is_active: true })
+        .insert({ full_name, phone: cleanPhone, password: password.trim(), is_active: true })
         .select('id')
         .single()
 
@@ -135,7 +135,7 @@ export async function PUT(request: NextRequest) {
     const userUpdate: Record<string, unknown> = {}
     if (full_name !== undefined) userUpdate.full_name = full_name
     if (phone !== undefined) userUpdate.phone = phone.replace(/\D/g, '')
-    if (password !== undefined && password !== '') userUpdate.password = password
+    if (password !== undefined && password !== '') userUpdate.password = password.trim()
     if (is_active !== undefined) userUpdate.is_active = is_active
 
     if (Object.keys(userUpdate).length > 0) {
