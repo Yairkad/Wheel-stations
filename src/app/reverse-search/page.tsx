@@ -851,46 +851,45 @@ export default function ReverseSearchPage() {
                 </div>
               )}
 
-              {/* Row 1: Bolt count + PCD */}
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginBottom: '3px' }}>מספר ברגים · ריווח (PCD)</div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <input type="text" inputMode="numeric" value={specBoltCount}
-                    onChange={e => setSpecBoltCount(e.target.value)} placeholder="5"
-                    style={{ ...styles.input, flex: '0 0 60px', width: '60px', fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
-                  <input type="text" inputMode="decimal" value={specBoltSpacing}
-                    onChange={e => setSpecBoltSpacing(e.target.value)} placeholder="114.3"
-                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
-                </div>
+              {/* Row 1: 4 fields — ברגים / PCD / CB / R */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', alignItems: 'flex-end' }}>
+                {[
+                  { label: 'ברגים', val: specBoltCount, set: setSpecBoltCount, mode: 'numeric', ph: '5', w: '52px' },
+                  { label: 'PCD', val: specBoltSpacing, set: setSpecBoltSpacing, mode: 'decimal', ph: '114.3', w: undefined },
+                  { label: 'CB', val: specCenterBore, set: setSpecCenterBore, mode: 'decimal', ph: '67.1', w: undefined },
+                  { label: 'R"', val: specRimSize, set: setSpecRimSize, mode: 'numeric', ph: '16', w: '48px' },
+                ].map(f => (
+                  <div key={f.label} style={{ flex: f.w ? `0 0 ${f.w}` : 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, marginBottom: '3px', textAlign: 'center' }}>{f.label}</div>
+                    <input type="text" inputMode={f.mode as React.HTMLAttributes<HTMLInputElement>['inputMode']}
+                      value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.ph}
+                      style={{ ...styles.input, width: '100%', fontSize: '0.85rem', padding: '7px 4px', letterSpacing: 0, textAlign: 'center' }} dir="ltr" />
+                  </div>
+                ))}
               </div>
 
-              {/* Row 2: CB + Rim size */}
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginBottom: '3px' }}>קוטר מרכזי (CB) · גודל חישוק (R)</div>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <input type="text" inputMode="decimal" value={specCenterBore}
-                    onChange={e => setSpecCenterBore(e.target.value)} placeholder="67.1 (אופציונלי)"
-                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
-                  <input type="text" inputMode="numeric" value={specRimSize}
-                    onChange={e => setSpecRimSize(e.target.value)} placeholder='16"'
-                    style={{ ...styles.input, flex: '0 0 60px', width: '60px', fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
-                </div>
-              </div>
-
-              {/* Row 3: Tire width + profile (optional filter) */}
+              {/* Row 2: tire width / profile — optional filter */}
               <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginBottom: '3px' }}>
-                  מידת צמיג: רוחב · פרופיל <span style={{ fontWeight: 400 }}>(אופציונלי — מסנן תוצאות)</span>
+                <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, marginBottom: '3px' }}>
+                  מידת צמיג <span style={{ fontWeight: 400, color: '#94a3b8' }}>(אופציונלי — מסנן תוצאות)</span>
                 </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <input type="text" inputMode="numeric" value={specTireWidth}
-                    onChange={e => setSpecTireWidth(e.target.value)} placeholder="205"
-                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
-                  <span style={{ color: '#94a3b8', fontWeight: 700, flexShrink: 0 }}>/</span>
-                  <input type="text" inputMode="numeric" value={specTireProfile}
-                    onChange={e => setSpecTireProfile(e.target.value)} placeholder="55"
-                    style={{ ...styles.input, flex: '0 0 60px', width: '60px', fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
-                  <span style={{ color: '#94a3b8', fontWeight: 700, flexShrink: 0 }}>R{specRimSize || '?'}</span>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-end' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '3px', textAlign: 'center' }}>רוחב</div>
+                    <input type="text" inputMode="numeric" value={specTireWidth}
+                      onChange={e => setSpecTireWidth(e.target.value)} placeholder="205"
+                      style={{ ...styles.input, width: '100%', fontSize: '0.85rem', padding: '7px 4px', letterSpacing: 0, textAlign: 'center' }} dir="ltr" />
+                  </div>
+                  <span style={{ color: '#cbd5e1', fontWeight: 700, paddingBottom: '8px' }}>/</span>
+                  <div style={{ flex: '0 0 56px' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '3px', textAlign: 'center' }}>פרופיל</div>
+                    <input type="text" inputMode="numeric" value={specTireProfile}
+                      onChange={e => setSpecTireProfile(e.target.value)} placeholder="55"
+                      style={{ ...styles.input, width: '100%', fontSize: '0.85rem', padding: '7px 4px', letterSpacing: 0, textAlign: 'center' }} dir="ltr" />
+                  </div>
+                  <div style={{ paddingBottom: '6px', color: '#64748b', fontSize: '0.85rem', fontWeight: 600, flexShrink: 0 }}>
+                    R{specRimSize || '—'}
+                  </div>
                 </div>
               </div>
 
@@ -973,6 +972,30 @@ export default function ReverseSearchPage() {
                                 {vehicle.cb_difference > 0 ? '+' : ''}{vehicle.cb_difference}mm
                               </span>
                             )}
+                            {/* Rim size badge */}
+                            {(() => {
+                              const donorRims: number[] = vehicle.rim_sizes_allowed?.map(Number) ||
+                                (vehicle.rim_size ? [parseInt(vehicle.rim_size)] : [])
+                              const targetRim = specRimSize ? parseInt(specRimSize) : null
+                              if (donorRims.length === 0) {
+                                return (
+                                  <span style={{ ...styles.detailBadge, background: '#fefce8', border: '1px solid #fde68a', color: '#92400e' }}>
+                                    R לא ידוע
+                                  </span>
+                                )
+                              }
+                              const rimStr = `R${donorRims.join('/')}`
+                              const matches = targetRim ? donorRims.includes(targetRim) : true
+                              return (
+                                <span style={{ ...styles.detailBadge,
+                                  background: matches ? '#f0fdf4' : '#fef2f2',
+                                  border: matches ? '1px solid #bbf7d0' : '1px solid #fecaca',
+                                  color: matches ? '#15803d' : '#dc2626'
+                                }}>
+                                  {rimStr}
+                                </span>
+                              )
+                            })()}
                             {vehicle.tire_size_front && (
                               <span style={{ ...styles.detailBadge, color: '#475569' }}>
                                 {vehicle.tire_size_front}
