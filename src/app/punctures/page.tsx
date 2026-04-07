@@ -556,8 +556,6 @@ export default function PuncturesPage() {
             <a href="/privacy"        className="hover:text-gray-600">פרטיות</a>
             {' · '}
             <a href="/accessibility"  className="hover:text-gray-600">נגישות</a>
-            {' · '}
-            <a href="/admin/punctures" className="hover:text-gray-600">כניסה לעריכה</a>
           </div>
           <button onClick={() => setShowSuggest(true)}
             className="text-[10px] text-blue-500 hover:text-blue-700 mt-0.5">+ הצע מקום חדש</button>
@@ -573,8 +571,6 @@ export default function PuncturesPage() {
         <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
         <span>·</span>
         <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
-        <span>·</span>
-        <a href="/admin/punctures" className="hover:text-gray-600 hover:underline">כניסה לעריכה</a>
       </footer>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}

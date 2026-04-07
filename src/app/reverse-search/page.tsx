@@ -109,6 +109,13 @@ export default function ReverseSearchPage() {
   const [cmpA, setCmpA] = useState<CompareVehicleState>(emptyVehicle)
   const [cmpB, setCmpB] = useState<CompareVehicleState>(emptyVehicle)
 
+  // Custom specs editor (shown after results)
+  const [showSpecsEditor, setShowSpecsEditor] = useState(false)
+  const [specBoltCount, setSpecBoltCount] = useState('')
+  const [specBoltSpacing, setSpecBoltSpacing] = useState('')
+  const [specCenterBore, setSpecCenterBore] = useState('')
+  const [specRimSize, setSpecRimSize] = useState('')
+
   // Autocomplete functions
   const fetchMakeSuggestions = async (value: string) => {
     if (value.length < 2) {
@@ -206,6 +213,7 @@ export default function ReverseSearchPage() {
       }
       setVehicleResult(data)
       if (data.wheel_fitment) {
+        populateSpecsFromFitment(data.wheel_fitment)
         await doReverseSearch(
           data.wheel_fitment.bolt_count,
           data.wheel_fitment.bolt_spacing,
@@ -261,7 +269,7 @@ export default function ReverseSearchPage() {
           center_bore: model.center_bore || undefined,
           rim_sizes_allowed: model.rim_sizes_allowed || undefined,
         }
-        setVehicleResult({
+        const vResult = {
           vehicle: {
             manufacturer: model.make_he || model.make,
             model: model.model,
@@ -270,7 +278,9 @@ export default function ReverseSearchPage() {
           },
           wheel_fitment: wheelFitment,
           source: 'local_db'
-        })
+        }
+        setVehicleResult(vResult)
+        populateSpecsFromFitment(wheelFitment)
         const rimSizes = wheelFitment.rim_sizes_allowed || (model.rim_size ? [parseInt(model.rim_size)] : undefined)
         await doReverseSearch(
           wheelFitment.bolt_count,
@@ -404,6 +414,29 @@ export default function ReverseSearchPage() {
     setModelSearchModel('')
     setModelSearchYear('')
     setShowTechnical(false)
+    setShowSpecsEditor(false)
+    setSpecBoltCount('')
+    setSpecBoltSpacing('')
+    setSpecCenterBore('')
+    setSpecRimSize('')
+  }
+
+  const populateSpecsFromFitment = (fitment: VehicleResult['wheel_fitment']) => {
+    if (!fitment) return
+    setSpecBoltCount(fitment.bolt_count.toString())
+    setSpecBoltSpacing(fitment.bolt_spacing.toString())
+    setSpecCenterBore(fitment.center_bore?.toString() || '')
+    setSpecRimSize(fitment.rim_sizes_allowed?.[0]?.toString() || '')
+  }
+
+  const handleSpecsSearch = async () => {
+    const bc = parseInt(specBoltCount)
+    const bs = parseFloat(specBoltSpacing)
+    if (!bc || !bs) { toast.error('נא למלא מספר ברגים ומרווח PCD'); return }
+    const cb = specCenterBore ? parseFloat(specCenterBore) : undefined
+    const rs = specRimSize ? [parseInt(specRimSize)] : undefined
+    setShowSpecsEditor(false)
+    await doReverseSearch(bc, bs, cb, rs)
   }
 
   const isLoading = vehicleLoading || modelSearchLoading || reverseLoading
@@ -443,10 +476,11 @@ export default function ReverseSearchPage() {
         <button
           onClick={() => setPageMode('reverse')}
           style={{
-            flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+            flex: 1, padding: '10px', borderRadius: '10px', cursor: 'pointer',
             fontWeight: 600, fontSize: '0.9rem',
-            background: pageMode === 'reverse' ? '#f59e0b' : 'rgba(255,255,255,0.1)',
-            color: pageMode === 'reverse' ? '#000' : '#9ca3af'
+            background: pageMode === 'reverse' ? '#2563eb' : '#ffffff',
+            color: pageMode === 'reverse' ? '#ffffff' : '#64748b',
+            border: pageMode === 'reverse' ? '1px solid #2563eb' : '1px solid #e2e8f0',
           }}
         >
           <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חיפוש הפוך</span>
@@ -454,10 +488,11 @@ export default function ReverseSearchPage() {
         <button
           onClick={() => setPageMode('compare')}
           style={{
-            flex: 1, padding: '10px', borderRadius: '10px', border: 'none', cursor: 'pointer',
+            flex: 1, padding: '10px', borderRadius: '10px', cursor: 'pointer',
             fontWeight: 600, fontSize: '0.9rem',
-            background: pageMode === 'compare' ? '#f59e0b' : 'rgba(255,255,255,0.1)',
-            color: pageMode === 'compare' ? '#000' : '#9ca3af'
+            background: pageMode === 'compare' ? '#2563eb' : '#ffffff',
+            color: pageMode === 'compare' ? '#ffffff' : '#64748b',
+            border: pageMode === 'compare' ? '1px solid #2563eb' : '1px solid #e2e8f0',
           }}
         >
           <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> השוואה מיידית</span>
@@ -473,16 +508,18 @@ export default function ReverseSearchPage() {
             const set = which === 'A' ? setCmpA : setCmpB
             const label = which === 'A' ? 'רכב 1' : 'רכב 2'
             return (
-              <div key={which} style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px' }}>
-                <div style={{ fontWeight: 700, marginBottom: '10px', color: which === 'A' ? '#60a5fa' : '#34d399' }}>
+              <div key={which} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontWeight: 700, marginBottom: '10px', color: which === 'A' ? '#2563eb' : '#16a34a' }}>
                   {label}
                 </div>
                 {/* Mini tabs */}
                 <div style={{ display: 'flex', gap: '6px', marginBottom: '10px', flexWrap: 'wrap' }}>
                   {(['plate', 'model', 'specs'] as const).map(t => (
                     <button key={t} onClick={() => set(prev => ({...prev, tab: t, result: null, error: null}))}
-                      style={{ padding: '4px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-                        background: v.tab === t ? 'rgba(255,255,255,0.2)' : 'transparent', color: v.tab === t ? 'white' : '#6b7280' }}>
+                      style={{ padding: '5px 12px', borderRadius: '6px', border: '1px solid', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
+                        background: v.tab === t ? '#2563eb' : '#f8fafc',
+                        color: v.tab === t ? '#ffffff' : '#64748b',
+                        borderColor: v.tab === t ? '#2563eb' : '#e2e8f0' }}>
                       {t === 'plate' ? 'לוחית רישוי' : t === 'model' ? 'יצרן ודגם' : 'מידות גלגל'}
                     </button>
                   ))}
@@ -793,6 +830,58 @@ export default function ReverseSearchPage() {
               חיפוש חדש
             </button>
           </div>
+
+          {/* Custom specs editor */}
+          {!showSpecsEditor ? (
+            <button
+              onClick={() => setShowSpecsEditor(true)}
+              style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 16px', cursor: 'pointer', fontSize: '0.88rem', color: '#475569', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', width: '100%', justifyContent: 'center' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              שנה מידות לחיפוש אחר
+            </button>
+          ) : (
+            <div style={{ background: '#fff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '14px' }}>
+              <div style={{ fontWeight: 600, marginBottom: '10px', color: '#2563eb', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                שנה מידות לחיפוש
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px', marginBottom: '8px' }}>
+                <input
+                  type="text" inputMode="numeric" value={specBoltCount}
+                  onChange={e => setSpecBoltCount(e.target.value)}
+                  placeholder="ברגים (5)"
+                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
+                />
+                <input
+                  type="text" inputMode="decimal" value={specBoltSpacing}
+                  onChange={e => setSpecBoltSpacing(e.target.value)}
+                  placeholder="PCD (114.3)"
+                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                <input
+                  type="text" inputMode="decimal" value={specCenterBore}
+                  onChange={e => setSpecCenterBore(e.target.value)}
+                  placeholder="CB (67.1) — אופציונלי"
+                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
+                />
+                <input
+                  type="text" inputMode="numeric" value={specRimSize}
+                  onChange={e => setSpecRimSize(e.target.value)}
+                  placeholder='גודל R'
+                  style={{ ...styles.input, fontSize: '0.95rem', padding: '10px 12px', letterSpacing: 0 }} dir="ltr"
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={handleSpecsSearch} disabled={reverseLoading} style={{ ...styles.searchBtn, flex: 1, padding: '10px', justifyContent: 'center', fontSize: '0.9rem' }}>
+                  {reverseLoading ? <svg className="spinning-wheel" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> : 'חפש לפי מידות'}
+                </button>
+                <button onClick={() => setShowSpecsEditor(false)} style={{ ...styles.resetBtn, padding: '10px 16px' }}>ביטול</button>
+              </div>
+            </div>
+          )}
 
           {/* Loading */}
           {reverseLoading && (

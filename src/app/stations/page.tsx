@@ -846,7 +846,7 @@ export default function WheelStationsPage() {
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
         .wheels-station-filter::placeholder {
-          color: rgba(255,255,255,0.5);
+          color: #94a3b8;
         }
         .wheels-station-filter:focus {
           border-color: #f59e0b;

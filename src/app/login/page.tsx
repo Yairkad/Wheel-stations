@@ -339,7 +339,6 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               style={styles.passwordInput}
               className="form-input"
-              dir="ltr"
               autoComplete="current-password"
             />
             <button
@@ -542,7 +541,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   passwordInput: {
     width: '100%',
-    padding: '14px 16px 14px 48px',
+    padding: '14px 48px 14px 16px',
     borderRadius: '12px',
     border: '1px solid #e2e8f0',
     background: '#f8fafc',
@@ -555,7 +554,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   toggleButton: {
     position: 'absolute',
-    right: '12px',
+    left: '12px',
     background: 'none',
     border: 'none',
     cursor: 'pointer',

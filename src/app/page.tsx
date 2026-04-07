@@ -9,7 +9,7 @@ export default function PublicHomePage() {
   const router = useRouter()
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="home-page">
       <style>{`
         .nav-card:hover {
           transform: translateY(-4px) !important;
@@ -26,9 +26,15 @@ export default function PublicHomePage() {
           box-shadow: 0 4px 14px rgba(37,99,235,0.25) !important;
         }
         @media (max-width: 480px) {
-          .cards-container { flex-direction: column !important; align-items: center !important; }
-          .nav-card { width: 100% !important; max-width: 300px !important; }
+          .cards-container { flex-direction: column !important; align-items: center !important; padding: 0 16px !important; }
+          .nav-card { width: 100% !important; max-width: 100% !important; }
           .main-title { font-size: 1.6rem !important; }
+          .home-page { justify-content: flex-start !important; padding-top: 70px !important; }
+          .home-container { justify-content: flex-start !important; flex: none !important; }
+          .home-logo { margin-bottom: 12px !important; }
+          .home-subtitle { margin-bottom: 20px !important; }
+          .cards-container { margin-bottom: 16px !important; }
+          .home-footer { margin-top: auto !important; padding-top: 16px !important; }
         }
       `}</style>
 
@@ -42,14 +48,14 @@ export default function PublicHomePage() {
         התחברות
       </button>
 
-      <div style={styles.container}>
+      <div style={styles.container} className="home-container">
         {/* Logo */}
-        <div style={styles.logoWrap}>
+        <div style={styles.logoWrap} className="home-logo">
           <Image src="/logo.wheels.png" alt="מערכת גלגלים" width={96} height={96} style={{ objectFit: 'cover', display: 'block' }} />
         </div>
 
         <h1 className="main-title" style={styles.title}>מערכת גלגלים</h1>
-        <p style={styles.subtitle}>בחר שירות</p>
+        <p style={styles.subtitle} className="home-subtitle">בחר שירות</p>
 
         {/* Cards */}
         <div className="cards-container" style={styles.cardsContainer}>
@@ -82,7 +88,7 @@ export default function PublicHomePage() {
       </div>
 
       {/* Footer */}
-      <footer style={styles.footer}>
+      <footer style={styles.footer} className="home-footer">
         <div style={styles.footerLinks}>
           <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
           <span style={styles.footerDot}>•</span>
@@ -142,10 +148,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   cardsContainer: {
     display: 'flex',
-    gap: '20px',
+    gap: '16px',
     justifyContent: 'center',
     marginBottom: '32px',
     flexWrap: 'wrap',
+    width: '100%',
+    maxWidth: '700px',
   },
   card: {
     width: '210px',
