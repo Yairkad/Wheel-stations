@@ -36,6 +36,7 @@ interface ReverseResult {
   center_bore?: number | null
   rim_size?: string | null
   rim_sizes_allowed?: number[] | null
+  tire_size_front?: string | null
   cb_difference: number | null
   match_level: 'exact' | 'with_ring' | 'technical'
 }
@@ -115,6 +116,15 @@ export default function ReverseSearchPage() {
   const [specBoltSpacing, setSpecBoltSpacing] = useState('')
   const [specCenterBore, setSpecCenterBore] = useState('')
   const [specRimSize, setSpecRimSize] = useState('')
+  const [specTireWidth, setSpecTireWidth] = useState('')
+  const [specTireProfile, setSpecTireProfile] = useState('')
+
+  const parseTireSize = (tireStr: string): { width?: number; profile?: number; rim?: number } => {
+    if (!tireStr) return {}
+    const m = tireStr.match(/(\d{3})[\/\s]*(\d{2,3})[\/R\s]+(\d{2})/i)
+    if (!m) return {}
+    return { width: parseInt(m[1]), profile: parseInt(m[2]), rim: parseInt(m[3]) }
+  }
 
   // Autocomplete functions
   const fetchMakeSuggestions = async (value: string) => {
@@ -213,7 +223,7 @@ export default function ReverseSearchPage() {
       }
       setVehicleResult(data)
       if (data.wheel_fitment) {
-        populateSpecsFromFitment(data.wheel_fitment)
+        populateSpecsFromFitment(data.wheel_fitment, data.vehicle?.front_tire)
         await doReverseSearch(
           data.wheel_fitment.bolt_count,
           data.wheel_fitment.bolt_spacing,
@@ -280,7 +290,7 @@ export default function ReverseSearchPage() {
           source: 'local_db'
         }
         setVehicleResult(vResult)
-        populateSpecsFromFitment(wheelFitment)
+        populateSpecsFromFitment(wheelFitment, model.tire_size_front)
         const rimSizes = wheelFitment.rim_sizes_allowed || (model.rim_size ? [parseInt(model.rim_size)] : undefined)
         await doReverseSearch(
           wheelFitment.bolt_count,
@@ -406,14 +416,22 @@ export default function ReverseSearchPage() {
     setSpecBoltSpacing('')
     setSpecCenterBore('')
     setSpecRimSize('')
+    setSpecTireWidth('')
+    setSpecTireProfile('')
   }
 
-  const populateSpecsFromFitment = (fitment: VehicleResult['wheel_fitment']) => {
+  const populateSpecsFromFitment = (fitment: VehicleResult['wheel_fitment'], frontTire?: string | null) => {
     if (!fitment) return
     setSpecBoltCount(fitment.bolt_count.toString())
     setSpecBoltSpacing(fitment.bolt_spacing.toString())
     setSpecCenterBore(fitment.center_bore?.toString() || '')
     setSpecRimSize(fitment.rim_sizes_allowed?.[0]?.toString() || '')
+    if (frontTire) {
+      const parsed = parseTireSize(frontTire)
+      setSpecTireWidth(parsed.width?.toString() || '')
+      setSpecTireProfile(parsed.profile?.toString() || '')
+      if (!fitment.rim_sizes_allowed?.length && parsed.rim) setSpecRimSize(parsed.rim.toString())
+    }
   }
 
   const handleSpecsSearch = async () => {
@@ -435,9 +453,23 @@ export default function ReverseSearchPage() {
       : reverseResults.results.filter(r => r.match_level !== 'technical')
     : []
 
+  // Further filter by tire width/profile if set
+  const tireFilteredResults = filteredResults.filter(v => {
+    if (!specTireWidth && !specTireProfile) return true
+    if (!v.tire_size_front) return true // unknown → show
+    const parsed = parseTireSize(v.tire_size_front)
+    if (specTireWidth && parsed.width) {
+      if (Math.abs(parsed.width - parseInt(specTireWidth)) > 10) return false
+    }
+    if (specTireProfile && parsed.profile) {
+      if (parsed.profile !== parseInt(specTireProfile)) return false
+    }
+    return true
+  })
+
   // Group filtered results by make
   const groupedFiltered: Record<string, ReverseResult[]> = {}
-  for (const vehicle of filteredResults) {
+  for (const vehicle of tireFilteredResults) {
     const make = vehicle.make_he || vehicle.make
     if (!groupedFiltered[make]) groupedFiltered[make] = []
     groupedFiltered[make].push(vehicle)
@@ -813,47 +845,52 @@ export default function ReverseSearchPage() {
 
               {/* Tire size from vehicle */}
               {vehicleResult?.vehicle?.front_tire && (
-                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', fontSize: '0.85rem', color: '#1e40af' }}>
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '6px 12px', marginBottom: '10px', fontSize: '0.82rem', color: '#1e40af' }}>
                   <span style={{ color: '#64748b' }}>מידת צמיג מקורית: </span>
                   <strong>{vehicleResult.vehicle.front_tire}</strong>
                 </div>
               )}
 
               {/* Row 1: Bolt count + PCD */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>מספר ברגים · ריווח ברגים (PCD)</div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text" inputMode="numeric" value={specBoltCount}
-                    onChange={e => setSpecBoltCount(e.target.value)}
-                    placeholder="5"
-                    style={{ ...styles.input, flex: '0 0 72px', width: '72px', fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
-                  />
-                  <input
-                    type="text" inputMode="decimal" value={specBoltSpacing}
-                    onChange={e => setSpecBoltSpacing(e.target.value)}
-                    placeholder="114.3"
-                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
-                  />
+              <div style={{ marginBottom: '8px' }}>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginBottom: '3px' }}>מספר ברגים · ריווח (PCD)</div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <input type="text" inputMode="numeric" value={specBoltCount}
+                    onChange={e => setSpecBoltCount(e.target.value)} placeholder="5"
+                    style={{ ...styles.input, flex: '0 0 60px', width: '60px', fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
+                  <input type="text" inputMode="decimal" value={specBoltSpacing}
+                    onChange={e => setSpecBoltSpacing(e.target.value)} placeholder="114.3"
+                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
                 </div>
               </div>
 
               {/* Row 2: CB + Rim size */}
-              <div style={{ marginBottom: '12px' }}>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>קוטר מרכזי (CB) · גודל חישוק (R)</div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text" inputMode="decimal" value={specCenterBore}
-                    onChange={e => setSpecCenterBore(e.target.value)}
-                    placeholder="67.1 (אופציונלי)"
-                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
-                  />
-                  <input
-                    type="text" inputMode="numeric" value={specRimSize}
-                    onChange={e => setSpecRimSize(e.target.value)}
-                    placeholder='16'
-                    style={{ ...styles.input, flex: '0 0 72px', width: '72px', fontSize: '0.95rem', padding: '10px 10px', letterSpacing: 0 }} dir="ltr"
-                  />
+              <div style={{ marginBottom: '8px' }}>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginBottom: '3px' }}>קוטר מרכזי (CB) · גודל חישוק (R)</div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <input type="text" inputMode="decimal" value={specCenterBore}
+                    onChange={e => setSpecCenterBore(e.target.value)} placeholder="67.1 (אופציונלי)"
+                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
+                  <input type="text" inputMode="numeric" value={specRimSize}
+                    onChange={e => setSpecRimSize(e.target.value)} placeholder='16"'
+                    style={{ ...styles.input, flex: '0 0 60px', width: '60px', fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
+                </div>
+              </div>
+
+              {/* Row 3: Tire width + profile (optional filter) */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginBottom: '3px' }}>
+                  מידת צמיג: רוחב · פרופיל <span style={{ fontWeight: 400 }}>(אופציונלי — מסנן תוצאות)</span>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input type="text" inputMode="numeric" value={specTireWidth}
+                    onChange={e => setSpecTireWidth(e.target.value)} placeholder="205"
+                    style={{ ...styles.input, flex: 1, minWidth: 0, fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
+                  <span style={{ color: '#94a3b8', fontWeight: 700, flexShrink: 0 }}>/</span>
+                  <input type="text" inputMode="numeric" value={specTireProfile}
+                    onChange={e => setSpecTireProfile(e.target.value)} placeholder="55"
+                    style={{ ...styles.input, flex: '0 0 60px', width: '60px', fontSize: '0.88rem', padding: '8px 8px', letterSpacing: 0 }} dir="ltr" />
+                  <span style={{ color: '#94a3b8', fontWeight: 700, flexShrink: 0 }}>R{specRimSize || '?'}</span>
                 </div>
               </div>
 
@@ -880,7 +917,7 @@ export default function ReverseSearchPage() {
               {/* Summary */}
               <div style={styles.summaryBar}>
                 <span>
-                  נמצאו <strong>{filteredResults.length}</strong> דגמים תואמים
+                  נמצאו <strong>{tireFilteredResults.length}</strong> דגמים תואמים{tireFilteredResults.length !== filteredResults.length && <span style={{ color: '#64748b', fontWeight: 'normal', fontSize: '0.8rem' }}> (מתוך {filteredResults.length})</span>}
                 </span>
                 {reverseResults.counts.exact > 0 && (
                   <span style={{ color: '#22c55e' }}>
@@ -904,7 +941,7 @@ export default function ReverseSearchPage() {
               )}
 
               {/* Results grouped by make */}
-              {filteredResults.length === 0 ? (
+              {tireFilteredResults.length === 0 ? (
                 <div style={styles.noResults}>
                   <p>לא נמצאו דגמים תואמים</p>
                 </div>
@@ -929,13 +966,16 @@ export default function ReverseSearchPage() {
                               {vehicle.bolt_count}×{vehicle.bolt_spacing}
                             </span>
                             {vehicle.center_bore && (
-                              <span style={styles.detailBadge}>
-                                CB: {vehicle.center_bore}
-                              </span>
+                              <span style={styles.detailBadge}>CB {vehicle.center_bore}</span>
                             )}
                             {vehicle.cb_difference !== null && vehicle.cb_difference !== 0 && (
                               <span style={{ ...styles.detailBadge, color: vehicle.match_level === 'exact' ? '#15803d' : vehicle.match_level === 'with_ring' ? '#92400e' : '#dc2626' }}>
                                 {vehicle.cb_difference > 0 ? '+' : ''}{vehicle.cb_difference}mm
+                              </span>
+                            )}
+                            {vehicle.tire_size_front && (
+                              <span style={{ ...styles.detailBadge, color: '#475569' }}>
+                                {vehicle.tire_size_front}
                               </span>
                             )}
                             <span style={{
