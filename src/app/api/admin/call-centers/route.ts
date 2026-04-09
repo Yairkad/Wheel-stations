@@ -81,12 +81,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שם המוקד הוא שדה חובה' }, { status: 400 })
     }
 
-    if (!manager_name || !manager_phone || !manager_password) {
-      return NextResponse.json({ error: 'יש להזין פרטי מנהל ראשי: שם, טלפון וסיסמה' }, { status: 400 })
-    }
-
-    const cleanPhone = manager_phone.replace(/\D/g, '')
-
     // Create call center
     const { data: callCenter, error: centerError } = await supabase
       .from('call_centers')
@@ -99,50 +93,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: centerError.message }, { status: 500 })
     }
 
-    // Find or create user
-    let userId: string
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('phone', cleanPhone)
-      .single()
+    // If manager details provided, create/assign the primary manager
+    if (manager_name && manager_phone && manager_password) {
+      const cleanPhone = manager_phone.replace(/\D/g, '')
 
-    if (existingUser) {
-      const { error: uErr } = await supabase.from('users').update({ full_name: manager_name, password: manager_password }).eq('id', existingUser.id)
-      if (uErr) { await supabase.from('call_centers').delete().eq('id', callCenter.id); return NextResponse.json({ error: uErr.message }, { status: 500 }) }
-      userId = existingUser.id
-    } else {
-      const { data: newUser, error: userError } = await supabase
+      let userId: string
+      const { data: existingUser } = await supabase
         .from('users')
-        .insert({ full_name: manager_name, phone: cleanPhone, password: manager_password, is_active: true })
         .select('id')
+        .eq('phone', cleanPhone)
         .single()
 
-      if (userError || !newUser) {
-        await supabase.from('call_centers').delete().eq('id', callCenter.id)
-        return NextResponse.json({ error: userError?.message || 'שגיאה ביצירת מנהל' }, { status: 500 })
+      if (existingUser) {
+        const { error: uErr } = await supabase.from('users').update({ full_name: manager_name, password: manager_password }).eq('id', existingUser.id)
+        if (uErr) { await supabase.from('call_centers').delete().eq('id', callCenter.id); return NextResponse.json({ error: uErr.message }, { status: 500 }) }
+        userId = existingUser.id
+      } else {
+        const { data: newUser, error: userError } = await supabase
+          .from('users')
+          .insert({ full_name: manager_name, phone: cleanPhone, password: manager_password, is_active: true })
+          .select('id')
+          .single()
+
+        if (userError || !newUser) {
+          await supabase.from('call_centers').delete().eq('id', callCenter.id)
+          return NextResponse.json({ error: userError?.message || 'שגיאה ביצירת מנהל' }, { status: 500 })
+        }
+        userId = newUser.id
       }
-      userId = newUser.id
+
+      const { error: roleError } = await supabase.from('user_roles').insert({
+        user_id: userId,
+        role: 'call_center_manager',
+        call_center_id: callCenter.id,
+        title: 'מנהל מוקד',
+        is_primary: true,
+        is_active: true,
+      })
+
+      if (roleError) {
+        await supabase.from('call_centers').delete().eq('id', callCenter.id)
+        if (!existingUser) await supabase.from('users').delete().eq('id', userId)
+        console.error('Error creating manager role:', roleError)
+        return NextResponse.json({ error: roleError.message }, { status: 500 })
+      }
     }
 
-    const { error: roleError } = await supabase.from('user_roles').insert({
-      user_id: userId,
-      role: 'call_center_manager',
-      call_center_id: callCenter.id,
-      title: 'מנהל מוקד',
-      is_primary: true,
-      is_active: true,
-    })
-
-    if (roleError) {
-      await supabase.from('call_centers').delete().eq('id', callCenter.id)
-      // If user was newly created (no existingUser), delete it too to avoid orphan
-      if (!existingUser) await supabase.from('users').delete().eq('id', userId)
-      console.error('Error creating manager role:', roleError)
-      return NextResponse.json({ error: roleError.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true, callCenter, message: 'המוקד נוצר בהצלחה עם מנהל ראשי' })
+    return NextResponse.json({ success: true, callCenter, message: 'המוקד נוצר בהצלחה' })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json({ error: 'שגיאה פנימית בשרת' }, { status: 500 })

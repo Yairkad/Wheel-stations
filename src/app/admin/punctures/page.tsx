@@ -419,7 +419,7 @@ function AddShopModal({ authPayload, onDone, onClose }: {
 
 export default function PuncturesAdminPage() {
   const { isAuthenticated, role, isLoading, authPayload, logout } = usePunctureAdminAuth()
-  const [tab, setTab] = useState<Tab>('suggestions')
+  const [tab, setTab] = useState<Tab>('shops')
 
   // Suggestions
   const [suggestions,     setSuggestions]     = useState<Suggestion[]>([])
@@ -503,10 +503,18 @@ export default function PuncturesAdminPage() {
   return (
     <AdminShell onLogout={logout}>
     <div dir="rtl" style={{ minHeight: '100vh', background: '#f1f5f9', fontFamily: "'Segoe UI', sans-serif", color: '#1e293b' }}>
+      <style>{`
+        .add-shop-label { display: inline; }
+        .shop-action-btn { padding: 5px 12px !important; font-size: 0.78rem !important; }
+        @media (max-width: 480px) {
+          .add-shop-label { display: none; }
+          .shop-action-btn { padding: 5px 8px !important; font-size: 0.72rem !important; }
+        }
+      `}</style>
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', padding: '0 24px', background: '#ffffff' }}>
-        {(['suggestions', 'shops'] as Tab[]).map(t => (
+        {(['shops', 'suggestions'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer',
             fontSize: '0.88rem', fontWeight: 700,
@@ -519,7 +527,7 @@ export default function PuncturesAdminPage() {
         ))}
       </div>
 
-      <div style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ padding: '32px 24px 24px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* ── SUGGESTIONS TAB ── */}
         {tab === 'suggestions' && (
@@ -597,9 +605,12 @@ export default function PuncturesAdminPage() {
                 style={{ flex: 1, padding: '9px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, color: '#1e293b', fontSize: '0.88rem', boxSizing: 'border-box' as const }}
               />
               <button onClick={() => setAddingShop(true)} style={{
-                padding: '9px 16px', background: '#f59e0b', border: 'none',
-                borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' as const,
-              }}>+ הוסף פנצ'ריה</button>
+                padding: '9px 14px', background: '#f59e0b', border: 'none',
+                borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+                flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4,
+              }}>
+                <span>+</span><span className="add-shop-label"> הוסף פנצ&apos;ריה</span>
+              </button>
             </div>
             {shopsLoading ? (
               <div style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>טוען...</div>
@@ -635,15 +646,22 @@ export default function PuncturesAdminPage() {
                         transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                       }}/>
                     </div>
-                    <button onClick={() => setEditingShop(shop)} style={{
-                      padding: '5px 12px', background: '#f1f5f9', border: '1px solid #e2e8f0',
-                      borderRadius: 8, color: '#64748b', fontSize: '0.78rem', cursor: 'pointer',
-                    }}>עריכה</button>
-                    <button onClick={() => deleteShop(shop)} style={{
-                      padding: '5px 10px', background: 'rgba(239,68,68,0.1)',
-                      border: '1px solid rgba(239,68,68,0.2)',
-                      borderRadius: 8, color: '#f87171', fontSize: '0.78rem', cursor: 'pointer',
-                    }}>מחק</button>
+                    <button onClick={() => setEditingShop(shop)} className="shop-action-btn" style={{
+                      background: '#f1f5f9', border: '1px solid #e2e8f0',
+                      borderRadius: 8, color: '#64748b', cursor: 'pointer', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', gap: 3,
+                    }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      <span className="add-shop-label">עריכה</span>
+                    </button>
+                    <button onClick={() => deleteShop(shop)} className="shop-action-btn" style={{
+                      background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                      borderRadius: 8, color: '#f87171', cursor: 'pointer', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', gap: 3,
+                    }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                      <span className="add-shop-label">מחק</span>
+                    </button>
                   </div>
                 ))}
               </div>

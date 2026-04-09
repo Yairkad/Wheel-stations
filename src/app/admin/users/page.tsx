@@ -199,6 +199,18 @@ function UsersPageInner() {
   const [addRoleOpCode,  setAddRoleOpCode]  = useState('')
   const [addRoleTitle,   setAddRoleTitle]   = useState('')
 
+  // Inline-create modes (add-user modal)
+  const [addCcMode,        setAddCcMode]        = useState<'select' | 'new'>('select')
+  const [addCcNewName,     setAddCcNewName]     = useState('')
+  const [addStMode,        setAddStMode]        = useState<'select' | 'new'>('select')
+  const [addStNewName,     setAddStNewName]     = useState('')
+
+  // Inline-create modes (add-role modal)
+  const [addRoleCcMode,    setAddRoleCcMode]    = useState<'select' | 'new'>('select')
+  const [addRoleCcNewName, setAddRoleCcNewName] = useState('')
+  const [addRoleStMode,    setAddRoleStMode]    = useState<'select' | 'new'>('select')
+  const [addRoleStNewName, setAddRoleStNewName] = useState('')
+
   // Reference data for add-user dropdowns
   const [stations,     setStations]     = useState<Station[]>([])
   const [callCenters,  setCallCenters]  = useState<CallCenter[]>([])
@@ -314,21 +326,60 @@ function UsersPageInner() {
     finally { setBusy(false) }
   }
 
+  async function createCallCenter(name: string): Promise<string | null> {
+    const res = await fetch('/api/admin/call-centers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    })
+    const data = await res.json()
+    if (!res.ok) { toast.error(data.error || 'שגיאה ביצירת מוקד'); return null }
+    await fetchRefData()
+    return data.callCenter.id as string
+  }
+
+  async function createStation(name: string): Promise<string | null> {
+    const res = await fetch('/api/wheel-stations/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ admin_password: password, name }),
+    })
+    const data = await res.json()
+    if (!res.ok) { toast.error(data.error || 'שגיאה ביצירת תחנה'); return null }
+    await fetchRefData()
+    return data.station.id as string
+  }
+
   function resetAddRoleForm() {
     setAddRoleType('station_manager'); setAddRoleStation(''); setAddRoleCc(''); setAddRoleOpCode(''); setAddRoleTitle('')
+    setAddRoleCcMode('select'); setAddRoleCcNewName(''); setAddRoleStMode('select'); setAddRoleStNewName('')
   }
 
   async function handleAddRole() {
     if (!addRoleUser) return
-    if (addRoleType === 'station_manager'     && !addRoleStation) { toast.error('יש לבחור תחנה'); return }
-    if ((addRoleType === 'call_center_manager' || addRoleType === 'operator') && !addRoleCc) { toast.error('יש לבחור מוקד'); return }
+    if (addRoleType === 'station_manager' && !addRoleStation && !(addRoleStMode === 'new' && addRoleStNewName.trim())) { toast.error('יש לבחור תחנה'); return }
+    if ((addRoleType === 'call_center_manager' || addRoleType === 'operator') && !addRoleCc && !(addRoleCcMode === 'new' && addRoleCcNewName.trim())) { toast.error('יש לבחור מוקד'); return }
     setBusy(true)
     try {
+      let resolvedCc = addRoleCc === '__all__' ? null : addRoleCc
+      let resolvedStation = addRoleStation
+
+      if (addRoleCcMode === 'new' && addRoleCcNewName.trim()) {
+        const id = await createCallCenter(addRoleCcNewName.trim())
+        if (!id) { setBusy(false); return }
+        resolvedCc = id
+      }
+      if (addRoleStMode === 'new' && addRoleStNewName.trim()) {
+        const id = await createStation(addRoleStNewName.trim())
+        if (!id) { setBusy(false); return }
+        resolvedStation = id
+      }
+
       const body: Record<string, unknown> = { admin_password: password, role: addRoleType }
-      if (addRoleStation) body.station_id     = addRoleStation
-      if (addRoleCc)      body.call_center_id = addRoleCc
-      if (addRoleOpCode)  body.operator_code  = addRoleOpCode
-      if (addRoleTitle)   body.title          = addRoleTitle
+      if (resolvedStation) body.station_id     = resolvedStation
+      if (resolvedCc)      body.call_center_id = resolvedCc
+      if (addRoleOpCode)   body.operator_code  = addRoleOpCode
+      if (addRoleTitle)    body.title          = addRoleTitle
       const res  = await fetch(`/api/admin/users/${addRoleUser.id}/roles`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -344,16 +395,31 @@ function UsersPageInner() {
   function resetAddForm() {
     setAddName(''); setAddPhone(''); setAddPass(''); setAddRole('station_manager')
     setAddStationId(''); setAddCcId(''); setAddOpCode(''); setAddTitle('')
+    setAddCcMode('select'); setAddCcNewName(''); setAddStMode('select'); setAddStNewName('')
   }
 
   async function handleAddUser() {
     if (!addName.trim())  { toast.error('שם חובה'); return }
     if (!addPhone.trim()) { toast.error('טלפון חובה'); return }
     if (!addPass.trim())  { toast.error('סיסמה חובה'); return }
-    if (addRole === 'station_manager'     && !addStationId) { toast.error('יש לבחור תחנה'); return }
-    if ((addRole === 'call_center_manager' || addRole === 'operator') && !addCcId) { toast.error('יש לבחור מוקד'); return }
+    if (addRole === 'station_manager' && !addStationId && !(addStMode === 'new' && addStNewName.trim())) { toast.error('יש לבחור תחנה'); return }
+    if ((addRole === 'call_center_manager' || addRole === 'operator') && !addCcId && !(addCcMode === 'new' && addCcNewName.trim())) { toast.error('יש לבחור מוקד'); return }
     setBusy(true)
     try {
+      let resolvedCc = addCcId === '__all__' ? null : addCcId
+      let resolvedStation = addStationId
+
+      if (addCcMode === 'new' && addCcNewName.trim()) {
+        const id = await createCallCenter(addCcNewName.trim())
+        if (!id) { setBusy(false); return }
+        resolvedCc = id
+      }
+      if (addStMode === 'new' && addStNewName.trim()) {
+        const id = await createStation(addStNewName.trim())
+        if (!id) { setBusy(false); return }
+        resolvedStation = id
+      }
+
       const body: Record<string, unknown> = {
         admin_password: password,
         full_name: addName.trim(),
@@ -361,10 +427,10 @@ function UsersPageInner() {
         password: addPass,
         role: addRole,
       }
-      if (addStationId) body.station_id    = addStationId
-      if (addCcId)      body.call_center_id = addCcId
-      if (addOpCode)    body.operator_code  = addOpCode
-      if (addTitle)     body.title          = addTitle
+      if (resolvedStation) body.station_id    = resolvedStation
+      if (resolvedCc)      body.call_center_id = resolvedCc
+      if (addOpCode)       body.operator_code  = addOpCode
+      if (addTitle)        body.title          = addTitle
       const res  = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -587,20 +653,71 @@ function UsersPageInner() {
             {addRoleType === 'station_manager' && (
               <>
                 <label style={labelStyle}>תחנה *</label>
-                <select value={addRoleStation} onChange={e => setAddRoleStation(e.target.value)} style={inputStyle}>
+                <select
+                  value={addRoleStMode === 'new' ? '__new__' : addRoleStation}
+                  onChange={e => {
+                    if (e.target.value === '__new__') { setAddRoleStMode('new'); setAddRoleStation('') }
+                    else { setAddRoleStMode('select'); setAddRoleStation(e.target.value) }
+                  }}
+                  style={inputStyle}
+                >
                   <option value="">— בחר תחנה —</option>
                   {stations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  <option value="__new__">+ צור תחנה חדשה</option>
                 </select>
+                {addRoleStMode === 'new' && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input value={addRoleStNewName} onChange={e => setAddRoleStNewName(e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="שם התחנה החדשה" />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!addRoleStNewName.trim()) { toast.error('נא להזין שם תחנה'); return }
+                        setBusy(true)
+                        const id = await createStation(addRoleStNewName.trim())
+                        if (id) { setAddRoleStation(id); setAddRoleStMode('select'); setAddRoleStNewName('') }
+                        setBusy(false)
+                      }}
+                      disabled={busy}
+                      style={{ ...btnPrimary, flex: 'none', padding: '9px 14px', background: '#16a34a', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                    >צור</button>
+                  </div>
+                )}
               </>
             )}
 
             {(addRoleType === 'call_center_manager' || addRoleType === 'operator') && (
               <>
                 <label style={labelStyle}>מוקד *</label>
-                <select value={addRoleCc} onChange={e => setAddRoleCc(e.target.value)} style={inputStyle}>
+                <select
+                  value={addRoleCcMode === 'new' ? '__new__' : addRoleCc}
+                  onChange={e => {
+                    if (e.target.value === '__new__') { setAddRoleCcMode('new'); setAddRoleCc('') }
+                    else { setAddRoleCcMode('select'); setAddRoleCc(e.target.value) }
+                  }}
+                  style={inputStyle}
+                >
                   <option value="">— בחר מוקד —</option>
+                  {addRoleType === 'call_center_manager' && <option value="__all__">⭐ כל המוקדים (מנהל-על)</option>}
                   {callCenters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="__new__">+ צור מוקד חדש</option>
                 </select>
+                {addRoleCcMode === 'new' && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input value={addRoleCcNewName} onChange={e => setAddRoleCcNewName(e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="שם המוקד החדש" />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!addRoleCcNewName.trim()) { toast.error('נא להזין שם מוקד'); return }
+                        setBusy(true)
+                        const id = await createCallCenter(addRoleCcNewName.trim())
+                        if (id) { setAddRoleCc(id); setAddRoleCcMode('select'); setAddRoleCcNewName('') }
+                        setBusy(false)
+                      }}
+                      disabled={busy}
+                      style={{ ...btnPrimary, flex: 'none', padding: '9px 14px', background: '#7c3aed', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                    >צור</button>
+                  </div>
+                )}
               </>
             )}
 
@@ -650,10 +767,35 @@ function UsersPageInner() {
             {addRole === 'station_manager' && (
               <>
                 <label style={labelStyle}>תחנה *</label>
-                <select value={addStationId} onChange={e => setAddStationId(e.target.value)} style={inputStyle}>
+                <select
+                  value={addStMode === 'new' ? '__new__' : addStationId}
+                  onChange={e => {
+                    if (e.target.value === '__new__') { setAddStMode('new'); setAddStationId('') }
+                    else { setAddStMode('select'); setAddStationId(e.target.value) }
+                  }}
+                  style={inputStyle}
+                >
                   <option value="">— בחר תחנה —</option>
                   {stations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  <option value="__new__">+ צור תחנה חדשה</option>
                 </select>
+                {addStMode === 'new' && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input value={addStNewName} onChange={e => setAddStNewName(e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="שם התחנה החדשה" />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!addStNewName.trim()) { toast.error('נא להזין שם תחנה'); return }
+                        setBusy(true)
+                        const id = await createStation(addStNewName.trim())
+                        if (id) { setAddStationId(id); setAddStMode('select'); setAddStNewName('') }
+                        setBusy(false)
+                      }}
+                      disabled={busy}
+                      style={{ ...btnPrimary, flex: 'none', padding: '9px 14px', background: '#16a34a', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                    >צור</button>
+                  </div>
+                )}
               </>
             )}
 
@@ -661,10 +803,36 @@ function UsersPageInner() {
             {(addRole === 'call_center_manager' || addRole === 'operator') && (
               <>
                 <label style={labelStyle}>מוקד *</label>
-                <select value={addCcId} onChange={e => setAddCcId(e.target.value)} style={inputStyle}>
+                <select
+                  value={addCcMode === 'new' ? '__new__' : addCcId}
+                  onChange={e => {
+                    if (e.target.value === '__new__') { setAddCcMode('new'); setAddCcId('') }
+                    else { setAddCcMode('select'); setAddCcId(e.target.value) }
+                  }}
+                  style={inputStyle}
+                >
                   <option value="">— בחר מוקד —</option>
+                  {addRole === 'call_center_manager' && <option value="__all__">⭐ כל המוקדים (מנהל-על)</option>}
                   {callCenters.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="__new__">+ צור מוקד חדש</option>
                 </select>
+                {addCcMode === 'new' && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <input value={addCcNewName} onChange={e => setAddCcNewName(e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="שם המוקד החדש" />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!addCcNewName.trim()) { toast.error('נא להזין שם מוקד'); return }
+                        setBusy(true)
+                        const id = await createCallCenter(addCcNewName.trim())
+                        if (id) { setAddCcId(id); setAddCcMode('select'); setAddCcNewName('') }
+                        setBusy(false)
+                      }}
+                      disabled={busy}
+                      style={{ ...btnPrimary, flex: 'none', padding: '9px 14px', background: '#7c3aed', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                    >צור</button>
+                  </div>
+                )}
               </>
             )}
 

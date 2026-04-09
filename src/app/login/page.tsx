@@ -323,12 +323,12 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
             type="text"
-            placeholder="מספר טלפון"
+            placeholder="שם משתמש"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             style={styles.formInput}
             className="form-input"
-            dir="ltr"
+            dir="rtl"
             autoComplete="username"
           />
           <div style={styles.passwordWrapper}>
