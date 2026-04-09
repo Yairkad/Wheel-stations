@@ -133,6 +133,15 @@ export default function CallCenterPage() {
 
     // No valid manager session - redirect to login
     window.location.href = '/login'
+
+    // Handle bfcache: re-validate on back navigation
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && !localStorage.getItem('operator_session')) {
+        window.location.replace('/login')
+      }
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
   }, [])
 
   // Load auth_roles for role switching
@@ -169,7 +178,10 @@ export default function CallCenterPage() {
   const fetchOperators = async () => {
     if (!manager) return
     try {
-      const res = await fetch(`/api/call-center/operators?call_center_id=${manager.call_center_id}`)
+      const url = manager.call_center_id
+        ? `/api/call-center/operators?call_center_id=${manager.call_center_id}`
+        : `/api/call-center/operators`
+      const res = await fetch(url)
       const data = await res.json()
       setOperators(data.operators || [])
     } catch (err) {
@@ -182,7 +194,10 @@ export default function CallCenterPage() {
   const fetchManagers = async () => {
     if (!manager) return
     try {
-      const res = await fetch(`/api/call-center/managers?call_center_id=${manager.call_center_id}`)
+      const url = manager.call_center_id
+        ? `/api/call-center/managers?call_center_id=${manager.call_center_id}`
+        : `/api/call-center/managers`
+      const res = await fetch(url)
       const data = await res.json()
       setManagers(data.managers || [])
     } catch (err) {
@@ -193,7 +208,10 @@ export default function CallCenterPage() {
   const fetchHistory = async () => {
     if (!manager) return
     try {
-      const res = await fetch(`/api/call-center/history?call_center_id=${manager.call_center_id}`)
+      const url = manager.call_center_id
+        ? `/api/call-center/history?call_center_id=${manager.call_center_id}`
+        : `/api/call-center/history`
+      const res = await fetch(url)
       const data = await res.json()
       setHistory(data.history || [])
     } catch (err) {

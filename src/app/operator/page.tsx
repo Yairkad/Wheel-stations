@@ -183,6 +183,15 @@ export default function OperatorPage() {
       }
     }
     fetchFilterOptions()
+
+    // Handle bfcache: re-validate on back navigation
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && !localStorage.getItem('operator_session')) {
+        window.location.replace('/login')
+      }
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
   }, [])
 
   // Fetch autocomplete suggestions for make (supports Hebrew and English)

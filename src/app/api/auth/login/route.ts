@@ -7,7 +7,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export interface RoleResult {
   role: 'station_manager' | 'operator' | 'district_manager' | 'editor' | 'admin'
-  label: 'מנהל תחנה' | 'מוקדן' | 'מנהל מחוז' | 'עורך' | 'ניהול מערכת'
+  label: 'מנהל תחנה' | 'מוקדן' | 'מנהל מוקד' | 'מנהל מחוז' | 'עורך' | 'ניהול מערכת'
   data: Record<string, unknown>
 }
 
@@ -72,7 +72,7 @@ async function checkUnifiedUser(supabase: ReturnType<typeof createClient<any>>, 
         break
       case 'call_center_manager':
         if (cc?.is_active === false) break
-        results.push({ role: 'operator', label: 'מוקדן', data: { id: user.id, full_name: user.full_name, title: r.title, phone: user.phone, is_primary: r.is_primary, sub_role: 'manager', call_center_id: r.call_center_id, call_center_name: cc?.name } })
+        results.push({ role: 'operator', label: 'מנהל מוקד', data: { id: user.id, full_name: user.full_name, title: r.title, phone: user.phone, is_primary: r.is_primary, sub_role: 'manager', call_center_id: r.call_center_id, call_center_name: cc?.name } })
         break
       case 'operator':
         if (cc?.is_active === false) break

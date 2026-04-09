@@ -12,7 +12,7 @@ export function AdminShell({ children, onLogout }: AdminShellProps) {
     <>
       <style>{`
         @media (max-width: 768px) {
-          .admin-shell-content { padding-top: 50px !important; }
+          .admin-shell-content { padding-top: 60px !important; }
         }
       `}</style>
       <div style={{

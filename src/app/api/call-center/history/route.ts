@@ -12,17 +12,18 @@ export async function GET(request: NextRequest) {
     const callCenterId = searchParams.get('call_center_id')
     const operatorId = searchParams.get('operator_id') // Optional: filter by specific operator
 
-    if (!callCenterId) {
-      return NextResponse.json({ error: 'חסר מזהה מוקד' }, { status: 400 })
-    }
-
-    // Get operators for this call center via unified user_roles
-    const { data: operatorRoles } = await supabase
+    // Get operators for this call center (or all if no call_center_id)
+    let operatorsQuery = supabase
       .from('user_roles')
       .select('users(id, full_name)')
-      .eq('call_center_id', callCenterId)
       .eq('role', 'operator')
       .eq('is_active', true)
+
+    if (callCenterId) {
+      operatorsQuery = operatorsQuery.eq('call_center_id', callCenterId)
+    }
+
+    const { data: operatorRoles } = await operatorsQuery
 
     const operators = (operatorRoles || []).map(r => {
       const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string } | null

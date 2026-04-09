@@ -11,17 +11,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const callCenterId = searchParams.get('call_center_id')
 
-    if (!callCenterId) {
-      return NextResponse.json({ error: 'חסר מזהה מוקד' }, { status: 400 })
-    }
-
-    const { data: roles, error } = await supabase
+    let query = supabase
       .from('user_roles')
       .select('id, is_primary, title, created_at, users(id, full_name, phone, is_active)')
-      .eq('call_center_id', callCenterId)
       .eq('role', 'call_center_manager')
       .eq('is_active', true)
       .order('is_primary', { ascending: false })
+
+    if (callCenterId) {
+      query = query.eq('call_center_id', callCenterId)
+    }
+
+    const { data: roles, error } = await query
 
     if (error) {
       console.error('Error fetching managers:', error)

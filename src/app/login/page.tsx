@@ -339,6 +339,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               style={styles.passwordInput}
               className="form-input"
+              dir="rtl"
               autoComplete="current-password"
             />
             <button
@@ -538,6 +539,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
+    width: '100%',
   },
   passwordInput: {
     width: '100%',

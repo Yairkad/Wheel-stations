@@ -144,6 +144,20 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     } catch { /* ignore */ }
 
     setIsLoading(false)
+
+    // Handle bfcache: if user logged out and presses back, re-validate session
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        const hasSession =
+          Object.keys(localStorage).some(k => k.startsWith('station_session_')) ||
+          !!localStorage.getItem('operator_session')
+        if (!hasSession) {
+          window.location.replace('/login')
+        }
+      }
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
   }, [])
 
   useEffect(() => {
@@ -340,9 +354,19 @@ const handleLogout = () => {
                 <span>הגדרות תחנה</span>
               </Link>
               <Link href={`/${userSession.stationId}?action=notifications`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
-                </svg>
+                <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                  </svg>
+                  {pushEnabled && (
+                    <span style={{
+                      position: 'absolute', top: -2, right: -2,
+                      width: 6, height: 6, borderRadius: '50%',
+                      background: '#22c55e',
+                      border: '1px solid #fff',
+                    }} />
+                  )}
+                </div>
                 <span>הפעל התראות</span>
               </Link>
 
@@ -497,8 +521,8 @@ const handleLogout = () => {
               </div>
             )}
 
-            {/* Alerts bell */}
-            {userSession?.stationId && (pushEnabled || (notificationCount !== undefined && notificationCount > 0)) && (
+            {/* Alert badge (unread count only, no bell icon) */}
+            {userSession?.stationId && notificationCount !== undefined && notificationCount > 0 && (
               <Link
                 href={`/${userSession.stationId}?tab=alerts`}
                 style={{ ...styles.alertsBtn, position: 'relative' }}
@@ -507,17 +531,7 @@ const handleLogout = () => {
                   <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                   <path d="M13.73 21a2 2 0 01-3.46 0"/>
                 </svg>
-                {notificationCount !== undefined && notificationCount > 0 && (
-                  <span style={styles.alertBadge}>{notificationCount}</span>
-                )}
-                {pushEnabled && (
-                  <span style={{
-                    position: 'absolute', top: 0, right: 0,
-                    width: 7, height: 7, borderRadius: '50%',
-                    background: '#22c55e',
-                    border: '1.5px solid #fff',
-                  }} />
-                )}
+                <span style={styles.alertBadge}>{notificationCount}</span>
               </Link>
             )}
 
@@ -674,6 +688,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   navBtn: {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '5px',
     padding: '6px 11px',
     borderRadius: '10px',
