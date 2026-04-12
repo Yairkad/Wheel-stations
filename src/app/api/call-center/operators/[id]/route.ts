@@ -46,8 +46,12 @@ export async function PUT(
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
-    const { is_active, regenerate_code, full_name } = body
+    const { is_active, regenerate_code, full_name, custom_code } = body
     const phone = body.phone?.trim()
+
+    if (custom_code !== undefined && custom_code !== '' && custom_code.trim().length < 4) {
+      return NextResponse.json({ error: 'קוד מוקדן חייב להכיל לפחות 4 תווים' }, { status: 400 })
+    }
 
     // Update user fields
     const userUpdate: Record<string, unknown> = {}
@@ -60,10 +64,15 @@ export async function PUT(
       if (uErr) throw uErr
     }
 
-    // Regenerate operator code in user_roles
+    // Update operator code: custom code takes priority, otherwise regenerate if requested
     let newCode: string | undefined
-    if (regenerate_code) {
+    if (custom_code !== undefined && custom_code.trim() !== '') {
+      newCode = custom_code.trim()
+    } else if (regenerate_code) {
       newCode = generateCode()
+    }
+
+    if (newCode) {
       const { error: cErr } = await supabase
         .from('user_roles')
         .update({ operator_code: newCode })

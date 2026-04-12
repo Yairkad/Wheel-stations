@@ -61,8 +61,8 @@ export default function CallCenterPage() {
   const [showAddOperator, setShowAddOperator] = useState(false)
   const [showAddManager, setShowAddManager] = useState(false)
   const [showEditOperator, setShowEditOperator] = useState<Operator | null>(null)
-  const [addOperatorForm, setAddOperatorForm] = useState({ full_name: '', phone: '' })
-  const [editOperatorForm, setEditOperatorForm] = useState({ full_name: '', phone: '' })
+  const [addOperatorForm, setAddOperatorForm] = useState({ full_name: '', phone: '', custom_code: '' })
+  const [editOperatorForm, setEditOperatorForm] = useState({ full_name: '', phone: '', custom_code: '' })
   const [addManagerForm, setAddManagerForm] = useState({ full_name: '', phone: '', password: '', title: '' })
   const [actionLoading, setActionLoading] = useState(false)
 
@@ -377,7 +377,7 @@ export default function CallCenterPage() {
 
       await fetchOperators()
       setShowAddOperator(false)
-      setAddOperatorForm({ full_name: '', phone: '' })
+      setAddOperatorForm({ full_name: '', phone: '', custom_code: '' })
       toast.success(`המוקדן נוסף! קוד כניסה: ${data.operator.code}`)
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'שגיאה בהוספת מוקדן')
@@ -438,7 +438,7 @@ export default function CallCenterPage() {
   }
 
   const openEditOperator = (op: Operator) => {
-    setEditOperatorForm({ full_name: op.full_name, phone: op.phone })
+    setEditOperatorForm({ full_name: op.full_name, phone: op.phone, custom_code: '' })
     setShowEditOperator(op)
     setOpenMenuId(null)
   }
@@ -462,7 +462,7 @@ export default function CallCenterPage() {
 
       await fetchOperators()
       setShowEditOperator(null)
-      toast.success('המוקדן עודכן!')
+      toast.success(editOperatorForm.custom_code ? `המוקדן עודכן! קוד חדש: ${data.operator.code}` : 'המוקדן עודכן!')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'שגיאה בעדכון מוקדן')
     } finally {
@@ -855,6 +855,17 @@ export default function CallCenterPage() {
                 style={styles.formInput}
               />
             </div>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>קוד מוקדן <span style={{color:'#94a3b8', fontWeight:400, fontSize:'0.85em'}}>(ריק = קוד אוטומטי)</span></label>
+              <input
+                type="text"
+                value={addOperatorForm.custom_code}
+                onChange={e => setAddOperatorForm({...addOperatorForm, custom_code: e.target.value})}
+                style={styles.formInput}
+                placeholder="לדוגמה: 1234"
+                dir="ltr"
+              />
+            </div>
             <div style={styles.modalFooter}>
               <button style={styles.btnCancel} onClick={() => setShowAddOperator(false)}>ביטול</button>
               <button style={styles.btnSubmit} onClick={handleAddOperator} disabled={actionLoading}>
@@ -886,6 +897,24 @@ export default function CallCenterPage() {
                 value={editOperatorForm.phone}
                 onChange={e => setEditOperatorForm({...editOperatorForm, phone: e.target.value})}
                 style={styles.formInput}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>
+                קוד מוקדן
+                {showEditOperator?.code && (
+                  <span style={{color:'#64748b', fontWeight:400, fontSize:'0.85em', marginRight:'6px'}}>
+                    (נוכחי: <span dir="ltr" style={{fontFamily:'monospace'}}>{showEditOperator.code}</span>)
+                  </span>
+                )}
+              </label>
+              <input
+                type="text"
+                value={editOperatorForm.custom_code}
+                onChange={e => setEditOperatorForm({...editOperatorForm, custom_code: e.target.value})}
+                style={styles.formInput}
+                placeholder="השאר ריק לשמור קוד נוכחי"
+                dir="ltr"
               />
             </div>
             <div style={styles.modalFooter}>

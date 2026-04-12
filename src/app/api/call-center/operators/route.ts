@@ -59,15 +59,19 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
 
-    const { call_center_id, full_name } = body
+    const { call_center_id, full_name, custom_code } = body
     const phone = body.phone?.trim()
 
     if (!call_center_id || !full_name || !phone) {
       return NextResponse.json({ error: 'יש למלא את כל השדות: שם מלא וטלפון' }, { status: 400 })
     }
 
+    if (custom_code && custom_code.trim().length < 4) {
+      return NextResponse.json({ error: 'קוד מוקדן חייב להכיל לפחות 4 תווים' }, { status: 400 })
+    }
+
     const cleanPhone = phone.replace(/\D/g, '')
-    const code = generateCode()
+    const code = custom_code?.trim() || generateCode()
 
     // Check if phone already exists
     const { data: existingUser } = await supabase

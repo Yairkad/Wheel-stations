@@ -67,6 +67,7 @@ function SearchPageContent() {
   } | null>(null)
   const [vehicleError, setVehicleError] = useState<string | null>(null)
   const [vehicleSearchResults, setVehicleSearchResults] = useState<SearchResult[] | null>(null)
+  const [vehicleStationFilter, setVehicleStationFilter] = useState('')
   const [manualRimSize, setManualRimSize] = useState<number | null>(null) // For personal imports without tire info
 
   // Model search state
@@ -299,6 +300,7 @@ function SearchPageContent() {
     setModelSearchModel('')
     setModelSearchYear('')
     setVehicleSearchTab('plate')
+    setVehicleStationFilter('')
   }
 
   const closeVehicleModal = () => {
@@ -310,6 +312,7 @@ function SearchPageContent() {
     setModelSearchMake('')
     setModelSearchModel('')
     setModelSearchYear('')
+    setVehicleStationFilter('')
   }
 
 
@@ -342,7 +345,7 @@ function SearchPageContent() {
         params.set('bolt_count', data.wheel_fitment.bolt_count.toString())
         params.set('bolt_spacing', data.wheel_fitment.bolt_spacing.toString())
         // Don't filter by rim_size - show all PCD-compatible wheels
-        params.set('available_only', 'true')
+        // Don't filter by available_only - show borrowed wheels too so managers can see full picture
 
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
@@ -442,7 +445,6 @@ function SearchPageContent() {
         const params = new URLSearchParams()
         params.set('bolt_count', wheelFitment.bolt_count.toString())
         params.set('bolt_spacing', wheelFitment.bolt_spacing.toString())
-        params.set('available_only', 'true')
 
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
@@ -491,7 +493,6 @@ function SearchPageContent() {
       const params = new URLSearchParams()
       params.set('bolt_count', wheelFitment.bolt_count.toString())
       params.set('bolt_spacing', wheelFitment.bolt_spacing.toString())
-      params.set('available_only', 'true')
 
       const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
       if (searchResponse.ok) {
@@ -1850,14 +1851,52 @@ function SearchPageContent() {
                         : vehicleRimSize ? [vehicleRimSize]
                         : null
 
-                      // Show all available wheels with matching PCD (filtered by API)
-                      const filteredResults = vehicleSearchResults?.filter(result => result.wheels.some(w => w.is_available)) || []
+                      // Show all wheels with matching PCD — available as clickable, borrowed as grayed-out
+                      const allResults = vehicleSearchResults?.filter(result => result.wheels.length > 0) || []
+                      const filteredResults = vehicleStationFilter.trim()
+                        ? allResults.filter(r => r.station.name.includes(vehicleStationFilter.trim()))
+                        : allResults
+                      const totalAvailable = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => w.is_available).length, 0)
+                      const totalBorrowed = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => !w.is_available).length, 0)
 
-                      if (filteredResults.length > 0) {
+                      if (allResults.length > 0) {
                         return (
                           <div style={styles.vehicleWheelResults}>
+                            {/* Station filter */}
+                            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'10px',position:'relative'}}>
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                              <input
+                                type="text"
+                                value={vehicleStationFilter}
+                                onChange={e => setVehicleStationFilter(e.target.value)}
+                                placeholder="סנן לפי תחנה..."
+                                style={{
+                                  flex: 1,
+                                  padding: '6px 10px',
+                                  border: '1px solid #e2e8f0',
+                                  borderRadius: '8px',
+                                  fontSize: '0.85rem',
+                                  background: '#f8fafc',
+                                  color: '#1e293b',
+                                  outline: 'none',
+                                }}
+                              />
+                              {vehicleStationFilter && (
+                                <button
+                                  onClick={() => setVehicleStationFilter('')}
+                                  style={{position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:'2px', lineHeight:1}}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                              )}
+                            </div>
                             <div style={styles.vehicleResultsHeader}>
-                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נמצאו {filteredResults.reduce((acc, r) => acc + r.wheels.length, 0)} גלגלים עם PCD מתאים</span>
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                {totalAvailable} זמינים
+                                {totalBorrowed > 0 && <span style={{color:'#94a3b8', fontWeight:'normal'}}>• {totalBorrowed} מושאלים</span>}
+                                {vehicleStationFilter && filteredResults.length === 0 && <span style={{color:'#f59e0b'}}>• אין תוצאות לתחנה זו</span>}
+                              </span>
                             </div>
                             {vehicleRimSize && (
                               <div style={styles.vehicleResultsNote}>
@@ -1871,12 +1910,27 @@ function SearchPageContent() {
                                 </div>
                                 <div style={styles.resultWheelsList}>
                                   {result.wheels.filter(w => {
-                                    if (!w.is_available) return false
-                                    const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
-                                    // Exclude wheels whose CB is smaller than the vehicle's hub — physically cannot fit
-                                    if (vehicleCB && w.center_bore && w.center_bore < vehicleCB) return false
+                                    // For available wheels: exclude those whose CB is physically incompatible
+                                    if (w.is_available) {
+                                      const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
+                                      if (vehicleCB && w.center_bore && w.center_bore < vehicleCB) return false
+                                    }
                                     return true
                                   }).map(wheel => {
+                                    if (!wheel.is_available) {
+                                      return (
+                                        <div key={wheel.id} style={{...styles.resultWheelCard, ...styles.resultWheelTaken, cursor: 'default'}}>
+                                          <div style={{...styles.resultWheelNumber, color: '#94a3b8'}}>#{wheel.wheel_number}</div>
+                                          <div style={styles.resultWheelSpecs}>
+                                            <span>{wheel.rim_size}"</span>
+                                            {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
+                                          </div>
+                                          <div style={{color: '#ef4444', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                            <svg width="9" height="9" viewBox="0 0 24 24" fill="#ef4444"><circle cx="12" cy="12" r="12"/></svg> מושאל
+                                          </div>
+                                        </div>
+                                      )
+                                    }
                                     const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
                                     const wheelCB = wheel.center_bore
                                     const cbNeedsRing = vehicleCB && wheelCB && (wheelCB - vehicleCB) >= 2
