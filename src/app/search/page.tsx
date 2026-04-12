@@ -350,6 +350,7 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
+          setVehicleStationFilter('')
           setVehicleSearchResults(searchData.results)
         }
       }
@@ -449,6 +450,7 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
+          setVehicleStationFilter('')
           setVehicleSearchResults(searchData.results)
         }
       } else {
@@ -497,6 +499,7 @@ function SearchPageContent() {
       const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
       if (searchResponse.ok) {
         const searchData = await searchResponse.json()
+        setVehicleStationFilter('')
         setVehicleSearchResults(searchData.results)
       }
     } catch {
@@ -1394,7 +1397,7 @@ function SearchPageContent() {
                 role="tab"
                 aria-selected={vehicleSearchTab === 'plate'}
                 aria-controls="plate-search-panel"
-                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
+                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setManualRimSize(null); }}
                 style={{
                   flex: 1,
                   padding: '10px 16px',
@@ -1413,7 +1416,7 @@ function SearchPageContent() {
                 role="tab"
                 aria-selected={vehicleSearchTab === 'model'}
                 aria-controls="model-search-panel"
-                onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
+                onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setManualRimSize(null); }}
                 style={{
                   flex: 1,
                   padding: '10px 16px',

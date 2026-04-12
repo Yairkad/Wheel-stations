@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { verifyPassword } from '@/lib/password'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -49,7 +50,13 @@ async function checkUnifiedUser(supabase: ReturnType<typeof createClient<any>>, 
     .eq('phone', cleanPhone)
     .single() as { data: { id: string; full_name: string; phone: string; password: string | null; is_active: boolean } | null }
 
-  if (!user || user.is_active === false || user.password !== password) return []
+  if (!user || user.is_active === false) return []
+  if (!user.password) return []
+  const pwCheck = await verifyPassword(password, user.password)
+  if (!pwCheck.valid) return []
+  if (pwCheck.newHash) {
+    await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
+  }
 
   const { data: roles } = await supabase
     .from('user_roles')

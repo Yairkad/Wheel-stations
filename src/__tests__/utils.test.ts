@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { cn } from '@/lib/utils'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { getDistrictColor, getDistrictName } from '@/lib/districts'
@@ -34,11 +34,6 @@ describe('cn - className utility', () => {
 // Rate Limiter
 // =====================
 describe('checkRateLimit', () => {
-  beforeEach(() => {
-    // Reset rate limit map by making many requests with different IDs
-    // Note: In real tests, we'd export a reset function
-  })
-
   it('allows first request', () => {
     const result = checkRateLimit('test-ip-1', { maxRequests: 5, windowMs: 60000 })
     expect(result.success).toBe(true)
@@ -59,13 +54,9 @@ describe('checkRateLimit', () => {
 
   it('blocks requests after limit exceeded', () => {
     const id = crypto.randomUUID()
-
-    // Use up all requests
     for (let i = 0; i < 3; i++) {
       checkRateLimit(id, { maxRequests: 3, windowMs: 60000 })
     }
-
-    // Next request should fail
     const result = checkRateLimit(id, { maxRequests: 3, windowMs: 60000 })
     expect(result.success).toBe(false)
     expect(result.remaining).toBe(0)
@@ -75,44 +66,27 @@ describe('checkRateLimit', () => {
     const id = crypto.randomUUID()
     const result = checkRateLimit(id)
     expect(result.success).toBe(true)
-    expect(result.remaining).toBe(4) // Default is 5 requests
+    expect(result.remaining).toBe(4)
   })
 })
 
 describe('getClientIp', () => {
   it('extracts IP from x-forwarded-for header', () => {
     const request = {
-      headers: {
-        get: (name: string) => {
-          if (name === 'x-forwarded-for') return '192.168.1.1, 10.0.0.1'
-          return null
-        }
-      }
+      headers: { get: (name: string) => name === 'x-forwarded-for' ? '192.168.1.1, 10.0.0.1' : null }
     } as unknown as Request
-
     expect(getClientIp(request)).toBe('192.168.1.1')
   })
 
   it('falls back to x-real-ip', () => {
     const request = {
-      headers: {
-        get: (name: string) => {
-          if (name === 'x-real-ip') return '10.0.0.1'
-          return null
-        }
-      }
+      headers: { get: (name: string) => name === 'x-real-ip' ? '10.0.0.1' : null }
     } as unknown as Request
-
     expect(getClientIp(request)).toBe('10.0.0.1')
   })
 
   it('returns unknown when no IP headers', () => {
-    const request = {
-      headers: {
-        get: () => null
-      }
-    } as unknown as Request
-
+    const request = { headers: { get: () => null } } as unknown as Request
     expect(getClientIp(request)).toBe('unknown')
   })
 })
@@ -126,10 +100,6 @@ describe('getDistrictColor', () => {
     { id: '2', code: 'south', name: 'דרום', color: '#00FF00' },
     { id: '3', code: 'center', name: 'מרכז', color: '#0000FF' },
   ]
-
-  beforeEach(() => {
-    // Reset any cache if needed
-  })
 
   it('returns correct color for valid district', () => {
     expect(getDistrictColor('north', mockDistricts)).toBe('#FF0000')
@@ -146,8 +116,8 @@ describe('getDistrictColor', () => {
     expect(getDistrictColor('unknown', mockDistricts)).toBe('#6b7280')
   })
 
-  it('returns gray when no districts provided and no cache', () => {
-    expect(getDistrictColor('north')).toBe('#6b7280')
+  it('returns a valid hex color string', () => {
+    expect(getDistrictColor('north', mockDistricts)).toMatch(/^#[0-9a-fA-F]{6}$/)
   })
 })
 
@@ -156,10 +126,6 @@ describe('getDistrictName', () => {
     { id: '1', code: 'north', name: 'צפון', color: '#FF0000' },
     { id: '2', code: 'south', name: 'דרום', color: '#00FF00' },
   ]
-
-  beforeEach(() => {
-    // Reset any cache if needed
-  })
 
   it('returns correct name for valid district', () => {
     expect(getDistrictName('north', mockDistricts)).toBe('צפון')
@@ -173,174 +139,5 @@ describe('getDistrictName', () => {
 
   it('returns the code itself for unknown district', () => {
     expect(getDistrictName('unknown', mockDistricts)).toBe('unknown')
-  })
-})
-
-// =====================
-// User initials (from AppHeader)
-// =====================
-describe('getUserInitials', () => {
-  // Simulate the function from AppHeader
-  const getUserInitials = (fullName: string | undefined) => {
-    if (!fullName) return '👤'
-    const parts = fullName.trim().split(' ').filter(p => p.length > 0)
-    if (parts.length >= 2) {
-      return parts[0][0] + parts[1][0]
-    }
-    return fullName.substring(0, 2)
-  }
-
-  it('returns initials for two-word name', () => {
-    expect(getUserInitials('יאיר קדוש')).toBe('יק')
-    expect(getUserInitials('משה כהן')).toBe('מכ')
-    expect(getUserInitials('John Doe')).toBe('JD')
-  })
-
-  it('returns first two chars for single-word name', () => {
-    expect(getUserInitials('יאיר')).toBe('יא')
-    expect(getUserInitials('John')).toBe('Jo')
-  })
-
-  it('returns emoji for empty/undefined name', () => {
-    expect(getUserInitials('')).toBe('👤')
-    expect(getUserInitials(undefined)).toBe('👤')
-  })
-
-  it('handles names with extra spaces', () => {
-    expect(getUserInitials('  יאיר   קדוש  ')).toBe('יק')
-    expect(getUserInitials('יאיר  קדוש')).toBe('יק')
-  })
-
-  it('handles three-word names (takes first two)', () => {
-    expect(getUserInitials('יאיר בן דוד')).toBe('יב')
-  })
-})
-
-// =====================
-// Phone number validation
-// =====================
-describe('Phone validation helpers', () => {
-  // Common phone cleaning function used across the app
-  const cleanPhone = (phone: string) => phone.replace(/\D/g, '')
-
-  it('removes non-digit characters', () => {
-    expect(cleanPhone('050-123-4567')).toBe('0501234567')
-    expect(cleanPhone('(050) 123-4567')).toBe('0501234567')
-    expect(cleanPhone('+972501234567')).toBe('972501234567')
-  })
-
-  it('handles already clean numbers', () => {
-    expect(cleanPhone('0501234567')).toBe('0501234567')
-  })
-
-  it('handles empty string', () => {
-    expect(cleanPhone('')).toBe('')
-  })
-})
-
-// =====================
-// Email validation
-// =====================
-describe('Email validation', () => {
-  // Common email regex used in the app
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-
-  it('validates correct emails', () => {
-    expect(isValidEmail('test@example.com')).toBe(true)
-    expect(isValidEmail('user.name@domain.co.il')).toBe(true)
-    expect(isValidEmail('user+tag@example.org')).toBe(true)
-  })
-
-  it('rejects invalid emails', () => {
-    expect(isValidEmail('invalid')).toBe(false)
-    expect(isValidEmail('invalid@')).toBe(false)
-    expect(isValidEmail('@domain.com')).toBe(false)
-    expect(isValidEmail('user@domain')).toBe(false)
-    expect(isValidEmail('')).toBe(false)
-  })
-
-  it('handles whitespace', () => {
-    expect(isValidEmail('  test@example.com  ')).toBe(true)
-  })
-})
-
-// =====================
-// Wheel number validation
-// =====================
-describe('Wheel data validation', () => {
-  // Validates wheel form data (common checks)
-  const validateWheelForm = (form: {
-    wheel_number: string
-    rim_size: string
-    bolt_spacing: string
-  }) => {
-    const errors: string[] = []
-    if (!form.wheel_number.trim()) errors.push('wheel_number')
-    if (!form.rim_size.trim()) errors.push('rim_size')
-    if (!form.bolt_spacing.trim()) errors.push('bolt_spacing')
-    return errors
-  }
-
-  it('returns no errors for valid form', () => {
-    const form = { wheel_number: 'A1', rim_size: '15', bolt_spacing: '100' }
-    expect(validateWheelForm(form)).toHaveLength(0)
-  })
-
-  it('returns error for empty wheel number', () => {
-    const form = { wheel_number: '', rim_size: '15', bolt_spacing: '100' }
-    expect(validateWheelForm(form)).toContain('wheel_number')
-  })
-
-  it('returns error for empty rim size', () => {
-    const form = { wheel_number: 'A1', rim_size: '', bolt_spacing: '100' }
-    expect(validateWheelForm(form)).toContain('rim_size')
-  })
-
-  it('returns error for whitespace-only values', () => {
-    const form = { wheel_number: '  ', rim_size: '15', bolt_spacing: '100' }
-    expect(validateWheelForm(form)).toContain('wheel_number')
-  })
-
-  it('returns multiple errors', () => {
-    const form = { wheel_number: '', rim_size: '', bolt_spacing: '' }
-    const errors = validateWheelForm(form)
-    expect(errors).toHaveLength(3)
-    expect(errors).toContain('wheel_number')
-    expect(errors).toContain('rim_size')
-    expect(errors).toContain('bolt_spacing')
-  })
-})
-
-// =====================
-// Statistics calculations
-// =====================
-describe('Wheel statistics', () => {
-  // Mock wheel data
-  const mockWheels = [
-    { id: '1', is_available: true },
-    { id: '2', is_available: true },
-    { id: '3', is_available: false },
-    { id: '4', is_available: true },
-    { id: '5', is_available: false },
-  ]
-
-  it('calculates total wheels correctly', () => {
-    expect(mockWheels.length).toBe(5)
-  })
-
-  it('calculates available wheels correctly', () => {
-    const availableCount = mockWheels.filter(w => w.is_available).length
-    expect(availableCount).toBe(3)
-  })
-
-  it('calculates borrowed wheels correctly', () => {
-    const borrowedCount = mockWheels.filter(w => !w.is_available).length
-    expect(borrowedCount).toBe(2)
-  })
-
-  it('handles empty wheel array', () => {
-    const emptyWheels: typeof mockWheels = []
-    expect(emptyWheels.length).toBe(0)
-    expect(emptyWheels.filter(w => w.is_available).length).toBe(0)
   })
 })

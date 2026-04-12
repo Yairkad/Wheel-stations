@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac } from 'crypto'
+import { verifyPassword, hashPassword } from '@/lib/password'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -281,7 +282,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Verify password
-    if (user.password !== password) {
+    const pwCheck = await verifyPassword(password, user.password)
+    if (!pwCheck.valid) {
       const failResult = recordFailedAttempt(ip, stationId)
       if (failResult.locked) {
         return NextResponse.json({
@@ -290,6 +292,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }, { status: 429 })
       }
       return NextResponse.json({ error: 'סיסמא שגויה' }, { status: 401 })
+    }
+    if (pwCheck.newHash) {
+      await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
     }
 
     // Successful login - clear rate limit for this IP/station
@@ -343,7 +348,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'אינך מנהל תחנה מורשה' }, { status: 403 })
     }
 
-    if (user.password !== current_password) {
+    const pwCheck = await verifyPassword(current_password, user.password)
+    if (!pwCheck.valid) {
       return NextResponse.json({ error: 'סיסמא נוכחית שגויה' }, { status: 401 })
     }
 
@@ -363,7 +369,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const { error: updateError } = await supabase
       .from('users')
-      .update({ password: new_password })
+      .update({ password: await hashPassword(new_password) })
       .eq('id', user.id)
     if (updateError) throw updateError
 
