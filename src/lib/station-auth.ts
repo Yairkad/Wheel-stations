@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { verifyPassword } from '@/lib/password'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -38,8 +39,12 @@ export async function verifyStationManager(
     return { success: false, error: 'מספר הטלפון לא נמצא ברשימת המנהלים' }
   }
 
-  if (user.password?.trim() !== password?.trim()) {
+  const pwCheck = await verifyPassword(password?.trim() ?? '', user.password ?? '')
+  if (!pwCheck.valid) {
     return { success: false, error: 'סיסמא שגויה' }
+  }
+  if (pwCheck.newHash) {
+    await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
   }
 
   const { data: roleRow } = await supabase

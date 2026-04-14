@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyPassword } from '@/lib/password'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -46,8 +47,12 @@ export async function POST(
       return NextResponse.json({ error: 'מנהל לא נמצא' }, { status: 404 })
     }
 
-    if (user.password !== manager_password) {
+    const pwCheck = await verifyPassword(manager_password, user.password ?? '')
+    if (!pwCheck.valid) {
       return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
+    }
+    if (pwCheck.newHash) {
+      await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
     }
 
     const { data: roleRow } = await supabase
@@ -154,8 +159,15 @@ export async function DELETE(
       .eq('phone', cleanPhone)
       .single()
 
-    if (!delUser || !delUser.is_active || delUser.password !== manager_password) {
+    if (!delUser || !delUser.is_active) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+    }
+    const delPwCheck = await verifyPassword(manager_password, delUser.password ?? '')
+    if (!delPwCheck.valid) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+    }
+    if (delPwCheck.newHash) {
+      await supabase.from('users').update({ password: delPwCheck.newHash }).eq('id', delUser.id)
     }
 
     const { data: delRole } = await supabase

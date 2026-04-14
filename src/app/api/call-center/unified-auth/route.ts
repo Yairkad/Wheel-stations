@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { verifyPassword } from '@/lib/password'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -40,8 +41,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'מספר טלפון לא נמצא' }, { status: 401 })
     }
 
-    if (user.password !== password) {
+    const pwCheck = await verifyPassword(password, user.password ?? '')
+    if (!pwCheck.valid) {
       return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
+    }
+    if (pwCheck.newHash) {
+      await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
     }
 
     // Check for call_center_manager role

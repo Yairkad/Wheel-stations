@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyPassword } from '@/lib/password'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,8 +21,15 @@ export async function POST(request: NextRequest) {
     .eq('phone', cleanPhone)
     .single()
 
-  if (!user || !user.is_active || user.password !== password) {
+  if (!user || !user.is_active) {
     return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+  }
+  const pwCheck = await verifyPassword(password, user.password ?? '')
+  if (!pwCheck.valid) {
+    return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+  }
+  if (pwCheck.newHash) {
+    await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
   }
 
   const { data: roleRow } = await supabase

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { verifyPassword } from '@/lib/password'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -18,7 +19,12 @@ export async function verifySuperManager(
 
   if (!user) return { success: false, error: 'מספר הטלפון לא נמצא' }
   if (!user.is_active) return { success: false, error: 'החשבון אינו פעיל' }
-  if (user.password?.trim() !== password?.trim()) return { success: false, error: 'סיסמא שגויה' }
+  const pwCheck = await verifyPassword(password?.trim() ?? '', user.password ?? '')
+  if (!pwCheck.valid) return { success: false, error: 'סיסמא שגויה' }
+  if (pwCheck.newHash) {
+    const supabaseLocal = createClient(supabaseUrl, supabaseServiceKey)
+    await supabaseLocal.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
+  }
 
   const { data: roleRow } = await supabase
     .from('user_roles')

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { hashPassword } from '@/lib/password'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -54,7 +55,7 @@ export async function PUT(
     // Update user fields
     const userUpdate: Record<string, unknown> = {}
     if (full_name !== undefined) userUpdate.full_name = full_name
-    if (password !== undefined) userUpdate.password = password
+    if (password !== undefined) userUpdate.password = await hashPassword(password)
     if (phone !== undefined) userUpdate.phone = phone.replace(/\D/g, '')
     if (is_active !== undefined) userUpdate.is_active = is_active
 

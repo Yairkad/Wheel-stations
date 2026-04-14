@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyAdminAuth } from '@/lib/admin-auth'
+import { hashPassword } from '@/lib/password'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -135,7 +136,7 @@ export async function PUT(request: NextRequest) {
     const userUpdate: Record<string, unknown> = {}
     if (full_name !== undefined) userUpdate.full_name = full_name
     if (phone !== undefined) userUpdate.phone = phone.replace(/\D/g, '')
-    if (password !== undefined && password !== '') userUpdate.password = password.trim()
+    if (password !== undefined && password !== '') userUpdate.password = await hashPassword(password.trim())
     if (is_active !== undefined) userUpdate.is_active = is_active
 
     if (Object.keys(userUpdate).length > 0) {

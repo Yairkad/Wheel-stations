@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { verifyAdminAuth } from '@/lib/admin-auth'
+import { verifyPassword } from '@/lib/password'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,7 +21,12 @@ export async function verifyPunctureAccess(body: Record<string, unknown>): Promi
       .eq('phone', cleanPhone)
       .single()
 
-    if (!user || !user.is_active || user.password?.trim() !== (body.pm_password as string)?.trim()) return false
+    if (!user || !user.is_active) return false
+    const pwCheck = await verifyPassword((body.pm_password as string)?.trim() ?? '', user.password ?? '')
+    if (!pwCheck.valid) return false
+    if (pwCheck.newHash) {
+      await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
+    }
 
     const { data: roleRow } = await supabase
       .from('user_roles')

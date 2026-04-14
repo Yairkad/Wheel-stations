@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAuth } from '@/lib/admin-auth'
+import { hashPassword } from '@/lib/password'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -86,7 +87,7 @@ export async function PATCH(request: NextRequest) {
   const userFields: Record<string, unknown> = {}
   if (fields.full_name !== undefined) userFields.full_name = fields.full_name
   if (fields.phone !== undefined) userFields.phone = (fields.phone as string).replace(/\D/g, '')
-  if (fields.password !== undefined) userFields.password = fields.password
+  if (fields.password !== undefined) userFields.password = await hashPassword(fields.password as string)
   if (fields.is_active !== undefined) userFields.is_active = fields.is_active
 
   if (Object.keys(userFields).length > 0) {

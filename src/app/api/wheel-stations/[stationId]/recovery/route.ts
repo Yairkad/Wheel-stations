@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import { verifyPassword, hashPassword } from '@/lib/password'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,8 +41,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .eq('phone', cleanPhone)
       .single()
 
-    if (!user || !user.is_active || user.password !== password) {
+    if (!user || !user.is_active) {
       return NextResponse.json({ error: 'פרטי התחברות שגויים' }, { status: 403 })
+    }
+    const pwCheck = await verifyPassword(password, user.password ?? '')
+    if (!pwCheck.valid) {
+      return NextResponse.json({ error: 'פרטי התחברות שגויים' }, { status: 403 })
+    }
+    if (pwCheck.newHash) {
+      await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
     }
 
     const { data: roleRow } = await supabase
@@ -135,7 +143,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { error: updateError } = await supabase
       .from('users')
-      .update({ password: new_password })
+      .update({ password: await hashPassword(new_password) })
       .eq('id', user.id)
 
     if (updateError) {

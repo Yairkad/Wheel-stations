@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyAdminAuth } from '@/lib/admin-auth'
+import { hashPassword } from '@/lib/password'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +23,7 @@ export async function PATCH(
 
     const updates: Record<string, unknown> = {}
     if (is_active  !== undefined) updates.is_active  = is_active
-    if (password   !== undefined) updates.password   = password
+    if (password   !== undefined) updates.password   = await hashPassword(password)
     if (full_name  !== undefined) updates.full_name  = full_name
     if (phone      !== undefined) updates.phone      = phone
 
