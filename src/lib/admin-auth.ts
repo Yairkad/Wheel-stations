@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { verifyPassword } from '@/lib/password'
 
 // Server-side admin password (for API routes)
 export const WHEELS_ADMIN_PASSWORD = process.env.WHEELS_ADMIN_PASSWORD
@@ -39,23 +40,28 @@ export async function verifyAdminAuth(adminPassword: string | null): Promise<boo
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: users } = await supabase
-    .from('users')
-    .select('id')
-    .eq('password', trimmedPassword)
-    .eq('is_active', true)
-
-  if (!users?.length) return false
-
+  // Fetch all active admin users with their passwords
   const { data: adminRoles } = await supabase
     .from('user_roles')
-    .select('id')
-    .in('user_id', users.map((u: { id: string }) => u.id))
+    .select('user_id, users!inner(id, password, is_active)')
     .eq('role', 'admin')
     .eq('is_active', true)
-    .limit(1)
 
-  return (adminRoles?.length ?? 0) > 0
+  if (!adminRoles?.length) return false
+
+  for (const row of adminRoles) {
+    const user = Array.isArray(row.users) ? row.users[0] : row.users as { id: string; password: string | null; is_active: boolean } | null
+    if (!user || !user.is_active || !user.password) continue
+    const pwCheck = await verifyPassword(trimmedPassword, user.password)
+    if (pwCheck.valid) {
+      if (pwCheck.newHash) {
+        await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
+      }
+      return true
+    }
+  }
+
+  return false
 }
 
 /**
