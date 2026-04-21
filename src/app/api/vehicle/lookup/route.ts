@@ -382,6 +382,23 @@ async function findPcdData(
       return vehicleModels[0]
     }
 
+    // Second-B try: model match with spaces stripped (e.g. "mazda 2" → "mazda2")
+    const modelNoSpaces = modelLower.replace(/\s+/g, '')
+    if (modelNoSpaces !== modelLower) {
+      const resultNoSpaces = await supabase
+        .from('vehicle_models')
+        .select('*')
+        .or(makeCondition)
+        .ilike('model', `%${modelNoSpaces}%`)
+        .lte('year_from', year)
+        .or(`year_to.gte.${year},year_to.is.null`)
+        .limit(1)
+
+      if (!resultNoSpaces.error && resultNoSpaces.data && resultNoSpaces.data.length > 0) {
+        return resultNoSpaces.data[0]
+      }
+    }
+
     // Third try: search in variants column
     const result2 = await supabase
       .from('vehicle_models')
