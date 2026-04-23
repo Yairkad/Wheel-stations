@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminAuth } from '@/lib/admin-auth'
+import { validateAdminSession } from '@/lib/admin-auth'
 import { hashPassword } from '@/lib/password'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -54,10 +54,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { admin_password, full_name, phone, password, allowed_districts } = body
+    const { full_name, phone, password, allowed_districts } = body
 
-    if (!(await verifyAdminAuth(admin_password))) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
     }
 
     if (!full_name || !phone || !password) {
@@ -120,10 +120,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { admin_password, id, full_name, phone, password, is_active, allowed_districts } = body
+    const { id, full_name, phone, password, is_active, allowed_districts } = body
 
-    if (!(await verifyAdminAuth(admin_password))) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
     }
 
     if (!id) {
@@ -169,10 +169,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json()
-    const { admin_password, id } = body
+    const { id } = body
 
-    if (!(await verifyAdminAuth(admin_password))) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
     }
 
     if (!id) {

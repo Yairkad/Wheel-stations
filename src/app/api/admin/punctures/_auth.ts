@@ -1,5 +1,6 @@
+import { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminAuth } from '@/lib/admin-auth'
+import { validateAdminSession } from '@/lib/admin-auth'
 import { verifyPassword } from '@/lib/password'
 
 const supabase = createClient(
@@ -7,11 +8,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Accepts { admin_password } OR { pm_phone, pm_password }
-export async function verifyPunctureAccess(body: Record<string, unknown>): Promise<boolean> {
-  if (body.admin_password) {
-    try { return await verifyAdminAuth(body.admin_password as string) } catch (e) { console.error('Admin auth config error:', e); return false }
-  }
+// Accepts session cookie (admin) OR { pm_phone, pm_password }
+export async function verifyPunctureAccess(
+  body: Record<string, unknown>,
+  request?: NextRequest
+): Promise<boolean> {
+  if (request && await validateAdminSession(request)) return true
+
   if (body.pm_phone && body.pm_password) {
     const cleanPhone = (body.pm_phone as string).replace(/\D/g, '')
 

@@ -39,7 +39,7 @@ interface District {
 
 
 export default function WheelsAdminPage() {
-  const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const { isAuthenticated, isLoading: authLoading, logout } = useAdminAuth()
 
   const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState(true)
@@ -257,10 +257,7 @@ export default function WheelsAdminPage() {
       const response = await fetch('/api/wheel-stations/admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...stationForm,
-          admin_password: password
-        })
+        body: JSON.stringify({ ...stationForm })
       })
       if (!response.ok) {
         const data = await response.json()
@@ -284,10 +281,7 @@ export default function WheelsAdminPage() {
       const response = await fetch(`/api/wheel-stations/admin/${editingStation.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...stationForm,
-          admin_password: password
-        })
+        body: JSON.stringify({ ...stationForm })
       })
       if (!response.ok) {
         const data = await response.json()
@@ -316,7 +310,7 @@ export default function WheelsAdminPage() {
           const response = await fetch(`/api/wheel-stations/admin/${station.id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ admin_password: password })
+            body: JSON.stringify({})
           })
           if (!response.ok) {
             const data = await response.json()
@@ -340,10 +334,7 @@ export default function WheelsAdminPage() {
       const response = await fetch(`/api/wheel-stations/admin/${station.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          is_active: !station.is_active,
-          admin_password: password
-        })
+        body: JSON.stringify({ is_active: !station.is_active })
       })
       if (!response.ok) throw new Error('Failed to update')
       await fetchStations()

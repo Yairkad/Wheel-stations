@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminAuth } from '@/lib/admin-auth'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -93,10 +93,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { admin_password, name, address, city_id, district, managers } = body
+    const { name, address, city_id, district, managers } = body
 
-    if (!(await verifyAdminAuth(admin_password))) {
-      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
     }
 
     if (!name) {

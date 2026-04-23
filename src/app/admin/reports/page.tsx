@@ -35,7 +35,7 @@ interface MissingVehicleReport {
 }
 
 export default function ErrorReportsPage() {
-  const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const { isAuthenticated, isLoading: authLoading, logout } = useAdminAuth()
 
   const [reports, setReports] = useState<ErrorReport[]>([])
   const [missingReports, setMissingReports] = useState<MissingVehicleReport[]>([])

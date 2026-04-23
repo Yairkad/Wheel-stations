@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminAuth } from '@/lib/admin-auth'
+import { validateAdminSession } from '@/lib/admin-auth'
 import { hashPassword } from '@/lib/password'
 import { createClient } from '@supabase/supabase-js'
 
@@ -8,13 +8,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-async function adminOnly(body: Record<string, unknown>): Promise<boolean> {
-  try { return await verifyAdminAuth(body.admin_password as string) } catch { return false }
-}
-
 export async function GET(request: NextRequest) {
-  const params = Object.fromEntries(request.nextUrl.searchParams)
-  if (!(await adminOnly(params))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await validateAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: roles, error } = await supabase
     .from('user_roles')
@@ -35,13 +30,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  if (!(await adminOnly(body))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await validateAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { full_name, phone, password } = body
   if (!full_name || !phone || !password)
     return NextResponse.json({ error: 'נדרש שם, טלפון וסיסמה' }, { status: 400 })
 
   const cleanPhone = phone.replace(/\D/g, '')
+  const hashedPassword = await hashPassword(password)
 
   // Find or create user
   let userId: string
@@ -52,12 +48,12 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (existingUser) {
-    await supabase.from('users').update({ full_name, password }).eq('id', existingUser.id)
+    await supabase.from('users').update({ full_name, password: hashedPassword }).eq('id', existingUser.id)
     userId = existingUser.id
   } else {
     const { data: newUser, error } = await supabase
       .from('users')
-      .insert({ full_name, phone: cleanPhone, password, is_active: true })
+      .insert({ full_name, phone: cleanPhone, password: hashedPassword, is_active: true })
       .select('id')
       .single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -77,10 +73,9 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json()
-  if (!(await adminOnly(body))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await validateAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { id, admin_password, ...fields } = body
-  void admin_password
+  const { id, ...fields } = body
   if (!id) return NextResponse.json({ error: 'נדרש id' }, { status: 400 })
 
   // Update user fields (full_name, phone, password, is_active)
@@ -100,7 +95,7 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   const body = await request.json()
-  if (!(await adminOnly(body))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await validateAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = body
   if (!id) return NextResponse.json({ error: 'נדרש id' }, { status: 400 })

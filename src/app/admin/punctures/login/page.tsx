@@ -11,28 +11,26 @@ export default function PunctureManagerLoginPage() {
   const [loading,  setLoading]  = useState(false)
 
   useEffect(() => {
-    // Already logged in as admin?
-    const adminAuth = localStorage.getItem('wheels_admin_auth')
-    if (adminAuth) {
+    async function checkExistingAuth() {
+      // Already logged in as admin (session cookie)?
       try {
-        const { expiry } = JSON.parse(adminAuth)
-        if (expiry && new Date().getTime() < expiry) {
-          router.push('/admin/punctures')
-          return
-        }
+        const res = await fetch('/api/admin/session')
+        if (res.ok) { router.push('/admin/punctures'); return }
       } catch { /* ignore */ }
+
+      // Already logged in as puncture manager?
+      const pmAuth = localStorage.getItem('puncture_manager_auth')
+      if (pmAuth) {
+        try {
+          const { expiry } = JSON.parse(pmAuth)
+          if (expiry && new Date().getTime() < expiry) {
+            router.push('/admin/punctures')
+            return
+          }
+        } catch { /* ignore */ }
+      }
     }
-    // Already logged in as puncture manager?
-    const pmAuth = localStorage.getItem('puncture_manager_auth')
-    if (pmAuth) {
-      try {
-        const { expiry } = JSON.parse(pmAuth)
-        if (expiry && new Date().getTime() < expiry) {
-          router.push('/admin/punctures')
-          return
-        }
-      } catch { /* ignore */ }
-    }
+    checkExistingAuth()
   }, [router])
 
   const handleLogin = async () => {

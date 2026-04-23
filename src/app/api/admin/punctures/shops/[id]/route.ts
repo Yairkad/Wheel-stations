@@ -5,7 +5,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { id } = await params
   const body = await request.json()
 
-  if (!(await verifyPunctureAccess(body))) {
+  if (!(await verifyPunctureAccess(body, request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -21,7 +21,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const { id } = await params
   const body = await request.json()
 
-  if (!(await verifyPunctureAccess(body))) {
+  if (!(await verifyPunctureAccess(body, request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

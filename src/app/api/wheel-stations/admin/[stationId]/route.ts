@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminAuth } from '@/lib/admin-auth'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,10 +22,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { admin_password, name, address, city_id, district, is_active, managers, max_managers } = body
+    const { name, address, city_id, district, is_active, managers, max_managers } = body
 
-    if (!(await verifyAdminAuth(admin_password))) {
-      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
     }
 
     const updateData: {
@@ -128,11 +128,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
-    const body = await request.json()
-    const { admin_password } = body
-
-    if (!(await verifyAdminAuth(admin_password))) {
-      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
     }
 
     // Deactivate station_manager roles for this station (keep users, just remove station access)

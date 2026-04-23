@@ -157,7 +157,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 function UsersPageInner() {
-  const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const { isAuthenticated, isLoading: authLoading, logout } = useAdminAuth()
   const searchParams = useSearchParams()
 
   const [users,      setUsers]      = useState<User[]>([])
@@ -250,7 +250,7 @@ function UsersPageInner() {
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !user.is_active, admin_password: password }),
+        body: JSON.stringify({ is_active: !user.is_active }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -268,7 +268,6 @@ function UsersPageInner() {
     setBusy(true)
     try {
       const body: Record<string, string> = {
-        admin_password: password,
         full_name: editName.trim(),
         phone: editPhone.trim(),
       }
@@ -295,7 +294,7 @@ function UsersPageInner() {
       const res = await fetch(`/api/admin/users/${deleteUser.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ admin_password: password }),
+        body: JSON.stringify({}),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -314,7 +313,7 @@ function UsersPageInner() {
       const res = await fetch('/api/admin/users/merge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ admin_password: password, keep_id: mergeTarget, delete_id: mergeSource.id }),
+        body: JSON.stringify({ keep_id: mergeTarget, delete_id: mergeSource.id }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -342,7 +341,7 @@ function UsersPageInner() {
     const res = await fetch('/api/wheel-stations/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ admin_password: password, name }),
+      body: JSON.stringify({ name }),
     })
     const data = await res.json()
     if (!res.ok) { toast.error(data.error || 'שגיאה ביצירת תחנה'); return null }
@@ -375,7 +374,7 @@ function UsersPageInner() {
         resolvedStation = id
       }
 
-      const body: Record<string, unknown> = { admin_password: password, role: addRoleType }
+      const body: Record<string, unknown> = { role: addRoleType }
       if (resolvedStation) body.station_id     = resolvedStation
       if (resolvedCc)      body.call_center_id = resolvedCc
       if (addRoleOpCode)   body.operator_code  = addRoleOpCode
@@ -421,7 +420,6 @@ function UsersPageInner() {
       }
 
       const body: Record<string, unknown> = {
-        admin_password: password,
         full_name: addName.trim(),
         phone: addPhone.trim(),
         password: addPass,
@@ -449,7 +447,7 @@ function UsersPageInner() {
       const res = await fetch(`/api/admin/users/${userId}/roles/${roleId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !current, admin_password: password }),
+        body: JSON.stringify({ is_active: !current }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -465,7 +463,7 @@ function UsersPageInner() {
       const res = await fetch(`/api/admin/users/${userId}/roles/${roleId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_primary: !current, admin_password: password }),
+        body: JSON.stringify({ is_primary: !current }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)

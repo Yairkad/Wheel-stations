@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyAdminAuth } from '@/lib/admin-auth'
+import { validateAdminSession } from '@/lib/admin-auth'
 import { hashPassword } from '@/lib/password'
 
 const supabase = createClient(
@@ -15,10 +15,10 @@ export async function PATCH(
   try {
     const { userId } = await params
     const body = await request.json()
-    const { admin_password, is_active, password, full_name, phone } = body
+    const { is_active, password, full_name, phone } = body
 
-    if (!await verifyAdminAuth(admin_password)) {
-      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
     }
 
     const updates: Record<string, unknown> = {}
@@ -51,11 +51,8 @@ export async function DELETE(
 ) {
   try {
     const { userId } = await params
-    const body = await request.json()
-    const { admin_password } = body
-
-    if (!await verifyAdminAuth(admin_password)) {
-      return NextResponse.json({ error: 'סיסמת מנהל שגויה' }, { status: 403 })
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
     }
 
     // Roles deleted via CASCADE (user_roles.user_id FK)

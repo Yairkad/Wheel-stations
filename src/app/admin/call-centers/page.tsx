@@ -35,7 +35,7 @@ interface CallCenter {
 }
 
 export default function CallCentersAdminPage() {
-  const { isAuthenticated, password, isLoading: authLoading, logout } = useAdminAuth()
+  const { isAuthenticated, isLoading: authLoading, logout } = useAdminAuth()
 
   const [callCenters, setCallCenters] = useState<CallCenter[]>([])
   const [loading, setLoading] = useState(true)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { verifyPassword } from '@/lib/password'
+import { createSessionToken, ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE } from '@/lib/admin-session'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -25,18 +26,6 @@ interface UnifiedRoleRow {
   allowed_districts: string[] | null
   wheel_stations: { id: string; name: string } | { id: string; name: string }[] | null
   call_centers:   { id: string; name: string; is_active: boolean } | { id: string; name: string; is_active: boolean }[] | null
-}
-
-async function checkAdmin(phone: string, password: string): Promise<RoleResult | null> {
-  const adminPassword = process.env.WHEELS_ADMIN_PASSWORD
-  const adminPhone = process.env.ADMIN_PHONE
-  if (!adminPassword || password !== adminPassword) return null
-  if (adminPhone && phone.replace(/\D/g, '') !== adminPhone.replace(/\D/g, '')) return null
-  return {
-    role: 'admin',
-    label: 'ניהול מערכת',
-    data: { full_name: 'מנהל מערכת' },
-  }
 }
 
 // Queries the unified users + user_roles tables
@@ -118,19 +107,27 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-    const [admin, unifiedRoles] = await Promise.all([
-      checkAdmin(phone, password),
-      checkUnifiedUser(supabase, phone, password),
-    ])
-
-    const roles: RoleResult[] = [...(admin ? [admin] : []), ...unifiedRoles.filter(r => admin ? r.role !== 'admin' : true)]
+    const roles = await checkUnifiedUser(supabase, phone, password)
 
     if (roles.length === 0) {
       return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
     }
 
-    return NextResponse.json({ success: true, roles })
+    const response = NextResponse.json({ success: true, roles })
+
+    // Set HttpOnly session cookie when user has admin role
+    if (roles.some(r => r.role === 'admin')) {
+      const token = await createSessionToken()
+      response.cookies.set(ADMIN_SESSION_COOKIE, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: ADMIN_SESSION_MAX_AGE,
+      })
+    }
+
+    return response
   } catch (error) {
     console.error('Unified auth error:', error)
     return NextResponse.json({ error: 'שגיאה פנימית בשרת' }, { status: 500 })

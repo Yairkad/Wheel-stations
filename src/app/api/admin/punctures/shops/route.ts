@@ -3,7 +3,7 @@ import { verifyPunctureAccess, supabase } from '../_auth'
 
 export async function GET(request: NextRequest) {
   const body = Object.fromEntries(request.nextUrl.searchParams)
-  if (!(await verifyPunctureAccess(body))) {
+  if (!(await verifyPunctureAccess(body, request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  if (!(await verifyPunctureAccess(body))) {
+  if (!(await verifyPunctureAccess(body, request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
