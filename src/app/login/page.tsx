@@ -20,6 +20,10 @@ export default function LoginPage() {
   const [rememberRole, setRememberRole] = useState(false)
   const [savedPreferredRole, setSavedPreferredRole] = useState<string | null>(null)
   const [passkeyLoading, setPasskeyLoading] = useState(false)
+  const [showPasskeyPrompt, setShowPasskeyPrompt] = useState(false)
+  const [promptRoles, setPromptRoles] = useState<RoleResult[] | null>(null)
+  const [promptPhone, setPromptPhone] = useState('')
+  const [promptRegistering, setPromptRegistering] = useState(false)
 
   useEffect(() => {
     setSavedPreferredRole(localStorage.getItem('preferred_role'))
@@ -158,8 +162,8 @@ export default function LoginPage() {
     }
   }
 
-  // Shared post-auth role handler — called by password login and (future) WebAuthn flow
-  const handleRolesReceived = (foundRoles: RoleResult[]) => {
+  // After roles are resolved, optionally show passkey setup prompt then redirect
+  const proceedWithRoles = (foundRoles: RoleResult[]) => {
     if (foundRoles.length === 1) {
       localStorage.setItem('active_role', foundRoles[0].role)
       toast.success(`שלום ${foundRoles[0].data.full_name as string}`)
@@ -176,6 +180,31 @@ export default function LoginPage() {
     }
     setRoles(foundRoles)
     setLoading(false)
+  }
+
+  // Shared post-auth role handler — checks passkey status before redirecting
+  const handleRolesReceived = async (foundRoles: RoleResult[]) => {
+    const userPhone = (foundRoles[0]?.data?.phone as string) || phone
+    const dismissed = localStorage.getItem('passkey_prompt_dismissed')
+    const supportsPasskey = typeof window !== 'undefined' && !!window.PublicKeyCredential
+
+    if (supportsPasskey && !dismissed && userPhone) {
+      try {
+        const res = await fetch(`/api/auth/webauthn/status?phone=${encodeURIComponent(userPhone)}`)
+        const { hasPasskey } = await res.json()
+        if (!hasPasskey) {
+          setPromptRoles(foundRoles)
+          setPromptPhone(userPhone)
+          setShowPasskeyPrompt(true)
+          setLoading(false)
+          return
+        }
+      } catch {
+        // Status check failed — proceed normally
+      }
+    }
+
+    proceedWithRoles(foundRoles)
   }
 
   const handleLogin = async () => {
@@ -279,6 +308,77 @@ export default function LoginPage() {
       .form-input { font-size: 15px !important; }
     }
   `
+
+  // One-time passkey setup prompt (shown after first password login when no passkey exists)
+  if (showPasskeyPrompt && promptRoles) {
+    const dismiss = () => {
+      localStorage.setItem('passkey_prompt_dismissed', 'true')
+      setShowPasskeyPrompt(false)
+      proceedWithRoles(promptRoles)
+    }
+
+    const registerAndProceed = async () => {
+      setPromptRegistering(true)
+      try {
+        const beginRes = await fetch('/api/auth/webauthn/register/begin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: promptPhone, password }),
+        })
+        const beginData = await beginRes.json()
+        if (!beginRes.ok) { dismiss(); return }
+
+        const { startRegistration } = await import('@simplewebauthn/browser')
+        const regResponse = await startRegistration({ optionsJSON: beginData })
+
+        const completeRes = await fetch('/api/auth/webauthn/register/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(regResponse),
+        })
+        if (completeRes.ok) toast.success('טביעת אצבע הוגדרה בהצלחה!')
+      } catch (err) {
+        if (!(err instanceof Error && err.name === 'NotAllowedError')) {
+          toast.error('שגיאה בהגדרת טביעת האצבע')
+        }
+      } finally {
+        setPromptRegistering(false)
+        localStorage.setItem('passkey_prompt_dismissed', 'true')
+        setShowPasskeyPrompt(false)
+        proceedWithRoles(promptRoles)
+      }
+    }
+
+    return (
+      <div style={styles.container}>
+        <style>{responsiveStyles}</style>
+        <div style={{ ...styles.formCard, maxWidth: '380px', textAlign: 'center' }} className="form-card">
+          <div style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #2563eb, #7c3aed)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 4px 14px rgba(37,99,235,0.25)' }}>
+            <Fingerprint size={32} color="white" />
+          </div>
+          <h2 style={{ color: '#1e293b', fontSize: '1.3rem', fontWeight: 800, margin: '0 0 10px' }}>כניסה מהירה עם טביעת אצבע</h2>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0 0 28px', lineHeight: 1.6 }}>
+            בפעם הבאה תוכל להיכנס בלחיצה אחת, בלי להקליד שם משתמש וסיסמה
+          </p>
+          <button
+            onClick={registerAndProceed}
+            disabled={promptRegistering}
+            style={{ ...styles.formSubmit, width: '100%', marginBottom: '12px', opacity: promptRegistering ? 0.7 : 1 }}
+            className="form-submit"
+          >
+            {promptRegistering ? 'מגדיר...' : 'הגדר עכשיו'}
+          </button>
+          <button
+            onClick={dismiss}
+            disabled={promptRegistering}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            אחר כך
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   // Role picker (multiple roles found)
   if (roles) {
