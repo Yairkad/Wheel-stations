@@ -92,13 +92,18 @@ export async function POST(request: NextRequest) {
     ) as { challenge: string }
 
     const stored = await consumeChallenge(clientData.challenge, 'authentication')
-    if (!stored?.user_id) {
+    if (!stored) {
       return NextResponse.json({ error: 'challenge לא תקין או שפג תוקפו' }, { status: 400 })
     }
 
-    // Look up the specific credential being used (body.id is the credentialId)
+    // Look up credential by the id the browser returned
     const storedCredential = await getCredentialById(body.id)
-    if (!storedCredential || storedCredential.user_id !== stored.user_id) {
+    if (!storedCredential) {
+      return NextResponse.json({ error: 'פרטי אימות לא תקינים' }, { status: 401 })
+    }
+
+    // When phone was provided at begin, verify the credential belongs to that user
+    if (stored.user_id && storedCredential.user_id !== stored.user_id) {
       return NextResponse.json({ error: 'פרטי אימות לא תקינים' }, { status: 401 })
     }
 
@@ -130,7 +135,7 @@ export async function POST(request: NextRequest) {
     const { data: user } = await supabase
       .from('users')
       .select('id, full_name, phone, is_active')
-      .eq('id', stored.user_id)
+      .eq('id', storedCredential.user_id)
       .single() as { data: { id: string; full_name: string; phone: string; is_active: boolean } | null }
 
     if (!user || !user.is_active) {

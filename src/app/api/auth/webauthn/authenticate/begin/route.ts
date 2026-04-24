@@ -8,8 +8,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // POST /api/auth/webauthn/authenticate/begin
-// Body: { phone }
-// Returns: PublicKeyCredentialRequestOptionsJSON to pass to browser startAuthentication()
+// Body: { phone? } — phone is optional
+// Without phone: browser shows all passkeys for this site (discoverable credentials)
+// With phone:    browser shows only passkeys for that specific account
 export async function POST(request: NextRequest) {
   try {
     const clientIp = getClientIp(request)
@@ -19,46 +20,55 @@ export async function POST(request: NextRequest) {
     }
 
     const { phone } = await request.json()
-    if (!phone) {
-      return NextResponse.json({ error: 'יש להזין מספר טלפון' }, { status: 400 })
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const cleanPhone = (phone as string).replace(/\D/g, '')
-
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, is_active')
-      .eq('phone', cleanPhone)
-      .single() as { data: { id: string; is_active: boolean } | null }
-
-    // Fetch credentials only when user exists and is active; otherwise fall through to 404
-    const credentials = user?.is_active ? await getUserCredentials(user.id) : []
-
-    if (credentials.length === 0) {
-      return NextResponse.json(
-        { error: 'לא נמצאו מפתחות passkey עבור מספר זה' },
-        { status: 404 }
-      )
-    }
-
     const { rpID } = getRpConfig()
 
+    if (phone) {
+      // Phone provided → restrict to that account's credentials
+      const supabase = createClient(supabaseUrl, supabaseServiceKey)
+      const cleanPhone = (phone as string).replace(/\D/g, '')
+
+      const { data: user } = await supabase
+        .from('users')
+        .select('id, is_active')
+        .eq('phone', cleanPhone)
+        .single() as { data: { id: string; is_active: boolean } | null }
+
+      const credentials = user?.is_active ? await getUserCredentials(user.id) : []
+
+      if (credentials.length === 0) {
+        return NextResponse.json(
+          { error: 'לא נמצאו מפתחות passkey עבור מספר זה' },
+          { status: 404 }
+        )
+      }
+
+      const options = await generateAuthenticationOptions({
+        rpID,
+        userVerification: 'required',
+        allowCredentials: credentials.map(c => ({
+          id: c.credential_id,
+          transports: c.transports ?? undefined,
+        })),
+      })
+
+      await storeChallenge({
+        challenge: options.challenge,
+        type: 'authentication',
+        userId: user!.id,
+        phone: cleanPhone,
+      })
+
+      return NextResponse.json(options)
+    }
+
+    // No phone → discoverable: browser shows all passkeys for this site
     const options = await generateAuthenticationOptions({
       rpID,
-      userVerification: 'preferred',
-      allowCredentials: credentials.map(c => ({
-        id: c.credential_id,
-        transports: c.transports ?? undefined,
-      })),
+      userVerification: 'required',
+      // No allowCredentials — device picks from its own passkey store
     })
 
-    await storeChallenge({
-      challenge: options.challenge,
-      type: 'authentication',
-      userId: user!.id,
-      phone: cleanPhone,
-    })
+    await storeChallenge({ challenge: options.challenge, type: 'authentication' })
 
     return NextResponse.json(options)
   } catch (error) {

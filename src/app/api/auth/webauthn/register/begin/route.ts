@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
         transports: c.transports ?? undefined,
       })),
       authenticatorSelection: {
-        residentKey: 'preferred',
-        userVerification: 'preferred',
+        residentKey: 'required',
+        userVerification: 'required',
       },
     })
 

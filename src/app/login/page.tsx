@@ -215,14 +215,13 @@ export default function LoginPage() {
   }
 
   const handlePasskeyLogin = async () => {
-    if (!phone) { setError('יש להזין מספר טלפון'); return }
     setPasskeyLoading(true)
     setError('')
     try {
       const beginRes = await fetch('/api/auth/webauthn/authenticate/begin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify(phone ? { phone } : {}),
       })
       const beginData = await beginRes.json()
       if (!beginRes.ok) {
