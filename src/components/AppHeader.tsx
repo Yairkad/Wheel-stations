@@ -134,7 +134,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
         } else if (operatorRaw) {
           const s = JSON.parse(operatorRaw)
           if (s.user) {
-            setAuthRoles([{ role: 'operator', label: 'מוקדן', data: s.user }])
+            setAuthRoles([{ role: 'operator', label: s.role === 'manager' ? 'מנהל מוקד' : 'מוקדן', data: s.user }])
             setActiveRole('operator')
           }
         } else if (superRaw) {
@@ -346,6 +346,7 @@ interface PasskeyCredential {
       case 'admin': return 'מנהל מערכת'
       case 'manager': return 'מנהל תחנה'
       case 'operator': return 'מוקדן'
+      case 'manager': return 'מנהל מוקד'
       default: return 'משתמש'
     }
   }
