@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { phone, password } = await request.json()
-    if (!phone || !password) {
-      return NextResponse.json({ error: 'יש להזין טלפון וסיסמה' }, { status: 400 })
+    if (!phone) {
+      return NextResponse.json({ error: 'יש להזין טלפון' }, { status: 400 })
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -33,13 +33,15 @@ export async function POST(request: NextRequest) {
       .eq('phone', cleanPhone)
       .single() as { data: { id: string; phone: string; password: string | null; is_active: boolean } | null }
 
-    if (!user || !user.is_active || !user.password) {
-      return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+    if (!user || !user.is_active) {
+      return NextResponse.json({ error: 'משתמש לא נמצא' }, { status: 401 })
     }
 
-    const pwCheck = await verifyPassword(password, user.password)
-    if (!pwCheck.valid) {
-      return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+    if (password && user.password) {
+      const pwCheck = await verifyPassword(password, user.password)
+      if (!pwCheck.valid) {
+        return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+      }
     }
 
     const existingCredentials = await getUserCredentials(user.id)

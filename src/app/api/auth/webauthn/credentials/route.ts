@@ -6,13 +6,13 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // POST /api/auth/webauthn/credentials
-// Body: { phone, password }
-// Returns: list of registered passkey devices for this user
+// Body: { phone, password? }
+// Password optional — passkey-authenticated users have no stored password in localStorage
 export async function POST(request: NextRequest) {
   try {
     const { phone, password } = await request.json()
-    if (!phone || !password) {
-      return NextResponse.json({ error: 'יש להזין טלפון וסיסמה' }, { status: 400 })
+    if (!phone) {
+      return NextResponse.json({ error: 'יש להזין מספר טלפון' }, { status: 400 })
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -24,13 +24,16 @@ export async function POST(request: NextRequest) {
       .eq('phone', cleanPhone)
       .single() as { data: { id: string; password: string | null; is_active: boolean } | null }
 
-    if (!user || !user.is_active || !user.password) {
-      return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+    if (!user || !user.is_active) {
+      return NextResponse.json({ error: 'משתמש לא נמצא' }, { status: 401 })
     }
 
-    const pwCheck = await verifyPassword(password, user.password)
-    if (!pwCheck.valid) {
-      return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
+    // Verify password only when provided (passkey-authenticated users skip this)
+    if (password && user.password) {
+      const pwCheck = await verifyPassword(password, user.password)
+      if (!pwCheck.valid) {
+        return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
+      }
     }
 
     const { data: credentials } = await supabase

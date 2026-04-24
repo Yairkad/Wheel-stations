@@ -46,6 +46,8 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   const [passkeyLoading, setPasskeyLoading] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     const forceLogout = (reason: string) => {
@@ -214,16 +216,22 @@ interface PasskeyCredential {
   }
 
   const deleteCredential = async (id: string) => {
-    const res = await fetch(`/api/auth/webauthn/credentials/${id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(getAuthArgs()),
-    })
-    if (res.ok) {
-      setPasskeyCredentials(prev => prev.filter(c => c.id !== id))
-      toast.success('המכשיר הוסר')
-    } else {
-      toast.error('שגיאה במחיקה')
+    setDeletingId(id)
+    setConfirmDeleteId(null)
+    try {
+      const res = await fetch(`/api/auth/webauthn/credentials/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(getAuthArgs()),
+      })
+      if (res.ok) {
+        setPasskeyCredentials(prev => prev.filter(c => c.id !== id))
+        toast.success('המכשיר הוסר')
+      } else {
+        toast.error('שגיאה במחיקה')
+      }
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -245,10 +253,6 @@ interface PasskeyCredential {
     if (!userSession) return
     const phone = userSession.manager.phone
     const password = localStorage.getItem('auth_password') || ''
-    if (!password) {
-      toast.error('יש להתחבר מחדש כדי להוסיף טביעת אצבע')
-      return
-    }
     setPasskeyRegistering(true)
     try {
       const beginRes = await fetch('/api/auth/webauthn/register/begin', {
@@ -583,7 +587,7 @@ interface PasskeyCredential {
       {showPasskeyManager && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
-          onClick={() => { setShowPasskeyManager(false); setEditingId(null) }}
+          onClick={() => { setShowPasskeyManager(false); setEditingId(null); setConfirmDeleteId(null) }}
         >
           <div
             style={{ background: '#fff', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.15)', direction: 'rtl' }}
@@ -595,7 +599,7 @@ interface PasskeyCredential {
                 <Fingerprint size={18} color="white" />
               </div>
               <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', flex: 1 }}>טביעות אצבע</h2>
-              <button onClick={() => { setShowPasskeyManager(false); setEditingId(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}>
+              <button onClick={() => { setShowPasskeyManager(false); setEditingId(null); setConfirmDeleteId(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
@@ -610,17 +614,36 @@ interface PasskeyCredential {
                 {passkeyCredentials.map(cred => (
                   <div key={cred.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px' }}>
                     {editingId === cred.id ? (
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         <input
                           autoFocus
                           value={editingName}
                           onChange={e => setEditingName(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') renameCredential(cred.id); if (e.key === 'Escape') setEditingId(null) }}
-                          style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', border: '1.5px solid #93c5fd', fontSize: '0.9rem', background: '#fff', outline: 'none' }}
+                          style={{ flex: '1 1 120px', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid #93c5fd', fontSize: '0.9rem', background: '#fff', outline: 'none' }}
                           placeholder="שם המכשיר"
                         />
-                        <button onClick={() => renameCredential(cred.id)} style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: '#2563eb', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>שמור</button>
-                        <button onClick={() => setEditingId(null)} style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: '0.85rem', cursor: 'pointer' }}>ביטול</button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={() => renameCredential(cred.id)} style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: '#2563eb', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>שמור</button>
+                          <button onClick={() => setEditingId(null)} style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: '0.85rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>ביטול</button>
+                        </div>
+                      </div>
+                    ) : deletingId === cred.id ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ width: '16px', height: '16px', border: '2px solid #ef4444', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontSize: '0.85rem', color: '#ef4444' }}>מוחק...</span>
+                      </div>
+                    ) : confirmDeleteId === cred.id ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ flex: 1, fontSize: '0.85rem', color: '#64748b' }}>למחוק את המכשיר?</span>
+                        <button
+                          onClick={() => deleteCredential(cred.id)}
+                          style={{ padding: '5px 12px', borderRadius: '8px', border: 'none', background: '#ef4444', color: '#fff', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}
+                        >מחק</button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          style={{ padding: '5px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: '0.82rem', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                        >ביטול</button>
                       </div>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -640,7 +663,7 @@ interface PasskeyCredential {
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </button>
                         <button
-                          onClick={() => deleteCredential(cred.id)}
+                          onClick={() => setConfirmDeleteId(cred.id)}
                           title="הסר"
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '4px', flexShrink: 0 }}
                         >
@@ -669,6 +692,7 @@ interface PasskeyCredential {
         </div>
       )}
       <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 640px) {
           .station-indicator { display: none !important; }
           .profile-name { display: none !important; }

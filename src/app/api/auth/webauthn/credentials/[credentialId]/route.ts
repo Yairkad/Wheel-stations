@@ -6,7 +6,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function resolveUser(supabase: ReturnType<typeof createClient<any>>, phone: string, password: string) {
+async function resolveUser(supabase: ReturnType<typeof createClient<any>>, phone: string, password?: string) {
   const cleanPhone = phone.replace(/\D/g, '')
   const { data: user } = await supabase
     .from('users')
@@ -14,9 +14,12 @@ async function resolveUser(supabase: ReturnType<typeof createClient<any>>, phone
     .eq('phone', cleanPhone)
     .single() as { data: { id: string; password: string | null; is_active: boolean } | null }
 
-  if (!user || !user.is_active || !user.password) return null
-  const pwCheck = await verifyPassword(password, user.password)
-  return pwCheck.valid ? user : null
+  if (!user || !user.is_active) return null
+  if (password && user.password) {
+    const pwCheck = await verifyPassword(password, user.password)
+    return pwCheck.valid ? user : null
+  }
+  return user
 }
 
 // PATCH /api/auth/webauthn/credentials/[credentialId]
@@ -29,8 +32,8 @@ export async function PATCH(
   try {
     const { credentialId } = await params
     const { phone, password, friendlyName } = await request.json()
-    if (!phone || !password) {
-      return NextResponse.json({ error: 'יש להזין טלפון וסיסמה' }, { status: 400 })
+    if (!phone) {
+      return NextResponse.json({ error: 'יש להזין טלפון' }, { status: 400 })
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -62,8 +65,8 @@ export async function DELETE(
   try {
     const { credentialId } = await params
     const { phone, password } = await request.json()
-    if (!phone || !password) {
-      return NextResponse.json({ error: 'יש להזין טלפון וסיסמה' }, { status: 400 })
+    if (!phone) {
+      return NextResponse.json({ error: 'יש להזין טלפון' }, { status: 400 })
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
