@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import { Fingerprint } from 'lucide-react'
 import { SESSION_VERSION } from '@/lib/version'
 import type { RoleResult } from '@/app/api/auth/login/route'
 
@@ -39,6 +40,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   const [activeRole, setActiveRole] = useState<string | null>(null)
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
+  const [passkeyRegistering, setPasskeyRegistering] = useState(false)
 
   useEffect(() => {
     const forceLogout = (reason: string) => {
@@ -173,7 +175,52 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showProfileMenu, showRoleMenu])
 
-const handleLogout = () => {
+const handleRegisterPasskey = async () => {
+    if (!userSession) return
+    const phone = userSession.manager.phone
+    const password = localStorage.getItem('auth_password') || ''
+    if (!password) {
+      toast.error('יש להתחבר מחדש כדי להוסיף טביעת אצבע')
+      return
+    }
+    setPasskeyRegistering(true)
+    try {
+      const beginRes = await fetch('/api/auth/webauthn/register/begin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password }),
+      })
+      const beginData = await beginRes.json()
+      if (!beginRes.ok) {
+        toast.error(beginData.error || 'שגיאה בתחילת הרישום')
+        return
+      }
+
+      const { startRegistration } = await import('@simplewebauthn/browser')
+      const regResponse = await startRegistration({ optionsJSON: beginData })
+
+      const completeRes = await fetch('/api/auth/webauthn/register/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(regResponse),
+      })
+      const completeData = await completeRes.json()
+      if (!completeRes.ok) {
+        toast.error(completeData.error || 'שגיאה בשמירת טביעת האצבע')
+        return
+      }
+
+      setShowProfileMenu(false)
+      toast.success('טביעת אצבע נרשמה! מעכשיו ניתן להתחבר בלי סיסמה 🎉')
+    } catch (err) {
+      if (err instanceof Error && err.name === 'NotAllowedError') return
+      toast.error('שגיאה בהוספת טביעת האצבע')
+    } finally {
+      setPasskeyRegistering(false)
+    }
+  }
+
+  const handleLogout = () => {
     Object.keys(localStorage).forEach(key => {
       if (
         key.startsWith('station_session_') ||
@@ -417,6 +464,14 @@ const handleLogout = () => {
                 </svg>
                 <span>שינוי סיסמא</span>
               </Link>
+              <button
+                onClick={handleRegisterPasskey}
+                disabled={passkeyRegistering}
+                style={{ ...styles.dropdownItem, background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'right', opacity: passkeyRegistering ? 0.6 : 1 }}
+              >
+                <Fingerprint size={14} />
+                <span>{passkeyRegistering ? 'רושם...' : 'הוסף טביעת אצבע'}</span>
+              </button>
               <Link href={`/${userSession.stationId}?action=recovery`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
