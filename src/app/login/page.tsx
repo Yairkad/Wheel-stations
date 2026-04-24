@@ -555,12 +555,6 @@ export default function LoginPage() {
             {loading ? 'מתחבר...' : 'כניסה'}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
-            <span style={{ color: '#94a3b8', fontSize: '12px', flexShrink: 0 }}>או</span>
-            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
-          </div>
-
           <button
             type="button"
             onClick={handlePasskeyLogin}
@@ -569,21 +563,19 @@ export default function LoginPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px',
-              padding: '13px',
-              borderRadius: '12px',
-              border: '1.5px solid #e2e8f0',
-              background: '#f8fafc',
-              color: '#374151',
-              fontSize: '0.95rem',
-              fontWeight: 600,
+              gap: '6px',
+              padding: '0',
+              background: 'none',
+              border: 'none',
+              color: '#94a3b8',
+              fontSize: '0.82rem',
               cursor: 'pointer',
               fontFamily: 'inherit',
-              transition: 'border-color 0.15s, background 0.15s',
-              opacity: passkeyLoading || loading ? 0.6 : 1,
+              opacity: passkeyLoading || loading ? 0.5 : 1,
+              marginTop: '-4px',
             }}
           >
-            <Fingerprint size={18} />
+            <Fingerprint size={13} />
             {passkeyLoading ? 'מאמת...' : 'כניסה עם טביעת אצבע'}
           </button>
 
@@ -751,6 +743,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
+    textAlign: 'right',
     transition: 'border-color 0.15s, box-shadow 0.15s',
   },
   passwordWrapper: {
@@ -761,7 +754,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   passwordInput: {
     width: '100%',
-    padding: '14px 48px 14px 16px',
+    padding: '14px 16px 14px 44px',
     borderRadius: '12px',
     border: '1px solid #e2e8f0',
     background: '#f8fafc',
@@ -770,6 +763,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
+    textAlign: 'right',
     transition: 'border-color 0.15s, box-shadow 0.15s',
   },
   toggleButton: {
