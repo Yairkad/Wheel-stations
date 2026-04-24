@@ -41,6 +41,11 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
   const [passkeyRegistering, setPasskeyRegistering] = useState(false)
+  const [showPasskeyManager, setShowPasskeyManager] = useState(false)
+  const [passkeyCredentials, setPasskeyCredentials] = useState<PasskeyCredential[]>([])
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
 
   useEffect(() => {
     const forceLogout = (reason: string) => {
@@ -175,7 +180,68 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showProfileMenu, showRoleMenu])
 
-const handleRegisterPasskey = async () => {
+interface PasskeyCredential {
+    id: string
+    credential_id: string
+    friendly_name: string | null
+    device_type: string | null
+    backed_up: boolean
+    created_at: string
+    last_used_at: string | null
+  }
+
+  const getAuthArgs = () => ({
+    phone: userSession?.manager.phone ?? '',
+    password: localStorage.getItem('auth_password') ?? '',
+  })
+
+  const openPasskeyManager = async () => {
+    setShowProfileMenu(false)
+    setShowPasskeyManager(true)
+    setPasskeyLoading(true)
+    try {
+      const res = await fetch('/api/auth/webauthn/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(getAuthArgs()),
+      })
+      const data = await res.json()
+      if (res.ok) setPasskeyCredentials(data.credentials)
+      else toast.error(data.error || 'שגיאה בטעינת הרשימה')
+    } finally {
+      setPasskeyLoading(false)
+    }
+  }
+
+  const deleteCredential = async (id: string) => {
+    const res = await fetch(`/api/auth/webauthn/credentials/${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(getAuthArgs()),
+    })
+    if (res.ok) {
+      setPasskeyCredentials(prev => prev.filter(c => c.id !== id))
+      toast.success('המכשיר הוסר')
+    } else {
+      toast.error('שגיאה במחיקה')
+    }
+  }
+
+  const renameCredential = async (id: string) => {
+    const res = await fetch(`/api/auth/webauthn/credentials/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...getAuthArgs(), friendlyName: editingName }),
+    })
+    if (res.ok) {
+      setPasskeyCredentials(prev => prev.map(c => c.id === id ? { ...c, friendly_name: editingName || null } : c))
+      setEditingId(null)
+    } else {
+      toast.error('שגיאה בשמירת השם')
+    }
+  }
+
+  const handleRegisterPasskey = async () => {
     if (!userSession) return
     const phone = userSession.manager.phone
     const password = localStorage.getItem('auth_password') || ''
@@ -465,12 +531,14 @@ const handleRegisterPasskey = async () => {
                 <span>שינוי סיסמא</span>
               </Link>
               <button
-                onClick={handleRegisterPasskey}
-                disabled={passkeyRegistering}
-                style={{ ...styles.dropdownItem, background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'right', opacity: passkeyRegistering ? 0.6 : 1 }}
+                onClick={openPasskeyManager}
+                style={{ ...styles.dropdownItem, background: 'none', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'right' }}
               >
                 <Fingerprint size={14} />
-                <span>{passkeyRegistering ? 'רושם...' : 'הוסף טביעת אצבע'}</span>
+                <span>טביעות אצבע</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" style={{ marginRight: 'auto' }}>
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
               </button>
               <Link href={`/${userSession.stationId}?action=recovery`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -501,8 +569,104 @@ const handleRegisterPasskey = async () => {
     </>
   )
 
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  const deviceLabel = (cred: PasskeyCredential) =>
+    cred.friendly_name ||
+    (cred.device_type === 'multiDevice' ? 'מכשיר מסונכרן' : 'מכשיר זה') +
+    (cred.backed_up ? ' ☁️' : '')
+
   return (
     <>
+      {showPasskeyManager && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          onClick={() => { setShowPasskeyManager(false); setEditingId(null) }}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: '20px', padding: '28px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 40px rgba(0,0,0,0.15)', direction: 'rtl' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ width: '36px', height: '36px', background: 'linear-gradient(135deg,#2563eb,#7c3aed)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Fingerprint size={18} color="white" />
+              </div>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', flex: 1 }}>טביעות אצבע</h2>
+              <button onClick={() => { setShowPasskeyManager(false); setEditingId(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            {/* Credentials list */}
+            {passkeyLoading ? (
+              <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: '0.9rem' }}>טוען...</div>
+            ) : passkeyCredentials.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8', fontSize: '0.9rem' }}>אין מכשירים רשומים</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                {passkeyCredentials.map(cred => (
+                  <div key={cred.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px' }}>
+                    {editingId === cred.id ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          autoFocus
+                          value={editingName}
+                          onChange={e => setEditingName(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') renameCredential(cred.id); if (e.key === 'Escape') setEditingId(null) }}
+                          style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', border: '1.5px solid #93c5fd', fontSize: '0.9rem', background: '#fff', outline: 'none' }}
+                          placeholder="שם המכשיר"
+                        />
+                        <button onClick={() => renameCredential(cred.id)} style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: '#2563eb', color: '#fff', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}>שמור</button>
+                        <button onClick={() => setEditingId(null)} style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: '0.85rem', cursor: 'pointer' }}>ביטול</button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Fingerprint size={16} color="#2563eb" style={{ flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{deviceLabel(cred)}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
+                            נרשם {formatDate(cred.created_at)}
+                            {cred.last_used_at && ` • שימוש אחרון ${formatDate(cred.last_used_at)}`}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setEditingId(cred.id); setEditingName(cred.friendly_name || '') }}
+                          title="שנה שם"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px', flexShrink: 0 }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button
+                          onClick={() => deleteCredential(cred.id)}
+                          title="הסר"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '4px', flexShrink: 0 }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add device button */}
+            <button
+              onClick={async () => {
+                await handleRegisterPasskey()
+                openPasskeyManager()
+              }}
+              disabled={passkeyRegistering}
+              style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px dashed #bfdbfe', background: '#eff6ff', color: '#2563eb', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit', opacity: passkeyRegistering ? 0.6 : 1 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              {passkeyRegistering ? 'רושם מכשיר...' : 'הוסף מכשיר'}
+            </button>
+          </div>
+        </div>
+      )}
       <style>{`
         @media (max-width: 640px) {
           .station-indicator { display: none !important; }
