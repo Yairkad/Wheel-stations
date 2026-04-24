@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
+import { Fingerprint } from 'lucide-react'
 import { SESSION_VERSION, VERSION } from '@/lib/version'
 import type { RoleResult } from '@/app/api/auth/login/route'
 
@@ -16,6 +17,13 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [roles, setRoles] = useState<RoleResult[] | null>(null)
+  const [rememberRole, setRememberRole] = useState(false)
+  const [savedPreferredRole, setSavedPreferredRole] = useState<string | null>(null)
+  const [passkeyLoading, setPasskeyLoading] = useState(false)
+
+  useEffect(() => {
+    setSavedPreferredRole(localStorage.getItem('preferred_role'))
+  }, [])
 
   // Forgot password state
   const [showForgotPassword, setShowForgotPassword] = useState(false)
@@ -150,6 +158,26 @@ export default function LoginPage() {
     }
   }
 
+  // Shared post-auth role handler — called by password login and (future) WebAuthn flow
+  const handleRolesReceived = (foundRoles: RoleResult[]) => {
+    if (foundRoles.length === 1) {
+      localStorage.setItem('active_role', foundRoles[0].role)
+      toast.success(`שלום ${foundRoles[0].data.full_name as string}`)
+      applyRole(foundRoles[0])
+      return
+    }
+    const saved = localStorage.getItem('preferred_role')
+    const auto = foundRoles.find(r => r.role === saved)
+    if (auto) {
+      localStorage.setItem('active_role', auto.role)
+      toast.success(`שלום ${auto.data.full_name as string}`)
+      applyRole(auto)
+      return
+    }
+    setRoles(foundRoles)
+    setLoading(false)
+  }
+
   const handleLogin = async () => {
     if (!phone || !password) { setError('יש למלא טלפון וסיסמה'); return }
     setLoading(true)
@@ -174,15 +202,7 @@ export default function LoginPage() {
       localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
       localStorage.setItem('auth_password', password)
 
-      if (foundRoles.length === 1) {
-        localStorage.setItem('active_role', foundRoles[0].role)
-        toast.success(`שלום ${foundRoles[0].data.full_name as string}`)
-        applyRole(foundRoles[0])
-      } else {
-        // Multiple roles — show picker
-        setRoles(foundRoles)
-        setLoading(false)
-      }
+      handleRolesReceived(foundRoles)
     } catch {
       setError('שגיאה בכניסה')
       setLoading(false)
@@ -192,6 +212,50 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     handleLogin()
+  }
+
+  const handlePasskeyLogin = async () => {
+    if (!phone) { setError('יש להזין מספר טלפון'); return }
+    setPasskeyLoading(true)
+    setError('')
+    try {
+      const beginRes = await fetch('/api/auth/webauthn/authenticate/begin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      })
+      const beginData = await beginRes.json()
+      if (!beginRes.ok) {
+        setError(beginRes.status === 404
+          ? 'לא נמצאו מפתחות passkey למספר זה. כדי להפעיל, היכנס עם סיסמה והגדר טביעת אצבע בהגדרות.'
+          : beginData.error || 'שגיאה בכניסה עם passkey')
+        return
+      }
+
+      const { startAuthentication } = await import('@simplewebauthn/browser')
+      const authResponse = await startAuthentication({ optionsJSON: beginData })
+
+      const completeRes = await fetch('/api/auth/webauthn/authenticate/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authResponse),
+      })
+      const completeData = await completeRes.json()
+      if (!completeRes.ok) {
+        setError(completeData.error || 'אימות הpasskey נכשל')
+        return
+      }
+
+      const foundRoles: RoleResult[] = completeData.roles
+      localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
+      handleRolesReceived(foundRoles)
+    } catch (err) {
+      // User cancelled the biometric prompt — no error needed
+      if (err instanceof Error && err.name === 'NotAllowedError') return
+      setError('שגיאה בכניסה עם passkey')
+    } finally {
+      setPasskeyLoading(false)
+    }
   }
 
   const responsiveStyles = `
@@ -265,6 +329,7 @@ export default function LoginPage() {
                   className="role-card"
                   onClick={() => {
                     localStorage.setItem('active_role', r.role)
+                    if (rememberRole) localStorage.setItem('preferred_role', r.role)
                     toast.success(`שלום ${r.data.full_name as string}`)
                     applyRole(r)
                   }}
@@ -296,6 +361,15 @@ export default function LoginPage() {
               )
             })}
           </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', cursor: 'pointer', fontSize: '13px', color: '#64748b', userSelect: 'none' }}>
+            <input
+              type="checkbox"
+              checked={rememberRole}
+              onChange={e => setRememberRole(e.target.checked)}
+              style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#2563eb' }}
+            />
+            זכור את הבחירה שלי ותמיד כנס לתפקיד זה
+          </label>
         </div>
       </div>
     )
@@ -319,6 +393,19 @@ export default function LoginPage() {
         </div>
         <h1 style={styles.formTitle} className="form-title">כניסה למערכת</h1>
         <p style={styles.formSubtitle}>הזן טלפון וסיסמה</p>
+
+        {savedPreferredRole && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', fontSize: '12px', color: '#2563eb' }}>
+            <span>כניסה אוטומטית פעילה</span>
+            <button
+              type="button"
+              onClick={() => { localStorage.removeItem('preferred_role'); setSavedPreferredRole(null) }}
+              style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+            >
+              ביטול
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
@@ -367,6 +454,38 @@ export default function LoginPage() {
 
           <button type="submit" style={styles.formSubmit} className="form-submit" disabled={loading}>
             {loading ? 'מתחבר...' : 'כניסה'}
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
+            <span style={{ color: '#94a3b8', fontSize: '12px', flexShrink: 0 }}>או</span>
+            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }} />
+          </div>
+
+          <button
+            type="button"
+            onClick={handlePasskeyLogin}
+            disabled={passkeyLoading || loading}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '13px',
+              borderRadius: '12px',
+              border: '1.5px solid #e2e8f0',
+              background: '#f8fafc',
+              color: '#374151',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'border-color 0.15s, background 0.15s',
+              opacity: passkeyLoading || loading ? 0.6 : 1,
+            }}
+          >
+            <Fingerprint size={18} />
+            {passkeyLoading ? 'מאמת...' : 'כניסה עם טביעת אצבע'}
           </button>
 
           <button
