@@ -287,6 +287,8 @@ export default function CallCenterPage() {
 
   const navigateToRole = (r: RoleResult) => {
     localStorage.setItem('active_role', r.role)
+    if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
+    else localStorage.removeItem('active_sub_role')
     setActiveRole(r.role)
     setShowRoleMenu(false)
     const d = r.data
@@ -332,7 +334,12 @@ export default function CallCenterPage() {
     }
   }
 
-  const currentRoleLabel = authRoles.find(r => r.role === activeRole)?.label ?? authRoles[0]?.label
+  const activeSubRole = typeof window !== 'undefined' ? localStorage.getItem('active_sub_role') : null
+  const currentRoleLabel = (authRoles.find(r => {
+    if (r.role !== activeRole) return false
+    if (activeSubRole && r.data?.sub_role) return r.data.sub_role === activeSubRole
+    return !activeSubRole
+  }) ?? authRoles.find(r => r.role === activeRole) ?? authRoles[0])?.label
 
   const handleWorkAsOperator = () => {
     if (!manager) return
