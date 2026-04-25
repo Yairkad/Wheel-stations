@@ -20,6 +20,8 @@ export default function LoginPage() {
   const [savedPreferredRole, setSavedPreferredRole] = useState<string | null>(null)
   useEffect(() => {
     setSavedPreferredRole(localStorage.getItem('preferred_role'))
+    const saved = localStorage.getItem('saved_phone')
+    if (saved) setPhone(saved)
   }, [])
 
   // Forgot password state
@@ -197,6 +199,7 @@ export default function LoginPage() {
       // Store all roles + password for the header role switcher
       localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
       localStorage.setItem('auth_password', password)
+      localStorage.setItem('saved_phone', phone)
 
       proceedWithRoles(foundRoles)
     } catch {
