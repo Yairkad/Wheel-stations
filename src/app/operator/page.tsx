@@ -1545,7 +1545,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
             </Link>
           </p>
           <p style={styles.legalLinks}>
-            <Link href="/guide" style={styles.footerLink}>
+            <Link href="/guide?tab=operator" style={styles.footerLink}>
               מדריך למשתמש
             </Link>
             {' • '}

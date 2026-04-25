@@ -478,12 +478,30 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
         </>
       )}
 
-      <Link href="/guide?tab=manager" style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        <span>מדריך למנהלים</span>
-      </Link>
+      {(() => {
+        const role = activeRoleEntry?.role
+        const subRole = activeRoleEntry?.data?.sub_role as string | undefined
+        let guideHref = '/guide'
+        let guideLabel = 'מדריך למשתמש'
+        if (role === 'station_manager') {
+          guideHref = '/guide?tab=manager'
+          guideLabel = 'מדריך למנהלי תחנות'
+        } else if (role === 'operator' && subRole === 'manager') {
+          guideHref = '/guide?tab=call-center-manager'
+          guideLabel = 'מדריך למנהלי מוקד'
+        } else if (role === 'operator') {
+          guideHref = '/guide?tab=operator'
+          guideLabel = 'מדריך למוקדנים'
+        }
+        return (
+          <Link href={guideHref} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span>{guideLabel}</span>
+          </Link>
+        )
+      })()}
 
       <div style={styles.dropdownDivider} />
 

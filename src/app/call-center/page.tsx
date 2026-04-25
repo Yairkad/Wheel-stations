@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 
@@ -999,6 +1000,21 @@ export default function CallCenterPage() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer style={{ padding: '24px 20px', textAlign: 'center', borderTop: '1px solid #e2e8f0', marginTop: '24px' }}>
+        <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
+          מערכת גלגלים ידידים •{' '}
+          <Link href="/feedback" style={{ color: '#94a3b8', textDecoration: 'underline' }}>דווח על בעיה</Link>
+        </p>
+        <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+          <Link href="/guide?tab=call-center-manager" style={{ color: '#94a3b8', textDecoration: 'underline' }}>מדריך למשתמש</Link>
+          {' • '}
+          <Link href="/privacy" style={{ color: '#94a3b8', textDecoration: 'underline' }}>מדיניות פרטיות</Link>
+          {' • '}
+          <Link href="/accessibility" style={{ color: '#94a3b8', textDecoration: 'underline' }}>הצהרת נגישות</Link>
+        </p>
+      </footer>
 
       {/* Change Password Modal */}
       {showChangePassword && (
