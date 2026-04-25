@@ -135,8 +135,10 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
           }
         } else if (operatorRaw) {
           const s = JSON.parse(operatorRaw)
-          if (s.user) {
-            setAuthRoles([{ role: 'operator', label: s.role === 'manager' ? 'מנהל מוקד' : 'מוקדן', data: s.user }])
+          const userData = s.user || s.operator
+          if (userData) {
+            const isManager = s.role === 'manager'
+            setAuthRoles([{ role: 'operator', label: isManager ? 'מנהל מוקד' : 'מוקדן', data: { ...userData, sub_role: isManager ? 'manager' : 'operator' } }])
             setActiveRole('operator')
           }
         } else if (superRaw) {
@@ -345,12 +347,14 @@ interface PasskeyCredential {
     return fullName.substring(0, 2)
   }
 
-  const getRoleDisplay = (role: string) => {
+  const getRoleDisplay = (role: string, label?: string) => {
+    if (label) return label
     switch (role) {
       case 'admin': return 'מנהל מערכת'
-      case 'manager': return 'מנהל תחנה'
+      case 'station_manager': return 'מנהל תחנה'
+      case 'district_manager': return 'מנהל מחוז'
+      case 'editor': return 'עורך'
       case 'operator': return 'מוקדן'
-      case 'manager': return 'מנהל מוקד'
       default: return 'משתמש'
     }
   }
@@ -415,7 +419,8 @@ interface PasskeyCredential {
     }
   }
 
-  const currentRoleLabel = authRoles.find(r => r.role === activeRole)?.label ?? authRoles[0]?.label
+  const activeRoleEntry = authRoles.find(r => r.role === activeRole) ?? authRoles[0]
+  const currentRoleLabel = activeRoleEntry ? getRoleDisplay(activeRoleEntry.role, activeRoleEntry.label) : undefined
 
   if (isLoading || !userSession) return null
 
