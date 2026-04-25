@@ -157,9 +157,15 @@ export default function LoginPage() {
     }
   }
 
+  const saveActiveRole = (r: RoleResult) => {
+    localStorage.setItem('active_role', r.role)
+    if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
+    else localStorage.removeItem('active_sub_role')
+  }
+
   const proceedWithRoles = (foundRoles: RoleResult[]) => {
     if (foundRoles.length === 1) {
-      localStorage.setItem('active_role', foundRoles[0].role)
+      saveActiveRole(foundRoles[0])
       toast.success(`שלום ${foundRoles[0].data.full_name as string}`)
       applyRole(foundRoles[0])
       return
@@ -167,7 +173,7 @@ export default function LoginPage() {
     const saved = localStorage.getItem('preferred_role')
     const auto = foundRoles.find(r => r.role === saved)
     if (auto) {
-      localStorage.setItem('active_role', auto.role)
+      saveActiveRole(auto)
       toast.success(`שלום ${auto.data.full_name as string}`)
       applyRole(auto)
       return
@@ -283,7 +289,7 @@ export default function LoginPage() {
                   key={r.role}
                   className="role-card"
                   onClick={() => {
-                    localStorage.setItem('active_role', r.role)
+                    saveActiveRole(r)
                     if (rememberRole) localStorage.setItem('preferred_role', r.role)
                     toast.success(`שלום ${r.data.full_name as string}`)
                     applyRole(r)
