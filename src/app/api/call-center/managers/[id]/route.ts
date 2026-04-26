@@ -13,7 +13,8 @@ export async function DELETE(
   try {
     const { id } = await params
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const body = await request.json().catch(() => ({}))
+    let body: Record<string, unknown> = {}
+    try { body = await request.json() } catch { /* DELETE body is optional */ }
     const { call_center_id } = body
 
     let query = supabase

@@ -153,7 +153,10 @@ export async function subscribeToPushStation(
   })
 
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}))
+    const data = await response.json().catch(parseErr => {
+      console.error('[push] failed to parse subscription error response:', parseErr)
+      return {}
+    })
     throw new Error(data.error || 'Failed to save push subscription')
   }
 

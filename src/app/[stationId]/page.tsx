@@ -1202,7 +1202,10 @@ ${signFormUrl}
             })
           })
           if (!response.ok) {
-            const errData = await response.json().catch(() => ({}))
+            const errData = await response.json().catch(parseErr => {
+              console.error('[StationPage] failed to parse error response:', parseErr)
+              return {}
+            })
             throw new Error(errData.error || 'Failed to return')
           }
           await fetchStation()

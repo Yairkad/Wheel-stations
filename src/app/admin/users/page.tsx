@@ -256,7 +256,7 @@ function UsersPageInner() {
       if (!res.ok) throw new Error(data.error)
       await fetchUsers()
       toast.success(user.is_active ? 'משתמש הושבת' : 'משתמש הופעל')
-    } catch { toast.error('שגיאה בעדכון') }
+    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה בעדכון') }
     finally { setBusy(false) }
   }
 
@@ -302,7 +302,7 @@ function UsersPageInner() {
       if (expandedId === deleteUser.id) setExpandedId(null)
       await fetchUsers()
       toast.success('משתמש נמחק')
-    } catch { toast.error('שגיאה במחיקה') }
+    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה במחיקה') }
     finally { setBusy(false) }
   }
 
@@ -321,7 +321,7 @@ function UsersPageInner() {
       setMergeTarget('')
       await fetchUsers()
       toast.success('משתמשים אוחדו')
-    } catch { toast.error('שגיאה במיזוג') }
+    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה במיזוג') }
     finally { setBusy(false) }
   }
 
@@ -453,7 +453,7 @@ function UsersPageInner() {
       if (!res.ok) throw new Error(data.error)
       await fetchUsers()
       toast.success(current ? 'תפקיד הושבת' : 'תפקיד הופעל')
-    } catch { toast.error('שגיאה בעדכון תפקיד') }
+    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה בעדכון תפקיד') }
     finally { setBusy(false) }
   }
 
@@ -469,7 +469,7 @@ function UsersPageInner() {
       if (!res.ok) throw new Error(data.error)
       await fetchUsers()
       toast.success(!current ? 'הוגדר כמנהל ראשי' : 'הוגדר כמנהל משני')
-    } catch { toast.error('שגיאה בעדכון') }
+    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה בעדכון') }
     finally { setBusy(false) }
   }
 

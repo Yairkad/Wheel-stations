@@ -16,7 +16,7 @@ export default function PunctureManagerLoginPage() {
       try {
         const res = await fetch('/api/admin/session')
         if (res.ok) { router.push('/admin/punctures'); return }
-      } catch { /* ignore */ }
+      } catch (err) { console.debug('[PunctureLogin] admin session check failed (expected if not admin):', err) }
 
       // Already logged in as puncture manager?
       const pmAuth = localStorage.getItem('puncture_manager_auth')
@@ -27,7 +27,7 @@ export default function PunctureManagerLoginPage() {
             router.push('/admin/punctures')
             return
           }
-        } catch { /* ignore */ }
+        } catch (err) { console.warn('[PunctureLogin] malformed puncture_manager_auth in localStorage:', err) }
       }
     }
     checkExistingAuth()

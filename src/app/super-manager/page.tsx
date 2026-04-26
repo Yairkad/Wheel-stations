@@ -168,7 +168,7 @@ export default function SuperManagerPage() {
         const map: Record<string, string> = {}
         for (const d of (data.districts || [])) map[d.code] = d.name
         setDistrictNames(map)
-      }).catch(() => {})
+      }).catch(err => console.warn('[SuperManager] districts fetch failed:', err))
     }
   }, [superManager, fetchStations])
 

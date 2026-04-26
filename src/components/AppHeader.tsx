@@ -180,7 +180,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
           setActiveRole('editor')
         }
       }
-    } catch { /* ignore */ }
+    } catch (err) { console.error('[AppHeader] session restore failed:', err) }
 
     setIsLoading(false)
 
