@@ -39,7 +39,7 @@ export default function LoginPage() {
     if (!forgotPhone) { setForgotError('נא להזין מספר טלפון'); return }
     if (!forgotNewPassword || !forgotConfirmPassword) { setForgotError('נא למלא סיסמא חדשה ואימות'); return }
     if (forgotNewPassword !== forgotConfirmPassword) { setForgotError('הסיסמאות לא תואמות'); return }
-    if (forgotNewPassword.length < 4) { setForgotError('הסיסמא חייבת להכיל לפחות 4 תווים'); return }
+    if (forgotNewPassword.length < 6) { setForgotError('הסיסמא חייבת להכיל לפחות 6 תווים'); return }
 
     setForgotError('')
     setForgotLoading(true)
@@ -184,6 +184,9 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     if (!phone || !password) { setError('יש למלא טלפון וסיסמה'); return }
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 9 || cleanPhone.length > 12) { setError('מספר טלפון לא תקין (דוגמה: 0501234567)'); return }
+    if (password.length < 6) { setError('הסיסמה חייבת להכיל לפחות 6 תווים'); return }
     setLoading(true)
     setError('')
 

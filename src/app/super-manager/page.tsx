@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
+import * as XLSX from 'xlsx'
 import { VERSION, SESSION_VERSION } from '@/lib/version'
 
 const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000
@@ -113,6 +114,14 @@ export default function SuperManagerPage() {
 
   // Districts lookup (code → Hebrew name)
   const [districtNames, setDistrictNames] = useState<Record<string, string>>({})
+
+  // District export
+  const [showDistrictExport, setShowDistrictExport] = useState(false)
+  const [districtExportChecks, setDistrictExportChecks] = useState({ summary: true, inventory: false, borrows: false })
+  const [districtDateFrom, setDistrictDateFrom] = useState('')
+  const [districtDateTo, setDistrictDateTo] = useState('')
+  const [selectedExportStations, setSelectedExportStations] = useState<string[]>([])
+  const [exportLoading, setExportLoading] = useState(false)
 
   // Session validation
   useEffect(() => {
@@ -335,6 +344,108 @@ export default function SuperManagerPage() {
     if (borrowFilter === 'all') return true
     return b.status === borrowFilter
   })
+
+  const handleDistrictExport = async () => {
+    if (!districtExportChecks.summary && !districtExportChecks.inventory && !districtExportChecks.borrows) {
+      toast.error('יש לבחור לפחות נתון אחד לייצוא')
+      return
+    }
+    if (selectedExportStations.length === 0) {
+      toast.error('יש לבחור לפחות תחנה אחת')
+      return
+    }
+
+    setExportLoading(true)
+    try {
+      const wb = XLSX.utils.book_new()
+      const date = new Date().toISOString().split('T')[0]
+      const dateFrom = districtDateFrom ? new Date(districtDateFrom) : null
+      const dateTo = districtDateTo ? new Date(districtDateTo + 'T23:59:59') : null
+
+      const stationsToExport = filteredStations.filter(s => selectedExportStations.includes(s.id))
+
+      if (districtExportChecks.summary) {
+        const summaryData = stationsToExport.map(s => ({
+          'שם תחנה': s.name,
+          'כתובת': s.address,
+          'מחוז': districtNames[s.district || ''] || s.district || '',
+          'סה"כ גלגלים': s.totalWheels,
+          'זמינים': s.availableWheels,
+          'מושאלים': s.totalWheels - s.availableWheels,
+          'מנהל ראשי': s.wheel_station_managers.find(m => m.is_primary)?.full_name || '',
+          'טלפון מנהל': s.wheel_station_managers.find(m => m.is_primary)?.phone || '',
+        }))
+        const wsSummary = XLSX.utils.json_to_sheet(summaryData)
+        wsSummary['!cols'] = [{ wch: 20 }, { wch: 25 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 20 }, { wch: 15 }]
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'סיכום תחנות')
+      }
+
+      if (districtExportChecks.inventory || districtExportChecks.borrows) {
+        const fetches = stationsToExport.map(async s => {
+          const [stRes, brRes] = await Promise.all([
+            districtExportChecks.inventory ? fetch(`/api/wheel-stations/${s.id}`) : Promise.resolve(null),
+            districtExportChecks.borrows ? fetch(`/api/wheel-stations/${s.id}/borrows?limit=1000`) : Promise.resolve(null),
+          ])
+          const stData = stRes ? await stRes.json() : null
+          const brData = brRes ? await brRes.json() : null
+          return { station: s, wheels: stData?.station?.wheels || [], borrows: brData?.borrows || [] }
+        })
+        const results = await Promise.all(fetches)
+
+        for (const { station: s, wheels, borrows: stationBorrows } of results) {
+          const sheetName = s.name.replace(/[\\/*?[\]:]/g, '').slice(0, 28)
+
+          if (districtExportChecks.inventory && wheels.length) {
+            const inventoryData = wheels.map((w: Record<string, unknown>) => ({
+              'מספר גלגל': w.wheel_number,
+              'גודל ג\'אנט': w.rim_size,
+              'ברגים': w.bolt_count,
+              'PCD': w.bolt_spacing,
+              'CB': w.center_bore || '',
+              'דונאט': w.is_donut ? 'כן' : 'לא',
+              'זמין': w.is_available ? 'כן' : 'לא',
+              'הערות': w.notes || '',
+            }))
+            const ws = XLSX.utils.json_to_sheet(inventoryData)
+            ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 20 }]
+            XLSX.utils.book_append_sheet(wb, ws, `מלאי - ${sheetName}`)
+          }
+
+          if (districtExportChecks.borrows && stationBorrows.length) {
+            let filtered = [...stationBorrows]
+            if (dateFrom) filtered = filtered.filter((b: Record<string, unknown>) => new Date(b.borrow_date as string) >= dateFrom)
+            if (dateTo) filtered = filtered.filter((b: Record<string, unknown>) => new Date(b.borrow_date as string) <= dateTo)
+            if (filtered.length) {
+              const borrowsData = filtered.map((b: Record<string, unknown>) => ({
+                'שם פונה': b.borrower_name,
+                'טלפון': b.borrower_phone,
+                'דגם רכב': b.vehicle_model || '',
+                'גלגל #': (b.wheels as Record<string, unknown>)?.wheel_number || '',
+                'תאריך השאלה': b.borrow_date ? new Date(b.borrow_date as string).toLocaleDateString('he-IL') : '',
+                'תאריך החזרה': b.actual_return_date ? new Date(b.actual_return_date as string).toLocaleDateString('he-IL') : '',
+                'סטטוס': b.status === 'borrowed' ? 'מושאל' : b.status === 'returned' ? 'הוחזר' : String(b.status),
+              }))
+              const ws = XLSX.utils.json_to_sheet(borrowsData)
+              ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 10 }]
+              XLSX.utils.book_append_sheet(wb, ws, `השאלות - ${sheetName}`)
+            }
+          }
+        }
+      }
+
+      if (wb.SheetNames.length === 0) {
+        toast.error('אין נתונים לייצוא')
+        return
+      }
+      XLSX.writeFile(wb, `district_export_${date}.xlsx`)
+      toast.success('הקובץ הורד בהצלחה!')
+      setShowDistrictExport(false)
+    } catch {
+      toast.error('שגיאה בייצוא')
+    } finally {
+      setExportLoading(false)
+    }
+  }
 
   // Filter stations by allowed districts
   const filteredStations = superManager?.allowed_districts?.length
@@ -624,9 +735,18 @@ export default function SuperManagerPage() {
             <span style={{ fontSize: '1.3rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> מנהל עליון</span>
             <span style={{ fontSize: '0.9rem', opacity: 0.8, marginRight: '10px' }}>{superManager.full_name}</span>
           </div>
-          <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-            יציאה
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => { setSelectedExportStations(filteredStations.map(s => s.id)); setShowDistrictExport(true) }}
+              style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              ייצוא מחוז
+            </button>
+            <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
+              יציאה
+            </button>
+          </div>
         </div>
       </div>
 
@@ -668,6 +788,85 @@ export default function SuperManagerPage() {
           </div>
         )}
       </div>
+      {/* District Export Modal */}
+      {showDistrictExport && (
+        <div role="presentation" style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '20px' }} onClick={() => !exportLoading && setShowDistrictExport(false)}>
+          <div role="dialog" aria-modal="true" style={{ background: '#1e293b', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '460px', maxHeight: '90vh', overflowY: 'auto', direction: 'rtl' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 20px', color: '#fff', fontSize: '1.1rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              ייצוא מחוז לאקסל
+            </h3>
+
+            {/* What to export */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '10px' }}>מה לכלול בקובץ:</div>
+              {[
+                { key: 'summary', label: 'סיכום כל התחנות (גיליון ראשי)' },
+                { key: 'inventory', label: 'מלאי גלגלים (גיליון לכל תחנה)' },
+                { key: 'borrows', label: 'היסטוריית השאלות (גיליון לכל תחנה)' },
+              ].map(({ key, label }) => (
+                <label key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#e2e8f0', fontSize: '0.95rem', marginBottom: '10px' }}>
+                  <input
+                    type="checkbox"
+                    checked={districtExportChecks[key as keyof typeof districtExportChecks]}
+                    onChange={e => setDistrictExportChecks(prev => ({ ...prev, [key]: e.target.checked }))}
+                    style={{ width: '17px', height: '17px', accentColor: '#7c3aed', cursor: 'pointer' }}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+
+            {/* Date range (borrows) */}
+            {districtExportChecks.borrows && (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: '8px' }}>טווח תאריכים להשאלות (אופציונלי):</div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <input type="date" value={districtDateFrom} onChange={e => setDistrictDateFrom(e.target.value)} style={{ padding: '7px 10px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.9rem' }} />
+                  <span style={{ color: '#64748b' }}>עד</span>
+                  <input type="date" value={districtDateTo} onChange={e => setDistrictDateTo(e.target.value)} style={{ padding: '7px 10px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.9rem' }} />
+                </div>
+              </div>
+            )}
+
+            {/* Station selection */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>תחנות לייצוא:</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setSelectedExportStations(filteredStations.map(s => s.id))} style={{ background: 'transparent', border: 'none', color: '#7c3aed', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}>בחר הכל</button>
+                  <span style={{ color: '#334155' }}>|</span>
+                  <button onClick={() => setSelectedExportStations([])} style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}>נקה</button>
+                </div>
+              </div>
+              <div style={{ maxHeight: '160px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {filteredStations.map(s => (
+                  <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#e2e8f0', fontSize: '0.9rem', padding: '6px 8px', borderRadius: '8px', background: selectedExportStations.includes(s.id) ? '#0f172a' : 'transparent' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedExportStations.includes(s.id)}
+                      onChange={e => setSelectedExportStations(prev => e.target.checked ? [...prev, s.id] : prev.filter(id => id !== s.id))}
+                      style={{ width: '16px', height: '16px', accentColor: '#7c3aed', cursor: 'pointer' }}
+                    />
+                    <span>{s.name}</span>
+                    <span style={{ marginRight: 'auto', fontSize: '0.78rem', color: '#64748b' }}>{s.availableWheels}/{s.totalWheels}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setShowDistrictExport(false)} disabled={exportLoading} style={{ flex: 1, padding: '12px', background: '#374151', color: '#d1d5db', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}>
+                ביטול
+              </button>
+              <button onClick={handleDistrictExport} disabled={exportLoading} style={{ flex: 2, padding: '12px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                {exportLoading ? 'מייצא...' : (<><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ייצא לאקסל</>)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer style={{ textAlign: 'center', padding: '20px 0', marginTop: '20px', borderTop: '1px solid #e5e7eb' }}>
         <p style={{ color: '#6b7280', fontSize: '0.7rem', margin: '0 0 4px 0' }}>

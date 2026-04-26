@@ -118,7 +118,7 @@ interface WheelForm {
 }
 
 type ViewMode = 'cards' | 'table'
-type PageTab = 'wheels' | 'tracking' | 'alerts'
+type PageTab = 'wheels' | 'tracking' | 'alerts' | 'reports'
 
 export default function StationPage({ params }: { params: Promise<{ stationId: string }> }) {
   const { stationId } = use(params)
@@ -439,6 +439,15 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [unavailableReason, setUnavailableReason] = useState('maintenance')
   const [unavailableNotes, setUnavailableNotes] = useState('')
 
+  // Onboarding tour
+  const [onboardingStep, setOnboardingStep] = useState<number | null>(null)
+  const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null)
+
+  // Reports tab
+  const [reportChecks, setReportChecks] = useState({ inventory: true, history: true, unavailable: false })
+  const [reportDateFrom, setReportDateFrom] = useState('')
+  const [reportDateTo, setReportDateTo] = useState('')
+
   // Tracking tab
   const [activeTab, setActiveTab] = useState<PageTab>('wheels')
   const [borrows, setBorrows] = useState<BorrowRecord[]>([])
@@ -503,9 +512,39 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
   }
 
+  // Trigger onboarding on first visit
+  useEffect(() => {
+    if (!isManager || !station) return
+    const key = `tour_v1_${stationId}`
+    if (!localStorage.getItem(key)) {
+      setTimeout(() => setOnboardingStep(0), 900)
+    }
+  }, [isManager, station, stationId])
+
+  // Update spotlight rect when step changes
+  useEffect(() => {
+    if (onboardingStep === null) { setHighlightRect(null); return }
+    const ids = ['onboarding-tab-nav', 'onboarding-reports-btn', 'onboarding-wheels-area']
+    const el = document.getElementById(ids[onboardingStep])
+    if (!el) { setHighlightRect(null); return }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => setHighlightRect(el.getBoundingClientRect()), 350)
+  }, [onboardingStep])
+
+  const dismissOnboarding = () => {
+    localStorage.setItem(`tour_v1_${stationId}`, '1')
+    setOnboardingStep(null)
+  }
+
+  const nextOnboardingStep = () => {
+    if (onboardingStep === null) return
+    if (onboardingStep >= 2) { dismissOnboarding(); return }
+    setOnboardingStep(onboardingStep + 1)
+  }
+
   // Fetch borrows when tab changes or filter changes
   useEffect(() => {
-    if ((activeTab === 'tracking' || activeTab === 'alerts') && isManager) {
+    if ((activeTab === 'tracking' || activeTab === 'alerts' || activeTab === 'reports') && isManager) {
       fetchBorrows()
     }
   }, [activeTab, borrowFilter, isManager])
@@ -1638,20 +1677,22 @@ ${formUrl}`
     }
   }
 
-  // Excel export handler
-  const handleExportExcel = (exportType: 'inventory' | 'history' | 'all') => {
+  // Excel export handler (used by reports tab)
+  const handleExportWithOptions = () => {
+    if (!reportChecks.inventory && !reportChecks.history && !reportChecks.unavailable) {
+      toast.error('יש לבחור לפחות נתון אחד לייצוא')
+      return
+    }
+
     const wb = XLSX.utils.book_new()
     const date = new Date().toISOString().split('T')[0]
+    const dateFrom = reportDateFrom ? new Date(reportDateFrom) : null
+    const dateTo = reportDateTo ? new Date(reportDateTo + 'T23:59:59') : null
 
-    if (exportType === 'inventory' || exportType === 'all') {
-      if (!station || !station.wheels.length) {
-        if (exportType === 'inventory') {
-          toast.error('אין גלגלים לייצוא')
-          return
-        }
-      } else {
-        // Prepare inventory data with Hebrew headers
-        const inventoryData = station.wheels.map(wheel => ({
+    if (reportChecks.inventory && station?.wheels.length) {
+      const inventoryData = station.wheels
+        .filter(w => !w.temporarily_unavailable)
+        .map(wheel => ({
           'מספר גלגל': wheel.wheel_number,
           'גודל ג\'אנט': wheel.rim_size,
           'כמות ברגים': wheel.bolt_count,
@@ -1664,25 +1705,38 @@ ${formUrl}`
           'שם שואל': wheel.current_borrow?.borrower_name || '',
           'טלפון שואל': wheel.current_borrow?.borrower_phone || '',
         }))
+      const wsInventory = XLSX.utils.json_to_sheet(inventoryData)
+      wsInventory['!cols'] = [
+        { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
+        { wch: 10 }, { wch: 14 }, { wch: 8 }, { wch: 25 }, { wch: 8 }, { wch: 20 }, { wch: 15 },
+      ]
+      XLSX.utils.book_append_sheet(wb, wsInventory, 'מלאי גלגלים')
+    }
 
-        const wsInventory = XLSX.utils.json_to_sheet(inventoryData)
-        wsInventory['!cols'] = [
-          { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 25 },
-          { wch: 8 }, { wch: 25 }, { wch: 8 }, { wch: 20 }, { wch: 15 },
-        ]
-        XLSX.utils.book_append_sheet(wb, wsInventory, 'מלאי גלגלים')
+    if (reportChecks.unavailable && station?.wheels.length) {
+      const unavailableData = station.wheels
+        .filter(w => w.temporarily_unavailable)
+        .map(wheel => ({
+          'מספר גלגל': wheel.wheel_number,
+          'גודל ג\'אנט': wheel.rim_size,
+          'סיבת אי-זמינות': wheel.unavailable_reason || '',
+          'הערות': wheel.unavailable_notes || '',
+          'מתאריך': wheel.unavailable_since ? new Date(wheel.unavailable_since).toLocaleDateString('he-IL') : '',
+        }))
+      if (unavailableData.length) {
+        const wsUnavailable = XLSX.utils.json_to_sheet(unavailableData)
+        wsUnavailable['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 14 }]
+        XLSX.utils.book_append_sheet(wb, wsUnavailable, 'גלגלים לא זמינים')
       }
     }
 
-    if (exportType === 'history' || exportType === 'all') {
-      if (!borrows.length) {
-        if (exportType === 'history') {
-          toast.error('אין היסטוריה לייצוא')
-          return
-        }
-      } else {
-        // Prepare history data
-        const historyData = borrows.map(borrow => ({
+    if (reportChecks.history) {
+      let filteredBorrowsForExport = [...borrows]
+      if (dateFrom) filteredBorrowsForExport = filteredBorrowsForExport.filter(b => new Date(b.borrow_date) >= dateFrom)
+      if (dateTo) filteredBorrowsForExport = filteredBorrowsForExport.filter(b => new Date(b.borrow_date) <= dateTo)
+
+      if (filteredBorrowsForExport.length) {
+        const historyData = filteredBorrowsForExport.map(borrow => ({
           'שם פונה': borrow.borrower_name,
           'טלפון': borrow.borrower_phone,
           'ת.ז.': borrow.borrower_id_number || '',
@@ -1707,24 +1761,23 @@ ${formUrl}`
           'חתום': borrow.is_signed ? 'כן' : 'לא',
           'הערות': borrow.notes || '',
         }))
-
         const wsHistory = XLSX.utils.json_to_sheet(historyData)
         wsHistory['!cols'] = [
           { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 25 }, { wch: 20 },
-          { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 15 }, { wch: 10 },
-          { wch: 8 }, { wch: 25 },
+          { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 15 }, { wch: 10 }, { wch: 8 }, { wch: 25 },
         ]
         XLSX.utils.book_append_sheet(wb, wsHistory, 'היסטוריית השאלות')
       }
     }
 
-    // Generate filename
-    const typeLabel = exportType === 'inventory' ? 'inventory' : exportType === 'history' ? 'history' : 'full'
-    const filename = `wheels_${station?.name.replace(/\s/g, '_') || 'station'}_${typeLabel}_${date}.xlsx`
+    if (wb.SheetNames.length === 0) {
+      toast.error('אין נתונים לייצוא בהגדרות הנוכחיות')
+      return
+    }
 
+    const filename = `wheels_${station?.name.replace(/\s/g, '_') || 'station'}_${date}.xlsx`
     XLSX.writeFile(wb, filename)
     toast.success('הקובץ הורד בהצלחה!')
-    setShowExcelModal(false)
   }
 
   const addContact = () => {
@@ -2058,7 +2111,7 @@ ${formUrl}`
 
         {/* Tab Navigation - only show tracking tab for managers */}
         {isManager && (
-          <div style={styles.tabNav}>
+          <div id="onboarding-tab-nav" style={styles.tabNav}>
             <button
               style={{...styles.tabBtn, ...(activeTab === 'wheels' ? styles.tabBtnActive : {})}}
               onClick={() => setActiveTab('wheels')}
@@ -2082,6 +2135,13 @@ ${formUrl}`
               {alertCount > 0 && (
                 <span style={styles.pendingIndicator}>{alertCount}</span>
               )}
+            </button>
+            <button
+              id="onboarding-reports-btn"
+              style={{...styles.tabBtn, ...(activeTab === 'reports' ? styles.tabBtnActive : {})}}
+              onClick={() => setActiveTab('reports')}
+            >
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>דוחות</span>
             </button>
           </div>
         )}
@@ -2606,9 +2666,107 @@ ${formUrl}`
         </div>
       )}
 
+      {/* Reports Tab Content */}
+      {activeTab === 'reports' && isManager && (() => {
+        const now = new Date()
+        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const thisMonthCount = borrows.filter(b => new Date(b.borrow_date) >= firstOfMonth).length
+        const currentlyBorrowed = station ? station.totalWheels - station.availableWheels : 0
+        const returned = borrows.filter(b => b.actual_return_date && b.borrow_date)
+        const avgDays = returned.length
+          ? Math.round(returned.reduce((sum, b) => {
+              return sum + (new Date(b.actual_return_date!).getTime() - new Date(b.borrow_date).getTime()) / 86400000
+            }, 0) / returned.length)
+          : 0
+
+        return (
+          <div style={{padding: '20px 0'}}>
+            {/* Quick Stats */}
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px'}}>
+              {[
+                { label: 'השאלות החודש', value: thisMonthCount, color: '#3b82f6' },
+                { label: 'מושאלים כרגע', value: currentlyBorrowed, color: '#ef4444' },
+                { label: 'ממוצע ימי השאלה', value: avgDays, color: '#10b981' },
+              ].map(stat => (
+                <div key={stat.label} style={{background: '#1e293b', borderRadius: '12px', padding: '16px', textAlign: 'center'}}>
+                  <div style={{fontSize: '2rem', fontWeight: 700, color: stat.color}}>{stat.value}</div>
+                  <div style={{fontSize: '0.78rem', color: '#94a3b8', marginTop: '4px'}}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Export Section */}
+            <div style={{background: '#1e293b', borderRadius: '14px', padding: '20px'}}>
+              <h4 style={{margin: '0 0 16px', color: '#fff', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px'}}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                ייצוא לאקסל
+              </h4>
+
+              {/* Checkboxes */}
+              <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px'}}>
+                {[
+                  { key: 'inventory', label: 'מלאי גלגלים נוכחי' },
+                  { key: 'history',   label: 'היסטוריית השאלות' },
+                  { key: 'unavailable', label: 'גלגלים לא זמינים' },
+                ].map(({ key, label }) => (
+                  <label key={key} style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#e2e8f0', fontSize: '0.95rem'}}>
+                    <input
+                      type="checkbox"
+                      checked={reportChecks[key as keyof typeof reportChecks]}
+                      onChange={e => setReportChecks(prev => ({ ...prev, [key]: e.target.checked }))}
+                      style={{width: '17px', height: '17px', accentColor: '#3b82f6', cursor: 'pointer'}}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+
+              {/* Date Range (for history) */}
+              {reportChecks.history && (
+                <div style={{marginBottom: '18px'}}>
+                  <div style={{color: '#94a3b8', fontSize: '0.82rem', marginBottom: '8px'}}>טווח תאריכים להיסטוריה (אופציונלי)</div>
+                  <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
+                    <input
+                      type="date"
+                      value={reportDateFrom}
+                      onChange={e => setReportDateFrom(e.target.value)}
+                      style={{padding: '8px 10px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.9rem'}}
+                    />
+                    <span style={{color: '#64748b'}}>עד</span>
+                    <input
+                      type="date"
+                      value={reportDateTo}
+                      onChange={e => setReportDateTo(e.target.value)}
+                      style={{padding: '8px 10px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.9rem'}}
+                    />
+                    {(reportDateFrom || reportDateTo) && (
+                      <button
+                        onClick={() => { setReportDateFrom(''); setReportDateTo('') }}
+                        style={{background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem', padding: '4px 8px'}}
+                      >
+                        נקה
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={handleExportWithOptions}
+                style={{width: '100%', padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                ייצא לאקסל
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Wheels Tab Content */}
       {activeTab === 'wheels' && (
         <>
+      <div id="onboarding-wheels-area" style={{position:'absolute',pointerEvents:'none',opacity:0,height:0}} />
       {/* Filters */}
       <div style={styles.filters}>
         <div style={styles.filtersHeader}>
@@ -4804,28 +4962,6 @@ ${formUrl}`
                 )}
               </div>
 
-              <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '4px', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ייצוא לקובץ Excel:</span>
-                <button
-                  style={{...styles.excelExportBtn, padding: '10px 16px'}}
-                  onClick={() => handleExportExcel('inventory')}
-                >
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>מלאי גלגלים בלבד</span>
-                </button>
-                <button
-                  style={{...styles.excelExportBtn, padding: '10px 16px'}}
-                  onClick={() => handleExportExcel('history')}
-                >
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>היסטוריית השאלות בלבד</span>
-                </button>
-                <button
-                  style={{...styles.excelExportBtn, padding: '10px 16px'}}
-                  onClick={() => handleExportExcel('all')}
-                >
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>הכל (מלאי + היסטוריה)</span>
-                </button>
-              </div>
-
               <a
                 href="/wheels-template.html"
                 target="_blank"
@@ -4845,6 +4981,57 @@ ${formUrl}`
           </div>
         </div>
       )}
+
+      {/* Onboarding Tour */}
+      {onboardingStep !== null && (() => {
+        const steps = [
+          { title: 'ניווט בין מסכים', body: 'כאן עוברים בין מלאי הגלגלים, מעקב השאלות, התראות ודוחות.' },
+          { title: 'טאב דוחות', body: 'סטטיסטיקות מהירות + ייצוא לאקסל עם בחירת נתונים וטווח תאריכים.' },
+          { title: 'כרטיסי גלגל', body: 'לחץ על גלגל כדי להשאיל, לערוך, לסמן כלא זמין או למחוק.' },
+        ]
+        const step = steps[onboardingStep]
+        const PAD = 10
+        const r = highlightRect
+
+        return (
+          <>
+            {/* Dark overlay with hole */}
+            {r && (
+              <svg style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 9000, pointerEvents: 'none' }}>
+                <defs>
+                  <mask id="tour-mask">
+                    <rect width="100%" height="100%" fill="white" />
+                    <rect x={r.left - PAD} y={r.top - PAD} width={r.width + PAD * 2} height={r.height + PAD * 2} rx="10" fill="black" />
+                  </mask>
+                </defs>
+                <rect width="100%" height="100%" fill="rgba(0,0,0,0.65)" mask="url(#tour-mask)" />
+              </svg>
+            )}
+            {r && (
+              <div style={{ position: 'fixed', top: r.top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2, border: '2px solid #3b82f6', borderRadius: '10px', zIndex: 9001, pointerEvents: 'none', boxShadow: '0 0 0 3px rgba(59,130,246,0.3)' }} />
+            )}
+            {/* Tooltip card */}
+            <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', width: 'min(340px, calc(100vw - 32px))', background: '#1e293b', borderRadius: '14px', padding: '18px 20px', zIndex: 9002, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', border: '1px solid #334155', direction: 'rtl' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ color: '#3b82f6', fontSize: '0.78rem', fontWeight: 600 }}>שלב {onboardingStep + 1} מתוך {steps.length}</span>
+                <button onClick={dismissOnboarding} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.82rem', padding: '2px 6px' }}>דלג</button>
+              </div>
+              <div style={{ color: '#fff', fontWeight: 700, fontSize: '1rem', marginBottom: '6px' }}>{step.title}</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.5, marginBottom: '16px' }}>{step.body}</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {onboardingStep > 0 && (
+                  <button onClick={() => setOnboardingStep(onboardingStep - 1)} style={{ flex: 1, padding: '9px', background: '#334155', color: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>הקודם</button>
+                )}
+                <button onClick={nextOnboardingStep} style={{ flex: 2, padding: '9px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem' }}>
+                  {onboardingStep < steps.length - 1 ? 'הבא ←' : 'סיום ✓'}
+                </button>
+              </div>
+            </div>
+            {/* Block clicks on background */}
+            <div style={{ position: 'fixed', inset: 0, zIndex: 8999 }} onClick={e => e.stopPropagation()} />
+          </>
+        )
+      })()}
 
       {/* Confirm Dialog Modal */}
       {showConfirmDialog && confirmDialogData && (

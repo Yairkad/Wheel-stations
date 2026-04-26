@@ -39,17 +39,25 @@ export default function FeedbackPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
-    const maxSize = 25 * 1024 * 1024 // 25MB
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
+    const MAX_FILE = 5 * 1024 * 1024  // 5MB per file
+    const MAX_TOTAL = 15 * 1024 * 1024 // 15MB total
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'video/mp4', 'video/webm', 'video/quicktime']
+
+    const currentTotal = attachments.reduce((sum, f) => sum + f.size, 0)
+    const newTotal = currentTotal + Array.from(files).reduce((sum, f) => sum + f.size, 0)
+    if (newTotal > MAX_TOTAL) {
+      toast.error('גודל כולל של הקבצים חורג מ-15MB')
+      return
+    }
 
     for (const file of Array.from(files)) {
-      if (file.size > maxSize) {
-        toast.error(`הקובץ ${file.name} גדול מדי. מקסימום 25MB`)
+      if (file.size > MAX_FILE) {
+        toast.error(`הקובץ "${file.name}" גדול מ-5MB`)
         continue
       }
 
       if (!allowedTypes.includes(file.type)) {
-        toast.error(`סוג הקובץ ${file.name} לא נתמך`)
+        toast.error(`סוג הקובץ "${file.name}" אינו נתמך`)
         continue
       }
 

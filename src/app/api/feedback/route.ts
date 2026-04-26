@@ -26,6 +26,14 @@ interface FeedbackBody {
   attachments?: AttachedFile[]
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB per file
+const MAX_TOTAL_SIZE_BYTES = 15 * 1024 * 1024 // 15MB total
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic',
+  'video/mp4', 'video/quicktime', 'video/webm',
+])
+
 export async function POST(request: NextRequest) {
   try {
     const body: FeedbackBody = await request.json()
@@ -35,6 +43,25 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'חסרים שדות חובה (סוג, נושא, תיאור)' },
         { status: 400 }
       )
+    }
+
+    if (body.senderEmail && !EMAIL_REGEX.test(body.senderEmail)) {
+      return NextResponse.json({ success: false, error: 'כתובת המייל אינה תקינה' }, { status: 400 })
+    }
+
+    if (body.attachments?.length) {
+      const totalSize = body.attachments.reduce((sum, f) => sum + f.size, 0)
+      if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+        return NextResponse.json({ success: false, error: 'גודל כולל של הקבצים חורג מ-15MB' }, { status: 400 })
+      }
+      for (const file of body.attachments) {
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          return NextResponse.json({ success: false, error: `הקובץ "${file.name}" גדול מ-5MB` }, { status: 400 })
+        }
+        if (!ALLOWED_MIME_TYPES.has(file.type)) {
+          return NextResponse.json({ success: false, error: `סוג הקובץ "${file.name}" אינו נתמך` }, { status: 400 })
+        }
+      }
     }
 
     const typeLabels = {

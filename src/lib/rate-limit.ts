@@ -1,6 +1,6 @@
 /**
  * Simple in-memory rate limiter for API routes
- * Limits requests per IP address
+ * Limits requests per IP address and tracks per-account failed attempts
  */
 
 interface RateLimitEntry {
@@ -19,6 +19,53 @@ setInterval(() => {
     }
   }
 }, 5 * 60 * 1000)
+
+// --- Account lockout by phone ---
+
+const MAX_FAILED_ATTEMPTS = 10
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+
+interface AccountLockEntry {
+  failedAttempts: number
+  lockedUntil: number | null
+}
+
+const accountLockMap = new Map<string, AccountLockEntry>()
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [phone, entry] of accountLockMap.entries()) {
+    if (entry.lockedUntil && entry.lockedUntil < now) {
+      accountLockMap.delete(phone)
+    }
+  }
+}, 5 * 60 * 1000)
+
+export function checkAccountLockout(phone: string): { locked: boolean; minutesLeft?: number } {
+  const entry = accountLockMap.get(phone)
+  if (!entry?.lockedUntil) return { locked: false }
+
+  if (Date.now() < entry.lockedUntil) {
+    const minutesLeft = Math.ceil((entry.lockedUntil - Date.now()) / 60000)
+    return { locked: true, minutesLeft }
+  }
+
+  accountLockMap.delete(phone)
+  return { locked: false }
+}
+
+export function recordFailedAttempt(phone: string): void {
+  const entry = accountLockMap.get(phone) ?? { failedAttempts: 0, lockedUntil: null }
+  entry.failedAttempts++
+  if (entry.failedAttempts >= MAX_FAILED_ATTEMPTS) {
+    entry.lockedUntil = Date.now() + LOCKOUT_DURATION_MS
+  }
+  accountLockMap.set(phone, entry)
+}
+
+export function clearFailedAttempts(phone: string): void {
+  accountLockMap.delete(phone)
+}
 
 interface RateLimitOptions {
   maxRequests: number  // Maximum requests allowed

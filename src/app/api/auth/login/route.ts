@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { checkRateLimit, getClientIp, checkAccountLockout, recordFailedAttempt, clearFailedAttempts } from '@/lib/rate-limit'
 import { verifyPassword } from '@/lib/password'
 import { createSessionToken, ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE } from '@/lib/admin-session'
 
@@ -106,12 +106,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'יש להזין טלפון וסיסמה' }, { status: 400 })
     }
 
+    const cleanPhone = phone.replace(/\D/g, '')
+
+    if (cleanPhone.length < 9 || cleanPhone.length > 12) {
+      return NextResponse.json({ error: 'מספר טלפון לא תקין' }, { status: 400 })
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'הסיסמה חייבת להכיל לפחות 6 תווים' }, { status: 400 })
+    }
+
+    const lockout = checkAccountLockout(cleanPhone)
+    if (lockout.locked) {
+      return NextResponse.json(
+        { error: `החשבון נעול זמנית עקב ניסיונות כושלים. נסה שוב בעוד ${lockout.minutesLeft} דקות.` },
+        { status: 429 }
+      )
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const roles = await checkUnifiedUser(supabase, phone, password)
 
     if (roles.length === 0) {
+      recordFailedAttempt(cleanPhone)
       return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
     }
+
+    clearFailedAttempts(cleanPhone)
 
     const response = NextResponse.json({ success: true, roles })
 
