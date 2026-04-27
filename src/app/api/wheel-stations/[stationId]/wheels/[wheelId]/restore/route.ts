@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (!smAuth.success) {
         return NextResponse.json({ error: smAuth.error }, { status: 401 })
       }
-      actorName = smAuth.superManager?.full_name || 'מנהל עליון'
+      actorName = smAuth.superManager?.full_name || 'מנהל מחוז'
       actorType = 'super_manager'
     } else if (manager_phone && manager_password) {
       const cleanPhone = manager_phone.replace(/\D/g, '')

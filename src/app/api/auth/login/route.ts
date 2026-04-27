@@ -24,6 +24,7 @@ interface UnifiedRoleRow {
   title: string | null
   operator_code: string | null
   allowed_districts: string[] | null
+  can_edit: boolean | null
   wheel_stations: { id: string; name: string } | { id: string; name: string }[] | null
   call_centers:   { id: string; name: string; is_active: boolean } | { id: string; name: string; is_active: boolean }[] | null
 }
@@ -49,7 +50,7 @@ async function checkUnifiedUser(supabase: ReturnType<typeof createClient<any>>, 
 
   const { data: roles } = await supabase
     .from('user_roles')
-    .select('id, role, is_active, station_id, call_center_id, is_primary, title, operator_code, allowed_districts, wheel_stations(id, name), call_centers(id, name, is_active)')
+    .select('id, role, is_active, station_id, call_center_id, is_primary, title, operator_code, allowed_districts, can_edit, wheel_stations(id, name), call_centers(id, name, is_active)')
     .eq('user_id', user.id)
     .eq('is_active', true)
 
@@ -61,7 +62,7 @@ async function checkUnifiedUser(supabase: ReturnType<typeof createClient<any>>, 
     const cc = Array.isArray(r.call_centers)   ? r.call_centers[0]   : r.call_centers
     switch (r.role) {
       case 'super_manager':
-        results.push({ role: 'district_manager', label: 'מנהל מחוז', data: { id: user.id, full_name: user.full_name, phone: user.phone, allowed_districts: r.allowed_districts || null } })
+        results.push({ role: 'district_manager', label: 'מנהל מחוז', data: { id: user.id, full_name: user.full_name, phone: user.phone, allowed_districts: r.allowed_districts || null, can_edit: r.can_edit ?? false } })
         break
       case 'station_manager':
         results.push({ role: 'station_manager', label: 'מנהל תחנה', data: { id: user.id, full_name: user.full_name, phone: user.phone, station_id: r.station_id, station_name: ws?.name, role: r.title || 'מנהל תחנה', is_primary: r.is_primary || false } })
@@ -112,8 +113,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'מספר טלפון לא תקין' }, { status: 400 })
     }
 
-    if (password.length < 6) {
-      return NextResponse.json({ error: 'הסיסמה חייבת להכיל לפחות 6 תווים' }, { status: 400 })
+    if (password.length < 4) {
+      return NextResponse.json({ error: 'הסיסמה חייבת להכיל לפחות 4 תווים' }, { status: 400 })
     }
 
     const lockout = checkAccountLockout(cleanPhone)

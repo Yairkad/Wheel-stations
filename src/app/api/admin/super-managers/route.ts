@@ -21,7 +21,7 @@ export async function GET() {
 
     const { data: roles, error } = await supabase
       .from('user_roles')
-      .select('id, allowed_districts, created_at, users(id, full_name, phone, is_active)')
+      .select('id, allowed_districts, can_edit, created_at, users(id, full_name, phone, is_active)')
       .eq('role', 'super_manager')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -39,6 +39,7 @@ export async function GET() {
         phone: u?.phone,
         is_active: u?.is_active ?? true,
         allowed_districts: r.allowed_districts || null,
+        can_edit: r.can_edit ?? false,
         created_at: r.created_at,
       }
     })
@@ -54,7 +55,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { full_name, phone, password, allowed_districts } = body
+    const { full_name, phone, password, allowed_districts, can_edit } = body
 
     if (!await validateAdminSession(request)) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
       user_id: userId,
       role: 'super_manager',
       allowed_districts: allowed_districts?.length ? allowed_districts : null,
+      can_edit: can_edit ?? false,
       is_active: true,
     })
 
@@ -109,7 +111,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create super manager' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: 'מנהל עליון נוצר בהצלחה' })
+    return NextResponse.json({ success: true, message: 'מנהל מחוז נוצר בהצלחה' })
   } catch (error) {
     console.error('Error in POST /api/admin/super-managers:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -120,7 +122,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { id, full_name, phone, password, is_active, allowed_districts } = body
+    const { id, full_name, phone, password, is_active, allowed_districts, can_edit } = body
 
     if (!await validateAdminSession(request)) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
@@ -149,16 +151,19 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update role fields
-    if (allowed_districts !== undefined) {
+    const roleUpdate: Record<string, unknown> = {}
+    if (allowed_districts !== undefined) roleUpdate.allowed_districts = allowed_districts?.length ? allowed_districts : null
+    if (can_edit !== undefined) roleUpdate.can_edit = can_edit
+    if (Object.keys(roleUpdate).length > 0) {
       const { error: rErr } = await supabase
         .from('user_roles')
-        .update({ allowed_districts: allowed_districts?.length ? allowed_districts : null })
+        .update(roleUpdate)
         .eq('user_id', id)
         .eq('role', 'super_manager')
-      if (rErr) return NextResponse.json({ error: 'Failed to update districts' }, { status: 500 })
+      if (rErr) return NextResponse.json({ error: 'Failed to update role' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: 'מנהל עליון עודכן בהצלחה' })
+    return NextResponse.json({ success: true, message: 'מנהל מחוז עודכן בהצלחה' })
   } catch (error) {
     console.error('Error in PUT /api/admin/super-managers:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -193,7 +198,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to delete super manager' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, message: 'מנהל עליון נמחק בהצלחה' })
+    return NextResponse.json({ success: true, message: 'מנהל מחוז נמחק בהצלחה' })
   } catch (error) {
     console.error('Error in DELETE /api/admin/super-managers:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

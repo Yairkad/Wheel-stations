@@ -46,7 +46,7 @@ interface CallCenter {
 
 const ROLE_LABELS: Record<UserRole['role'], string> = {
   admin:               'אדמין',
-  super_manager:       'מנהל-על',
+  super_manager:       'מנהל מחוז',
   station_manager:     'מנהל תחנה',
   call_center_manager: 'מנהל מוקד',
   operator:            'מוקדן',
@@ -190,6 +190,7 @@ function UsersPageInner() {
   const [addCcId,       setAddCcId]       = useState('')
   const [addOpCode,     setAddOpCode]     = useState('')
   const [addTitle,      setAddTitle]      = useState('')
+  const [addCanEdit,    setAddCanEdit]    = useState(false)
 
   // Add role modal
   const [addRoleUser,    setAddRoleUser]    = useState<User | null>(null)
@@ -198,6 +199,7 @@ function UsersPageInner() {
   const [addRoleCc,      setAddRoleCc]      = useState('')
   const [addRoleOpCode,  setAddRoleOpCode]  = useState('')
   const [addRoleTitle,   setAddRoleTitle]   = useState('')
+  const [addRoleCanEdit, setAddRoleCanEdit] = useState(false)
 
   // Inline-create modes (add-user modal)
   const [addCcMode,        setAddCcMode]        = useState<'select' | 'new'>('select')
@@ -379,6 +381,7 @@ function UsersPageInner() {
       if (resolvedCc)      body.call_center_id = resolvedCc
       if (addRoleOpCode)   body.operator_code  = addRoleOpCode
       if (addRoleTitle)    body.title          = addRoleTitle
+      if (addRoleType === 'super_manager') body.can_edit = addRoleCanEdit
       const res  = await fetch(`/api/admin/users/${addRoleUser.id}/roles`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -429,6 +432,7 @@ function UsersPageInner() {
       if (resolvedCc)      body.call_center_id = resolvedCc
       if (addOpCode)       body.operator_code  = addOpCode
       if (addTitle)        body.title          = addTitle
+      if (addRole === 'super_manager') body.can_edit = addCanEdit
       const res  = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -733,6 +737,13 @@ function UsersPageInner() {
               </>
             )}
 
+            {addRoleType === 'super_manager' && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
+                <input type="checkbox" checked={addRoleCanEdit} onChange={e => setAddRoleCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
+                הרשאת עריכה (can_edit) — יכול להוסיף/לערוך/למחוק גלגלים
+              </label>
+            )}
+
             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
               <button onClick={handleAddRole} disabled={busy} style={{ ...btnPrimary, background: '#2563eb' }}>הוסף תפקיד</button>
               <button onClick={() => { setAddRoleUser(null); resetAddRoleForm() }} style={btnSecondary}>ביטול</button>
@@ -848,6 +859,14 @@ function UsersPageInner() {
                 <label style={labelStyle}>תואר <span style={{ color: '#94a3b8', fontWeight: 400 }}>(אופציונלי)</span></label>
                 <input value={addTitle} onChange={e => setAddTitle(e.target.value)} style={inputStyle} placeholder="למשל: אחראי משמרת" />
               </>
+            )}
+
+            {/* can_edit for district manager */}
+            {addRole === 'super_manager' && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
+                <input type="checkbox" checked={addCanEdit} onChange={e => setAddCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
+                הרשאת עריכה (can_edit) — יכול להוסיף/לערוך/למחוק גלגלים
+              </label>
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
@@ -1031,7 +1050,9 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
           <div style={{ marginTop: 12, padding: '8px 10px', background: '#f8fafc', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>סיסמה:</span>
             <span style={{ fontSize: '0.82rem', color: '#1e293b', flex: 1, fontFamily: 'monospace', direction: 'ltr' }}>
-              {showPass ? user.password || '—' : '••••••••'}
+              {showPass
+                ? (user.password?.startsWith('$2') ? '[מוצפן — יש לאפס]' : user.password || '—')
+                : '••••••••'}
             </span>
             <button
               onClick={() => setShowPass(v => !v)}

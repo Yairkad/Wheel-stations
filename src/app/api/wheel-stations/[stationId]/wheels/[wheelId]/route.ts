@@ -69,6 +69,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       if (!smAuth.success) {
         return NextResponse.json({ error: smAuth.error }, { status: 401 })
       }
+      if (!smAuth.superManager?.can_edit) {
+        return NextResponse.json({ error: 'אין הרשאת עריכה למנהל מחוז זה' }, { status: 403 })
+      }
     } else if (manager_phone && manager_password) {
       const auth = await verifyStationManager(stationId, manager_phone, manager_password)
       if (!auth.success) {
@@ -125,7 +128,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       if (!smAuth.success) {
         return NextResponse.json({ error: smAuth.error }, { status: 401 })
       }
-      deletedByName = smAuth.superManager?.full_name || 'מנהל עליון'
+      if (!smAuth.superManager?.can_edit) {
+        return NextResponse.json({ error: 'אין הרשאת עריכה למנהל מחוז זה' }, { status: 403 })
+      }
+      deletedByName = smAuth.superManager?.full_name || 'מנהל מחוז'
       deletedByType = 'super_manager'
     } else if (manager_phone && manager_password) {
       const auth = await verifyStationManager(stationId, manager_phone, manager_password)

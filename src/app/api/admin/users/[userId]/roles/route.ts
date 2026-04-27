@@ -15,7 +15,7 @@ export async function POST(
   try {
     const { userId } = await params
     const body = await request.json()
-    const { role, station_id, call_center_id, operator_code, title, allowed_districts } = body
+    const { role, station_id, call_center_id, operator_code, title, allowed_districts, can_edit } = body
 
     if (!await validateAdminSession(request)) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
@@ -28,6 +28,7 @@ export async function POST(
     if (operator_code)     roleRow.operator_code     = operator_code
     if (title)             roleRow.title             = title
     if (allowed_districts) roleRow.allowed_districts = allowed_districts
+    if (role === 'super_manager') roleRow.can_edit   = can_edit ?? false
 
     const { error } = await supabase.from('user_roles').insert(roleRow)
     if (error) throw error

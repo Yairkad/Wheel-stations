@@ -55,6 +55,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (!smAuth.success) {
         return NextResponse.json({ error: smAuth.error }, { status: 401 })
       }
+      if (!smAuth.superManager?.can_edit) {
+        return NextResponse.json({ error: 'אין הרשאת עריכה למנהל מחוז זה' }, { status: 403 })
+      }
     } else if (manager_phone && manager_password) {
       const auth = await verifyStationManager(stationId, manager_phone, manager_password)
       if (!auth.success) {
