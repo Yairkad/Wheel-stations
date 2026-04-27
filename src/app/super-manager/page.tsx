@@ -99,6 +99,7 @@ export default function SuperManagerPage() {
   const [districtBorrowsLoading, setDistrictBorrowsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [stationLoading, setStationLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   // Wheel form state
   const [showForm, setShowForm] = useState(false)
@@ -155,6 +156,13 @@ export default function SuperManagerPage() {
       router.push('/login')
     }
   }, [router])
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   // Fetch stations
   const fetchStations = useCallback(async () => {
@@ -822,7 +830,38 @@ export default function SuperManagerPage() {
         {mainTab === 'inventory' && (
           loading ? (
             <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>טוען תחנות...</div>
+          ) : isMobile ? (
+            /* Mobile: card list */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {filteredStations.map(station => (
+                <div key={station.id} style={{ background: '#fff', borderRadius: 12, padding: '12px 14px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.92rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{station.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#7c3aed', marginTop: 2 }}>{districtNames[station.district || ''] || station.district || ''}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                    <span style={{
+                      background: station.availableWheels === 0 ? '#fee2e2' : station.availableWheels < 3 ? '#fef3c7' : '#d1fae5',
+                      color: station.availableWheels === 0 ? '#991b1b' : station.availableWheels < 3 ? '#92400e' : '#065f46',
+                      padding: '3px 8px', borderRadius: 6, fontWeight: 700, fontSize: '0.8rem'
+                    }}>
+                      {station.availableWheels}/{station.totalWheels}
+                    </span>
+                    <button
+                      onClick={() => handleSelectStation(station)}
+                      style={{ padding: '6px 12px', background: canEdit ? '#7c3aed' : '#e2e8f0', color: canEdit ? '#fff' : '#475569', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                    >
+                      {canEdit ? 'ניהול' : 'צפייה'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredStations.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>אין תחנות</div>
+              )}
+            </div>
           ) : (
+            /* Desktop: table */
             <div style={{ background: '#fff', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
