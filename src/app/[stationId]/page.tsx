@@ -2671,96 +2671,101 @@ ${formUrl}`
 
       {/* Reports Tab Content */}
       {activeTab === 'reports' && isManager && (() => {
-        const now = new Date()
-        const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const thisMonthCount = borrows.filter(b => new Date(b.borrow_date) >= firstOfMonth).length
-        const currentlyBorrowed = station ? station.totalWheels - station.availableWheels : 0
-        const returned = borrows.filter(b => b.actual_return_date && b.borrow_date)
-        const avgDays = returned.length
-          ? Math.round(returned.reduce((sum, b) => {
-              return sum + (new Date(b.actual_return_date!).getTime() - new Date(b.borrow_date).getTime()) / 86400000
-            }, 0) / returned.length)
-          : 0
+        // Readiness metrics
+        const readyWheels = station ? station.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length : 0
+
+        // Last borrow time
+        const sortedBorrows = [...borrows].sort((a, b) => new Date(b.borrow_date).getTime() - new Date(a.borrow_date).getTime())
+        const lastBorrow = sortedBorrows[0]
+        let lastBorrowLabel = 'טרם בוצעו השאלות'
+        if (lastBorrow) {
+          const diffMs = Date.now() - new Date(lastBorrow.borrow_date).getTime()
+          const diffHours = Math.floor(diffMs / 3600000)
+          const diffDays = Math.floor(diffMs / 86400000)
+          if (diffDays >= 1) lastBorrowLabel = `לפני ${diffDays} ימים`
+          else if (diffHours >= 1) lastBorrowLabel = `לפני ${diffHours} שעות`
+          else lastBorrowLabel = 'לפני פחות משעה'
+        }
+
+        // Bar chart: last 5 active days
+        const dayCountMap: Record<string, number> = {}
+        borrows.forEach(b => {
+          const day = new Date(b.borrow_date).toLocaleDateString('he-IL')
+          dayCountMap[day] = (dayCountMap[day] || 0) + 1
+        })
+        const activeDays = Object.entries(dayCountMap)
+          .sort((a, b) => {
+            const [da, ma, ya] = a[0].split('.').map(Number)
+            const [db, mb, yb] = b[0].split('.').map(Number)
+            return new Date(ya, ma - 1, da).getTime() - new Date(yb, mb - 1, db).getTime()
+          })
+          .slice(-5)
+        const maxCount = activeDays.length ? Math.max(...activeDays.map(d => d[1])) : 1
+
+        // Gold insight: most borrowed wheel
+        const wheelBorrowCount: Record<string, number> = {}
+        borrows.forEach(b => {
+          if (b.wheel_id) wheelBorrowCount[b.wheel_id] = (wheelBorrowCount[b.wheel_id] || 0) + 1
+        })
+        const topWheelId = Object.entries(wheelBorrowCount).sort((a, b) => b[1] - a[1])[0]
+        const topWheel = topWheelId ? station?.wheels.find(w => w.id === topWheelId[0]) : null
+        const topWheelCount = topWheelId?.[1] ?? 0
 
         return (
           <div style={{padding: '20px 0'}}>
-            {/* Quick Stats */}
-            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px'}}>
-              {[
-                { label: 'השאלות החודש', value: thisMonthCount, color: '#3b82f6' },
-                { label: 'מושאלים כרגע', value: currentlyBorrowed, color: '#ef4444' },
-                { label: 'ממוצע ימי השאלה', value: avgDays, color: '#10b981' },
-              ].map(stat => (
-                <div key={stat.label} style={{background: '#1e293b', borderRadius: '12px', padding: '16px', textAlign: 'center'}}>
-                  <div style={{fontSize: '2rem', fontWeight: 700, color: stat.color}}>{stat.value}</div>
-                  <div style={{fontSize: '0.78rem', color: '#94a3b8', marginTop: '4px'}}>{stat.label}</div>
-                </div>
-              ))}
+            {/* Readiness Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3" style={{gap: '12px', marginBottom: '24px'}}>
+              <div style={{background: '#1e293b', borderRadius: '12px', padding: '18px', textAlign: 'center'}}>
+                <div style={{fontSize: '2rem', fontWeight: 700, color: '#10b981'}}>{readyWheels}</div>
+                <div style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px'}}>גלגלים מוכנים לשימוש</div>
+              </div>
+              <div style={{background: '#1e293b', borderRadius: '12px', padding: '18px', textAlign: 'center'}}>
+                <div style={{fontSize: '1.2rem', fontWeight: 700, color: '#f59e0b', lineHeight: 1.3}}>{lastBorrowLabel}</div>
+                <div style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px'}}>השאלה אחרונה</div>
+              </div>
+              <div style={{background: '#1e293b', borderRadius: '12px', padding: '18px', textAlign: 'center'}}>
+                <div style={{fontSize: '2rem', fontWeight: 700, color: '#3b82f6'}}>{borrows.length}</div>
+                <div style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px'}}>סה&quot;כ השאלות מאז הקמה</div>
+              </div>
             </div>
 
-            {/* Export Section */}
-            <div style={{background: '#1e293b', borderRadius: '14px', padding: '20px'}}>
-              <h4 style={{margin: '0 0 16px', color: '#fff', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: '6px'}}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                ייצוא לאקסל
-              </h4>
-
-              {/* Checkboxes */}
-              <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px'}}>
-                {[
-                  { key: 'inventory', label: 'מלאי גלגלים נוכחי' },
-                  { key: 'history',   label: 'היסטוריית השאלות' },
-                  { key: 'unavailable', label: 'גלגלים לא זמינים' },
-                ].map(({ key, label }) => (
-                  <label key={key} style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#e2e8f0', fontSize: '0.95rem'}}>
-                    <input
-                      type="checkbox"
-                      checked={reportChecks[key as keyof typeof reportChecks]}
-                      onChange={e => setReportChecks(prev => ({ ...prev, [key]: e.target.checked }))}
-                      style={{width: '17px', height: '17px', accentColor: '#3b82f6', cursor: 'pointer'}}
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-
-              {/* Date Range (for history) */}
-              {reportChecks.history && (
-                <div style={{marginBottom: '18px'}}>
-                  <div style={{color: '#94a3b8', fontSize: '0.82rem', marginBottom: '8px'}}>טווח תאריכים להיסטוריה (אופציונלי)</div>
-                  <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
-                    <input
-                      type="date"
-                      value={reportDateFrom}
-                      onChange={e => setReportDateFrom(e.target.value)}
-                      style={{padding: '8px 10px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.9rem'}}
-                    />
-                    <span style={{color: '#64748b'}}>עד</span>
-                    <input
-                      type="date"
-                      value={reportDateTo}
-                      onChange={e => setReportDateTo(e.target.value)}
-                      style={{padding: '8px 10px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.9rem'}}
-                    />
-                    {(reportDateFrom || reportDateTo) && (
-                      <button
-                        onClick={() => { setReportDateFrom(''); setReportDateTo('') }}
-                        style={{background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.85rem', padding: '4px 8px'}}
-                      >
-                        נקה
-                      </button>
-                    )}
-                  </div>
+            {/* Activity Bar Chart */}
+            <div style={{background: '#1e293b', borderRadius: '14px', padding: '20px', marginBottom: '16px'}}>
+              <h4 style={{margin: '0 0 16px', color: '#fff', fontSize: '0.95rem', fontWeight: 700}}>פעילות אחרונה (5 ימים פעילים)</h4>
+              {activeDays.length === 0 ? (
+                <div style={{textAlign: 'center', color: '#64748b', fontSize: '0.9rem', padding: '24px 0'}}>טרם בוצעו השאלות בתחנה זו</div>
+              ) : (
+                <div style={{display: 'flex', alignItems: 'flex-end', gap: '10px', height: '100px', width: '100%'}}>
+                  {activeDays.map(([day, count]) => (
+                    <div key={day} style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                      <div style={{fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600}}>{count}</div>
+                      <div style={{
+                        width: '100%',
+                        minHeight: '12px',
+                        height: `${Math.max(12, Math.round((count / maxCount) * 72))}px`,
+                        background: 'linear-gradient(180deg, #3b82f6, #1d4ed8)',
+                        borderRadius: '4px 4px 0 0',
+                      }} />
+                      <div style={{fontSize: '0.68rem', color: '#64748b', textAlign: 'center', whiteSpace: 'nowrap'}}>{day}</div>
+                    </div>
+                  ))}
                 </div>
               )}
+            </div>
 
-              <button
-                onClick={handleExportWithOptions}
-                style={{width: '100%', padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                ייצא לאקסל
-              </button>
+            {/* Gold Insight */}
+            <div style={{background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #f59e0b44', borderRadius: '14px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px'}}>
+              <div style={{fontSize: '1.8rem'}}>🏆</div>
+              {topWheel ? (
+                <div>
+                  <div style={{color: '#f59e0b', fontWeight: 700, fontSize: '0.95rem'}}>הגלגל המבוקש ביותר</div>
+                  <div style={{color: '#e2e8f0', fontSize: '0.9rem', marginTop: '2px'}}>
+                    גלגל #{topWheel.wheel_number} — הושאל <strong>{topWheelCount}</strong> פעמים
+                  </div>
+                </div>
+              ) : (
+                <div style={{color: '#64748b', fontSize: '0.9rem'}}>טרם בוצעו השאלות בתחנה זו</div>
+              )}
             </div>
           </div>
         )
@@ -4978,6 +4983,66 @@ ${formUrl}`
               </a>
             </div>
 
+            {/* Export Section */}
+            <div style={{borderTop: '1px solid #334155', marginTop: '20px', paddingTop: '20px'}}>
+              <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px'}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                ייצוא נתונים לאקסל:
+              </span>
+              <div style={{display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px', marginBottom: '14px', textAlign: 'right'}}>
+                {[
+                  { key: 'inventory', label: 'מלאי גלגלים נוכחי' },
+                  { key: 'history',   label: 'היסטוריית השאלות' },
+                  { key: 'unavailable', label: 'גלגלים לא זמינים' },
+                ].map(({ key, label }) => (
+                  <label key={key} style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#e2e8f0', fontSize: '0.9rem'}}>
+                    <input
+                      type="checkbox"
+                      checked={reportChecks[key as keyof typeof reportChecks]}
+                      onChange={e => setReportChecks(prev => ({ ...prev, [key]: e.target.checked }))}
+                      style={{width: '16px', height: '16px', accentColor: '#3b82f6', cursor: 'pointer', flexShrink: 0}}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+              {reportChecks.history && (
+                <div style={{marginBottom: '14px'}}>
+                  <div style={{color: '#94a3b8', fontSize: '0.8rem', marginBottom: '6px', textAlign: 'right'}}>טווח תאריכים להיסטוריה (אופציונלי)</div>
+                  <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
+                    <input
+                      type="date"
+                      value={reportDateFrom}
+                      onChange={e => setReportDateFrom(e.target.value)}
+                      style={{flex: 1, minWidth: 0, padding: '7px 8px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.85rem'}}
+                    />
+                    <span style={{color: '#64748b', flexShrink: 0}}>עד</span>
+                    <input
+                      type="date"
+                      value={reportDateTo}
+                      onChange={e => setReportDateTo(e.target.value)}
+                      style={{flex: 1, minWidth: 0, padding: '7px 8px', borderRadius: '8px', border: '1px solid #334155', background: '#0f172a', color: '#e2e8f0', fontSize: '0.85rem'}}
+                    />
+                    {(reportDateFrom || reportDateTo) && (
+                      <button
+                        onClick={() => { setReportDateFrom(''); setReportDateTo('') }}
+                        style={{background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.82rem', padding: '4px 6px', flexShrink: 0}}
+                      >
+                        נקה
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+              <button
+                onClick={() => { handleExportWithOptions(); setShowExcelModal(false) }}
+                style={{width: '100%', padding: '11px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                ייצא לאקסל
+              </button>
+            </div>
+
             <button style={{...styles.cancelBtn, width: '100%', marginTop: '20px'}} onClick={() => setShowExcelModal(false)}>
               סגור
             </button>
@@ -6125,8 +6190,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   // Tab navigation
   tabNav: {
-    display: 'flex',
-    gap: '10px',
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '8px',
     marginBottom: '20px',
     background: '#ffffff',
     border: '1px solid #e2e8f0',
@@ -6134,16 +6200,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '12px',
   },
   tabBtn: {
-    flex: 1,
-    padding: '12px 20px',
+    padding: '10px 8px',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
     fontWeight: 'bold',
-    fontSize: '0.95rem',
+    fontSize: '0.85rem',
     background: 'transparent',
     color: '#64748b',
     transition: 'all 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabBtnActive: {
     background: '#2563eb',
