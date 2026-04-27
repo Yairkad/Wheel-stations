@@ -354,6 +354,7 @@ function UsersPageInner() {
   function resetAddRoleForm() {
     setAddRoleType('station_manager'); setAddRoleStation(''); setAddRoleCc(''); setAddRoleOpCode(''); setAddRoleTitle('')
     setAddRoleCcMode('select'); setAddRoleCcNewName(''); setAddRoleStMode('select'); setAddRoleStNewName('')
+    setAddRoleCanEdit(false)
   }
 
   async function handleAddRole() {
@@ -398,6 +399,7 @@ function UsersPageInner() {
     setAddName(''); setAddPhone(''); setAddPass(''); setAddRole('station_manager')
     setAddStationId(''); setAddCcId(''); setAddOpCode(''); setAddTitle('')
     setAddCcMode('select'); setAddCcNewName(''); setAddStMode('select'); setAddStNewName('')
+    setAddCanEdit(false)
   }
 
   async function handleAddUser() {
