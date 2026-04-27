@@ -26,9 +26,10 @@ interface AppHeaderProps {
   currentStationId?: string
   notificationCount?: number
   pushEnabled?: boolean
+  onDistrictExport?: () => void
 }
 
-export default function AppHeader({ currentStationId, notificationCount, pushEnabled }: AppHeaderProps) {
+export default function AppHeader({ currentStationId, notificationCount, pushEnabled, onDistrictExport }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [userSession, setUserSession] = useState<UserSession | null>(null)
@@ -174,6 +175,19 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
           if (s.superManager) {
             setAuthRoles([{ role: 'district_manager', label: 'מנהל מחוז', data: s.superManager }])
             setActiveRole('district_manager')
+            setUserSession({
+              manager: {
+                id: s.superManager.id,
+                full_name: s.superManager.full_name,
+                phone: s.superManager.phone,
+                role: 'district_manager',
+                station_id: '',
+                station_name: '',
+              },
+              stationId: '',
+              stationName: 'מנהל מחוז',
+              version: s.version,
+            })
           }
         } else if (punctureRaw) {
           setAuthRoles([{ role: 'editor', label: 'עורך', data: {} }])
@@ -504,6 +518,15 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
       })()}
 
       <div style={styles.dropdownDivider} />
+
+      {onDistrictExport && (
+        <button style={styles.dropdownItem} onClick={() => { onDistrictExport(); setShowProfileMenu(false) }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>ייצוא נתונים</span>
+        </button>
+      )}
 
       <button style={{ ...styles.dropdownItem, ...styles.dropdownItemDanger }} onClick={handleLogout}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">

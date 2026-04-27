@@ -6,6 +6,9 @@ import toast from 'react-hot-toast'
 import Link from 'next/link'
 import * as XLSX from 'xlsx'
 import { VERSION, SESSION_VERSION } from '@/lib/version'
+import AppHeader from '@/components/AppHeader'
+
+type MainTab = 'inventory' | 'borrows' | 'alerts' | 'reports'
 
 const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -14,6 +17,7 @@ interface SuperManager {
   full_name: string
   phone: string
   allowed_districts: string[] | null
+  can_edit?: boolean
 }
 
 interface Station {
@@ -83,12 +87,16 @@ const emptyForm: WheelForm = {
 export default function SuperManagerPage() {
   const router = useRouter()
   const [superManager, setSuperManager] = useState<SuperManager | null>(null)
+  const [canEdit, setCanEdit] = useState(false)
   const [sessionPassword, setSessionPassword] = useState('')
   const [stations, setStations] = useState<Station[]>([])
   const [selectedStation, setSelectedStation] = useState<Station | null>(null)
   const [wheels, setWheels] = useState<Wheel[]>([])
   const [borrows, setBorrows] = useState<Borrow[]>([])
   const [activeTab, setActiveTab] = useState<'wheels' | 'borrows'>('wheels')
+  const [mainTab, setMainTab] = useState<MainTab>('inventory')
+  const [districtBorrows, setDistrictBorrows] = useState<(Borrow & { station_name?: string })[]>([])
+  const [districtBorrowsLoading, setDistrictBorrowsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [stationLoading, setStationLoading] = useState(false)
 
@@ -141,6 +149,7 @@ export default function SuperManagerPage() {
         return
       }
       setSuperManager(session.superManager)
+      setCanEdit(session.superManager.can_edit ?? false)
       setSessionPassword(session.password)
     } catch {
       router.push('/login')
@@ -171,6 +180,24 @@ export default function SuperManagerPage() {
       }).catch(err => console.warn('[SuperManager] districts fetch failed:', err))
     }
   }, [superManager, fetchStations])
+
+  // Fetch active borrows across all district stations
+  const fetchDistrictBorrows = useCallback(async (stationsList: Station[]) => {
+    setDistrictBorrowsLoading(true)
+    try {
+      const results = await Promise.all(
+        stationsList.map(s =>
+          fetch(`/api/wheel-stations/${s.id}/borrows?limit=200`)
+            .then(r => r.json())
+            .then(d => (d.borrows || []).map((b: Borrow) => ({ ...b, station_name: s.name })))
+            .catch(() => [])
+        )
+      )
+      setDistrictBorrows(results.flat().filter((b: Borrow) => b.status === 'borrowed'))
+    } finally {
+      setDistrictBorrowsLoading(false)
+    }
+  }, [])
 
   // Fetch station details
   const fetchStationDetail = useCallback(async (stationId: string) => {
@@ -209,11 +236,6 @@ export default function SuperManagerPage() {
     setShowForm(false)
     setEditingWheel(null)
     fetchStations()
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('super_manager_session')
-    router.push('/login')
   }
 
   // Wheel CRUD
@@ -464,17 +486,17 @@ export default function SuperManagerPage() {
   if (selectedStation) {
     return (
       <div style={{ minHeight: '100vh', background: '#f1f5f9', direction: 'rtl' }}>
-        {/* Header */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '16px 20px', color: '#1e293b' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <button onClick={handleBack} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', marginLeft: '12px' }}>
-                ← חזרה לרשימה
-              </button>
-              <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedStation.name}</span>
-              <span style={{ fontSize: '0.85rem', opacity: 0.8, marginRight: '10px' }}>{selectedStation.address}</span>
-            </div>
-            <span style={{ fontSize: '0.85rem', opacity: 0.8, display: 'inline-flex', alignItems: 'center', gap: '4px' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/><circle cx="12" cy="8" r="6"/></svg> {superManager.full_name}</span>
+        <AppHeader />
+        {/* Breadcrumb bar */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '10px 16px' }}>
+          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button onClick={handleBack} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', border: 'none', color: '#475569', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+              ← חזרה למחוז
+            </button>
+            <span style={{ color: '#cbd5e1' }}>|</span>
+            <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.95rem' }}>{selectedStation.name}</span>
+            <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>{selectedStation.address}</span>
+            {!canEdit && <span style={{ marginRight: 'auto', background: '#f1f5f9', color: '#64748b', padding: '3px 10px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600 }}>מצב צפייה בלבד</span>}
           </div>
         </div>
 
@@ -510,12 +532,14 @@ export default function SuperManagerPage() {
           ) : activeTab === 'wheels' ? (
             <>
               {/* Add wheel button */}
-              <button
-                onClick={handleAddWheel}
-                style={{ marginBottom: '16px', padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
-              >
-                + הוסף גלגל
-              </button>
+              {canEdit && (
+                <button
+                  onClick={handleAddWheel}
+                  style={{ marginBottom: '16px', padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}
+                >
+                  + הוסף גלגל
+                </button>
+              )}
 
               {/* Wheel form modal */}
               {showForm && (
@@ -626,16 +650,18 @@ export default function SuperManagerPage() {
                       <div style={{ fontSize: '0.8rem', color: '#dc2626', marginBottom: '8px' }}>סיבה: {wheel.unavailable_reason}</div>
                     )}
 
-                    <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                      <button onClick={() => handleEditWheel(wheel)} style={{ flex: 1, padding: '6px', background: '#eef2ff', color: '#4f46e5', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> עריכה</span>
-                      </button>
-                      {wheel.is_available && (
-                        <button onClick={() => handleDeleteWheel(wheel)} style={{ padding: '6px 10px', background: '#fef2f2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                    {canEdit && (
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+                        <button onClick={() => handleEditWheel(wheel)} style={{ flex: 1, padding: '6px', background: '#eef2ff', color: '#4f46e5', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> עריכה</span>
                         </button>
-                      )}
-                    </div>
+                        {wheel.is_available && (
+                          <button onClick={() => handleDeleteWheel(wheel)} style={{ padding: '6px 10px', background: '#fef2f2', color: '#dc2626', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -725,68 +751,253 @@ export default function SuperManagerPage() {
     )
   }
 
+  // District-level computed data
+  const emptyStations = filteredStations.filter(s => s.availableWheels === 0 && s.totalWheels > 0)
+  const heavyStations = filteredStations.filter(s => s.totalWheels > 0 && (s.totalWheels - s.availableWheels) / s.totalWheels >= 0.9)
+  const totalWheels = filteredStations.reduce((sum, s) => sum + s.totalWheels, 0)
+  const totalAvailable = filteredStations.reduce((sum, s) => sum + s.availableWheels, 0)
+
+  const TABS: { id: MainTab; label: string; icon: string }[] = [
+    { id: 'inventory', label: 'מלאי', icon: 'M3 3h18v18H3zM3 9h18M3 15h18M9 3v18' },
+    { id: 'borrows',   label: 'השאלות', icon: 'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2' },
+    { id: 'alerts',    label: 'התראות', icon: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01' },
+    { id: 'reports',   label: 'דוחות', icon: 'M18 20V10M12 20V4M6 20v-6' },
+  ]
+
   // Station list view
   return (
     <div style={{ minHeight: '100vh', background: '#f1f5f9', direction: 'rtl' }}>
-      {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', padding: '16px 20px', color: 'white' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <span style={{ fontSize: '1.3rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> מנהל עליון</span>
-            <span style={{ fontSize: '0.9rem', opacity: 0.8, marginRight: '10px' }}>{superManager.full_name}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              onClick={() => { setSelectedExportStations(filteredStations.map(s => s.id)); setShowDistrictExport(true) }}
-              style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              ייצוא מחוז
-            </button>
-            <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-              יציאה
-            </button>
-          </div>
+      <AppHeader onDistrictExport={() => { setSelectedExportStations(filteredStations.map(s => s.id)); setShowDistrictExport(true) }} />
+
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 16px' }}>
+
+        {/* Summary strip */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+          {[
+            { label: 'תחנות', value: filteredStations.length, color: '#7c3aed' },
+            { label: 'גלגלים זמינים', value: `${totalAvailable}/${totalWheels}`, color: '#16a34a' },
+            { label: 'השאלות פעילות', value: districtBorrows.length, color: '#f59e0b' },
+          ].map(item => (
+            <div key={item.label} style={{ background: '#fff', borderRadius: 12, padding: '14px 16px', textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: item.color }}>{item.value}</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>{item.label}</div>
+            </div>
+          ))}
         </div>
-      </div>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#1f2937', marginBottom: '16px' }}>
-          {superManager.allowed_districts?.length ? 'תחנות במחוזות שלי' : 'כל התחנות'} ({filteredStations.length})
-        </h2>
+        {/* 2×2 Tab nav */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setMainTab(tab.id)
+                if (tab.id === 'borrows' && districtBorrows.length === 0 && !districtBorrowsLoading) {
+                  fetchDistrictBorrows(filteredStations)
+                }
+              }}
+              style={{
+                padding: '12px 10px', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 600,
+                fontSize: '0.92rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                background: mainTab === tab.id ? '#7c3aed' : '#fff',
+                color: mainTab === tab.id ? '#fff' : '#475569',
+                boxShadow: mainTab === tab.id ? '0 4px 12px rgba(124,58,237,0.25)' : '0 1px 3px rgba(0,0,0,0.07)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d={tab.icon} />
+                {tab.id === 'borrows' && <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />}
+              </svg>
+              {tab.label}
+              {tab.id === 'alerts' && (emptyStations.length + heavyStations.length) > 0 && (
+                <span style={{ background: '#ef4444', color: '#fff', borderRadius: 20, fontSize: '0.7rem', fontWeight: 700, padding: '1px 6px', marginRight: 2 }}>
+                  {emptyStations.length + heavyStations.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>טוען תחנות...</div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
-            {filteredStations.map(station => (
-              <button
-                key={station.id}
-                onClick={() => handleSelectStation(station)}
-                style={{
-                  background: 'white', borderRadius: '12px', padding: '18px', border: '1px solid #e5e7eb',
-                  cursor: 'pointer', textAlign: 'right', transition: 'all 0.2s',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1f2937' }}>{station.name}</span>
-                  <span style={{
-                    background: station.availableWheels > 0 ? '#d1fae5' : '#fee2e2',
-                    color: station.availableWheels > 0 ? '#065f46' : '#991b1b',
-                    padding: '4px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600
-                  }}>
-                    {station.availableWheels}/{station.totalWheels} זמינים
-                  </span>
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{station.address}</div>
-                {station.district && (
-                  <div style={{ fontSize: '0.8rem', color: '#7c3aed', marginTop: '4px' }}>מחוז: {districtNames[station.district] || station.district}</div>
+        {/* ── Tab: מלאי ── */}
+        {mainTab === 'inventory' && (
+          loading ? (
+            <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>טוען תחנות...</div>
+          ) : (
+            <div style={{ background: '#fff', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                    {['תחנה', 'כתובת', 'מחוז', 'זמינים / סה"כ', ''].map(h => (
+                      <th key={h} style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: '0.8rem' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStations.map((station, i) => (
+                    <tr key={station.id} style={{ borderBottom: i < filteredStations.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                      <td style={{ padding: '11px 14px', fontWeight: 600, color: '#1e293b' }}>{station.name}</td>
+                      <td style={{ padding: '11px 14px', color: '#64748b' }}>{station.address}</td>
+                      <td style={{ padding: '11px 14px', color: '#7c3aed', fontSize: '0.8rem' }}>{districtNames[station.district || ''] || station.district || '—'}</td>
+                      <td style={{ padding: '11px 14px' }}>
+                        <span style={{
+                          background: station.availableWheels === 0 ? '#fee2e2' : station.availableWheels < 3 ? '#fef3c7' : '#d1fae5',
+                          color: station.availableWheels === 0 ? '#991b1b' : station.availableWheels < 3 ? '#92400e' : '#065f46',
+                          padding: '3px 8px', borderRadius: 6, fontWeight: 600, fontSize: '0.8rem'
+                        }}>
+                          {station.availableWheels}/{station.totalWheels}
+                        </span>
+                      </td>
+                      <td style={{ padding: '11px 14px' }}>
+                        {canEdit ? (
+                          <button
+                            onClick={() => handleSelectStation(station)}
+                            style={{ padding: '5px 12px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                          >
+                            ניהול
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleSelectStation(station)}
+                            style={{ padding: '5px 12px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: '0.8rem' }}
+                          >
+                            צפייה
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredStations.length === 0 && (
+                    <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>אין תחנות</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+
+        {/* ── Tab: השאלות ── */}
+        {mainTab === 'borrows' && (
+          districtBorrowsLoading ? (
+            <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>טוען השאלות...</div>
+          ) : (
+            <div>
+              <p style={{ marginBottom: 12, color: '#64748b', fontSize: '0.85rem' }}>{districtBorrows.length} השאלות פעילות במחוז</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {districtBorrows.map(b => (
+                  <div key={b.id} style={{ background: '#fff', borderRadius: 10, padding: '12px 16px', borderRight: '4px solid #f59e0b', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{b.borrower_name}</span>
+                      <span style={{ fontSize: '0.78rem', color: '#7c3aed', fontWeight: 600 }}>{(b as Borrow & { station_name?: string }).station_name}</span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                      {b.borrower_phone} | גלגל #{b.wheels?.wheel_number || '?'} | {b.vehicle_model || '—'} | {new Date(b.borrow_date).toLocaleDateString('he-IL')}
+                    </div>
+                  </div>
+                ))}
+                {districtBorrows.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>אין השאלות פעילות במחוז</div>
                 )}
-              </button>
-            ))}
+              </div>
+            </div>
+          )
+        )}
+
+        {/* ── Tab: התראות ── */}
+        {mainTab === 'alerts' && (
+          <div>
+            {emptyStations.length === 0 && heavyStations.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px' }}>
+                <div style={{ fontSize: '2rem', marginBottom: 8 }}>✅</div>
+                <div style={{ color: '#16a34a', fontWeight: 600 }}>אין התראות פעילות</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {emptyStations.map(s => (
+                  <div key={s.id} style={{ background: '#fff', borderRadius: 10, padding: '14px 16px', borderRight: '4px solid #ef4444', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <span style={{ fontWeight: 700, color: '#1e293b' }}>{s.name}</span>
+                        <span style={{ fontSize: '0.8rem', color: '#ef4444', marginRight: 8, fontWeight: 600 }}>0 גלגלים זמינים</span>
+                      </div>
+                      {canEdit && (
+                        <button onClick={() => handleSelectStation(s)} style={{ padding: '4px 10px', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>ניהול</button>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4 }}>{s.address}</div>
+                  </div>
+                ))}
+                {heavyStations.filter(s => !emptyStations.includes(s)).map(s => (
+                  <div key={s.id} style={{ background: '#fff', borderRadius: 10, padding: '14px 16px', borderRight: '4px solid #f59e0b', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <span style={{ fontWeight: 700, color: '#1e293b' }}>{s.name}</span>
+                        <span style={{ fontSize: '0.8rem', color: '#f59e0b', marginRight: 8, fontWeight: 600 }}>עומס גבוה — {s.totalWheels - s.availableWheels}/{s.totalWheels} מושאלים</span>
+                      </div>
+                      {canEdit && (
+                        <button onClick={() => handleSelectStation(s)} style={{ padding: '4px 10px', background: '#fef3c7', color: '#92400e', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>ניהול</button>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: 4 }}>{s.address}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
+
+        {/* ── Tab: דוחות ── */}
+        {mainTab === 'reports' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Utilization bar chart */}
+            <div style={{ background: '#fff', borderRadius: 14, padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <h4 style={{ margin: '0 0 16px', color: '#1e293b', fontSize: '0.95rem', fontWeight: 700 }}>ניצולת תחנות — גלגלים מושאלים</h4>
+              {filteredStations.filter(s => s.totalWheels > 0).length === 0 ? (
+                <div style={{ color: '#94a3b8', textAlign: 'center', padding: '20px 0' }}>אין נתונים</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {filteredStations.filter(s => s.totalWheels > 0).sort((a, b) => (b.totalWheels - b.availableWheels) - (a.totalWheels - a.availableWheels)).map(s => {
+                    const pct = Math.round(((s.totalWheels - s.availableWheels) / s.totalWheels) * 100)
+                    return (
+                      <div key={s.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: 3, color: '#475569' }}>
+                          <span style={{ fontWeight: 600 }}>{s.name}</span>
+                          <span>{pct}% ({s.totalWheels - s.availableWheels}/{s.totalWheels})</span>
+                        </div>
+                        <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%', width: `${pct}%`,
+                            background: pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : '#16a34a',
+                            borderRadius: 4, transition: 'width 0.4s'
+                          }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            {/* District summary */}
+            <div style={{ background: '#fff', borderRadius: 14, padding: '18px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <h4 style={{ margin: '0 0 12px', color: '#1e293b', fontSize: '0.95rem', fontWeight: 700 }}>סיכום מחוז</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: '0.85rem', color: '#475569' }}>
+                {[
+                  ['תחנות במחוז', filteredStations.length],
+                  ['סה"כ גלגלים', totalWheels],
+                  ['גלגלים זמינים', totalAvailable],
+                  ['גלגלים מושאלים', totalWheels - totalAvailable],
+                  ['תחנות ריקות', emptyStations.length],
+                  ['ניצולת ממוצעת', totalWheels > 0 ? `${Math.round(((totalWheels - totalAvailable) / totalWheels) * 100)}%` : '—'],
+                ].map(([label, val]) => (
+                  <div key={String(label)} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <span>{label}</span>
+                    <span style={{ fontWeight: 700, color: '#1e293b' }}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
       {/* District Export Modal */}
       {showDistrictExport && (

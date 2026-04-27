@@ -7,7 +7,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 export async function verifySuperManager(
   phone: string,
   password: string
-): Promise<{ success: boolean; superManager?: { id: string; full_name: string; phone: string; allowed_districts: string[] | null }; error?: string }> {
+): Promise<{ success: boolean; superManager?: { id: string; full_name: string; phone: string; allowed_districts: string[] | null; can_edit: boolean }; error?: string }> {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   const cleanPhone = phone.replace(/\D/g, '')
 
@@ -28,7 +28,7 @@ export async function verifySuperManager(
 
   const { data: roleRow } = await supabase
     .from('user_roles')
-    .select('id, allowed_districts')
+    .select('id, allowed_districts, can_edit')
     .eq('user_id', user.id)
     .eq('role', 'super_manager')
     .eq('is_active', true)
@@ -42,7 +42,8 @@ export async function verifySuperManager(
       id: user.id,
       full_name: user.full_name,
       phone: user.phone,
-      allowed_districts: roleRow.allowed_districts || null
+      allowed_districts: roleRow.allowed_districts || null,
+      can_edit: roleRow.can_edit ?? false
     }
   }
 }

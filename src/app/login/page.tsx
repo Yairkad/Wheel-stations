@@ -186,7 +186,7 @@ export default function LoginPage() {
     if (!phone || !password) { setError('יש למלא טלפון וסיסמה'); return }
     const cleanPhone = phone.replace(/\D/g, '')
     if (cleanPhone.length < 9 || cleanPhone.length > 12) { setError('מספר טלפון לא תקין (דוגמה: 0501234567)'); return }
-    if (password.length < 6) { setError('הסיסמה חייבת להכיל לפחות 6 תווים'); return }
+    if (password.length < 4) { setError('הסיסמה חייבת להכיל לפחות 4 תווים'); return }
     setLoading(true)
     setError('')
 
