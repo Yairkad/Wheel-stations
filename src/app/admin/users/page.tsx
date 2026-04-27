@@ -18,6 +18,7 @@ interface UserRole {
   operator_code:     string | null
   allowed_districts: string[] | null
   is_active:         boolean
+  can_edit?:         boolean
   station_name?:     string | null
   call_center_name?: string | null
 }
@@ -463,6 +464,22 @@ function UsersPageInner() {
     finally { setBusy(false) }
   }
 
+  async function handleToggleCanEdit(userId: string, current: boolean) {
+    setBusy(true)
+    try {
+      const res = await fetch('/api/admin/super-managers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, can_edit: !current }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      await fetchUsers()
+      toast.success(!current ? 'הרשאת עריכה הופעלה' : 'הרשאת עריכה הוסרה')
+    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה בעדכון הרשאה') }
+    finally { setBusy(false) }
+  }
+
   async function handleTogglePrimary(userId: string, roleId: string, current: boolean) {
     setBusy(true)
     try {
@@ -580,6 +597,7 @@ function UsersPageInner() {
                 onDelete={() => setDeleteUser(user)}
                 onToggleRole={handleToggleRole}
                 onTogglePrimary={handleTogglePrimary}
+                onToggleCanEdit={handleToggleCanEdit}
               />
             ))
           )}
@@ -914,9 +932,10 @@ interface UserCardProps {
   onDelete:         () => void
   onToggleRole:     (userId: string, roleId: string, current: boolean) => void
   onTogglePrimary:  (userId: string, roleId: string, current: boolean) => void
+  onToggleCanEdit:  (userId: string, current: boolean) => void
 }
 
-function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onToggleRole, onTogglePrimary }: UserCardProps) {
+function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onToggleRole, onTogglePrimary, onToggleCanEdit }: UserCardProps) {
   const [showPass, setShowPass] = useState(false)
   const menuItems: MenuItem[] = [
     { label: 'עריכת פרטים', onClick: onEdit },
@@ -1031,6 +1050,15 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
                       קוד: {role.operator_code}
                     </span>
                   )}
+                  {role.role === 'super_manager' && (
+                    <span style={{
+                      fontSize: '0.7rem', fontWeight: 700, padding: '2px 7px', borderRadius: 6,
+                      background: role.can_edit ? '#ede9fe' : '#f1f5f9',
+                      color:      role.can_edit ? '#7c3aed'  : '#94a3b8',
+                    }}>
+                      {role.can_edit ? 'עריכה ✓' : 'צפייה בלבד'}
+                    </span>
+                  )}
                   <DotsMenu items={[
                     {
                       label: role.is_primary ? 'הגדר כמשני' : 'הגדר כראשי',
@@ -1042,6 +1070,11 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
                       color: role.is_active ? '#ef4444' : '#16a34a',
                       onClick: () => onToggleRole(user.id, role.id, role.is_active),
                     },
+                    ...(role.role === 'super_manager' ? [{
+                      label: role.can_edit ? 'הסר הרשאת עריכה' : 'הוסף הרשאת עריכה',
+                      color: role.can_edit ? '#ef4444' : '#7c3aed',
+                      onClick: () => onToggleCanEdit(user.id, role.can_edit ?? false),
+                    }] : []),
                   ]} />
                 </div>
               ))}

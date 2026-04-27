@@ -18,7 +18,7 @@ export async function GET() {
         .from('user_roles')
         .select(`
           id, user_id, role, is_primary, title, operator_code,
-          allowed_districts, is_active, station_id, call_center_id,
+          allowed_districts, is_active, station_id, call_center_id, can_edit,
           wheel_stations ( name ),
           call_centers   ( name )
         `),
@@ -43,6 +43,7 @@ export async function GET() {
         operator_code:    r.operator_code,
         allowed_districts: r.allowed_districts,
         is_active:        r.is_active,
+        can_edit:         (r as { can_edit?: boolean }).can_edit ?? false,
         station_name:     (r.wheel_stations as { name?: string } | null)?.name ?? null,
         call_center_name: (r.call_centers   as { name?: string } | null)?.name ?? null,
       })
