@@ -133,7 +133,7 @@ export default function LoginPage() {
       }
       case 'district_manager': {
         const session = {
-          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
+          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts, can_edit: d.can_edit ?? false },
           password,
           timestamp: Date.now(),
           version: SESSION_VERSION
