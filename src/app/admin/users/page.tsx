@@ -448,19 +448,19 @@ function UsersPageInner() {
     } finally { setBusy(false) }
   }
 
-  async function handleToggleRole(userId: string, roleId: string, current: boolean) {
+  async function handleRemoveRole(userId: string, roleId: string) {
     setBusy(true)
     try {
       const res = await fetch(`/api/admin/users/${userId}/roles/${roleId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !current }),
+        body: JSON.stringify({ is_active: false }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       await fetchUsers()
-      toast.success(current ? 'תפקיד הושבת' : 'תפקיד הופעל')
-    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה בעדכון תפקיד') }
+      toast.success('תפקיד הוסר')
+    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה בהסרת תפקיד') }
     finally { setBusy(false) }
   }
 
@@ -595,7 +595,7 @@ function UsersPageInner() {
                 onAddRole={() => { setAddRoleUser(user); resetAddRoleForm() }}
                 onMerge={() => { setMergeSource(user); setMergeTarget('') }}
                 onDelete={() => setDeleteUser(user)}
-                onToggleRole={handleToggleRole}
+                onRemoveRole={handleRemoveRole}
                 onTogglePrimary={handleTogglePrimary}
                 onToggleCanEdit={handleToggleCanEdit}
               />
@@ -760,7 +760,7 @@ function UsersPageInner() {
             {addRoleType === 'super_manager' && (
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
                 <input type="checkbox" checked={addRoleCanEdit} onChange={e => setAddRoleCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
-                הרשאת עריכה (can_edit) — יכול להוסיף/לערוך/למחוק גלגלים
+                הרשאת עריכה — יכול להוסיף/לערוך/למחוק גלגלים
               </label>
             )}
 
@@ -885,7 +885,7 @@ function UsersPageInner() {
             {addRole === 'super_manager' && (
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
                 <input type="checkbox" checked={addCanEdit} onChange={e => setAddCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
-                הרשאת עריכה (can_edit) — יכול להוסיף/לערוך/למחוק גלגלים
+                הרשאת עריכה — יכול להוסיף/לערוך/למחוק גלגלים
               </label>
             )}
 
@@ -930,12 +930,12 @@ interface UserCardProps {
   onAddRole:        () => void
   onMerge:          () => void
   onDelete:         () => void
-  onToggleRole:     (userId: string, roleId: string, current: boolean) => void
+  onRemoveRole:     (userId: string, roleId: string) => void
   onTogglePrimary:  (userId: string, roleId: string, current: boolean) => void
   onToggleCanEdit:  (userId: string, current: boolean) => void
 }
 
-function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onToggleRole, onTogglePrimary, onToggleCanEdit }: UserCardProps) {
+function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onRemoveRole, onTogglePrimary, onToggleCanEdit }: UserCardProps) {
   const [showPass, setShowPass] = useState(false)
   const menuItems: MenuItem[] = [
     { label: 'עריכת פרטים', onClick: onEdit },
@@ -1060,21 +1060,21 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
                     </span>
                   )}
                   <DotsMenu items={[
-                    {
+                    ...(role.role === 'station_manager' ? [{
                       label: role.is_primary ? 'הגדר כמשני' : 'הגדר כראשי',
                       color: role.is_primary ? '#64748b' : '#f59e0b',
                       onClick: () => onTogglePrimary(user.id, role.id, role.is_primary),
-                    },
-                    {
-                      label: role.is_active ? 'השבת תפקיד' : 'הפעל תפקיד',
-                      color: role.is_active ? '#ef4444' : '#16a34a',
-                      onClick: () => onToggleRole(user.id, role.id, role.is_active),
-                    },
+                    }] : []),
                     ...(role.role === 'super_manager' ? [{
                       label: role.can_edit ? 'הסר הרשאת עריכה' : 'הוסף הרשאת עריכה',
                       color: role.can_edit ? '#ef4444' : '#7c3aed',
                       onClick: () => onToggleCanEdit(user.id, role.can_edit ?? false),
                     }] : []),
+                    {
+                      label: 'הסר תפקיד',
+                      color: '#ef4444',
+                      onClick: () => onRemoveRole(user.id, role.id),
+                    },
                   ]} />
                 </div>
               ))}
