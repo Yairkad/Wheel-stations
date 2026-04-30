@@ -48,3 +48,16 @@ supabase/.temp
 
 # MCP config (contains project refs)
 .mcp.json
+
+# Storybook
+/storybook-static/
+build-storybook.log
+debug-storybook.log
+
+# Generated guide
+/public/guide-screenshots/
+/public/user-guide.html
+/public/user-guide.pdf
+
+# Claude
+.claude/
