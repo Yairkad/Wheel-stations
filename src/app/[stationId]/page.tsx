@@ -16,6 +16,7 @@ interface Wheel {
   bolt_count: number
   bolt_spacing: number
   center_bore?: number | null
+  tire_size?: string | null
   offset?: number | null
   category: string | null
   is_donut: boolean
@@ -79,6 +80,7 @@ interface Manager {
   phone: string
   role: string
   is_primary: boolean
+  password?: string | null
 }
 
 interface PaymentMethods {
@@ -111,6 +113,7 @@ interface WheelForm {
   bolt_count: string
   bolt_spacing: string
   center_bore: string
+  tire_size: string
   category: string
   is_donut: boolean
   notes: string
@@ -185,6 +188,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     bolt_count: '4',
     bolt_spacing: '',
     center_bore: '',
+    tire_size: '',
     category: '',
     is_donut: false,
     notes: '',
@@ -806,6 +810,16 @@ ${signFormUrl}
     }
   }
 
+  // Fetch managers with passwords when primary manager opens edit modal
+  useEffect(() => {
+    if (showEditDetailsModal && currentManager?.is_primary) {
+      fetch(`/api/wheel-stations/${stationId}/managers`)
+        .then(r => r.json())
+        .then(data => { if (data.managers) setContacts(data.managers) })
+        .catch(() => {})
+    }
+  }, [showEditDetailsModal])
+
   // Fetch deleted wheels for restore banner (only for managers)
   const fetchDeletedWheels = async () => {
     try {
@@ -1305,6 +1319,7 @@ ${signFormUrl}
           bolt_count: parseInt(wheelForm.bolt_count),
           bolt_spacing: parseFloat(wheelForm.bolt_spacing),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
+          tire_size: wheelForm.tire_size || null,
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
@@ -1326,6 +1341,7 @@ ${signFormUrl}
         bolt_count: '4',
         bolt_spacing: '',
         center_bore: '',
+        tire_size: '',
         category: '',
         is_donut: false,
         notes: '',
@@ -1365,6 +1381,7 @@ ${signFormUrl}
           bolt_count: parseInt(wheelForm.bolt_count),
           bolt_spacing: parseFloat(wheelForm.bolt_spacing),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
+          tire_size: wheelForm.tire_size || null,
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
@@ -1387,6 +1404,7 @@ ${signFormUrl}
         bolt_count: '4',
         bolt_spacing: '',
         center_bore: '',
+        tire_size: '',
         category: '',
         is_donut: false,
         notes: '',
@@ -1499,10 +1517,11 @@ ${formUrl}`
           manager_password: sessionPassword
         })
       })
+      const data = await response.json()
       if (!response.ok) {
-        const data = await response.json()
         throw new Error(data.error || 'Failed to save')
       }
+      if (data.managers) setContacts(data.managers)
       await fetchStation()
       setShowContactsModal(false)
       toast.success('אנשי הקשר עודכנו!')
@@ -1701,6 +1720,7 @@ ${formUrl}`
           'כמות ברגים': wheel.bolt_count,
           'מרווח ברגים': wheel.bolt_spacing,
           'CB': wheel.center_bore || '',
+          'מידות צמיג': wheel.tire_size || '',
           'קטגוריה': wheel.category || '',
           'דונאט': wheel.is_donut ? 'כן' : 'לא',
           'הערות': wheel.notes || '',
@@ -3183,6 +3203,7 @@ ${formUrl}`
                                 bolt_count: String(wheel.bolt_count),
                                 bolt_spacing: String(wheel.bolt_spacing),
                                 center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
+                                tire_size: wheel.tire_size || '',
                                 category: wheel.category || '',
                                 is_donut: wheel.is_donut,
                                 notes: wheel.notes || '',
@@ -3980,6 +4001,16 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
+              <div style={styles.formGroup} className="form-group-item">
+                <label style={styles.label}>מידות צמיג</label>
+                <input
+                  type="text"
+                  placeholder="205/55R16"
+                  value={wheelForm.tire_size}
+                  onChange={e => setWheelForm({...wheelForm, tire_size: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>קטגוריה</label>
@@ -4117,6 +4148,16 @@ ${formUrl}`
                   placeholder="54.1, 60.1, 66.6"
                   value={wheelForm.center_bore}
                   onChange={e => setWheelForm({...wheelForm, center_bore: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
+              <div className="form-group-item" style={styles.formGroup}>
+                <label style={styles.label}>מידות צמיג</label>
+                <input
+                  type="text"
+                  placeholder="205/55R16"
+                  value={wheelForm.tire_size}
+                  onChange={e => setWheelForm({...wheelForm, tire_size: e.target.value})}
                   style={styles.input}
                 />
               </div>
@@ -4525,6 +4566,13 @@ ${formUrl}`
                       onChange={e => updateContact(index, 'phone', e.target.value)}
                       style={{...styles.input, flex: 1, minWidth: '100px'}}
                     />
+                    <span style={{
+                      padding: '3px 7px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap',
+                      background: !contact.password ? 'rgba(239,68,68,0.1)' : contact.password.startsWith('$2') ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.15)',
+                      color: !contact.password ? '#ef4444' : contact.password.startsWith('$2') ? '#16a34a' : '#d97706',
+                    }}>
+                      {!contact.password ? 'ללא קוד' : contact.password.startsWith('$2') ? 'פעיל' : `קוד: ${contact.password}`}
+                    </span>
                     <button style={styles.removeBtn} onClick={() => removeContact(index)}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                   </div>
                 ))}
