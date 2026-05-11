@@ -137,7 +137,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       } else {
         const { data: newUser, error: insertErr } = await supabase
           .from('users')
-          .insert({ full_name: m.full_name, phone: cleanPhone, password: m.password || null, is_active: true })
+          .insert({ full_name: m.full_name, phone: cleanPhone, password: m.password || cleanPhone.slice(-4), is_active: true })
           .select('id')
           .single()
         if (insertErr || !newUser) throw insertErr || new Error('Failed to create user')
