@@ -124,6 +124,8 @@ function VehiclesAdminPage() {
     tire_size_front: ''
   })
   const [addLoading, setAddLoading] = useState(false)
+  const [addFormPlate, setAddFormPlate] = useState('')
+  const [addFormPlateLoading, setAddFormPlateLoading] = useState(false)
 
   // Edit model state
   const [editingVehicle, setEditingVehicle] = useState<VehicleModel | null>(null)
@@ -440,6 +442,51 @@ function VehiclesAdminPage() {
       setScrapeError(err.message)
     } finally {
       setPlateLoading(false)
+    }
+  }
+
+  // Lookup plate and auto-fill the Add Manual form
+  const handleAddFormPlateLookup = async () => {
+    const cleanPlate = addFormPlate.replace(/[-\s]/g, '')
+    if (cleanPlate.length < 7) {
+      toast.error('נא להזין מספר רכב תקין (7-8 ספרות)')
+      return
+    }
+
+    setAddFormPlateLoading(true)
+    try {
+      const response = await fetch(`/api/vehicle/lookup?plate=${cleanPlate}`)
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'רכב לא נמצא')
+      }
+
+      const makeHe = data.vehicle.manufacturer || ''
+      const modelHe = data.vehicle.model || ''
+      const makeEn = extractMakeFromHebrew(makeHe)
+      const modelEn = extractModelFromHebrew(modelHe)
+
+      setAddForm(prev => ({
+        ...prev,
+        make: makeEn || makeHe,
+        make_he: makeHe,
+        model: modelEn || modelHe,
+        variants: modelHe,
+        year_from: data.vehicle.year?.toString() || prev.year_from,
+        tire_size_front: data.vehicle.front_tire || prev.tire_size_front,
+        ...(data.wheel_fitment ? {
+          bolt_count: data.wheel_fitment.bolt_count?.toString() || prev.bolt_count,
+          bolt_spacing: data.wheel_fitment.bolt_spacing?.toString() || prev.bolt_spacing,
+          center_bore: data.wheel_fitment.center_bore?.toString() || prev.center_bore,
+        } : {})
+      }))
+
+      toast.success(data.pcd_found ? 'פרטי הרכב וגלגלים נמצאו!' : 'פרטי הרכב נמצאו (PCD לא נמצא — יש להשלים ידנית)')
+    } catch (err: any) {
+      toast.error(err.message || 'שגיאה בחיפוש הרכב')
+    } finally {
+      setAddFormPlateLoading(false)
     }
   }
 
@@ -2084,6 +2131,33 @@ function VehiclesAdminPage() {
             </div>
 
             <div style={styles.modalBody}>
+              {/* Plate auto-fill */}
+              <div style={{marginBottom: '18px', padding: '12px 14px', background: '#1e293b', borderRadius: '8px', border: '1px solid #334155'}}>
+                <label style={{...styles.formLabel, marginBottom: '8px', display: 'block', color: '#94a3b8'}}>מילוי אוטומטי ממספר רכב</label>
+                <div style={{display: 'flex', gap: '8px'}}>
+                  <input
+                    type="text"
+                    value={addFormPlate}
+                    onChange={e => setAddFormPlate(e.target.value.replace(/\D/g, ''))}
+                    onKeyDown={e => e.key === 'Enter' && handleAddFormPlateLookup()}
+                    placeholder="הזן מספר רכב (7-8 ספרות)"
+                    maxLength={8}
+                    style={{...styles.formInput, flex: 1, direction: 'ltr'}}
+                  />
+                  <button
+                    onClick={handleAddFormPlateLookup}
+                    disabled={addFormPlateLoading}
+                    style={{...styles.btnLookup, flexShrink: 0}}
+                  >
+                    {addFormPlateLoading ? (
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
                   <label style={styles.formLabel}>יצרן (אנגלית) *</label>
