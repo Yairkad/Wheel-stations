@@ -2392,7 +2392,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#1e293b',
     border: '1px solid #e2e8f0',
     boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-    display: 'block',
+    display: 'flex',
+    flexDirection: 'column',
   },
   cardTitle: {
     fontSize: '1.3rem',
@@ -2429,7 +2430,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#64748b',
   },
   managers: {
-    marginTop: '15px',
+    marginTop: 'auto',
+    paddingTop: '15px',
     padding: '10px',
     background: '#f8fafc',
     borderRadius: '8px',
