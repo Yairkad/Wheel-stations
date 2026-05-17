@@ -37,6 +37,7 @@ interface Wheel {
   bolt_count: number
   bolt_spacing: number
   center_bore: number | null
+  tire_size: string | null
   category: string | null
   is_donut: boolean
   is_available: boolean
@@ -73,6 +74,7 @@ interface WheelForm {
   bolt_count: string
   bolt_spacing: string
   center_bore: string
+  tire_size: string
   category: string
   is_donut: boolean
   notes: string
@@ -81,7 +83,7 @@ interface WheelForm {
 
 const emptyForm: WheelForm = {
   wheel_number: '', rim_size: '', bolt_count: '', bolt_spacing: '',
-  center_bore: '', category: '', is_donut: false, notes: '', custom_deposit: ''
+  center_bore: '', tire_size: '', category: '', is_donut: false, notes: '', custom_deposit: ''
 }
 
 export default function SuperManagerPage() {
@@ -261,6 +263,7 @@ export default function SuperManagerPage() {
       bolt_count: String(wheel.bolt_count),
       bolt_spacing: String(wheel.bolt_spacing),
       center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
+      tire_size: wheel.tire_size || '',
       category: wheel.category || '',
       is_donut: wheel.is_donut,
       notes: wheel.notes || '',
@@ -284,6 +287,7 @@ export default function SuperManagerPage() {
         bolt_count: parseInt(form.bolt_count),
         bolt_spacing: parseFloat(form.bolt_spacing),
         center_bore: form.center_bore ? parseFloat(form.center_bore) : null,
+        tire_size: form.tire_size || null,
         category: form.category || null,
         is_donut: form.is_donut,
         notes: form.notes || null,
@@ -432,12 +436,13 @@ export default function SuperManagerPage() {
               'ברגים': w.bolt_count,
               'PCD': w.bolt_spacing,
               'CB': w.center_bore || '',
+              'מידות צמיג': w.tire_size || '',
               'דונאט': w.is_donut ? 'כן' : 'לא',
               'זמין': w.is_available ? 'כן' : 'לא',
               'הערות': w.notes || '',
             }))
             const ws = XLSX.utils.json_to_sheet(inventoryData)
-            ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 20 }]
+            ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 14 }, { wch: 8 }, { wch: 8 }, { wch: 20 }]
             XLSX.utils.book_append_sheet(wb, ws, `מלאי - ${sheetName}`)
           }
 
@@ -582,6 +587,10 @@ export default function SuperManagerPage() {
                       <div>
                         <label style={labelStyle}>קדח מרכזי (CB)</label>
                         <input type="number" step="0.1" value={form.center_bore} onChange={e => setForm({ ...form, center_bore: e.target.value })} style={inputStyle} />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>מידות צמיג</label>
+                        <input type="text" placeholder="205/55R16" value={form.tire_size} onChange={e => setForm({ ...form, tire_size: e.target.value })} style={inputStyle} />
                       </div>
                       <div>
                         <label style={labelStyle}>קטגוריה</label>

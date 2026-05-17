@@ -47,7 +47,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, category, is_donut, notes, custom_deposit, manager_phone, manager_password, sm_phone, sm_password } = body
+    const { wheel_number, rim_size, bolt_count, bolt_spacing, center_bore, tire_size, category, is_donut, notes, custom_deposit, manager_phone, manager_password, sm_phone, sm_password } = body
 
     // Verify credentials - super manager or station manager
     if (sm_phone && sm_password) {
@@ -80,6 +80,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         bolt_count,
         bolt_spacing,
         center_bore: center_bore || null,
+        tire_size: tire_size || null,
         category,
         is_donut: is_donut || false,
         notes,
