@@ -8,6 +8,7 @@ export interface Station {
   address: string
   city_id: string
   district: string | null
+  is_coming_soon?: boolean
   cities: { name: string } | null
   wheel_station_managers: Manager[]
   totalWheels: number

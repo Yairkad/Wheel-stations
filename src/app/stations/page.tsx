@@ -972,60 +972,84 @@ export default function WheelStationsPage() {
             const stationName = station.name?.toLowerCase() || ''
             const managerNames = station.wheel_station_managers?.map(m => m.full_name?.toLowerCase() || '').join(' ') || ''
             return cityName.includes(searchLower) || stationName.includes(searchLower) || managerNames.includes(searchLower)
-          }).map(station => (
-            <Link
-              key={station.id}
-              href={`/${station.id}`}
-              style={styles.card}
-              className="wheels-card"
-              aria-label={`תחנת ${station.name} - ${station.availableWheels} גלגלים זמינים מתוך ${station.totalWheels}`}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <h3 style={{...styles.cardTitle, margin: 0}}>
-                  {station.name}
-                </h3>
-                {station.district && (
-                  <div style={{
-                    display: 'inline-block',
-                    padding: '2px 6px',
-                    border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
-                    borderRadius: '4px',
-                    fontSize: '0.7rem',
-                    fontWeight: '600',
-                    color: getDistrictColor(station.district, districts),
-                    backgroundColor: `${getDistrictColor(station.district, districts)}15`,
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0
-                  }}>
-                    {getDistrictName(station.district, districts)}
-                  </div>
-                )}
-              </div>
-              <div style={{minHeight: '38px'}}>
-                {station.address && (
-                  <div style={{...styles.address, display:'flex', alignItems:'center', gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {station.address}</div>
-                )}
-                {station.cities?.name && (
-                  <div style={styles.cityName}>{station.cities.name}</div>
-                )}
-              </div>
-              <div style={styles.stats}>
-                <div style={styles.stat}>
-                  <div style={styles.statValue}>{station.totalWheels}</div>
-                  <div style={styles.statLabel}>סה"כ גלגלים</div>
+          }).map(station => {
+            const isComingSoon = !!station.is_coming_soon
+            const cardInner = (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                  <h3 style={{...styles.cardTitle, margin: 0, ...(isComingSoon ? {color: '#94a3b8'} : {})}}>
+                    {station.name}
+                  </h3>
+                  {isComingSoon ? (
+                    <div style={styles.comingSoonBadge}>בקרוב</div>
+                  ) : station.district ? (
+                    <div style={{
+                      display: 'inline-block',
+                      padding: '2px 6px',
+                      border: `1.5px solid ${getDistrictColor(station.district, districts)}`,
+                      borderRadius: '4px',
+                      fontSize: '0.7rem',
+                      fontWeight: '600',
+                      color: getDistrictColor(station.district, districts),
+                      backgroundColor: `${getDistrictColor(station.district, districts)}15`,
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}>
+                      {getDistrictName(station.district, districts)}
+                    </div>
+                  ) : null}
                 </div>
-                <div style={styles.stat}>
-                  <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
-                  <div style={styles.statLabel}>זמינים</div>
+                <div style={{minHeight: '38px'}}>
+                  {station.address && (
+                    <div style={{...styles.address, display:'flex', alignItems:'center', gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {station.address}</div>
+                  )}
+                  {station.cities?.name && (
+                    <div style={styles.cityName}>{station.cities.name}</div>
+                  )}
                 </div>
-              </div>
-              {station.wheel_station_managers.length > 0 && (
-                <div style={styles.managers}>
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.58 2.72h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.56 6.56l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> {station.wheel_station_managers.length} אנשי קשר</span>
+                {!isComingSoon && (
+                  <>
+                    <div style={styles.stats}>
+                      <div style={styles.stat}>
+                        <div style={styles.statValue}>{station.totalWheels}</div>
+                        <div style={styles.statLabel}>סה"כ גלגלים</div>
+                      </div>
+                      <div style={styles.stat}>
+                        <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
+                        <div style={styles.statLabel}>זמינים</div>
+                      </div>
+                    </div>
+                    {station.wheel_station_managers.length > 0 && (
+                      <>
+                        <div style={{flex: '1', minHeight: '12px'}} />
+                        <div style={styles.managers}>
+                          <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.58 2.72h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.56 6.56l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> {station.wheel_station_managers.length} אנשי קשר</span>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )
+            if (isComingSoon) {
+              return (
+                <div key={station.id} style={styles.comingSoonCard}>
+                  {cardInner}
                 </div>
-              )}
-            </Link>
-          ))}
+              )
+            }
+            return (
+              <Link
+                key={station.id}
+                href={`/${station.id}`}
+                style={styles.card}
+                className="wheels-card"
+                aria-label={`תחנת ${station.name} - ${station.availableWheels} גלגלים זמינים מתוך ${station.totalWheels}`}
+              >
+                {cardInner}
+              </Link>
+            )
+          })}
         </div>
       )}
 
@@ -2432,15 +2456,35 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#64748b',
   },
   managers: {
-    marginTop: 'auto',
-    paddingTop: '15px',
     padding: '10px',
     background: '#f8fafc',
     borderRadius: '8px',
     textAlign: 'center',
     color: '#64748b',
     fontSize: '0.9rem',
-    border: '1px solid #f1f5f9',
+    border: '1px solid #e2e8f0',
+  },
+  comingSoonCard: {
+    background: '#f8fafc',
+    borderRadius: '16px',
+    padding: '25px',
+    cursor: 'default',
+    textDecoration: 'none',
+    color: '#94a3b8',
+    border: '1.5px dashed #cbd5e1',
+    display: 'flex',
+    flexDirection: 'column' as const,
+  },
+  comingSoonBadge: {
+    display: 'inline-block',
+    padding: '2px 10px',
+    background: '#f59e0b',
+    color: '#fff',
+    borderRadius: '20px',
+    fontSize: '0.72rem',
+    fontWeight: '700',
+    letterSpacing: '0.3px',
+    flexShrink: 0,
   },
   footer: {
     textAlign: 'center',
