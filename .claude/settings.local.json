@@ -49,7 +49,9 @@
       "Bash(done)",
       "WebFetch(domain:data.gov.il)",
       "WebFetch(domain:www.find-car.co.il)",
-      "WebFetch(domain:www.wheelfitment.eu)"
+      "WebFetch(domain:www.wheelfitment.eu)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\יאיר קדוש\\\\Desktop\\\\פרוייקטים בקוד\\\\WHEELS_APP\\\\src\\\\app\\\\api\\\\wheel-stations\" -Recurse -Name)",
+      "Bash(TURBOPACK=0 npx next build)"
     ],
     "additionalDirectories": [
       "c:\\Users\\יאיר קדוש\\WHEELS_APP\\src\\app\\[stationId]"

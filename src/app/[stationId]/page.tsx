@@ -436,6 +436,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [showExcelModal, setShowExcelModal] = useState(false)
   const [sheetsUrl, setSheetsUrl] = useState('')
   const [importMode, setImportMode] = useState<'file' | 'sheets'>('file')
+  const [pendingImportData, setPendingImportData] = useState<Record<string, unknown>[] | null>(null)
+  const [showImportConflictModal, setShowImportConflictModal] = useState(false)
+  const [importConflictInfo, setImportConflictInfo] = useState<{ new_count: number; duplicate_count: number; duplicate_numbers: string[] } | null>(null)
 
   // Temporary unavailable modal
   const [showUnavailableModal, setShowUnavailableModal] = useState(false)
@@ -1532,12 +1535,51 @@ ${formUrl}`
     }
   }
 
+  // Send import data with chosen mode
+  const doImport = async (importActionMode: 'add_new_only' | 'upsert' | 'replace_all', data?: Record<string, unknown>[]) => {
+    const wheels = data ?? pendingImportData
+    if (!wheels) return
+    setShowImportConflictModal(false)
+    setUploadLoading(true)
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/import`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-station-auth': JSON.stringify({ phone: currentManager?.phone, password: sessionPassword })
+        },
+        body: JSON.stringify({ wheels, mode: importActionMode })
+      })
+      const result = await response.json()
+      if (!response.ok) {
+        toast.error(result.error || 'שגיאה בייבוא')
+        return
+      }
+      await fetchStation()
+      if (importActionMode === 'replace_all') {
+        toast.success(`הוחלפו ${result.imported} גלגלים בהצלחה!`)
+      } else if (importActionMode === 'upsert') {
+        toast.success(`עודכנו/נוספו ${result.imported} גלגלים בהצלחה!`)
+      } else {
+        const msg = result.skipped > 0
+          ? `נוספו ${result.imported} גלגלים חדשים (דולגו ${result.skipped} קיימים)`
+          : `נוספו ${result.imported} גלגלים בהצלחה!`
+        toast.success(msg)
+      }
+    } catch {
+      toast.error('שגיאה בייבוא הנתונים')
+    } finally {
+      setUploadLoading(false)
+      setPendingImportData(null)
+      setImportConflictInfo(null)
+    }
+  }
+
   // Excel upload handler
   const handleExcelUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Clear the input so the same file can be selected again
     event.target.value = ''
 
     setUploadLoading(true)
@@ -1549,7 +1591,7 @@ ${formUrl}`
           const workbook = XLSX.read(data, { type: 'binary' })
           const sheetName = workbook.SheetNames[0]
           const worksheet = workbook.Sheets[sheetName]
-          const jsonData = XLSX.utils.sheet_to_json(worksheet)
+          const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[]
 
           if (jsonData.length === 0) {
             toast.error('הקובץ ריק או לא תקין')
@@ -1557,37 +1599,36 @@ ${formUrl}`
             return
           }
 
-          // Send to import API
-          const response = await fetch(`/api/wheel-stations/${stationId}/import`, {
+          // Check for duplicates before importing
+          const checkRes = await fetch(`/api/wheel-stations/${stationId}/import`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-station-auth': JSON.stringify({
-                phone: currentManager?.phone,
-                password: sessionPassword
-              })
+              'x-station-auth': JSON.stringify({ phone: currentManager?.phone, password: sessionPassword })
             },
-            body: JSON.stringify({
-              wheels: jsonData
-            })
+            body: JSON.stringify({ wheels: jsonData, mode: 'check' })
           })
+          const checkResult = await checkRes.json()
 
-          const result = await response.json()
-
-          if (!response.ok) {
-            toast.error(result.error || 'שגיאה בייבוא')
+          if (!checkRes.ok) {
+            toast.error(checkResult.error || 'שגיאה בבדיקת הנתונים')
+            setUploadLoading(false)
             return
           }
 
-          await fetchStation()
-          toast.success(`נוספו ${result.imported} גלגלים בהצלחה!`)
-          if (result.errors && result.errors.length > 0) {
-            toast.error(`${result.errors.length} שורות נכשלו`)
+          if (checkResult.duplicate_count > 0) {
+            // Show conflict resolution modal
+            setPendingImportData(jsonData)
+            setImportConflictInfo(checkResult)
+            setShowImportConflictModal(true)
+            setUploadLoading(false)
+          } else {
+            // No duplicates — import directly
+            await doImport('add_new_only', jsonData)
           }
         } catch (err) {
           console.error('Excel parse error:', err)
           toast.error('שגיאה בקריאת הקובץ')
-        } finally {
           setUploadLoading(false)
         }
       }
@@ -5174,6 +5215,63 @@ ${formUrl}`
                 onClick={confirmDialogData.onConfirm}
               >
                 {confirmDialogData.confirmText || 'אישור'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Conflict Modal */}
+      {showImportConflictModal && importConflictInfo && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowImportConflictModal(false); setPendingImportData(null); setImportConflictInfo(null) }}>
+          <div role="dialog" aria-modal="true" style={{...styles.modal, maxWidth: '420px', textAlign: 'center'}} onClick={e => e.stopPropagation()}>
+            <h3 style={{...styles.modalTitle, display: 'inline-flex', alignItems: 'center', gap: '6px'}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              נמצאו כפילויות
+            </h3>
+            <p style={{color: '#64748b', fontSize: '0.9rem', margin: '10px 0 20px'}}>
+              {importConflictInfo.new_count > 0
+                ? <><strong style={{color: '#16a34a'}}>{importConflictInfo.new_count} גלגלים חדשים</strong> ו-<strong style={{color: '#ef4444'}}>{importConflictInfo.duplicate_count} כבר קיימים</strong> במערכת</>
+                : <><strong style={{color: '#ef4444'}}>כל {importConflictInfo.duplicate_count} הגלגלים</strong> כבר קיימים במערכת</>
+              }
+              {importConflictInfo.duplicate_numbers.length > 0 && (
+                <span style={{display: 'block', marginTop: '6px', fontSize: '0.8rem', color: '#94a3b8'}}>
+                  קיימים: {importConflictInfo.duplicate_numbers.slice(0, 8).join(', ')}{importConflictInfo.duplicate_numbers.length > 8 ? ` ועוד ${importConflictInfo.duplicate_numbers.length - 8}...` : ''}
+                </span>
+              )}
+            </p>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+              {importConflictInfo.new_count > 0 && (
+                <button
+                  style={{padding: '12px', borderRadius: '10px', border: 'none', background: '#16a34a', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem'}}
+                  onClick={() => doImport('add_new_only')}
+                  disabled={uploadLoading}
+                >
+                  הוסף רק חדשים ({importConflictInfo.new_count})
+                  <span style={{display: 'block', fontSize: '0.78rem', fontWeight: 'normal', marginTop: '3px', opacity: 0.85}}>הקיימים לא ישתנו</span>
+                </button>
+              )}
+              <button
+                style={{padding: '12px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem'}}
+                onClick={() => doImport('upsert')}
+                disabled={uploadLoading}
+              >
+                עדכן קיימים + הוסף חדשים
+                <span style={{display: 'block', fontSize: '0.78rem', fontWeight: 'normal', marginTop: '3px', opacity: 0.85}}>הקיימים יתעדכנו לפי הקובץ</span>
+              </button>
+              <button
+                style={{padding: '12px', borderRadius: '10px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem'}}
+                onClick={() => doImport('replace_all')}
+                disabled={uploadLoading}
+              >
+                החלף הכל
+                <span style={{display: 'block', fontSize: '0.78rem', fontWeight: 'normal', marginTop: '3px', opacity: 0.85}}>מחיקת כל הגלגלים הקיימים והעלאה מחדש</span>
+              </button>
+              <button
+                style={{padding: '10px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: '0.9rem'}}
+                onClick={() => { setShowImportConflictModal(false); setPendingImportData(null); setImportConflictInfo(null) }}
+              >
+                ביטול
               </button>
             </div>
           </div>

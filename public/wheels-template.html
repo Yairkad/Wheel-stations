@@ -24,6 +24,8 @@
       <th>גודל ג'אנט</th>
       <th>כמות ברגים</th>
       <th>מרווח ברגים</th>
+      <th>CB</th>
+      <th>מידות צמיג</th>
       <th>קטגוריה</th>
       <th>דונאט</th>
       <th>הערות</th>
@@ -33,6 +35,8 @@
       <td>16</td>
       <td>5</td>
       <td>114.3</td>
+      <td>60.1</td>
+      <td>205/55R16</td>
       <td>סדאן</td>
       <td>לא</td>
       <td></td>
@@ -42,20 +46,22 @@
       <td>17</td>
       <td>5</td>
       <td>120</td>
+      <td></td>
+      <td></td>
       <td>ג'יפ</td>
       <td>כן</td>
       <td>דונאט קטן</td>
     </tr>
   </table>
-  <p class="note">* "מספר גלגל", "גודל ג'אנט", "כמות ברגים" ו"מרווח ברגים" הם שדות חובה</p>
+  <p class="note">* "מספר גלגל", "גודל ג'אנט", "כמות ברגים" ו"מרווח ברגים" הם שדות חובה. "CB" הוא אופציונלי (קוטר מרכז הגלגל)</p>
   <button class="download-btn" onclick="downloadTemplate()">📥 הורד קובץ Excel תבנית</button>
   <script>
     function downloadTemplate() {
       var data = [
-        { 'מספר גלגל': '', "גודל ג'אנט": '', 'כמות ברגים': '', 'מרווח ברגים': '', 'קטגוריה': '', 'דונאט': '', 'הערות': '' }
+        { 'מספר גלגל': '', "גודל ג'אנט": '', 'כמות ברגים': '', 'מרווח ברגים': '', 'CB': '', 'מידות צמיג': '', 'קטגוריה': '', 'דונאט': '', 'הערות': '' }
       ];
       var ws = XLSX.utils.json_to_sheet(data);
-      ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 25 }, { wch: 8 }, { wch: 25 }];
+      ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 25 }, { wch: 8 }, { wch: 25 }];
       var wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'גלגלים');
       XLSX.writeFile(wb, 'wheels-template.xlsx');

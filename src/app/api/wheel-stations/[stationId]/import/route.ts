@@ -22,6 +22,8 @@ interface WheelImportData {
   rim_size: string
   bolt_count: number
   bolt_spacing: number
+  center_bore?: string | number | null
+  tire_size?: string | null
   category?: string
   is_donut?: boolean | string  // Can be "כן"/"לא" or true/false
   notes?: string
@@ -39,6 +41,12 @@ const hebrewToEnglishColumns: Record<string, string> = {
   'כמות ברגים': 'bolt_count',
   'מרווח_ברגים': 'bolt_spacing',
   'מרווח ברגים': 'bolt_spacing',
+  'CB': 'center_bore',
+  'cb': 'center_bore',
+  'center_bore': 'center_bore',
+  'מידות צמיג': 'tire_size',
+  'מידות_צמיג': 'tire_size',
+  'tire_size': 'tire_size',
   'קטגוריה': 'category',
   'דונאט': 'is_donut',
   'גלגל_דונאט': 'is_donut',
@@ -51,7 +59,9 @@ function normalizeWheelData(wheel: Record<string, unknown>): WheelImportData {
   const normalized: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(wheel)) {
-    const englishKey = hebrewToEnglishColumns[key] || key
+    // Trim whitespace and invisible Unicode chars (RTL marks, BOM, zero-width spaces)
+    const cleanKey = key.trim().replace(/[​-\u200F﻿]/g, '')
+    const englishKey = hebrewToEnglishColumns[cleanKey] || cleanKey
     normalized[englishKey] = value
   }
 
@@ -173,10 +183,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json()
-    const { wheels: rawWheels, replace_existing, sheetsUrl } = body as {
+    const { wheels: rawWheels, replace_existing, sheetsUrl, mode } = body as {
       wheels?: Record<string, unknown>[]
       replace_existing?: boolean
       sheetsUrl?: string
+      mode?: 'check' | 'add_new_only' | 'upsert' | 'replace_all'
     }
 
     let wheelsData: Record<string, unknown>[]
@@ -248,14 +259,51 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       console.error('Validation errors:', validationErrors)
       return NextResponse.json({
         error: 'Validation errors',
-        details: validationErrors.slice(0, 10), // Return first 10 errors
-        sampleData: wheelsData[0] // Include first row for debugging
+        details: validationErrors.slice(0, 10),
+        sampleData: wheelsData[0]
       }, { status: 400 })
     }
 
-    // If replace_existing is true, delete all existing wheels first
-    if (replace_existing) {
-      // Check if any wheels are currently borrowed
+    // Prepare wheel rows (shared across all modes)
+    const prepareRow = (wheel: WheelImportData) => ({
+      station_id: stationId,
+      wheel_number: String(wheel.wheel_number),
+      rim_size: String(wheel.rim_size).replace('"', ''),
+      bolt_count: wheel.bolt_count,
+      bolt_spacing: wheel.bolt_spacing,
+      center_bore: wheel.center_bore != null && wheel.center_bore !== '' ? String(wheel.center_bore) : null,
+      tire_size: wheel.tire_size || null,
+      category: wheel.category || null,
+      is_donut: wheel.is_donut || false,
+      notes: wheel.notes || null,
+      is_available: true,
+    })
+
+    // Resolve effective mode (mode param takes precedence over legacy replace_existing)
+    const effectiveMode = mode ?? (replace_existing ? 'replace_all' : 'add_new_only')
+
+    // --- check: return duplicate info without inserting ---
+    if (effectiveMode === 'check') {
+      const { data: existing } = await supabase
+        .from('wheels')
+        .select('wheel_number')
+        .eq('station_id', stationId)
+        .is('deleted_at', null)
+
+      const existingSet = new Set((existing ?? []).map(r => String(r.wheel_number)))
+      const incomingNumbers = wheels.map(w => String(w.wheel_number))
+      const duplicateNumbers = incomingNumbers.filter(n => existingSet.has(n))
+      const newCount = incomingNumbers.length - duplicateNumbers.length
+
+      return NextResponse.json({
+        new_count: newCount,
+        duplicate_count: duplicateNumbers.length,
+        duplicate_numbers: duplicateNumbers.slice(0, 20),
+      })
+    }
+
+    // --- replace_all: delete all existing, then insert everything ---
+    if (effectiveMode === 'replace_all') {
       const { data: borrowedWheels } = await supabase
         .from('wheels')
         .select('id, wheel_number')
@@ -264,52 +312,75 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
       if (borrowedWheels && borrowedWheels.length > 0) {
         return NextResponse.json({
-          error: 'Cannot replace wheels while some are borrowed',
+          error: 'לא ניתן להחליף גלגלים כשחלקם מושאלים',
           borrowed_wheels: borrowedWheels.map(w => w.wheel_number)
         }, { status: 400 })
       }
 
-      // Delete existing wheels
-      await supabase
+      await supabase.from('wheels').delete().eq('station_id', stationId)
+
+      const { data: inserted, error: insertError } = await supabase
         .from('wheels')
-        .delete()
-        .eq('station_id', stationId)
+        .insert(wheels.map(prepareRow))
+        .select()
+
+      if (insertError) {
+        console.error('Error importing wheels (replace_all):', insertError)
+        return NextResponse.json({ error: 'שגיאה בייבוא הגלגלים' }, { status: 500 })
+      }
+
+      return NextResponse.json({ success: true, imported: inserted?.length ?? 0 }, { status: 201 })
     }
 
-    // Prepare wheels for insert
-    const wheelsToInsert = wheels.map(wheel => ({
-      station_id: stationId,
-      wheel_number: String(wheel.wheel_number), // Convert to string (supports alphanumeric like "A23")
-      rim_size: String(wheel.rim_size).replace('"', ''), // Remove " if present
-      bolt_count: wheel.bolt_count,
-      bolt_spacing: wheel.bolt_spacing,
-      category: wheel.category || null,
-      is_donut: wheel.is_donut || false,
-      notes: wheel.notes || null,
-      is_available: true
-    }))
+    // --- upsert: update existing + insert new ---
+    if (effectiveMode === 'upsert') {
+      const { data: upserted, error: upsertError } = await supabase
+        .from('wheels')
+        .upsert(wheels.map(prepareRow), { onConflict: 'station_id,wheel_number' })
+        .select()
 
-    // Insert wheels
-    const { data: insertedWheels, error: insertError } = await supabase
+      if (upsertError) {
+        console.error('Error importing wheels (upsert):', upsertError)
+        return NextResponse.json({ error: 'שגיאה בעדכון הגלגלים' }, { status: 500 })
+      }
+
+      return NextResponse.json({ success: true, imported: upserted?.length ?? 0 }, { status: 201 })
+    }
+
+    // --- add_new_only (default): skip wheels that already exist ---
+    const { data: existing } = await supabase
       .from('wheels')
-      .insert(wheelsToInsert)
+      .select('wheel_number')
+      .eq('station_id', stationId)
+      .is('deleted_at', null)
+
+    const existingSet = new Set((existing ?? []).map(r => String(r.wheel_number)))
+    const newWheels = wheels.filter(w => !existingSet.has(String(w.wheel_number)))
+    const skipped = wheels.length - newWheels.length
+
+    if (newWheels.length === 0) {
+      return NextResponse.json({
+        success: true,
+        imported: 0,
+        skipped,
+        message: 'כל הגלגלים כבר קיימים במערכת'
+      })
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from('wheels')
+      .insert(newWheels.map(prepareRow))
       .select()
 
     if (insertError) {
-      console.error('Error importing wheels:', insertError)
-      if (insertError.code === '23505') {
-        return NextResponse.json({
-          error: 'Duplicate wheel numbers found',
-          details: 'Some wheel numbers already exist in this station'
-        }, { status: 400 })
-      }
-      return NextResponse.json({ error: 'Failed to import wheels' }, { status: 500 })
+      console.error('Error importing wheels (add_new_only):', insertError)
+      return NextResponse.json({ error: 'שגיאה בייבוא הגלגלים' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      imported: insertedWheels?.length || 0,
-      message: `Successfully imported ${insertedWheels?.length || 0} wheels`
+      imported: inserted?.length ?? 0,
+      skipped,
     }, { status: 201 })
   } catch (error) {
     console.error('Error in POST import:', error)
