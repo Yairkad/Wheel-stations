@@ -22,6 +22,7 @@ interface Station {
   address: string
   district?: string | null
   is_active: boolean
+  is_coming_soon?: boolean
   max_managers?: number
   wheel_station_managers: Manager[]
   totalWheels: number
@@ -72,6 +73,7 @@ export default function WheelsAdminPage() {
     name: '',
     address: '',
     district: '' as string,
+    is_coming_soon: false,
   })
 
   // Confirm dialog state
@@ -148,6 +150,7 @@ export default function WheelsAdminPage() {
       name: '',
       address: '',
       district: '',
+      is_coming_soon: false,
     })
   }
 
@@ -351,6 +354,7 @@ export default function WheelsAdminPage() {
       name: station.name,
       address: station.address || '',
       district: station.district || '',
+      is_coming_soon: station.is_coming_soon || false,
     })
     setEditingStation(station)
   }
@@ -756,6 +760,24 @@ export default function WheelsAdminPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div style={{...styles.formGroup, marginBottom: 0}}>
+                <label style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', userSelect: 'none'}}>
+                  <input
+                    type="checkbox"
+                    checked={stationForm.is_coming_soon}
+                    onChange={e => setStationForm({...stationForm, is_coming_soon: e.target.checked})}
+                    style={{width: '16px', height: '16px', cursor: 'pointer', accentColor: '#f59e0b'}}
+                  />
+                  <span style={{...styles.formLabel, margin: 0}}>
+                    תחנה בקרוב
+                    <span style={{marginRight: '6px', display: 'inline-block', padding: '1px 8px', background: '#fef3c7', color: '#b45309', borderRadius: '10px', fontSize: '0.72rem', fontWeight: '700'}}>בקרוב</span>
+                  </span>
+                </label>
+                <p style={{fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px', marginBottom: 0, paddingRight: '26px'}}>
+                  הכרטיס יוצג אך לא יהיה ניתן לבחירה
+                </p>
               </div>
 
             </div>
