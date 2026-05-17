@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { verifySuperManager } from '@/lib/super-manager-auth'
+import { logLogin } from '@/lib/login-log'
 
 // POST - Authenticate super manager
 export async function POST(request: NextRequest) {
@@ -28,6 +29,15 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 401 })
     }
+
+    const ip = getClientIp(request)
+    await logLogin({
+      userId: result.superManager!.id,
+      fullName: result.superManager!.full_name,
+      phone: result.superManager!.phone,
+      role: 'super_manager',
+      ip,
+    })
 
     return NextResponse.json({
       success: true,

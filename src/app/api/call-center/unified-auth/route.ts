@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { verifyPassword } from '@/lib/password'
+import { logLogin } from '@/lib/login-log'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
       if (!cc?.is_active) {
         return NextResponse.json({ error: 'המוקד אינו פעיל' }, { status: 401 })
       }
+      await logLogin({ userId: user.id, fullName: user.full_name, phone: user.phone, role: 'call_center_manager', ip: clientIp })
       return NextResponse.json({
         success: true,
         role: 'manager',
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest) {
       if (!cc?.is_active) {
         return NextResponse.json({ error: 'המוקד אינו פעיל' }, { status: 401 })
       }
+      await logLogin({ userId: user.id, fullName: user.full_name, phone: user.phone, role: 'operator', ip: clientIp })
       return NextResponse.json({
         success: true,
         role: 'operator',

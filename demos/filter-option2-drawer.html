@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אפשרות 2 — Drawer צדדי</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; direction: rtl; min-height: 100vh; padding: 24px; overflow-x: hidden; }
+  h2 { color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.1em; margin-bottom: 16px; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 180px;
+    padding: 9px 14px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    outline: none;
+  }
+  .search-box::placeholder { color: #475569; }
+  .btn { display: flex; align-items: center; gap: 6px; padding: 9px 16px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: #94a3b8; cursor: pointer; font-size: 0.9rem; white-space: nowrap; }
+  .btn.primary { background: #3b82f6; border-color: #3b82f6; color: white; }
+  .btn .badge { background: #ef4444; color: white; border-radius: 999px; padding: 1px 6px; font-size: 0.7rem; font-weight: 700; }
+
+  /* Overlay */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+    z-index: 40;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  /* Drawer */
+  .drawer {
+    position: fixed;
+    top: 0; right: 0;
+    width: min(340px, 90vw);
+    height: 100vh;
+    background: #1e293b;
+    border-left: 1px solid #334155;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    overflow: hidden;
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid #334155;
+    flex-shrink: 0;
+  }
+  .drawer-title { font-size: 1rem; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
+  .btn-close { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 6px; }
+  .btn-close:hover { background: #334155; color: #e2e8f0; }
+
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .filter-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #1e3a5f;
+  }
+  .filter-section:last-child { border-bottom: none; }
+  .filter-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+  .filter-group { margin-bottom: 12px; }
+  .filter-group label { display: block; font-size: 0.82rem; color: #94a3b8; margin-bottom: 5px; }
+  .filter-group input,
+  .filter-group select {
+    width: 100%;
+    padding: 9px 12px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  .filter-group input:focus, .filter-group select:focus { border-color: #3b82f6; }
+  .filter-group input::placeholder { color: #475569; }
+
+  .range-row { display: flex; gap: 8px; align-items: center; }
+  .range-row span { color: #475569; font-size: 0.8rem; }
+
+  /* Pill buttons for bolt count */
+  .pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    padding: 6px 16px;
+    border-radius: 999px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+  .pill.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; font-weight: 600; }
+
+  .drawer-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #334155;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .btn-clear-all { flex: 1; padding: 10px; background: transparent; border: 1px solid #334155; border-radius: 8px; color: #94a3b8; cursor: pointer; font-size: 0.9rem; }
+  .btn-apply-all { flex: 2; padding: 10px; background: #3b82f6; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 0.9rem; font-weight: 700; }
+
+  /* Active chips */
+  .active-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .chip { display: flex; align-items: center; gap: 4px; padding: 3px 10px 3px 8px; background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 999px; font-size: 0.78rem; color: #93c5fd; }
+  .chip button { background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 0.9rem; }
+
+  /* Table */
+  .table-wrap { background: #1e293b; border-radius: 12px; border: 1px solid #334155; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 500px; }
+  th { padding: 12px 14px; text-align: right; font-size: 0.78rem; color: #64748b; font-weight: 600; border-bottom: 1px solid #334155; }
+  td { padding: 11px 14px; font-size: 0.88rem; border-bottom: 1px solid #1e3a5f; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #243447; }
+</style>
+</head>
+<body>
+
+<h2>אפשרות 2 — Drawer צדדי</h2>
+
+<div class="toolbar">
+  <input class="search-box" type="text" placeholder="חיפוש חופשי...">
+  <button class="btn" onclick="openDrawer()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    סינון
+    <span class="badge">3</span>
+  </button>
+  <button class="btn" style="margin-right:auto">ייצוא</button>
+  <button class="btn primary">+ הוסף</button>
+</div>
+
+<div class="active-chips">
+  <div class="chip">Toyota <button>×</button></div>
+  <div class="chip">5 ברגים <button>×</button></div>
+  <div class="chip">2015–כיום <button>×</button></div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>יצרן</th><th>דגם</th><th>שנים</th><th>ברגים</th><th>מרווח</th><th>CB</th><th>פעולות</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Toyota</td><td>Corolla</td><td>2014–2019</td><td>5</td><td>114.3</td><td>60.1</td><td>✏️ 🗑️</td></tr>
+      <tr><td>Toyota</td><td>RAV4</td><td>2019–כיום</td><td>5</td><td>114.3</td><td>60.1</td><td>✏️ 🗑️</td></tr>
+      <tr><td>Toyota</td><td>Yaris</td><td>2015–2020</td><td>5</td><td>100</td><td>54.1</td><td>✏️ 🗑️</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- Drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      פילטרים
+    </div>
+    <button class="btn-close" onclick="closeDrawer()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <div class="filter-section">
+      <div class="filter-section-title">זיהוי</div>
+      <div class="filter-group">
+        <label>יצרן</label>
+        <input type="text" value="Toyota" placeholder="כל היצרנים">
+      </div>
+      <div class="filter-group">
+        <label>דגם</label>
+        <input type="text" placeholder="כל הדגמים">
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-section-title">שנים</div>
+      <div class="filter-group">
+        <label>טווח שנים</label>
+        <div class="range-row">
+          <input type="number" value="2015" placeholder="מ-" style="flex:1">
+          <span>—</span>
+          <input type="number" placeholder="עד" style="flex:1">
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-section-title">גלגלים</div>
+      <div class="filter-group">
+        <label>מספר ברגים</label>
+        <div class="pill-group">
+          <div class="pill">4</div>
+          <div class="pill active">5</div>
+          <div class="pill">6</div>
+          <div class="pill">הכל</div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>PCD / מרווח</label>
+        <input type="number" placeholder="114.3">
+      </div>
+      <div class="filter-group">
+        <label>Center Bore</label>
+        <input type="number" placeholder="60.1">
+      </div>
+      <div class="filter-group">
+        <label>גודל חישוק</label>
+        <input type="text" placeholder='16"'>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-section-title">נתונים</div>
+      <div class="filter-group">
+        <label>מצב קישור</label>
+        <select>
+          <option>הכל</option>
+          <option>עם קישור מאומת</option>
+          <option>ללא קישור</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <button class="btn-clear-all">נקה הכל</button>
+    <button class="btn-apply-all">החל (3 פילטרים)</button>
+  </div>
+</div>
+
+<script>
+function openDrawer() {
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    p.closest('.pill-group').querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

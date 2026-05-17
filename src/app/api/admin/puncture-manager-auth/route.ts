@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyPassword } from '@/lib/password'
+import { logLogin } from '@/lib/login-log'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,6 +44,8 @@ export async function POST(request: NextRequest) {
   if (!roleRow) {
     return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
   }
+
+  await logLogin({ userId: user.id, fullName: user.full_name, phone: user.phone, role: 'puncture_manager' })
 
   return NextResponse.json({
     success: true,
