@@ -1001,12 +1001,14 @@ export default function WheelStationsPage() {
                   </div>
                 )}
               </div>
-              {station.address && (
-                <div style={{...styles.address, display:'flex', alignItems:'center', gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {station.address}</div>
-              )}
-              {station.cities?.name && (
-                <div style={styles.cityName}>{station.cities.name}</div>
-              )}
+              <div style={{minHeight: '38px'}}>
+                {station.address && (
+                  <div style={{...styles.address, display:'flex', alignItems:'center', gap:'4px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {station.address}</div>
+                )}
+                {station.cities?.name && (
+                  <div style={styles.cityName}>{station.cities.name}</div>
+                )}
+              </div>
               <div style={styles.stats}>
                 <div style={styles.stat}>
                   <div style={styles.statValue}>{station.totalWheels}</div>
