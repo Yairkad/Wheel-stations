@@ -4974,7 +4974,7 @@ ${formUrl}`
             <div style={{display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px'}}>
               {/* Import section with tabs */}
               <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '4px', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>ייבוא גלגלים:</span>
+                <span style={{fontWeight: 'bold', color: '#1e293b', marginBottom: '4px', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>ייבוא גלגלים:</span>
 
                 {/* Import mode toggle */}
                 <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
@@ -5073,8 +5073,8 @@ ${formUrl}`
             </div>
 
             {/* Export Section */}
-            <div style={{borderTop: '1px solid #334155', marginTop: '20px', paddingTop: '20px'}}>
-              <span style={{fontWeight: 'bold', color: '#fff', marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px'}}>
+            <div style={{borderTop: '1px solid #e2e8f0', marginTop: '20px', paddingTop: '20px'}}>
+              <span style={{fontWeight: 'bold', color: '#1e293b', marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px'}}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 ייצוא נתונים לאקסל:
               </span>
@@ -5084,7 +5084,7 @@ ${formUrl}`
                   { key: 'history',   label: 'היסטוריית השאלות' },
                   { key: 'unavailable', label: 'גלגלים לא זמינים' },
                 ].map(({ key, label }) => (
-                  <label key={key} style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#e2e8f0', fontSize: '0.9rem'}}>
+                  <label key={key} style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', color: '#1e293b', fontSize: '0.9rem'}}>
                     <input
                       type="checkbox"
                       checked={reportChecks[key as keyof typeof reportChecks]}
@@ -5097,7 +5097,7 @@ ${formUrl}`
               </div>
               {reportChecks.history && (
                 <div style={{marginBottom: '14px'}}>
-                  <div style={{color: '#94a3b8', fontSize: '0.8rem', marginBottom: '6px', textAlign: 'right'}}>טווח תאריכים להיסטוריה (אופציונלי)</div>
+                  <div style={{color: '#64748b', fontSize: '0.8rem', marginBottom: '6px', textAlign: 'right'}}>טווח תאריכים להיסטוריה (אופציונלי)</div>
                   <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
                     <input
                       type="date"
