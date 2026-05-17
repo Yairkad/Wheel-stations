@@ -189,6 +189,7 @@ function VehiclesAdminPage() {
 
   // Track which filter dropdown is open
   const [openFilter, setOpenFilter] = useState<string | null>(null)
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false)
 
   // Get filtered suggestions based on current input
   const getMakeSuggestionsForFilter = () => {
@@ -1478,15 +1479,58 @@ function VehiclesAdminPage() {
           </div>
         )}
 
-        {/* Search */}
+        {/* Search + Filter Toolbar */}
         <div style={styles.searchContainer}>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="חפש לפי יצרן או דגם..."
-            style={styles.searchInput}
-          />
+          <div style={styles.filterToolbar}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="חפש לפי יצרן או דגם..."
+              style={{...styles.searchInput, maxWidth: 'none', flex: 1}}
+            />
+            <button style={styles.btnFilterOpen} onClick={() => setShowFilterDrawer(true)}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              פילטרים
+              {Object.values(columnFilters).filter(f => f.type !== '').length > 0 && (
+                <span style={styles.filterBadge}>{Object.values(columnFilters).filter(f => f.type !== '').length}</span>
+              )}
+            </button>
+          </div>
+          {Object.values(columnFilters).some(f => f.type !== '') && (
+            <div style={styles.activeChipsRow}>
+              {columnFilters.make.value && (
+                <div style={styles.chip}>יצרן: {columnFilters.make.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, make: { type: '', value: '' }})}>×</button></div>
+              )}
+              {columnFilters.model.value && (
+                <div style={styles.chip}>דגם: {columnFilters.model.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, model: { type: '', value: '' }})}>×</button></div>
+              )}
+              {columnFilters.year_from.value && (
+                <div style={styles.chip}>שנה: {columnFilters.year_from.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '' }})}>×</button></div>
+              )}
+              {columnFilters.bolt_count.value && (
+                <div style={styles.chip}>ברגים: {columnFilters.bolt_count.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: '', value: '' }})}>×</button></div>
+              )}
+              {columnFilters.bolt_spacing.value && (
+                <div style={styles.chip}>מרווח: {columnFilters.bolt_spacing.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, bolt_spacing: { type: '', value: '' }})}>×</button></div>
+              )}
+              {columnFilters.center_bore.value && (
+                <div style={styles.chip}>CB {columnFilters.center_bore.type === 'greater' ? '≥' : '='} {columnFilters.center_bore.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, center_bore: { type: '', value: '' }})}>×</button></div>
+              )}
+              {columnFilters.rim_size.value && (
+                <div style={styles.chip}>חישוק: {columnFilters.rim_size.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, rim_size: { type: '', value: '' }})}>×</button></div>
+              )}
+              {(columnFilters.rim_sizes_allowed.value || columnFilters.rim_sizes_allowed.valueTo) && (
+                <div style={styles.chip}>קוטר: {columnFilters.rim_sizes_allowed.value || ''}–{columnFilters.rim_sizes_allowed.valueTo || ''} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}>×</button></div>
+              )}
+              {columnFilters.source_url.type === 'has_value' && (
+                <div style={styles.chip}>עם קישור <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, source_url: { type: '', value: '' }})}>×</button></div>
+              )}
+              {columnFilters.source_url.type === 'empty' && (
+                <div style={styles.chip}>ללא קישור <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, source_url: { type: '', value: '' }})}>×</button></div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Vehicles Table */}
@@ -1507,287 +1551,6 @@ function VehiclesAdminPage() {
                   <th style={styles.th}>קוטר מתאים</th>
                   <th style={styles.th}>קישור</th>
                   <th style={styles.th}>פעולות</th>
-                </tr>
-                <tr style={styles.filterRow}>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.filterInputWrapper}>
-                        <input
-                          type="text"
-                          style={styles.filterInput}
-                          placeholder="יצרן"
-                          value={columnFilters.make.value}
-                          onFocus={() => setOpenFilter('make')}
-                          onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, make: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
-                        />
-                        {columnFilters.make.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, make: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                      {getMakeSuggestionsForFilter().length > 0 && (
-                        <div style={styles.filterSuggestions}>
-                          {getMakeSuggestionsForFilter().map(s => (
-                            <div
-                              key={s}
-                              style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, make: { type: 'equals', value: s }}); setOpenFilter(null) }}
-                            >
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.filterInputWrapper}>
-                        <input
-                          type="text"
-                          style={styles.filterInput}
-                          placeholder="דגם"
-                          value={columnFilters.model.value}
-                          onFocus={() => setOpenFilter('model')}
-                          onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, model: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
-                        />
-                        {columnFilters.model.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, model: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                      {getModelSuggestionsForFilter().length > 0 && (
-                        <div style={styles.filterSuggestions}>
-                          {getModelSuggestionsForFilter().map(s => (
-                            <div
-                              key={s}
-                              style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, model: { type: 'equals', value: s }}); setOpenFilter(null) }}
-                            >
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.filterInputWrapper}>
-                        <input
-                          type="text"
-                          style={styles.filterInput}
-                          placeholder="שנה"
-                          value={columnFilters.year_from.value}
-                          onFocus={() => setOpenFilter('year_from')}
-                          onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, year_from: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
-                        />
-                        {columnFilters.year_from.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                      {getYearSuggestionsForFilter().length > 0 && (
-                        <div style={styles.filterSuggestions}>
-                          {getYearSuggestionsForFilter().map(s => (
-                            <div
-                              key={s}
-                              style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, year_from: { type: 'equals', value: s.toString() }}); setOpenFilter(null) }}
-                            >
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.filterInputWrapper}>
-                        <input
-                          type="text"
-                          style={styles.filterInput}
-                          placeholder="ברגים"
-                          value={columnFilters.bolt_count.value}
-                          onFocus={() => setOpenFilter('bolt_count')}
-                          onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, bolt_count: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
-                        />
-                        {columnFilters.bolt_count.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                      {getBoltCountSuggestionsForFilter().length > 0 && (
-                        <div style={styles.filterSuggestions}>
-                          {getBoltCountSuggestionsForFilter().map(s => (
-                            <div
-                              key={s}
-                              style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, bolt_count: { type: 'equals', value: s.toString() }}); setOpenFilter(null) }}
-                            >
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.filterInputWrapper}>
-                        <input
-                          type="text"
-                          style={styles.filterInput}
-                          placeholder="מרווח"
-                          value={columnFilters.bolt_spacing.value}
-                          onFocus={() => setOpenFilter('bolt_spacing')}
-                          onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, bolt_spacing: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
-                        />
-                        {columnFilters.bolt_spacing.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, bolt_spacing: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                      {getBoltSpacingSuggestionsForFilter().length > 0 && (
-                        <div style={styles.filterSuggestions}>
-                          {getBoltSpacingSuggestionsForFilter().map(s => (
-                            <div
-                              key={s}
-                              style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, bolt_spacing: { type: 'equals', value: s.toString() }}); setOpenFilter(null) }}
-                            >
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.filterInputWrapper}>
-                        <select
-                          style={{...styles.filterInput, width: '50px', padding: '4px 2px', fontSize: '10px', marginLeft: '2px'}}
-                          value={columnFilters.center_bore.type || 'equals'}
-                          onChange={e => setColumnFilters({...columnFilters, center_bore: { ...columnFilters.center_bore, type: e.target.value as any }})}
-                        >
-                          <option value="equals">=</option>
-                          <option value="greater">≥</option>
-                        </select>
-                        <input
-                          type="text"
-                          style={{...styles.filterInput, flex: 1}}
-                          placeholder="CB"
-                          value={columnFilters.center_bore.value}
-                          onFocus={() => setOpenFilter('center_bore')}
-                          onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, center_bore: { type: columnFilters.center_bore.type || 'equals', value: e.target.value }})}
-                        />
-                        {columnFilters.center_bore.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, center_bore: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                      {getCenterBoreSuggestionsForFilter().length > 0 && (
-                        <div style={styles.filterSuggestions}>
-                          {getCenterBoreSuggestionsForFilter().map(s => (
-                            <div
-                              key={s}
-                              style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, center_bore: { type: columnFilters.center_bore.type || 'equals', value: s.toString() }}); setOpenFilter(null) }}
-                            >
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.filterInputWrapper}>
-                        <input
-                          type="text"
-                          style={styles.filterInput}
-                          placeholder="חישוק"
-                          value={columnFilters.rim_size.value}
-                          onFocus={() => setOpenFilter('rim_size')}
-                          onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                          onChange={e => setColumnFilters({...columnFilters, rim_size: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
-                        />
-                        {columnFilters.rim_size.value && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_size: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                      {getRimSizeSuggestionsForFilter().length > 0 && (
-                        <div style={styles.filterSuggestions}>
-                          {getRimSizeSuggestionsForFilter().map(s => (
-                            <div
-                              key={s}
-                              style={styles.filterSuggestionItem}
-                              onMouseDown={() => { setColumnFilters({...columnFilters, rim_size: { type: 'equals', value: s }}); setOpenFilter(null) }}
-                            >
-                              {s}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <div style={styles.filterWithSuggestions}>
-                      <div style={styles.rangeFilterWrapper}>
-                        <input
-                          type="number"
-                          style={{...styles.filterInputSmall, width: '45px'}}
-                          placeholder="מ-"
-                          value={columnFilters.rim_sizes_allowed.value}
-                          onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: {
-                            type: e.target.value ? 'range' : '',
-                            value: e.target.value,
-                            valueTo: columnFilters.rim_sizes_allowed.valueTo || ''
-                          }})}
-                        />
-                        <span style={{color: '#64748b'}}>-</span>
-                        <input
-                          type="number"
-                          style={{...styles.filterInputSmall, width: '45px'}}
-                          placeholder="עד"
-                          value={columnFilters.rim_sizes_allowed.valueTo || ''}
-                          onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: {
-                            type: columnFilters.rim_sizes_allowed.value ? 'range' : '',
-                            value: columnFilters.rim_sizes_allowed.value,
-                            valueTo: e.target.value
-                          }})}
-                        />
-                        {(columnFilters.rim_sizes_allowed.value || columnFilters.rim_sizes_allowed.valueTo) && (
-                          <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        )}
-                      </div>
-                    </div>
-                  </th>
-                  <th style={styles.thFilter}>
-                    <select
-                      style={styles.filterSelect}
-                      value={columnFilters.source_url.type}
-                      onChange={e => setColumnFilters({...columnFilters, source_url: { type: e.target.value as 'empty' | 'has_value' | '', value: '' }})}
-                    >
-                      <option value="">הכל</option>
-                      <option value="has_value">עם קישור</option>
-                      <option value="empty">ללא קישור</option>
-                    </select>
-                  </th>
-                  <th style={styles.thFilter}>
-                    {hasActiveFilters() && (
-                      <button
-                        style={styles.btnResetAllFilters}
-                        onClick={resetFilters}
-                        title="אפס את כל המסננים"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                      </button>
-                    )}
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1844,6 +1607,272 @@ function VehiclesAdminPage() {
               </tbody>
             </table>
           )}
+        </div>
+      </div>
+
+      {/* Filter Drawer Overlay */}
+      {showFilterDrawer && (
+        <div style={styles.drawerOverlay} onClick={() => setShowFilterDrawer(false)} />
+      )}
+
+      {/* Filter Drawer */}
+      <div style={{...styles.filterDrawer, ...(showFilterDrawer ? styles.filterDrawerOpen : {})}}>
+        <div style={styles.drawerHeader}>
+          <div style={styles.drawerTitle}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            פילטרים
+          </div>
+          <button style={styles.drawerCloseBtn} onClick={() => setShowFilterDrawer(false)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div style={styles.drawerBody}>
+          <div style={styles.drawerSection}>
+            <div style={styles.drawerSectionTitle}>זיהוי</div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>יצרן</label>
+              <div style={styles.filterWithSuggestions}>
+                <div style={styles.filterInputWrapper}>
+                  <input
+                    type="text"
+                    style={styles.drawerInput}
+                    placeholder="כל היצרנים"
+                    value={columnFilters.make.value}
+                    onFocus={() => setOpenFilter('make')}
+                    onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
+                    onChange={e => setColumnFilters({...columnFilters, make: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                  />
+                  {columnFilters.make.value && (
+                    <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, make: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  )}
+                </div>
+                {getMakeSuggestionsForFilter().length > 0 && (
+                  <div style={styles.filterSuggestions}>
+                    {getMakeSuggestionsForFilter().map(s => (
+                      <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, make: { type: 'equals', value: s }}); setOpenFilter(null) }}>{s}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>דגם</label>
+              <div style={styles.filterWithSuggestions}>
+                <div style={styles.filterInputWrapper}>
+                  <input
+                    type="text"
+                    style={styles.drawerInput}
+                    placeholder="כל הדגמים"
+                    value={columnFilters.model.value}
+                    onFocus={() => setOpenFilter('model')}
+                    onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
+                    onChange={e => setColumnFilters({...columnFilters, model: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                  />
+                  {columnFilters.model.value && (
+                    <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, model: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  )}
+                </div>
+                {getModelSuggestionsForFilter().length > 0 && (
+                  <div style={styles.filterSuggestions}>
+                    {getModelSuggestionsForFilter().map(s => (
+                      <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, model: { type: 'equals', value: s }}); setOpenFilter(null) }}>{s}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.drawerSection}>
+            <div style={styles.drawerSectionTitle}>שנת ייצור</div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>שנה (מ-)</label>
+              <div style={styles.filterWithSuggestions}>
+                <div style={styles.filterInputWrapper}>
+                  <input
+                    type="text"
+                    style={styles.drawerInput}
+                    placeholder="2015"
+                    value={columnFilters.year_from.value}
+                    onFocus={() => setOpenFilter('year_from')}
+                    onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
+                    onChange={e => setColumnFilters({...columnFilters, year_from: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                  />
+                  {columnFilters.year_from.value && (
+                    <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  )}
+                </div>
+                {getYearSuggestionsForFilter().length > 0 && (
+                  <div style={styles.filterSuggestions}>
+                    {getYearSuggestionsForFilter().map(s => (
+                      <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, year_from: { type: 'equals', value: s.toString() }}); setOpenFilter(null) }}>{s}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.drawerSection}>
+            <div style={styles.drawerSectionTitle}>גלגלים</div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>מספר ברגים</label>
+              <div style={styles.drawerPillRow}>
+                {uniqueBoltCountValues.map(v => (
+                  <button
+                    key={v}
+                    style={{...styles.drawerPill, ...(columnFilters.bolt_count.value === v.toString() ? styles.drawerPillActive : {})}}
+                    onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: columnFilters.bolt_count.value === v.toString() ? '' : 'equals', value: columnFilters.bolt_count.value === v.toString() ? '' : v.toString() }})}
+                  >
+                    {v}
+                  </button>
+                ))}
+                <button
+                  style={{...styles.drawerPill, ...(columnFilters.bolt_count.value === '' ? styles.drawerPillActive : {})}}
+                  onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: '', value: '' }})}
+                >
+                  הכל
+                </button>
+              </div>
+            </div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>PCD / מרווח</label>
+              <div style={styles.filterWithSuggestions}>
+                <div style={styles.filterInputWrapper}>
+                  <input
+                    type="text"
+                    style={styles.drawerInput}
+                    placeholder="114.3"
+                    value={columnFilters.bolt_spacing.value}
+                    onFocus={() => setOpenFilter('bolt_spacing')}
+                    onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
+                    onChange={e => setColumnFilters({...columnFilters, bolt_spacing: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                  />
+                  {columnFilters.bolt_spacing.value && (
+                    <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, bolt_spacing: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  )}
+                </div>
+                {getBoltSpacingSuggestionsForFilter().length > 0 && (
+                  <div style={styles.filterSuggestions}>
+                    {getBoltSpacingSuggestionsForFilter().map(s => (
+                      <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, bolt_spacing: { type: 'equals', value: s.toString() }}); setOpenFilter(null) }}>{s}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>Center Bore</label>
+              <div style={{display: 'flex', gap: '6px', alignItems: 'center'}}>
+                <select
+                  style={{...styles.drawerInput, width: '60px', flex: 'none' as const}}
+                  value={columnFilters.center_bore.type || 'equals'}
+                  onChange={e => setColumnFilters({...columnFilters, center_bore: { ...columnFilters.center_bore, type: e.target.value as any }})}
+                >
+                  <option value="equals">=</option>
+                  <option value="greater">≥</option>
+                </select>
+                <div style={{...styles.filterWithSuggestions, flex: 1}}>
+                  <div style={styles.filterInputWrapper}>
+                    <input
+                      type="text"
+                      style={styles.drawerInput}
+                      placeholder="60.1"
+                      value={columnFilters.center_bore.value}
+                      onFocus={() => setOpenFilter('center_bore')}
+                      onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
+                      onChange={e => setColumnFilters({...columnFilters, center_bore: { type: columnFilters.center_bore.type || 'equals', value: e.target.value }})}
+                    />
+                    {columnFilters.center_bore.value && (
+                      <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, center_bore: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    )}
+                  </div>
+                  {getCenterBoreSuggestionsForFilter().length > 0 && (
+                    <div style={styles.filterSuggestions}>
+                      {getCenterBoreSuggestionsForFilter().map(s => (
+                        <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, center_bore: { type: columnFilters.center_bore.type || 'equals', value: s.toString() }}); setOpenFilter(null) }}>{s}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>גודל חישוק</label>
+              <div style={styles.filterWithSuggestions}>
+                <div style={styles.filterInputWrapper}>
+                  <input
+                    type="text"
+                    style={styles.drawerInput}
+                    placeholder='16"'
+                    value={columnFilters.rim_size.value}
+                    onFocus={() => setOpenFilter('rim_size')}
+                    onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
+                    onChange={e => setColumnFilters({...columnFilters, rim_size: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
+                  />
+                  {columnFilters.rim_size.value && (
+                    <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_size: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  )}
+                </div>
+                {getRimSizeSuggestionsForFilter().length > 0 && (
+                  <div style={styles.filterSuggestions}>
+                    {getRimSizeSuggestionsForFilter().map(s => (
+                      <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, rim_size: { type: 'equals', value: s }}); setOpenFilter(null) }}>{s}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>קוטר מתאים (טווח)</label>
+              <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                <input
+                  type="number"
+                  style={{...styles.drawerInput, flex: 1}}
+                  placeholder="מ-"
+                  value={columnFilters.rim_sizes_allowed.value}
+                  onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: e.target.value ? 'range' : '', value: e.target.value, valueTo: columnFilters.rim_sizes_allowed.valueTo || '' }})}
+                />
+                <span style={{color:'#94a3b8'}}>—</span>
+                <input
+                  type="number"
+                  style={{...styles.drawerInput, flex: 1}}
+                  placeholder="עד"
+                  value={columnFilters.rim_sizes_allowed.valueTo || ''}
+                  onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: columnFilters.rim_sizes_allowed.value ? 'range' : '', value: columnFilters.rim_sizes_allowed.value, valueTo: e.target.value }})}
+                />
+                {(columnFilters.rim_sizes_allowed.value || columnFilters.rim_sizes_allowed.valueTo) && (
+                  <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div style={{...styles.drawerSection, borderBottom: 'none', marginBottom: 0, paddingBottom: 0}}>
+            <div style={styles.drawerSectionTitle}>נתונים</div>
+            <div style={styles.drawerGroup}>
+              <label style={styles.drawerLabel}>מצב קישור</label>
+              <select
+                style={styles.drawerInput}
+                value={columnFilters.source_url.type}
+                onChange={e => setColumnFilters({...columnFilters, source_url: { type: e.target.value as 'empty' | 'has_value' | '', value: '' }})}
+              >
+                <option value="">הכל</option>
+                <option value="has_value">עם קישור מאומת</option>
+                <option value="empty">ללא קישור</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.drawerFooter}>
+          <button style={styles.btnDrawerClear} onClick={() => { resetFilters(); setShowFilterDrawer(false) }}>נקה הכל</button>
+          <button style={styles.btnDrawerApply} onClick={() => setShowFilterDrawer(false)}>
+            {Object.values(columnFilters).filter(f => f.type !== '').length > 0
+              ? `סגור (${Object.values(columnFilters).filter(f => f.type !== '').length} פעילים)`
+              : 'סגור'}
+          </button>
         </div>
       </div>
 
@@ -3320,6 +3349,202 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.75rem',
     fontWeight: 500,
     whiteSpace: 'nowrap',
+  } as React.CSSProperties,
+  filterToolbar: {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+    marginBottom: '10px',
+  } as React.CSSProperties,
+  btnFilterOpen: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 16px',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '10px',
+    color: '#64748b',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: 500,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+  } as React.CSSProperties,
+  filterBadge: {
+    background: '#2563eb',
+    color: 'white',
+    borderRadius: '999px',
+    padding: '1px 7px',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+  } as React.CSSProperties,
+  activeChipsRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+    marginBottom: '10px',
+  } as React.CSSProperties,
+  chip: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '4px 10px 4px 8px',
+    background: '#dbeafe',
+    border: '1px solid #93c5fd',
+    borderRadius: '999px',
+    fontSize: '0.8rem',
+    color: '#1d4ed8',
+    fontWeight: 500,
+  } as React.CSSProperties,
+  chipClose: {
+    background: 'none',
+    border: 'none',
+    color: '#3b82f6',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    padding: '0 2px',
+    lineHeight: 1,
+    display: 'flex',
+    alignItems: 'center',
+  } as React.CSSProperties,
+  drawerOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.35)',
+    zIndex: 40,
+  } as React.CSSProperties,
+  filterDrawer: {
+    position: 'fixed',
+    top: 0,
+    right: 0,
+    width: 'min(340px, 90vw)' as any,
+    height: '100vh',
+    background: '#ffffff',
+    borderLeft: '1px solid #e2e8f0',
+    zIndex: 50,
+    display: 'flex',
+    flexDirection: 'column',
+    transform: 'translateX(100%)',
+    transition: 'transform 0.25s ease',
+    overflow: 'hidden',
+    boxShadow: '-4px 0 24px rgba(0,0,0,0.08)',
+  } as React.CSSProperties,
+  filterDrawerOpen: {
+    transform: 'translateX(0)',
+  } as React.CSSProperties,
+  drawerHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '18px 20px',
+    borderBottom: '1px solid #e2e8f0',
+    flexShrink: 0,
+  } as React.CSSProperties,
+  drawerTitle: {
+    fontSize: '1rem',
+    fontWeight: 700,
+    color: '#1e293b',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  } as React.CSSProperties,
+  drawerCloseBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#64748b',
+    cursor: 'pointer',
+    padding: '4px',
+    borderRadius: '6px',
+    display: 'flex',
+    alignItems: 'center',
+  } as React.CSSProperties,
+  drawerBody: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '20px',
+  } as React.CSSProperties,
+  drawerSection: {
+    marginBottom: '20px',
+    paddingBottom: '20px',
+    borderBottom: '1px solid #f1f5f9',
+  } as React.CSSProperties,
+  drawerSectionTitle: {
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    marginBottom: '12px',
+  } as React.CSSProperties,
+  drawerGroup: {
+    marginBottom: '14px',
+  } as React.CSSProperties,
+  drawerLabel: {
+    display: 'block',
+    fontSize: '0.82rem',
+    color: '#64748b',
+    marginBottom: '5px',
+    fontWeight: 500,
+  } as React.CSSProperties,
+  drawerInput: {
+    width: '100%',
+    padding: '9px 22px 9px 12px',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
+    borderRadius: '8px',
+    color: '#1e293b',
+    fontSize: '0.9rem',
+    outline: 'none',
+    boxSizing: 'border-box',
+  } as React.CSSProperties,
+  drawerPillRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+  } as React.CSSProperties,
+  drawerPill: {
+    padding: '6px 16px',
+    borderRadius: '999px',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#64748b',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+  } as React.CSSProperties,
+  drawerPillActive: {
+    background: '#dbeafe',
+    borderColor: '#93c5fd',
+    color: '#1d4ed8',
+    fontWeight: 600,
+  } as React.CSSProperties,
+  drawerFooter: {
+    padding: '16px 20px',
+    borderTop: '1px solid #e2e8f0',
+    display: 'flex',
+    gap: '10px',
+    flexShrink: 0,
+  } as React.CSSProperties,
+  btnDrawerClear: {
+    flex: 1,
+    padding: '10px',
+    background: 'transparent',
+    border: '1px solid #e2e8f0',
+    borderRadius: '8px',
+    color: '#64748b',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+  } as React.CSSProperties,
+  btnDrawerApply: {
+    flex: 2,
+    padding: '10px',
+    background: '#2563eb',
+    border: 'none',
+    borderRadius: '8px',
+    color: 'white',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    fontWeight: 700,
   } as React.CSSProperties,
   footer: {
     padding: '20px',

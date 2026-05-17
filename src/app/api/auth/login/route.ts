@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp, checkAccountLockout, recordFailedAttempt, clearFailedAttempts } from '@/lib/rate-limit'
 import { verifyPassword } from '@/lib/password'
 import { createSessionToken, ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE } from '@/lib/admin-session'
+import { logLogin } from '@/lib/login-log'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -134,6 +135,18 @@ export async function POST(request: NextRequest) {
     }
 
     clearFailedAttempts(cleanPhone)
+
+    const ip = getClientIp(request)
+    for (const r of roles) {
+      const d = r.data as Record<string, unknown>
+      await logLogin({
+        userId: d.id as string | undefined,
+        fullName: d.full_name as string,
+        phone: d.phone as string | undefined,
+        role: r.role,
+        ip,
+      })
+    }
 
     const response = NextResponse.json({ success: true, roles })
 

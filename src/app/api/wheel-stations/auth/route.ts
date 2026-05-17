@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { verifyPassword } from '@/lib/password'
+import { logLogin } from '@/lib/login-log'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
 
     if (roleRow) {
       const ws = Array.isArray(roleRow.wheel_stations) ? roleRow.wheel_stations[0] : roleRow.wheel_stations as { id: string; name: string } | null
+      await logLogin({ userId: user.id, fullName: user.full_name, phone: user.phone, role: 'station_manager', ip: clientIp })
       return NextResponse.json({
         success: true,
         manager: {
