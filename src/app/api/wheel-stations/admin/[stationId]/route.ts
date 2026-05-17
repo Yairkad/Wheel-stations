@@ -22,7 +22,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { name, address, city_id, district, is_active, managers, max_managers } = body
+    const { name, address, city_id, district, is_active, is_coming_soon, managers, max_managers } = body
 
     if (!await validateAdminSession(request)) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
@@ -30,13 +30,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const updateData: {
       name?: string; address?: string; city_id?: string | null
-      district?: string | null; is_active?: boolean; max_managers?: number
+      district?: string | null; is_active?: boolean; is_coming_soon?: boolean; max_managers?: number
     } = {}
     if (name !== undefined) updateData.name = name
     if (address !== undefined) updateData.address = address
     if (city_id !== undefined) updateData.city_id = city_id || null
     if (district !== undefined) updateData.district = district || null
     if (is_active !== undefined) updateData.is_active = is_active
+    if (is_coming_soon !== undefined) updateData.is_coming_soon = is_coming_soon
     if (max_managers !== undefined) updateData.max_managers = max_managers
 
     if (Object.keys(updateData).length > 0) {
