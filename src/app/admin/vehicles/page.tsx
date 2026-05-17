@@ -167,7 +167,7 @@ function VehiclesAdminPage() {
   }>({
     make: { type: '', value: '' },
     model: { type: '', value: '' },
-    year_from: { type: '', value: '' },
+    year_from: { type: '', value: '', valueTo: '' },
     bolt_count: { type: '', value: '' },
     bolt_spacing: { type: '', value: '' },
     center_bore: { type: '', value: '' },
@@ -353,7 +353,7 @@ function VehiclesAdminPage() {
         ...prev,
         make: make ? { type: 'equals', value: make } : prev.make,
         model: model ? { type: 'equals', value: model } : prev.model,
-        year_from: year ? { type: 'equals', value: year } : prev.year_from
+        year_from: year ? { type: 'range', value: year, valueTo: '' } : prev.year_from
       }))
     }
 
@@ -1186,7 +1186,7 @@ function VehiclesAdminPage() {
     setColumnFilters({
       make: { type: '', value: '' },
       model: { type: '', value: '' },
-      year_from: { type: '', value: '' },
+      year_from: { type: '', value: '', valueTo: '' },
       bolt_count: { type: '', value: '' },
       bolt_spacing: { type: '', value: '' },
       center_bore: { type: '', value: '' },
@@ -1221,13 +1221,12 @@ function VehiclesAdminPage() {
     }
 
     // Column filters
-    // Make filter - with fuzzy Hebrew matching
+    // Make filter - startsWith for English, includes for Hebrew (no fuzzy to avoid false positives)
     if (columnFilters.make.type === 'equals' && columnFilters.make.value) {
       const filterVal = columnFilters.make.value.toLowerCase()
       const matchesEnglish = v.make.toLowerCase().startsWith(filterVal)
-      const matchesHebrewExact = v.make_he?.startsWith(columnFilters.make.value)
-      const matchesHebrewFuzzy = v.make_he ? fuzzyMatch(v.make_he, columnFilters.make.value) : false
-      if (!matchesEnglish && !matchesHebrewExact && !matchesHebrewFuzzy) return false
+      const matchesHebrew = v.make_he?.toLowerCase().includes(filterVal)
+      if (!matchesEnglish && !matchesHebrew) return false
     }
     // Model filter - partial match (contains), with fuzzy Hebrew matching
     if (columnFilters.model.type === 'equals' && columnFilters.model.value) {
@@ -1237,13 +1236,12 @@ function VehiclesAdminPage() {
       const matchesHebrewFuzzy = v.variants ? fuzzyMatch(v.variants, columnFilters.model.value) : false
       if (!matchesEnglish && !matchesHebrewExact && !matchesHebrewFuzzy) return false
     }
-    // Year filter - search within range (year_from <= searchedYear <= year_to)
-    if (columnFilters.year_from.type === 'equals' && columnFilters.year_from.value) {
-      const searchedYear = parseInt(columnFilters.year_from.value)
-      if (!isNaN(searchedYear)) {
-        const yearTo = v.year_to || new Date().getFullYear() // If no year_to, assume current year
-        if (searchedYear < v.year_from || searchedYear > yearTo) return false
-      }
+    // Year filter - range: year_from.value = from, year_from.valueTo = to
+    if (columnFilters.year_from.value || columnFilters.year_from.valueTo) {
+      const fromYear = parseInt(columnFilters.year_from.value)
+      const toYear = columnFilters.year_from.valueTo ? parseInt(columnFilters.year_from.valueTo) : NaN
+      if (!isNaN(fromYear) && v.year_from < fromYear) return false
+      if (!isNaN(toYear) && v.year_from > toYear) return false
     }
     // Bolt count filter - exact match from dropdown
     if (columnFilters.bolt_count.type === 'equals' && columnFilters.bolt_count.value) {
@@ -1505,8 +1503,11 @@ function VehiclesAdminPage() {
               {columnFilters.model.value && (
                 <div style={styles.chip}>דגם: {columnFilters.model.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, model: { type: '', value: '' }})}>×</button></div>
               )}
-              {columnFilters.year_from.value && (
-                <div style={styles.chip}>שנה: {columnFilters.year_from.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '' }})}>×</button></div>
+              {(columnFilters.year_from.value || columnFilters.year_from.valueTo) && (
+                <div style={styles.chip}>
+                  שנה: {columnFilters.year_from.value || '…'}–{columnFilters.year_from.valueTo || '…'}
+                  <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '', valueTo: '' }})}>×</button>
+                </div>
               )}
               {columnFilters.bolt_count.value && (
                 <div style={styles.chip}>ברגים: {columnFilters.bolt_count.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, bolt_count: { type: '', value: '' }})}>×</button></div>
@@ -1686,30 +1687,47 @@ function VehiclesAdminPage() {
 
           <div style={styles.drawerSection}>
             <div style={styles.drawerSectionTitle}>שנת ייצור</div>
-            <div style={styles.drawerGroup}>
-              <label style={styles.drawerLabel}>שנה (מ-)</label>
-              <div style={styles.filterWithSuggestions}>
-                <div style={styles.filterInputWrapper}>
-                  <input
-                    type="text"
-                    style={styles.drawerInput}
-                    placeholder="2015"
-                    value={columnFilters.year_from.value}
-                    onFocus={() => setOpenFilter('year_from')}
-                    onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
-                    onChange={e => setColumnFilters({...columnFilters, year_from: { type: e.target.value ? 'equals' : '', value: e.target.value }})}
-                  />
-                  {columnFilters.year_from.value && (
-                    <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, year_from: { type: '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div style={{display:'flex',gap:'10px',alignItems:'flex-end'}}>
+              <div style={{flex:1}}>
+                <label style={styles.drawerLabel}>מ-</label>
+                <div style={styles.filterWithSuggestions}>
+                  <div style={styles.filterInputWrapper}>
+                    <input
+                      type="number"
+                      style={styles.drawerInput}
+                      placeholder="2010"
+                      value={columnFilters.year_from.value}
+                      onFocus={() => setOpenFilter('year_from')}
+                      onBlur={() => setTimeout(() => setOpenFilter(null), 150)}
+                      onChange={e => setColumnFilters({...columnFilters, year_from: { ...columnFilters.year_from, type: (e.target.value || columnFilters.year_from.valueTo) ? 'range' : '', value: e.target.value }})}
+                    />
+                    {columnFilters.year_from.value && (
+                      <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, year_from: { ...columnFilters.year_from, type: columnFilters.year_from.valueTo ? 'range' : '', value: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    )}
+                  </div>
+                  {getYearSuggestionsForFilter().length > 0 && (
+                    <div style={styles.filterSuggestions}>
+                      {getYearSuggestionsForFilter().map(s => (
+                        <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, year_from: { ...columnFilters.year_from, type: 'range', value: s.toString() }}); setOpenFilter(null) }}>{s}</div>
+                      ))}
+                    </div>
                   )}
                 </div>
-                {getYearSuggestionsForFilter().length > 0 && (
-                  <div style={styles.filterSuggestions}>
-                    {getYearSuggestionsForFilter().map(s => (
-                      <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, year_from: { type: 'equals', value: s.toString() }}); setOpenFilter(null) }}>{s}</div>
-                    ))}
-                  </div>
-                )}
+              </div>
+              <div style={{flex:1}}>
+                <label style={styles.drawerLabel}>עד</label>
+                <div style={styles.filterInputWrapper}>
+                  <input
+                    type="number"
+                    style={styles.drawerInput}
+                    placeholder="2023"
+                    value={columnFilters.year_from.valueTo || ''}
+                    onChange={e => setColumnFilters({...columnFilters, year_from: { ...columnFilters.year_from, type: (columnFilters.year_from.value || e.target.value) ? 'range' : '', valueTo: e.target.value }})}
+                  />
+                  {columnFilters.year_from.valueTo && (
+                    <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, year_from: { ...columnFilters.year_from, type: columnFilters.year_from.value ? 'range' : '', valueTo: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
