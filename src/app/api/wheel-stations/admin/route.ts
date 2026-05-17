@@ -94,7 +94,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, address, city_id, district, managers } = body
+    const { name, address, city_id, district, is_coming_soon, managers } = body
 
     if (!await validateAdminSession(request)) {
       return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
@@ -104,13 +104,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שם תחנה הוא שדה חובה' }, { status: 400 })
     }
 
-    const stationData: { name: string; address?: string; city_id?: string; district?: string; is_active: boolean } = {
+    const stationData: { name: string; address?: string; city_id?: string; district?: string; is_active: boolean; is_coming_soon?: boolean } = {
       name,
       is_active: true
     }
     if (address) stationData.address = address
     if (city_id) stationData.city_id = city_id
     if (district) stationData.district = district
+    if (is_coming_soon) stationData.is_coming_soon = true
 
     const { data: station, error: stationError } = await supabase
       .from('wheel_stations')
