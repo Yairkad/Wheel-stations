@@ -191,6 +191,18 @@ function VehiclesAdminPage() {
   const [openFilter, setOpenFilter] = useState<string | null>(null)
   const [showFilterDrawer, setShowFilterDrawer] = useState(false)
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // Action menu for single edit/delete button
+  const [actionMenuVehicleId, setActionMenuVehicleId] = useState<string | null>(null)
+
   // Get filtered suggestions based on current input
   const getMakeSuggestionsForFilter = () => {
     if (!columnFilters.make.value || openFilter !== 'make') return []
@@ -1534,81 +1546,174 @@ function VehiclesAdminPage() {
           )}
         </div>
 
-        {/* Vehicles Table */}
-        <div style={styles.tableContainer}>
-          {loading ? (
-            <div style={styles.loading}>טוען...</div>
-          ) : (
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>יצרן</th>
-                  <th style={styles.th}>דגם</th>
-                  <th style={styles.th}>שנים</th>
-                  <th style={styles.th}>ברגים</th>
-                  <th style={styles.th}>מרווח</th>
-                  <th style={styles.th}>CB</th>
-                  <th style={styles.th}>חישוק</th>
-                  <th style={styles.th}>קוטר מתאים</th>
-                  <th style={styles.th}>קישור</th>
-                  <th style={styles.th}>פעולות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredVehicles.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} style={styles.emptyRow}>
-                      <div style={styles.emptyMessage}>
-                        {hasActiveFilters() ? (
-                          <>
-                            <span>לא נמצאו תוצאות מתאימות לסינון</span>
-                            <button style={styles.btnResetFilters} onClick={resetFilters}>
-                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>אפס מסננים</span>
-                            </button>
-                          </>
-                        ) : (
-                          <span>אין דגמים במאגר</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+        {/* Action menu overlay */}
+        {actionMenuVehicleId && (
+          <div style={{position:'fixed',inset:0,zIndex:90}} onClick={() => setActionMenuVehicleId(null)} />
+        )}
+
+        {/* Vehicles List */}
+        {isMobile ? (
+          /* Mobile: card view */
+          <div style={styles.cardList}>
+            {loading ? (
+              <div style={styles.loading}>טוען...</div>
+            ) : filteredVehicles.length === 0 ? (
+              <div style={styles.emptyMessage}>
+                {hasActiveFilters() ? (
+                  <>
+                    <span>לא נמצאו תוצאות מתאימות לסינון</span>
+                    <button style={styles.btnResetFilters} onClick={resetFilters}>
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>אפס מסננים</span>
+                    </button>
+                  </>
                 ) : (
-                  filteredVehicles.map(v => (
-                    <tr key={v.id} style={styles.tr}>
-                      <td style={styles.td}>
-                        <div>{v.make}</div>
-                        {v.make_he && <div style={styles.hebrewName}>{v.make_he}</div>}
-                      </td>
-                      <td style={styles.td}>
-                        <div>{v.model}</div>
-                        {v.variants && <div style={styles.hebrewName}>{v.variants}</div>}
-                      </td>
-                      <td style={styles.td}>
-                        {v.year_from}{v.year_to ? `-${v.year_to}` : '+'}
-                      </td>
-                      <td style={styles.td}>{v.bolt_count}</td>
-                      <td style={styles.td}>{v.bolt_spacing}</td>
-                      <td style={styles.td}>{v.center_bore || '-'}</td>
-                      <td style={styles.td}>{v.rim_size || '-'}</td>
-                      <td style={styles.td}>{v.rim_sizes_allowed?.join(', ') || '-'}</td>
-                      <td style={styles.td}>
-                        {v.source_url ? (
-                          <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></a>
-                        ) : '-'}
-                      </td>
-                      <td style={styles.td}>
-                        <div style={{display: 'flex', gap: '6px'}}>
-                          <button style={styles.btnEdit} onClick={() => openEditModal(v)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                          <button style={styles.btnDelete} onClick={() => handleDelete(v.id)}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+                  <span>אין דגמים במאגר</span>
+                )}
+              </div>
+            ) : (
+              filteredVehicles.map(v => (
+                <div key={v.id} style={styles.vehicleCard}>
+                  {/* Row 1: name + action button */}
+                  <div style={styles.cardRow1}>
+                    <div style={styles.cardTitle}>
+                      <span style={styles.cardMake}>{v.make}</span>
+                      {v.make_he && <span style={styles.cardMakeHe}> · {v.make_he}</span>}
+                      <span style={styles.cardModel}> {v.model}</span>
+                      {v.variants && <span style={styles.cardVariants}> ({v.variants})</span>}
+                    </div>
+                    <div style={{position:'relative'}}>
+                      <button style={styles.btnActionMenu} onClick={() => setActionMenuVehicleId(actionMenuVehicleId === v.id ? null : v.id)}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                      </button>
+                      {actionMenuVehicleId === v.id && (
+                        <div style={styles.actionMenu}>
+                          <button style={styles.actionMenuItem} onClick={() => { openEditModal(v); setActionMenuVehicleId(null) }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            ערוך
+                          </button>
+                          <button style={{...styles.actionMenuItem, ...styles.actionMenuItemDelete}} onClick={() => { handleDelete(v.id); setActionMenuVehicleId(null) }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                            מחק
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Row 2: year, bolts */}
+                  <div style={styles.cardRow2}>
+                    <span>{v.year_from}{v.year_to ? `–${v.year_to}` : '+'}</span>
+                    <span style={styles.cardDot}>·</span>
+                    <span>{v.bolt_count}×{v.bolt_spacing}</span>
+                    {v.center_bore != null && <><span style={styles.cardDot}>·</span><span>CB {v.center_bore}</span></>}
+                  </div>
+                  {/* Row 3: rim info (conditional) */}
+                  {(v.rim_size || (v.rim_sizes_allowed && v.rim_sizes_allowed.length > 0) || v.source_url) && (
+                    <div style={styles.cardRow3}>
+                      {v.rim_size && <span>חישוק {v.rim_size}</span>}
+                      {v.rim_sizes_allowed && v.rim_sizes_allowed.length > 0 && (
+                        <><span style={styles.cardDot}>·</span><span>{v.rim_sizes_allowed.join(', ')}</span></>
+                      )}
+                      {v.source_url && (
+                        <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={styles.cardLink}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          /* Desktop: table view */
+          <div style={styles.tableContainer}>
+            {loading ? (
+              <div style={styles.loading}>טוען...</div>
+            ) : (
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>יצרן</th>
+                    <th style={styles.th}>דגם</th>
+                    <th style={styles.th}>שנים</th>
+                    <th style={styles.th}>ברגים</th>
+                    <th style={styles.th}>מרווח</th>
+                    <th style={styles.th}>CB</th>
+                    <th style={styles.th}>חישוק</th>
+                    <th style={styles.th}>קוטר מתאים</th>
+                    <th style={styles.th}>קישור</th>
+                    <th style={styles.th}>פעולות</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredVehicles.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} style={styles.emptyRow}>
+                        <div style={styles.emptyMessage}>
+                          {hasActiveFilters() ? (
+                            <>
+                              <span>לא נמצאו תוצאות מתאימות לסינון</span>
+                              <button style={styles.btnResetFilters} onClick={resetFilters}>
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>אפס מסננים</span>
+                              </button>
+                            </>
+                          ) : (
+                            <span>אין דגמים במאגר</span>
+                          )}
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          )}
-        </div>
+                  ) : (
+                    filteredVehicles.map(v => (
+                      <tr key={v.id} style={styles.tr}>
+                        <td style={styles.td}>
+                          <div>{v.make}</div>
+                          {v.make_he && <div style={styles.hebrewName}>{v.make_he}</div>}
+                        </td>
+                        <td style={styles.td}>
+                          <div>{v.model}</div>
+                          {v.variants && <div style={styles.hebrewName}>{v.variants}</div>}
+                        </td>
+                        <td style={styles.td}>
+                          {v.year_from}{v.year_to ? `-${v.year_to}` : '+'}
+                        </td>
+                        <td style={styles.td}>{v.bolt_count}</td>
+                        <td style={styles.td}>{v.bolt_spacing}</td>
+                        <td style={styles.td}>{v.center_bore || '-'}</td>
+                        <td style={styles.td}>{v.rim_size || '-'}</td>
+                        <td style={styles.td}>{v.rim_sizes_allowed?.join(', ') || '-'}</td>
+                        <td style={styles.td}>
+                          {v.source_url ? (
+                            <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></a>
+                          ) : '-'}
+                        </td>
+                        <td style={styles.td}>
+                          <div style={{position:'relative'}}>
+                            <button style={styles.btnActionMenu} onClick={() => setActionMenuVehicleId(actionMenuVehicleId === v.id ? null : v.id)}>
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                            </button>
+                            {actionMenuVehicleId === v.id && (
+                              <div style={styles.actionMenu}>
+                                <button style={styles.actionMenuItem} onClick={() => { openEditModal(v); setActionMenuVehicleId(null) }}>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                  ערוך
+                                </button>
+                                <button style={{...styles.actionMenuItem, ...styles.actionMenuItemDelete}} onClick={() => { handleDelete(v.id); setActionMenuVehicleId(null) }}>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                                  מחק
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filter Drawer Overlay */}
@@ -3592,5 +3697,114 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     zIndex: 1000,
     transition: 'transform 0.2s, box-shadow 0.2s',
+  } as React.CSSProperties,
+  // Mobile card list
+  cardList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  } as React.CSSProperties,
+  vehicleCard: {
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '12px',
+    padding: '12px 14px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+  } as React.CSSProperties,
+  cardRow1: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: '8px',
+    marginBottom: '6px',
+  } as React.CSSProperties,
+  cardTitle: {
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    color: '#1e293b',
+    lineHeight: 1.3,
+    flex: 1,
+  } as React.CSSProperties,
+  cardMake: {
+    color: '#1e293b',
+  } as React.CSSProperties,
+  cardMakeHe: {
+    color: '#64748b',
+    fontSize: '0.85rem',
+  } as React.CSSProperties,
+  cardModel: {
+    color: '#2563eb',
+  } as React.CSSProperties,
+  cardVariants: {
+    color: '#64748b',
+    fontSize: '0.82rem',
+  } as React.CSSProperties,
+  cardRow2: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '0.83rem',
+    color: '#475569',
+    flexWrap: 'wrap',
+  } as React.CSSProperties,
+  cardRow3: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '0.8rem',
+    color: '#64748b',
+    flexWrap: 'wrap',
+    marginTop: '4px',
+  } as React.CSSProperties,
+  cardDot: {
+    color: '#cbd5e1',
+  } as React.CSSProperties,
+  cardLink: {
+    color: '#60a5fa',
+    display: 'inline-flex',
+    alignItems: 'center',
+    marginRight: '2px',
+  } as React.CSSProperties,
+  // Action menu button (single button replacing edit+delete)
+  btnActionMenu: {
+    background: 'rgba(100,116,139,0.1)',
+    color: '#64748b',
+    border: 'none',
+    padding: '6px 8px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  } as React.CSSProperties,
+  actionMenu: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    marginTop: '4px',
+    background: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '10px',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+    minWidth: '120px',
+    zIndex: 100,
+    overflow: 'hidden',
+  } as React.CSSProperties,
+  actionMenuItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    width: '100%',
+    padding: '10px 14px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '0.88rem',
+    color: '#1e293b',
+    textAlign: 'right',
+  } as React.CSSProperties,
+  actionMenuItemDelete: {
+    color: '#ef4444',
+    borderTop: '1px solid #f1f5f9',
   } as React.CSSProperties,
 }
