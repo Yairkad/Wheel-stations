@@ -223,9 +223,14 @@ export async function GET(request: NextRequest) {
   const loginsByDay = Object.entries(dayMap).map(([date, count]) => ({ date, count }))
 
   // --- Deposit types ---
+  const depositLabels: Record<string, string> = {
+    cash: 'מזומן', bit: 'ביט', paybox: 'פייבוקס',
+    bank_transfer: 'העברה בנקאית', id: 'תעודת זהות', license: 'רישיון',
+    none: 'ללא פיקדון',
+  }
   const depositMap: Record<string, number> = {}
   for (const b of (depositTypesRes.data || []) as { deposit_type: string | null }[]) {
-    const t = b.deposit_type || 'לא צוין'
+    const t = depositLabels[b.deposit_type || ''] || b.deposit_type || 'לא צוין'
     depositMap[t] = (depositMap[t] || 0) + 1
   }
   const depositTypes = Object.entries(depositMap)
