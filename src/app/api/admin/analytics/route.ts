@@ -30,31 +30,30 @@ export async function GET(request: NextRequest) {
     depositTypesRes,
     borrowStatusRes,
   ] = await Promise.all([
-    // KPIs
-    supabase.rpc('analytics_kpis').single().catch(() => ({ data: null })).then(() =>
-      supabase.from('wheel_stations').select('id, is_active').then(async ({ data: stations }) => {
-        const [borrows, wheels, users, logins] = await Promise.all([
-          supabase.from('wheel_borrows').select('id, actual_return_date, created_at'),
-          supabase.from('wheels').select('id, is_available, temporarily_unavailable, deleted_at'),
-          supabase.from('users').select('id, is_active'),
-          supabase.from('login_log').select('id').gte('created_at', sinceISO),
-        ])
-        const allBorrows = borrows.data || []
-        const allWheels = wheels.data || []
-        const allUsers = users.data || []
-        return {
-          stations_active: stations?.filter(s => s.is_active).length ?? 0,
-          borrows_total: allBorrows.filter(b => new Date(b.created_at) >= since).length,
-          borrows_active: allBorrows.filter(b => !b.actual_return_date).length,
-          wheels_total: allWheels.filter(w => !w.deleted_at).length,
-          wheels_available: allWheels.filter(w => !w.deleted_at && w.is_available && !w.temporarily_unavailable).length,
-          wheels_unavailable: allWheels.filter(w => !w.deleted_at && w.temporarily_unavailable).length,
-          wheels_borrowed: allWheels.filter(w => !w.deleted_at && !w.is_available).length,
-          users_active: allUsers.filter(u => u.is_active).length,
-          logins_period: logins.data?.length ?? 0,
-        }
-      })
-    ),
+    // KPIs — direct parallel queries, no broken .rpc().catch() chain
+    (async () => {
+      const [stations, borrows, wheels, users, logins] = await Promise.all([
+        supabase.from('wheel_stations').select('id, is_active'),
+        supabase.from('wheel_borrows').select('id, actual_return_date, created_at'),
+        supabase.from('wheels').select('id, is_available, temporarily_unavailable, deleted_at'),
+        supabase.from('users').select('id, is_active'),
+        supabase.from('login_log').select('id').gte('created_at', sinceISO),
+      ])
+      const allBorrows = (borrows.data || []) as { id: string; actual_return_date: string | null; created_at: string }[]
+      const allWheels = (wheels.data || []) as { id: string; is_available: boolean; temporarily_unavailable: boolean; deleted_at: string | null }[]
+      const allUsers = (users.data || []) as { id: string; is_active: boolean }[]
+      return {
+        stations_active: (stations.data || []).filter((s: { is_active: boolean }) => s.is_active).length,
+        borrows_total: allBorrows.filter(b => new Date(b.created_at) >= since).length,
+        borrows_active: allBorrows.filter(b => !b.actual_return_date).length,
+        wheels_total: allWheels.filter(w => !w.deleted_at).length,
+        wheels_available: allWheels.filter(w => !w.deleted_at && w.is_available && !w.temporarily_unavailable).length,
+        wheels_unavailable: allWheels.filter(w => !w.deleted_at && w.temporarily_unavailable).length,
+        wheels_borrowed: allWheels.filter(w => !w.deleted_at && !w.is_available).length,
+        users_active: allUsers.filter(u => u.is_active).length,
+        logins_period: logins.data?.length ?? 0,
+      }
+    })(),
 
     // Borrows by month (last 12 months)
     supabase
@@ -123,7 +122,7 @@ export async function GET(request: NextRequest) {
     const label = d.toLocaleDateString('he-IL', { month: 'short', year: '2-digit' })
     monthMap[key] = { month: label, borrows: 0, returned: 0 }
   }
-  for (const b of borrowsByMonthRes.data || []) {
+  for (const b of (borrowsByMonthRes.data || []) as { created_at: string; actual_return_date: string | null }[]) {
     const key = b.created_at.slice(0, 7)
     if (monthMap[key]) {
       monthMap[key].borrows++
@@ -134,8 +133,8 @@ export async function GET(request: NextRequest) {
 
   // --- Top stations ---
   const stationCount: Record<string, { name: string; count: number }> = {}
-  for (const b of topStationsRes.data || []) {
-    const ws = Array.isArray(b.wheel_stations) ? b.wheel_stations[0] : b.wheel_stations as { name: string } | null
+  for (const b of (topStationsRes.data || []) as { station_id: string; wheel_stations: { name: string } | { name: string }[] | null }[]) {
+    const ws = Array.isArray(b.wheel_stations) ? b.wheel_stations[0] : b.wheel_stations
     const name = ws?.name || 'לא ידוע'
     if (!stationCount[b.station_id]) stationCount[b.station_id] = { name, count: 0 }
     stationCount[b.station_id].count++
@@ -143,16 +142,17 @@ export async function GET(request: NextRequest) {
   const topStations = Object.values(stationCount).sort((a, b) => b.count - a.count).slice(0, 8)
 
   // --- Wheels by station ---
-  const wheelsByStation = (wheelsByStationRes.data || []).map(s => {
-    const ws = s.wheels as { id: string; is_available: boolean; temporarily_unavailable: boolean; deleted_at: string | null }[]
-    const active = ws.filter(w => !w.deleted_at)
+  type WheelRow = { id: string; is_available: boolean; temporarily_unavailable: boolean; deleted_at: string | null }
+  type StationRow = { name: string; wheels: WheelRow[] }
+  const wheelsByStation = ((wheelsByStationRes.data || []) as StationRow[]).map(s => {
+    const active = s.wheels.filter(w => !w.deleted_at)
     return {
       name: s.name,
       total: active.length,
       available: active.filter(w => w.is_available && !w.temporarily_unavailable).length,
       borrowed: active.filter(w => !w.is_available).length,
       unavailable: active.filter(w => w.temporarily_unavailable).length,
-      deleted: ws.filter(w => w.deleted_at).length,
+      deleted: s.wheels.filter(w => w.deleted_at).length,
     }
   }).filter(s => s.total > 0).sort((a, b) => b.total - a.total)
 
@@ -166,7 +166,7 @@ export async function GET(request: NextRequest) {
     borrow_returned: 'גלגל הוחזר',
   }
   const auditMap: Record<string, number> = {}
-  for (const a of auditBreakdownRes.data || []) {
+  for (const a of (auditBreakdownRes.data || []) as { action: string }[]) {
     const label = actionLabels[a.action] || a.action
     auditMap[label] = (auditMap[label] || 0) + 1
   }
@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => b.count - a.count)
 
   // --- Avg borrow duration ---
-  const durations = (avgDurationRes.data || []).map(b => {
+  const durations = ((avgDurationRes.data || []) as { borrow_date: string; actual_return_date: string }[]).map(b => {
     const start = new Date(b.borrow_date).getTime()
     const end = new Date(b.actual_return_date).getTime()
     return (end - start) / (1000 * 60 * 60 * 24)
@@ -190,7 +190,8 @@ export async function GET(request: NextRequest) {
     district_manager: 'מנהל מחוז', operator: 'מוקדן', call_center_manager: 'מנהל מוקד',
     puncture_manager: 'עורך פנצ׳ריות',
   }
-  const allLoginLogs = topLoginUsersRes.data || []
+  type LoginRow = { id: string; user_id: string | null; full_name: string; phone: string | null; role: string; ip: string | null; created_at: string }
+  const allLoginLogs = (topLoginUsersRes.data || []) as LoginRow[]
   const userLoginMap: Record<string, { full_name: string; phone: string | null; roles: Set<string>; count: number; last_login: string }> = {}
   for (const l of allLoginLogs) {
     const key = l.user_id || l.phone || l.full_name
@@ -215,7 +216,7 @@ export async function GET(request: NextRequest) {
     d.setDate(d.getDate() - i)
     dayMap[d.toISOString().slice(0, 10)] = 0
   }
-  for (const l of loginsByDayRes.data || []) {
+  for (const l of (loginsByDayRes.data || []) as { created_at: string }[]) {
     const key = l.created_at.slice(0, 10)
     if (key in dayMap) dayMap[key]++
   }
@@ -223,13 +224,15 @@ export async function GET(request: NextRequest) {
 
   // --- Deposit types ---
   const depositMap: Record<string, number> = {}
-  for (const b of depositTypesRes.data || []) {
+  for (const b of (depositTypesRes.data || []) as { deposit_type: string | null }[]) {
     const t = b.deposit_type || 'לא צוין'
     depositMap[t] = (depositMap[t] || 0) + 1
   }
   const depositTypes = Object.entries(depositMap)
     .map(([type, count]) => ({ type, count }))
     .sort((a, b) => b.count - a.count)
+
+  void borrowStatusRes
 
   return NextResponse.json({
     kpis: kpiRes,

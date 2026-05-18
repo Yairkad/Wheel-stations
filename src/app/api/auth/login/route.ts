@@ -137,16 +137,16 @@ export async function POST(request: NextRequest) {
     clearFailedAttempts(cleanPhone)
 
     const ip = getClientIp(request)
-    for (const r of roles) {
-      const d = r.data as Record<string, unknown>
-      await logLogin({
-        userId: d.id as string | undefined,
-        fullName: d.full_name as string,
-        phone: d.phone as string | undefined,
-        role: r.role,
-        ip,
-      })
-    }
+    // Log one entry per login — use the selected/primary role (admin > first available)
+    const primaryRole = roles.find(r => r.role === 'admin') || roles[0]
+    const d = primaryRole.data as Record<string, unknown>
+    await logLogin({
+      userId: d.id as string | undefined,
+      fullName: d.full_name as string,
+      phone: d.phone as string | undefined,
+      role: primaryRole.role,
+      ip,
+    })
 
     const response = NextResponse.json({ success: true, roles })
 

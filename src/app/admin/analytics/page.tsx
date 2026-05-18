@@ -75,15 +75,16 @@ function Bar({ value, max, color }: { value: number; max: number; color: string 
 }
 
 function MiniBarChart({ data, valueKey, labelKey, color }: {
-  data: Record<string, unknown>[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[]
   valueKey: string
   labelKey: string
   color: string
 }) {
-  const max = Math.max(...data.map(d => d[valueKey] as number), 1)
+  const max = Math.max(...data.map((d: Record<string, number>) => d[valueKey]), 1)
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
-      {data.map((d, i) => {
+      {data.map((d: Record<string, number | string>, i: number) => {
         const val = d[valueKey] as number
         const pct = (val / max) * 100
         return (
