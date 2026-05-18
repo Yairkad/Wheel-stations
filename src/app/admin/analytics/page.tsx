@@ -74,19 +74,21 @@ function Bar({ value, max, color }: { value: number; max: number; color: string 
   )
 }
 
-function MiniBarChart({ data, valueKey, labelKey, color }: {
+function MiniBarChart({ data, valueKey, labelKey, color, everyNthLabel = 1 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any[]
   valueKey: string
   labelKey: string
   color: string
+  everyNthLabel?: number
 }) {
   const max = Math.max(...data.map((d: Record<string, number>) => d[valueKey]), 1)
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80, direction: 'ltr' }}>
       {data.map((d: Record<string, number | string>, i: number) => {
         const val = d[valueKey] as number
         const pct = (val / max) * 100
+        const showLabel = i % everyNthLabel === 0 || i === data.length - 1
         return (
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <div style={{ width: '100%', height: 60, display: 'flex', alignItems: 'flex-end' }}>
@@ -99,7 +101,7 @@ function MiniBarChart({ data, valueKey, labelKey, color }: {
                 }}
               />
             </div>
-            <span style={{ fontSize: '0.55rem', color: '#94a3b8', textAlign: 'center', lineHeight: 1.1 }}>{d[labelKey] as string}</span>
+            {showLabel && <span style={{ fontSize: '0.55rem', color: '#94a3b8', textAlign: 'center', lineHeight: 1.1 }}>{d[labelKey] as string}</span>}
           </div>
         )
       })}
@@ -221,7 +223,16 @@ export default function AnalyticsPage() {
               <Section title="כניסות למערכת (30 ימים אחרונים)" icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
               }>
-                <MiniBarChart data={data.loginsByDay} valueKey="count" labelKey="date" color="#ec4899" />
+                <MiniBarChart
+                  data={data.loginsByDay.map((d: DayLogin) => ({
+                    ...d,
+                    label: (() => { const dt = new Date(d.date + 'T12:00:00'); return `${dt.getDate()}/${dt.getMonth()+1}` })(),
+                  }))}
+                  valueKey="count"
+                  labelKey="label"
+                  color="#ec4899"
+                  everyNthLabel={5}
+                />
                 <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#64748b' }}>
                   סה״כ <strong style={{ color: '#ec4899' }}>{data.loginsByDay.reduce((s, d) => s + d.count, 0)}</strong> כניסות ב-30 ימים אחרונים
                 </div>
