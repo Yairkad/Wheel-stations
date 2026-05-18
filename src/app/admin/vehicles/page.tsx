@@ -438,14 +438,14 @@ function VehiclesAdminPage() {
         manufacturer: makeEnglish || makeHebrew,
         manufacturer_he: makeHebrew,
         model: modelEnglish || modelHebrew,
-        variants: modelHebrew,
+        variants: isHebrew(modelHebrew) ? modelHebrew : '',
         year: data.vehicle.year
       })
 
       // Auto-fill the scrape form
       setScrapeForm({
         make: makeEnglish || '',
-        model: modelEnglish || modelHebrew,
+        model: modelEnglish || findModelEnFromDB(modelHebrew) || (isHebrew(modelHebrew) ? '' : modelHebrew),
         year: data.vehicle.year?.toString() || ''
       })
 
@@ -482,10 +482,10 @@ function VehiclesAdminPage() {
 
       setAddForm(prev => ({
         ...prev,
-        make: makeEn || makeHe,
+        make: makeEn || '',
         make_he: makeHe,
-        model: modelEn || modelHe,
-        variants: modelHe,
+        model: modelEn || findModelEnFromDB(modelHe) || (isHebrew(modelHe) ? '' : modelHe),
+        variants: isHebrew(modelHe) ? modelHe : '',
         year_from: data.vehicle.year?.toString() || prev.year_from,
         tire_size_front: data.vehicle.front_tire || prev.tire_size_front,
         ...(data.wheel_fitment ? {
@@ -501,6 +501,15 @@ function VehiclesAdminPage() {
     } finally {
       setAddFormPlateLoading(false)
     }
+  }
+
+  const isHebrew = (str: string) => /[֐-׿]/.test(str)
+
+  const findModelEnFromDB = (hebrewModel: string): string => {
+    if (!hebrewModel) return ''
+    const lower = hebrewModel.toLowerCase()
+    const match = vehicles.find(v => v.variants?.toLowerCase() === lower)
+    return match?.model || ''
   }
 
   // Helper function to extract English make from Hebrew
