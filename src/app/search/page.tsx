@@ -10,6 +10,43 @@ import { Station, Manager, SearchResult, FilterOptions, VehicleModelRecord } fro
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 
+type VehicleSearchResult = {
+  vehicle: {
+    manufacturer: string
+    model: string
+    model_name?: string
+    year: number
+    color?: string
+    front_tire: string | null
+    import_type?: string
+    origin_country?: string
+  }
+  wheel_fitment: {
+    pcd: string
+    bolt_count: number
+    bolt_spacing: number
+    center_bore?: number
+    rim_sizes_allowed?: number[]
+    source_url?: string
+  } | null
+  source?: string
+  is_personal_import?: boolean
+  personal_import_warning?: string
+}
+
+interface VehicleHistoryItem {
+  id: string
+  plate: string
+  displayName: string
+  year: number
+  date: string
+  pinned: boolean
+  vehicleResult: VehicleSearchResult
+}
+
+const VEHICLE_HISTORY_KEY = 'wheelSearchHistory'
+const MAX_HISTORY_ITEMS = 10
+
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const fromStationId = searchParams.get('from')
@@ -42,33 +79,12 @@ function SearchPageContent() {
   const [vehicleSearchTab, setVehicleSearchTab] = useState<'plate' | 'model'>('plate')
   const [vehiclePlate, setVehiclePlate] = useState('')
   const [vehicleLoading, setVehicleLoading] = useState(false)
-  const [vehicleResult, setVehicleResult] = useState<{
-    vehicle: {
-      manufacturer: string
-      model: string
-      model_name?: string // Technical model code (degem_nm) from gov API
-      year: number
-      color?: string
-      front_tire: string | null
-      import_type?: string
-      origin_country?: string
-    }
-    wheel_fitment: {
-      pcd: string
-      bolt_count: number
-      bolt_spacing: number
-      center_bore?: number
-      rim_sizes_allowed?: number[]
-      source_url?: string
-    } | null
-    source?: string // 'regular' | 'personal_import' | 'find_car_scrape' | 'local_db'
-    is_personal_import?: boolean
-    personal_import_warning?: string
-  } | null>(null)
+  const [vehicleResult, setVehicleResult] = useState<VehicleSearchResult | null>(null)
   const [vehicleError, setVehicleError] = useState<string | null>(null)
   const [vehicleSearchResults, setVehicleSearchResults] = useState<SearchResult[] | null>(null)
   const [vehicleStationFilter, setVehicleStationFilter] = useState('')
-  const [manualRimSize, setManualRimSize] = useState<number | null>(null) // For personal imports without tire info
+  const [manualRimSize, setManualRimSize] = useState<number | null>(null)
+  const [vehicleHistory, setVehicleHistory] = useState<VehicleHistoryItem[]>([])
 
   // Model search state
   const [modelSearchMake, setModelSearchMake] = useState('')
@@ -131,6 +147,14 @@ function SearchPageContent() {
   })
   const [errorReportImage, setErrorReportImage] = useState<File | null>(null)
   const [errorReportLoading, setErrorReportLoading] = useState(false)
+
+  // Load vehicle search history from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(VEHICLE_HISTORY_KEY)
+      if (stored) setVehicleHistory(JSON.parse(stored))
+    } catch {}
+  }, [])
 
   useEffect(() => {
     // Check if user is authenticated (station manager or operator)
@@ -316,6 +340,74 @@ function SearchPageContent() {
   }
 
 
+  const saveToHistory = (plate: string, result: VehicleSearchResult) => {
+    const v = result.vehicle
+    const displayName = [v.manufacturer, v.model, v.year].filter(Boolean).join(' ')
+    setVehicleHistory(prev => {
+      const existing = prev.find(h => h.plate === plate)
+      const item: VehicleHistoryItem = {
+        id: existing?.id ?? `${plate}-${Date.now()}`,
+        plate,
+        displayName,
+        year: v.year,
+        date: new Date().toLocaleDateString('he-IL'),
+        pinned: existing?.pinned ?? false,
+        vehicleResult: result
+      }
+      const without = prev.filter(h => h.plate !== plate)
+      const pinned = without.filter(h => h.pinned)
+      const unpinned = without.filter(h => !h.pinned)
+      const next = item.pinned
+        ? [item, ...pinned, ...unpinned]
+        : [...pinned, item, ...unpinned.slice(0, MAX_HISTORY_ITEMS - 1)]
+      try { localStorage.setItem(VEHICLE_HISTORY_KEY, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  const toggleHistoryPin = (id: string) => {
+    setVehicleHistory(prev => {
+      const next = prev.map(h => h.id === id ? { ...h, pinned: !h.pinned } : h)
+      const pinned = next.filter(h => h.pinned)
+      const unpinned = next.filter(h => !h.pinned).slice(0, MAX_HISTORY_ITEMS)
+      const result = [...pinned, ...unpinned]
+      try { localStorage.setItem(VEHICLE_HISTORY_KEY, JSON.stringify(result)) } catch {}
+      return result
+    })
+  }
+
+  const removeFromHistory = (id: string) => {
+    setVehicleHistory(prev => {
+      const next = prev.filter(h => h.id !== id)
+      try { localStorage.setItem(VEHICLE_HISTORY_KEY, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  const loadFromHistory = async (item: VehicleHistoryItem) => {
+    setVehiclePlate(item.plate)
+    setVehicleResult(item.vehicleResult)
+    setVehicleError(null)
+    setVehicleSearchResults(null)
+    setVehicleSearchTab('plate')
+    setManualRimSize(null)
+    if (item.vehicleResult.wheel_fitment) {
+      setVehicleLoading(true)
+      try {
+        const params = new URLSearchParams()
+        params.set('bolt_count', item.vehicleResult.wheel_fitment.bolt_count.toString())
+        params.set('bolt_spacing', item.vehicleResult.wheel_fitment.bolt_spacing.toString())
+        const res = await fetch(`/api/wheel-stations/search?${params}`)
+        if (res.ok) {
+          const data = await res.json()
+          setVehicleStationFilter('')
+          setVehicleSearchResults(data.results)
+        }
+      } catch {}
+      finally { setVehicleLoading(false) }
+    }
+  }
+
   const handleVehicleLookup = async () => {
     if (!vehiclePlate.trim()) {
       toast.error('נא להזין מספר רישוי')
@@ -337,6 +429,7 @@ function SearchPageContent() {
       }
 
       setVehicleResult(data)
+      saveToHistory(vehiclePlate.trim(), data)
 
       // If we have wheel fitment, search for matching wheels
       // Search by PCD only (don't filter by rim_size) to show all compatible wheels
@@ -1457,6 +1550,80 @@ function SearchPageContent() {
                     <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                   ) : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
                 </button>
+              </div>
+            )}
+
+            {/* Vehicle Search History */}
+            {vehicleSearchTab === 'plate' && !vehicleResult && !vehicleLoading && vehicleHistory.length > 0 && (
+              <div style={{ marginTop: '12px' }}>
+                <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px', textAlign: 'right' }}>
+                  היסטוריית חיפוש
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '280px', overflowY: 'auto', paddingBottom: '2px' }}>
+                  {vehicleHistory.map(item => (
+                    <div
+                      key={item.id}
+                      onClick={() => loadFromHistory(item)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '9px 12px',
+                        background: '#f8fafc',
+                        border: `1px solid ${item.pinned ? '#fca5a5' : '#e2e8f0'}`,
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s',
+                        direction: 'rtl'
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f1f5f9')}
+                      onMouseLeave={e => (e.currentTarget.style.background = '#f8fafc')}
+                    >
+                      {/* Car icon */}
+                      <div style={{ flexShrink: 0, color: '#6b7280', display: 'flex', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/>
+                          <circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/>
+                        </svg>
+                      </div>
+                      {/* Details */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: '13px', color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.displayName}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#9ca3af', display: 'flex', gap: '8px', marginTop: '1px', alignItems: 'center' }}>
+                          <span dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.04em', color: '#6b7280' }}>{item.plate}</span>
+                          <span>·</span>
+                          <span>{item.date}</span>
+                        </div>
+                      </div>
+                      {/* Heart / pin */}
+                      <button
+                        onClick={e => { e.stopPropagation(); toggleHistoryPin(item.id) }}
+                        title={item.pinned ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, color: item.pinned ? '#ef4444' : '#d1d5db', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+                        onMouseEnter={e => { if (!item.pinned) (e.currentTarget as HTMLButtonElement).style.color = '#f87171' }}
+                        onMouseLeave={e => { if (!item.pinned) (e.currentTarget as HTMLButtonElement).style.color = '#d1d5db' }}
+                      >
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill={item.pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                      </button>
+                      {/* Remove */}
+                      <button
+                        onClick={e => { e.stopPropagation(); removeFromHistory(item.id) }}
+                        title="הסר מהיסטוריה"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, color: '#d1d5db', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+                        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#9ca3af')}
+                        onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#d1d5db')}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
