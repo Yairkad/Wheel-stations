@@ -1697,7 +1697,7 @@ export default function WheelStationsPage() {
                       const isPersonalImport = vehicleResult.is_personal_import
                       const allowedSizes = vehicleResult.wheel_fitment?.rim_sizes_allowed
                       const effectiveRimSizes: number[] | null =
-                        (allowedSizes && allowedSizes.length > 0) ? allowedSizes
+                        (allowedSizes && allowedSizes.length > 0) ? allowedSizes.map(Number)
                         : vehicleRimSize ? [vehicleRimSize]
                         : null
 
