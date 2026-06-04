@@ -28,8 +28,8 @@ except Exception:
 
 # helper regexes
 VIN_RE = re.compile(r'\b([A-HJ-NPR-Z0-9]{17})\b')
-YEAR_RE = re.compile(r'\b(19|20)\d{2}\b')
-MMYYYY_RE = re.compile(r'\b(0[1-9]|1[0-2])\s*[\-/]s?(19|20)\d{2}\b')
+YEAR_RE = re.compile(r'\b(?:19|20)\d{2}\b')
+MMYYYY_RE = re.compile(r'\b(0[1-9]|1[0-2])\s*[-/]\s*(?:19|20)\d{2}\b')
 SEVENDIG_RE = re.compile(r'\b\d{7,8}\b')
 ENGINE_RE = re.compile(r'\b(\d{3,4})\b')
 TIRE_RE = re.compile(r'\b\d{2,3}/\d{2,3}\s*R\s*\d{1,2}\b', re.I)
@@ -84,8 +84,16 @@ def run_easyocr(img_path, langs=['he','en']):
 
 
 def join_text_lines(res):
-    # res is list of (bbox, text, conf) -> produce full text and map index->text
-    texts = [t for (_bbox,t,_conf) in res]
+    # res is list of (bbox, text, conf) -> produce full text in top-to-bottom, left-to-right order
+    try:
+        def _center_coords(bbox):
+            xs = [p[0] for p in bbox]
+            ys = [p[1] for p in bbox]
+            return (sum(ys)/len(ys), sum(xs)/len(xs))
+        sorted_res = sorted(res, key=lambda item: _center_coords(item[0]))
+    except Exception:
+        sorted_res = res
+    texts = [t for (_bbox,t,_conf) in sorted_res]
     full = '\n'.join(texts)
     return full
 
