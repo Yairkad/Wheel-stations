@@ -61,3 +61,4 @@ debug-storybook.log
 
 # Claude
 .claude/
+ocr-tool/scrub_private.sh
