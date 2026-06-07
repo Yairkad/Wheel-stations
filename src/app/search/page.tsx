@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -85,6 +85,79 @@ function SearchPageContent() {
   const [vehicleStationFilter, setVehicleStationFilter] = useState('')
   const [manualRimSize, setManualRimSize] = useState<number | null>(null)
   const [vehicleHistory, setVehicleHistory] = useState<VehicleHistoryItem[]>([])
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrProgress, setOcrProgress] = useState(0)
+  const [ocrStatusText, setOcrStatusText] = useState('')
+  const [ocrIsDownloading, setOcrIsDownloading] = useState(false)
+  const [showOcrResultModal, setShowOcrResultModal] = useState(false)
+  const [ocrResultData, setOcrResultData] = useState<import('@/lib/ocr').OcrVehicleData | null>(null)
+  const [ocrAutoSearch, setOcrAutoSearch] = useState(false)
+  const ocrInputRef = useRef<HTMLInputElement>(null)
+
+  async function handleOcrUpload(file: File) {
+    setOcrLoading(true)
+    setOcrStatusText('מפענח תמונה עם AI...')
+    try {
+      const formData = new FormData()
+      formData.append('image', file)
+      const response = await fetch('/api/ocr', { method: 'POST', body: formData })
+      if (!response.ok) throw new Error('OCR failed')
+      const ocr = await response.json()
+
+      const hasAnything = ocr.plate || ocr.manufacturer || ocr.model || (ocr.tireSizes && ocr.tireSizes.length > 0)
+      if (!hasAnything) {
+        toast.error('לא זוהה מידע מהתמונה')
+        return
+      }
+
+      // Normalise to expected OcrVehicleData shape
+      const { extractRimSize } = await import('@/lib/vehicle-mappings')
+      const tireSizes: string[] = Array.isArray(ocr.tireSizes) ? ocr.tireSizes.filter(Boolean) : []
+      setOcrResultData({
+        plate: ocr.plate ?? null,
+        manufacturer: ocr.manufacturer ?? null,
+        model: ocr.model ?? null,
+        year: ocr.year ?? null,
+        tireSizes,
+        rimSize: extractRimSize(tireSizes[0] ?? null),
+      })
+      setShowOcrResultModal(true)
+    } catch {
+      toast.error('שגיאה בקריאת התמונה')
+    } finally {
+      setOcrLoading(false)
+      setOcrStatusText('')
+    }
+  }
+
+  async function handleOcrSearch(ocr: import('@/lib/ocr').OcrVehicleData) {
+    setShowOcrResultModal(false)
+    setShowVehicleModal(false)  // close while searching behind the scenes
+    setOcrAutoSearch(true)
+
+    const canModelSearch = ocr.manufacturer && ocr.model && ocr.year
+    if (canModelSearch) {
+      setModelSearchMake(ocr.manufacturer!)
+      setModelSearchModel(ocr.model!)
+      setModelSearchYear(ocr.year!)
+      if (ocr.rimSize) setSearchFilters(prev => ({ ...prev, rim_size: String(ocr.rimSize) }))
+      setVehicleSearchTab('model')
+      await handleModelSearch({ make: ocr.manufacturer!, model: ocr.model!, year: ocr.year! })
+      setShowVehicleModal(true)  // reopen only after results are ready
+    } else if (ocr.plate) {
+      setVehiclePlate(ocr.plate)
+      setVehicleSearchTab('plate')
+      await handleVehicleLookup(ocr.plate)
+      setShowVehicleModal(true)  // reopen only after results are ready
+    } else if (ocr.manufacturer || ocr.model) {
+      if (ocr.manufacturer) setModelSearchMake(ocr.manufacturer)
+      if (ocr.model) setModelSearchModel(ocr.model)
+      if (ocr.year) setModelSearchYear(ocr.year ?? '')
+      setVehicleSearchTab('model')
+      setOcrAutoSearch(false)
+      setShowVehicleModal(true)
+    }
+  }
 
   // Model search state
   const [modelSearchMake, setModelSearchMake] = useState('')
@@ -329,6 +402,7 @@ function SearchPageContent() {
 
   const closeVehicleModal = () => {
     setShowVehicleModal(false)
+    setOcrAutoSearch(false)
     setVehicleResult(null)
     setVehicleError(null)
     setVehicleSearchResults(null)
@@ -408,8 +482,9 @@ function SearchPageContent() {
     }
   }
 
-  const handleVehicleLookup = async () => {
-    if (!vehiclePlate.trim()) {
+  const handleVehicleLookup = async (plateOverride?: string) => {
+    const plate = plateOverride ?? vehiclePlate
+    if (!plate.trim()) {
       toast.error('נא להזין מספר רישוי')
       return
     }
@@ -420,7 +495,7 @@ function SearchPageContent() {
     setVehicleSearchResults(null)
 
     try {
-      const response = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(vehiclePlate)}`)
+      const response = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(plate)}`)
       const data = await response.json()
 
       if (!response.ok) {
@@ -429,7 +504,7 @@ function SearchPageContent() {
       }
 
       setVehicleResult(data)
-      saveToHistory(vehiclePlate.trim(), data)
+      saveToHistory(plate.trim(), data)
 
       // If we have wheel fitment, search for matching wheels
       // Search by PCD only (don't filter by rim_size) to show all compatible wheels
@@ -456,11 +531,15 @@ function SearchPageContent() {
   }
 
   // Search by make/model/year using wheel-size.com scraper
-  const handleModelSearch = async () => {
+  const handleModelSearch = async (overrides?: { make?: string; model?: string; year?: string }) => {
+    const make = overrides?.make ?? modelSearchMake
+    const model = overrides?.model ?? modelSearchModel
+    const year = overrides?.year ?? modelSearchYear
+
     const errors = {
-      make: !modelSearchMake.trim(),
-      model: !modelSearchModel.trim(),
-      year: !modelSearchYear.trim()
+      make: !make.trim(),
+      model: !model.trim(),
+      year: !year.trim()
     }
     setModelSearchErrors(errors)
 
@@ -477,10 +556,10 @@ function SearchPageContent() {
     setShowModelModelSuggestions(false)
 
     // Extract English make name if contains Hebrew in parentheses
-    const englishMake = modelSearchMake.includes('(') ? modelSearchMake.split(' (')[0] : (hebrewToEnglishMakes[modelSearchMake] || modelSearchMake)
+    const englishMake = make.includes('(') ? make.split(' (')[0] : (hebrewToEnglishMakes[make] || make)
 
     // Extract English model name if contains Hebrew in parentheses
-    const englishModel = modelSearchModel.includes('(') ? modelSearchModel.split(' (')[0] : (hebrewToEnglishModels[modelSearchModel] || modelSearchModel)
+    const englishModel = model.includes('(') ? model.split(' (')[0] : (hebrewToEnglishModels[model] || model)
 
     try {
       // First try local DB
@@ -525,7 +604,7 @@ function SearchPageContent() {
           vehicle: {
             manufacturer: model.make,
             model: model.model,
-            year: parseInt(modelSearchYear),
+            year: parseInt(year),
             color: '',
             front_tire: model.tire_size_front || ''
           },
@@ -1180,7 +1259,7 @@ function SearchPageContent() {
       {/* Search Type Selection */}
       <div style={styles.searchTypeContainer}>
         <button
-          style={{...styles.searchTypeBtn, ...(vehicleSearchTab === 'plate' || showVehicleModal ? styles.searchTypeBtnActive : {})}}
+          style={{...styles.searchTypeBtn, ...(showVehicleModal ? styles.searchTypeBtnActive : {})}}
           onClick={openVehicleModal}
         >
           <span style={styles.searchTypeIcon}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg></span>
@@ -1193,7 +1272,26 @@ function SearchPageContent() {
           <span style={styles.searchTypeIcon}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
           <span>חיפוש לפי מפרט</span>
         </button>
+        <button
+          style={{...styles.searchTypeBtn, ...(ocrLoading ? styles.searchTypeBtnActive : {})}}
+          onClick={() => { if (!ocrLoading) ocrInputRef.current?.click() }}
+        >
+          <span style={styles.searchTypeIcon}>
+            {ocrLoading
+              ? <svg className="spinning-wheel" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            }
+          </span>
+          <span>{ocrLoading ? 'מזהה רישיון...' : 'תמונת רישיון'}</span>
+        </button>
       </div>
+      <input
+        ref={ocrInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleOcrUpload(f); e.target.value = '' }}
+      />
 
       <footer style={styles.footer}>
         <div style={styles.footerInfo}>
@@ -1463,6 +1561,71 @@ function SearchPageContent() {
         </div>
       )}
 
+      {/* OCR Auto-Search Loading Overlay */}
+      {ocrAutoSearch && (vehicleLoading || modelSearchLoading) && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
+          <svg className="spinning-wheel" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem' }}>מחפש גלגלים מתאימים לרכב שלך...</span>
+        </div>
+      )}
+
+      {/* OCR Result Modal */}
+      {showOcrResultModal && ocrResultData && (
+        <div style={styles.modalOverlay} onClick={() => setShowOcrResultModal(false)}>
+          <div style={{ ...styles.vehicleModal, maxWidth: 420, padding: '28px 24px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '18px', color: '#1e293b', textAlign: 'right' }}>
+              פרטים שנמצאו ברישיון
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '22px' }}>
+              {ocrResultData.plate && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontWeight: 600, color: '#1e293b', direction: 'ltr', letterSpacing: 2 }}>{ocrResultData.plate}</span>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>מספר רכב</span>
+                </div>
+              )}
+              {ocrResultData.manufacturer && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{ocrResultData.manufacturer}</span>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>יצרן</span>
+                </div>
+              )}
+              {ocrResultData.model && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{ocrResultData.model}</span>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>דגם</span>
+                </div>
+              )}
+              {ocrResultData.year && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{ocrResultData.year}</span>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>שנה</span>
+                </div>
+              )}
+              {ocrResultData.tireSizes.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                  <span style={{ fontWeight: 600, color: '#166534', direction: 'ltr' }}>{ocrResultData.tireSizes.join(', ')}</span>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>מידות צמיג</span>
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                onClick={() => handleOcrSearch(ocrResultData)}
+                style={{ width: '100%', padding: '13px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}
+              >
+                הזיהוי נכון — חפש גלגלים
+              </button>
+              <button
+                onClick={() => { setShowOcrResultModal(false); setShowVehicleModal(true) }}
+                style={{ width: '100%', padding: '13px', background: '#f1f5f9', color: '#374151', border: '1px solid #e2e8f0', borderRadius: '10px', fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer' }}
+              >
+                הזיהוי לא נכון — עבור לחיפוש רגיל
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Vehicle Lookup Modal */}
       {showVehicleModal && (
         <div style={styles.modalOverlay} onClick={closeVehicleModal}>
@@ -1471,6 +1634,9 @@ function SearchPageContent() {
               <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}} className="wheels-modal-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>חיפוש לפי רכב</h3>
               <button style={styles.closeBtn} className="wheels-close-btn" onClick={closeVehicleModal} aria-label="סגור חיפוש רכב"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
+
+            {/* Form section: hidden when ocrAutoSearch=true (came from OCR confirm) */}
+            {!ocrAutoSearch && (<>
 
             {/* Beta warning */}
             <div style={styles.betaWarning}>
@@ -1529,27 +1695,29 @@ function SearchPageContent() {
 
             {/* Tab Content: Plate Search */}
             {vehicleSearchTab === 'plate' && (
-              <div id="plate-search-panel" role="tabpanel" style={styles.vehicleInputRow}>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={vehiclePlate}
-                  onChange={e => setVehiclePlate(e.target.value)}
-                  onKeyPress={e => e.key === 'Enter' && handleVehicleLookup()}
-                  placeholder="הזן מספר רישוי..."
-                  style={styles.vehicleInput}
-                  dir="ltr"
-                  autoFocus
-                />
-                <button
-                  onClick={handleVehicleLookup}
-                  disabled={vehicleLoading}
-                  style={styles.vehicleLookupBtn}
-                >
-                  {vehicleLoading ? (
-                    <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                  ) : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
-                </button>
+              <div id="plate-search-panel" role="tabpanel">
+                <div style={styles.vehicleInputRow}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={vehiclePlate}
+                    onChange={e => setVehiclePlate(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && handleVehicleLookup()}
+                    placeholder="הזן מספר רישוי..."
+                    style={styles.vehicleInput}
+                    dir="ltr"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => handleVehicleLookup()}
+                    disabled={vehicleLoading}
+                    style={styles.vehicleLookupBtn}
+                  >
+                    {vehicleLoading ? (
+                      <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    ) : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1750,7 +1918,7 @@ function SearchPageContent() {
                   style={{...styles.vehicleInput, ...(modelSearchErrors.year && {borderColor: '#ef4444', boxShadow: '0 0 0 1px #ef4444'})}}
                 />
                 <button
-                  onClick={handleModelSearch}
+                  onClick={() => handleModelSearch()}
                   disabled={modelSearchLoading}
                   style={{
                     ...styles.vehicleLookupBtn,
@@ -1765,6 +1933,8 @@ function SearchPageContent() {
                 </button>
               </div>
             )}
+
+            </>)} {/* end !ocrAutoSearch form section */}
 
             {/* Error message with external links and add model button */}
             {vehicleError && vehicleSearchTab === 'model' && modelSearchMake && modelSearchModel && (
@@ -2723,36 +2893,38 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   searchTypeContainer: {
     display: 'flex',
-    gap: '15px',
-    justifyContent: 'center',
-    marginBottom: '30px',
-    flexWrap: 'wrap' as const,
+    flexDirection: 'column' as const,
+    gap: '10px',
+    width: '100%',
+    maxWidth: '320px',
+    margin: '0 auto 30px',
   },
   searchTypeBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    padding: '20px 30px',
+    padding: '32px 20px',
     background: '#ffffff',
     border: '2px solid #e2e8f0',
     borderRadius: '16px',
+    fontSize: '1.2rem',
     color: '#475569',
-    fontSize: '1.1rem',
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.3s',
-    minWidth: '200px',
+    transition: 'all 0.2s',
     justifyContent: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+    width: '100%',
+    opacity: 1,
   },
   searchTypeBtnActive: {
     borderColor: '#16a34a',
     background: '#f0fdf4',
     color: '#16a34a',
-    boxShadow: '0 0 0 3px rgba(22,163,74,0.12)',
   },
   searchTypeIcon: {
-    fontSize: '1.5rem',
+    fontSize: '1.2rem',
+    flexShrink: 0,
   },
   header: {
     textAlign: 'center',

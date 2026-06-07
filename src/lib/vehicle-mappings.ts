@@ -12,7 +12,9 @@ export const hebrewToEnglishMakes: Record<string, string> = {
   'סיטרואן': 'Citroen', 'רנו': 'Renault', 'פיאט': 'Fiat', 'אלפא רומאו': 'Alfa Romeo',
   'שברולט': 'Chevrolet', 'פורד': 'Ford', 'ג\'יפ': 'Jeep', 'דאצ\'יה': 'Dacia',
   'אופל': 'Opel', 'וולוו': 'Volvo', 'לקסוס': 'Lexus', 'אינפיניטי': 'Infiniti',
-  'טסלה': 'Tesla', 'BYD': 'BYD', 'ביי די': 'BYD', 'בי ווי די': 'BYD', 'ביי וואי די': 'BYD', 'ג\'ילי': 'Geely', 'MG': 'MG'
+  'טסלה': 'Tesla', 'BYD': 'BYD', 'ביי די': 'BYD', 'בי ווי די': 'BYD', 'ביי וואי די': 'BYD',
+  'ג\'ילי': 'Geely', 'גילי': 'Geely', 'MG': 'MG', 'מיני': 'Mini',
+  'איסוזו': 'Isuzu', 'מיצובישי פוסו': 'Mitsubishi Fuso', 'לאדה': 'Lada'
 }
 
 // Common Hebrew to English car model mappings
@@ -45,7 +47,17 @@ export const hebrewToEnglishModels: Record<string, string> = {
   'פוקוס': 'Focus', 'פיאסטה': 'Fiesta', 'אסטרה': 'Astra', 'קורסה': 'Corsa',
   'קליאו': 'Clio', 'מגאן': 'Megane', 'סי 3': 'C3', 'סי 4': 'C4', '208': '208', '308': '308',
   // Suzuki
-  'סוויפט': 'Swift', 'ויטרה': 'Vitara', 'בלנו': 'Baleno'
+  'סוויפט': 'Swift', 'ויטרה': 'Vitara', 'בלנו': 'Baleno',
+  // Subaru
+  'אימפרזה': 'Impreza', 'פורסטר': 'Forester', 'אאוטבק': 'Outback', 'לגאסי': 'Legacy',
+  // Mercedes
+  'סי קלאס': 'C-Class', 'אי קלאס': 'E-Class', 'איי קלאס': 'A-Class', 'גי קלאס': 'G-Class',
+  // BMW
+  'סדרה 3': '3 Series', 'סדרה 5': '5 Series', 'סדרה 1': '1 Series',
+  // Geely
+  'ג\'יאומטרי': 'Geometry C', 'ג\'יקו': 'Geely',
+  // Dacia
+  'סנדרו': 'Sandero', 'דאסטר': 'Duster', 'לוגן': 'Logan'
 }
 
 // Model to Make mapping - which models belong to which make
@@ -85,7 +97,19 @@ export const modelToMake: Record<string, string> = {
   // Peugeot
   '208': 'Peugeot', '308': 'Peugeot',
   // Suzuki
-  'Swift': 'Suzuki', 'Vitara': 'Suzuki', 'Baleno': 'Suzuki'
+  'Swift': 'Suzuki', 'Vitara': 'Suzuki', 'Baleno': 'Suzuki',
+  // Subaru
+  'Impreza': 'Subaru', 'Forester': 'Subaru', 'Outback': 'Subaru', 'Legacy': 'Subaru',
+  // Mercedes
+  'C-Class': 'Mercedes-Benz', 'E-Class': 'Mercedes-Benz', 'A-Class': 'Mercedes-Benz', 'G-Class': 'Mercedes-Benz',
+  // BMW
+  '3 Series': 'BMW', '5 Series': 'BMW', '1 Series': 'BMW',
+  // Geely
+  'Geometry C': 'Geely',
+  // Dacia
+  'Sandero': 'Dacia', 'Duster': 'Dacia', 'Logan': 'Dacia',
+  // Honda
+  'ZR-V': 'Honda', 'Fit': 'Honda'
 }
 
 // Extract rim size from tire string (e.g., "205/55R16" -> 16)
