@@ -13,6 +13,14 @@ Use null for any field not found. Return valid JSON only.`
 
 export async function POST(request: NextRequest) {
   try {
+    const origin = request.headers.get('origin') ?? ''
+    const host = request.headers.get('host') ?? ''
+    const isLocal = host.includes('localhost') || host.includes('127.0.0.1')
+    const allowedOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? ''
+    if (!isLocal && allowedOrigin && !origin.includes(allowedOrigin.replace(/https?:\/\//, ''))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_VISION_API_KEY
     if (!apiKey) return NextResponse.json({ error: 'Missing API key' }, { status: 500 })
 

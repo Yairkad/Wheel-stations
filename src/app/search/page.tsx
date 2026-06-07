@@ -229,6 +229,25 @@ function SearchPageContent() {
     } catch {}
   }, [])
 
+  // Handle Web Share Target: if ?shared=1, read image from IndexedDB and run OCR
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('shared') !== '1') return
+    window.history.replaceState({}, '', '/search')
+    const req = indexedDB.open('wheels-share', 1)
+    req.onsuccess = e => {
+      const db = (e.target as IDBOpenDBRequest).result
+      const tx = db.transaction('pending', 'readwrite')
+      const store = tx.objectStore('pending')
+      const get = store.get('image')
+      get.onsuccess = () => {
+        store.delete('image')
+        const file = get.result as File | undefined
+        if (file) handleOcrUpload(file)
+      }
+    }
+  }, [])
+
   useEffect(() => {
     // Check if user is authenticated (station manager or operator)
     const hasStationSession = Object.keys(localStorage).some(key => key.startsWith('station_session_'))

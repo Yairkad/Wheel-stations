@@ -9,6 +9,17 @@
   "orientation": "portrait",
   "dir": "rtl",
   "lang": "he",
+  "share_target": {
+    "action": "/search",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [{
+        "name": "image",
+        "accept": ["image/*"]
+      }]
+    }
+  },
   "icons": [
     {
       "src": "/logo.wheels.png",
