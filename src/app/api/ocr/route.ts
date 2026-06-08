@@ -17,10 +17,7 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') ?? ''
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1')
     const allowedOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? ''
-    if (!isLocal) {
-      if (!allowedOrigin) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
+    if (!isLocal && origin && allowedOrigin) {
       try {
         const originHost = new URL(origin).hostname
         const allowedHost = new URL(allowedOrigin).hostname
