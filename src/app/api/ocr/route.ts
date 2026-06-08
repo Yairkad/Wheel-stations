@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const PROMPT = `This is an Israeli vehicle registration document (רישיון רכב).
-Extract the following fields and return ONLY a JSON object (no markdown, no explanation):
+Extract ONLY the following vehicle technical fields and return them as a JSON object (no markdown, no explanation).
+Do NOT extract or return any personal data — ignore owner name, ID number (ת.ז), address, or any other personal information.
 {
   "plate": "7-8 digit plate number only (מספר רכב)",
   "manufacturer": "manufacturer name in English, brand name only without country (e.g. Honda not Honda Turkey, MAN not MAN Austria)",
