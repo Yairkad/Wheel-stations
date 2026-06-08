@@ -17,14 +17,20 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') ?? ''
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1')
     const allowedOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? ''
-    if (!isLocal && origin && allowedOrigin) {
+
+    if (!isLocal && origin) {
+      let allowed = false
       try {
         const originHost = new URL(origin).hostname
-        const allowedHost = new URL(allowedOrigin).hostname
-        if (originHost !== allowedHost) {
-          return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        const hostName = host.split(':')[0]
+        if (originHost === hostName) allowed = true
+        else if (allowedOrigin) {
+          const allowedHost = new URL(allowedOrigin).hostname
+          if (originHost === allowedHost) allowed = true
         }
-      } catch {
+      } catch { /* invalid origin URL */ }
+      if (!allowed) {
+        console.error('[OCR] blocked origin:', origin, '| host:', host, '| allowed:', allowedOrigin)
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
     }
