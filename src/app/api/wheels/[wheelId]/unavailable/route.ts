@@ -16,12 +16,29 @@ interface RouteParams {
   params: Promise<{ wheelId: string }>
 }
 
+async function verifyManagerOwnsWheel(managerId: string, wheelId: string): Promise<boolean> {
+  const { data: wheel } = await supabase.from('wheels').select('station_id').eq('id', wheelId).single()
+  if (!wheel) return false
+  const { data: role } = await supabase.from('user_roles')
+    .select('id').eq('user_id', managerId).eq('role', 'station_manager')
+    .eq('station_id', wheel.station_id).eq('is_active', true).single()
+  return !!role
+}
+
 // POST - Mark wheel as temporarily unavailable
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { wheelId } = await params
     const body = await request.json()
     const { reason, notes, manager_id } = body
+
+    if (!manager_id) {
+      return NextResponse.json({ error: 'manager_id is required' }, { status: 401 })
+    }
+
+    if (!await verifyManagerOwnsWheel(manager_id, wheelId)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+    }
 
     if (!reason) {
       return NextResponse.json(
@@ -69,6 +86,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { wheelId } = await params
+    const { searchParams } = new URL(request.url)
+    const managerId = searchParams.get('manager_id')
+
+    if (!managerId) {
+      return NextResponse.json({ error: 'manager_id is required' }, { status: 401 })
+    }
+
+    if (!await verifyManagerOwnsWheel(managerId, wheelId)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+    }
 
     // Update wheel status
     const { data: wheel, error } = await supabase

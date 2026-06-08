@@ -17,8 +17,19 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') ?? ''
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1')
     const allowedOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? ''
-    if (!isLocal && allowedOrigin && !origin.includes(allowedOrigin.replace(/https?:\/\//, ''))) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (!isLocal) {
+      if (!allowedOrigin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      try {
+        const originHost = new URL(origin).hostname
+        const allowedHost = new URL(allowedOrigin).hostname
+        if (originHost !== allowedHost) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+      } catch {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_VISION_API_KEY
@@ -50,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (!res.ok) {
       const err = await res.text()
       console.error('[OCR route]', res.status, err)
-      return NextResponse.json({ error: 'Gemini error', detail: err }, { status: 500 })
+      return NextResponse.json({ error: 'OCR service error' }, { status: 500 })
     }
 
     const json = await res.json()
@@ -91,6 +102,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[OCR route]', msg)
-    return NextResponse.json({ error: 'OCR failed', detail: msg }, { status: 500 })
+    return NextResponse.json({ error: 'OCR failed' }, { status: 500 })
   }
 }

@@ -198,7 +198,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
       await fetch(`${baseUrl}/api/wheel-stations/${stationId}/push/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-secret': process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+        },
         body: JSON.stringify({
           title: `🛞 בקשת השאלה חדשה - ${station.name}`,
           body: `${borrower_name} מבקש להשאיל גלגל #${wheel.wheel_number}`,

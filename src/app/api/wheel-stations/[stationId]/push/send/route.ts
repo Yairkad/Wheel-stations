@@ -31,6 +31,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ stationId: string }> }
 ) {
+  const internalSecret = request.headers.get('x-internal-secret')
+  const expectedSecret = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!expectedSecret || internalSecret !== expectedSecret) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const { stationId } = await params
     const { title, body, url } = await request.json()

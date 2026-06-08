@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { clearDistrictsCache } from '@/lib/districts'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,6 +19,9 @@ type RouteParams = {
 }
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const { districtId } = await params
     const body = await request.json()
@@ -72,6 +76,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const { districtId } = await params
 

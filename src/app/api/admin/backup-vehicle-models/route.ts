@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const adminKey = searchParams.get('key')
 
-    if (adminKey !== process.env.NEXT_PUBLIC_WHEELS_ADMIN_PASSWORD) {
+    if (adminKey !== process.env.WHEELS_BACKUP_SECRET) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

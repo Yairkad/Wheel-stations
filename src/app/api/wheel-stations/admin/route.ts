@@ -13,8 +13,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// GET - List all stations with full details (no auth needed for listing)
-export async function GET() {
+// GET - List all stations with full details
+export async function GET(request: NextRequest) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const { data: stations, error } = await supabase
       .from('wheel_stations')

@@ -1722,7 +1722,7 @@ ${formUrl}`
   const handleMarkAvailable = async (wheel: Wheel) => {
     setActionLoading(true)
     try {
-      const response = await fetch(`/api/wheels/${wheel.id}/unavailable`, {
+      const response = await fetch(`/api/wheels/${wheel.id}/unavailable?manager_id=${encodeURIComponent(currentManager?.id ?? '')}`, {
         method: 'DELETE'
       })
 

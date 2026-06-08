@@ -1,0 +1,33 @@
+{
+  "session_id": "session-2026-06-08-1144",
+  "started": "2026-06-08T08:44:09.891Z",
+  "files_read": {
+    "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/wheel-stations/recovery/route.ts": {
+      "count": 1,
+      "tokens": 712,
+      "first_read": "2026-06-08T08:49:49.871Z"
+    }
+  },
+  "files_written": [
+    {
+      "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/wheel-stations/recovery/route.ts",
+      "action": "edit",
+      "tokens": 39,
+      "at": "2026-06-08T08:50:58.292Z"
+    },
+    {
+      "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/wheel-stations/recovery/route.ts",
+      "action": "edit",
+      "tokens": 59,
+      "at": "2026-06-08T08:51:06.420Z"
+    }
+  ],
+  "edit_counts": {
+    "src/app/api/wheel-stations/recovery/route.ts": 2
+  },
+  "anatomy_hits": 1,
+  "anatomy_misses": 0,
+  "repeated_reads_warned": 0,
+  "cerebrum_warnings": 0,
+  "stop_count": 5
+}

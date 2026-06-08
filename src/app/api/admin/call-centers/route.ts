@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // GET - List all call centers with their managers and operators
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -71,6 +75,9 @@ export async function GET() {
 
 // POST - Create a new call center with primary manager
 export async function POST(request: NextRequest) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()

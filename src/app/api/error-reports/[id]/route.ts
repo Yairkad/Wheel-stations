@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -9,6 +10,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const { id } = await params
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -43,6 +47,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const { id } = await params
     const supabase = createClient(supabaseUrl, supabaseServiceKey)

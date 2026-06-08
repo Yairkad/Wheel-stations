@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,6 +30,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+  }
   try {
     const body = await request.json()
     const { code, name, color } = body

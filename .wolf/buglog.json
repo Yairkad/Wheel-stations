@@ -1,0 +1,791 @@
+{
+  "version": 1,
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-06-03T00:00:00.000Z",
+      "error_message": "גלגל בקוטר 16\" מוצג עם 'קוטר לא תואם' למרות שהגודל תואם לגדלים המותרים",
+      "file": "src/app/search/page.tsx, src/app/stations/page.tsx",
+      "root_cause": "עמודת rim_sizes_allowed ב-DB מוגדרת כ-text[] (מחרוזות) ולא integer[]. JavaScript's Array.includes() לא תואם בין מחרוזת '16' למספר 16, כך שהשוואה תמיד נכשלת.",
+      "fix": "הוספת .map(Number) בחישוב effectiveRimSizes כדי להמיר את ערכי text[] למספרים לפני השוואה: allowedSizes.map(Number)",
+      "tags": [
+        "type-mismatch",
+        "rim-size",
+        "vehicle-search",
+        "text-array",
+        "includes"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-03T00:00:00.000Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-06-02T23:11:00.937Z",
+      "error_message": "Type error",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: {/* Vehicle Search History */}; {vehicleSearchTab === 'plate' && !vehicleResult && !vehicleL",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-02T23:12:46.439Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-06-02T23:11:33.703Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: const saveToHistory = (plate: string, result: VehicleSearchR; const v = result.vehicle",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-02T23:11:58.189Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-06-07T15:11:52.541Z",
+      "error_message": "Missing error handling in function",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T15:11:52.541Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-06-07T15:12:10.762Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: const handleVehicleLookup = async (plateOverride?: string) =; const plate = plateOverride ?? vehiclePlate",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-07T15:12:34.044Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-06-07T15:23:13.306Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: const { extractVehicleDataFromImage } = await import('@/lib/; const ocr = await extractVehicleDataFromImage(file)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-07T15:23:37.826Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-06-07T15:23:23.431Z",
+      "error_message": "Wrong reference: modelSearchYear should be year",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Used \"modelSearchYear\" instead of \"year\"",
+      "fix": "Changed modelSearchYear → year",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T15:23:23.431Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-06-07T15:26:31.167Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/lib/ocr.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 5→24 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T15:26:31.167Z"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-06-07T15:27:07.592Z",
+      "error_message": "Type error",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T15:27:07.592Z"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-06-07T16:42:22.637Z",
+      "error_message": "Wrong operator: || should be >=",
+      "file": "src/lib/ocr.ts",
+      "root_cause": "Used \"||\" instead of \">=\"",
+      "fix": "Changed operator || → >=",
+      "tags": [
+        "auto-detected",
+        "operator-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T16:42:22.637Z"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-06-07T16:54:33.659Z",
+      "error_message": "Missing import: @/lib/ocr",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Module(s) not imported: @/lib/ocr",
+      "fix": "Added import(s) for @/lib/ocr",
+      "tags": [
+        "auto-detected",
+        "missing-import",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T16:54:33.661Z"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-06-07T16:55:00.985Z",
+      "error_message": "CSS fix: make",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "make: ocr.manufacturer ?? '', model: ocr.model ?? '', year: ocr.year → ocr.manufacturer ?? '', model: ocr.model ?? '', year: ocr.year ?? ''",
+      "fix": "Changed make: ocr.manufacturer ?? '', model: ocr.model ?? '', year: ocr.year → ocr.manufacturer ?? '', model: ocr.model ?? '', year: ocr.year ?? ''",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T16:55:00.985Z"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-06-07T16:55:38.751Z",
+      "error_message": "Type error",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T16:55:38.751Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-06-07T17:01:34.316Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "Had ',\n  '",
+      "fix": "Changed to ', '",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T17:01:34.316Z"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-06-07T17:01:54.574Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 5→3 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T17:01:54.574Z"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-06-07T17:02:29.826Z",
+      "error_message": "CSS fix: display",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "display: 'flex', gap: '10px' → 'flex', flexDirection: 'column', gap: '10px'",
+      "fix": "Changed display: 'flex', gap: '10px' → 'flex', flexDirection: 'column', gap: '10px'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-07T17:07:36.213Z"
+    },
+    {
+      "id": "bug-017",
+      "timestamp": "2026-06-07T17:23:25.659Z",
+      "error_message": "Type error",
+      "file": "src/lib/ocr.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T17:23:25.659Z"
+    },
+    {
+      "id": "bug-018",
+      "timestamp": "2026-06-07T17:39:58.334Z",
+      "error_message": "Missing await",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T17:39:58.334Z"
+    },
+    {
+      "id": "bug-019",
+      "timestamp": "2026-06-07T17:40:41.058Z",
+      "error_message": "Type error",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T17:40:41.058Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-06-07T17:53:43.607Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 23→17 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T17:53:43.607Z"
+    },
+    {
+      "id": "bug-021",
+      "timestamp": "2026-06-07T17:55:31.956Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/lib/ocr.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 9→13 lines (3 removed) | Also: // 1. Look near \"מספר רכב\" label (within next 60 c; // 2. Dashed plate: 12-345-67 or 123-45-678",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-07T17:55:51.820Z"
+    },
+    {
+      "id": "bug-022",
+      "timestamp": "2026-06-07T18:46:54.802Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T18:46:54.802Z"
+    },
+    {
+      "id": "bug-023",
+      "timestamp": "2026-06-07T18:53:42.391Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T18:53:42.391Z"
+    },
+    {
+      "id": "bug-024",
+      "timestamp": "2026-06-07T18:53:58.033Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Was returning: NextResponse.json({ error: 'OCR failed' }, { statu",
+      "fix": "Now returns: NextResponse.json({ error: 'OCR failed', detail: m",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T18:53:58.033Z"
+    },
+    {
+      "id": "bug-025",
+      "timestamp": "2026-06-07T21:09:50.567Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Had 'gemini-1.5-flash'",
+      "fix": "Changed to 'gemini-2.0-flash'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-06-07T21:22:16.101Z"
+    },
+    {
+      "id": "bug-026",
+      "timestamp": "2026-06-07T21:21:09.187Z",
+      "error_message": "Type error",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:21:09.187Z"
+    },
+    {
+      "id": "bug-027",
+      "timestamp": "2026-06-07T21:26:34.108Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "No early return/throw for edge case: !cleaned",
+      "fix": "Added guard clause: if (!cleaned)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:26:34.108Z"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-06-07T21:31:45.335Z",
+      "error_message": "Wrong condition in logic",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Condition was: if (!cleaned)",
+      "fix": "Changed to: if (start === -1 || end === -1)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:31:45.335Z"
+    },
+    {
+      "id": "bug-029",
+      "timestamp": "2026-06-07T21:32:41.229Z",
+      "error_message": "Wrong reference: 512 should be 1024",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Used \"512\" instead of \"1024\"",
+      "fix": "Changed 512 → 1024",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:32:41.229Z"
+    },
+    {
+      "id": "bug-030",
+      "timestamp": "2026-06-07T21:40:26.637Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:40:26.637Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-06-07T21:47:11.685Z",
+      "error_message": "Wrong reference: 1024 should be 4096",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Used \"1024\" instead of \"4096\"",
+      "fix": "Changed 1024 → 4096",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:47:11.685Z"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-06-07T21:47:23.134Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:47:23.134Z"
+    },
+    {
+      "id": "bug-033",
+      "timestamp": "2026-06-07T21:56:32.222Z",
+      "error_message": "Type error",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T21:56:32.222Z"
+    },
+    {
+      "id": "bug-034",
+      "timestamp": "2026-06-07T21:56:57.681Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Had '16px 24px'",
+      "fix": "Changed to '20px 28px'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 6,
+      "last_seen": "2026-06-07T22:05:45.171Z"
+    },
+    {
+      "id": "bug-035",
+      "timestamp": "2026-06-07T21:59:40.683Z",
+      "error_message": "CSS fix: maxWidth, padding, fontSize",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "maxWidth: '340px', → '380px',; padding: '20px 28px', → '22px 28px',; fontSize: '1rem', → '1.1rem',",
+      "fix": "Changed maxWidth: '340px', → '380px',; padding: '20px 28px', → '22px 28px',; fontSize: '1rem', → '1.1rem',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-07T22:04:29.410Z"
+    },
+    {
+      "id": "bug-036",
+      "timestamp": "2026-06-07T22:17:52.554Z",
+      "error_message": "Wrong condition in logic",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Condition was: if (!apiKey)",
+      "fix": "Changed to: if (!isLocal && allowedOrigin && !origin.includes(allo)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T22:17:52.554Z"
+    },
+    {
+      "id": "bug-037",
+      "timestamp": "2026-06-07T22:47:44.200Z",
+      "error_message": "Missing error handling in openShareDB",
+      "file": "public/sw.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T22:47:44.200Z"
+    },
+    {
+      "id": "bug-038",
+      "timestamp": "2026-06-07T22:48:09.790Z",
+      "error_message": "Type error",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-07T22:48:09.790Z"
+    },
+    {
+      "id": "bug-039",
+      "timestamp": "2026-06-08T08:27:16.784Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/admin/users/route.ts",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→9 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:27:16.784Z"
+    },
+    {
+      "id": "bug-040",
+      "timestamp": "2026-06-08T08:27:23.814Z",
+      "error_message": "Missing await",
+      "file": "src/app/api/admin/super-managers/route.ts",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call | Also: import { validateAdminSession } from '@/lib/admin-auth'; export async function GET(request: NextRequest) { | Also: // GET - List all stations with full details; export async function GET(request: NextRequest) { | Also: import { validateAdminSession } from '@/lib/admin-auth'; if (!await validateAdminSession(request)) { | Also: if (!await validateAdminSession(request)) {; return NextResponse.json({ error: 'לא מורשה' }, { status: 40",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 15,
+      "last_seen": "2026-06-08T08:30:33.157Z"
+    },
+    {
+      "id": "bug-041",
+      "timestamp": "2026-06-08T08:27:58.138Z",
+      "error_message": "Wrong reference: password should be null",
+      "file": "src/app/api/wheel-stations/admin/route.ts",
+      "root_cause": "Used \"password\" instead of \"null\"",
+      "fix": "Changed password → null",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-08T08:30:38.026Z"
+    },
+    {
+      "id": "bug-042",
+      "timestamp": "2026-06-08T08:30:47.945Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/api/wheels/[wheelId]/unavailable/route.ts",
+      "root_cause": "No early return/throw for edge case: !wheel",
+      "fix": "Added guard clause: if (!wheel)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:30:47.945Z"
+    },
+    {
+      "id": "bug-043",
+      "timestamp": "2026-06-08T08:31:32.013Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:31:32.013Z"
+    },
+    {
+      "id": "bug-044",
+      "timestamp": "2026-06-08T08:31:36.902Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Had 'Gemini error'",
+      "fix": "Changed to 'OCR service error'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:31:36.902Z"
+    },
+    {
+      "id": "bug-045",
+      "timestamp": "2026-06-08T08:31:40.442Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Was returning: NextResponse.json({ error: 'OCR failed', detail: m",
+      "fix": "Now returns: NextResponse.json({ error: 'OCR failed' }, { statu",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:31:40.442Z"
+    },
+    {
+      "id": "bug-046",
+      "timestamp": "2026-06-08T08:31:58.312Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/wheel-stations/[stationId]/public-borrow/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:31:58.312Z"
+    },
+    {
+      "id": "bug-047",
+      "timestamp": "2026-06-08T08:33:42.812Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:33:42.812Z"
+    },
+    {
+      "id": "bug-048",
+      "timestamp": "2026-06-08T08:41:56.912Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/api/admin/users/route.ts",
+      "root_cause": "Had 'id, full_name, phone, is_active, created_at'",
+      "fix": "Changed to 'id, full_name, phone, password, is_active, create",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-08T08:42:03.208Z"
+    },
+    {
+      "id": "bug-049",
+      "timestamp": "2026-06-08T08:42:10.234Z",
+      "error_message": "Wrong reference: null should be password",
+      "file": "src/app/api/wheel-stations/admin/route.ts",
+      "root_cause": "Used \"null\" instead of \"password\"",
+      "fix": "Changed null → password",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-08T08:42:10.234Z"
+    }
+  ]
+}

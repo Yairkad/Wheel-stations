@@ -15,7 +15,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // GET - List all super managers
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!await validateAdminSession(request)) {
+    return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+  }
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
