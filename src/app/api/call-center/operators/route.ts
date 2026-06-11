@@ -12,9 +12,6 @@ function generateCode(): string {
 
 // GET - List operators for a call center
 export async function GET(request: NextRequest) {
-  if (!await validateAdminSession(request)) {
-    return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
-  }
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const { searchParams } = new URL(request.url)

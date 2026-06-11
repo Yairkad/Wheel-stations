@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
-import { verifyPassword, hashPassword } from '@/lib/password'
+import { verifyPassword } from '@/lib/password'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { error: updateError } = await supabase
       .from('users')
-      .update({ password: await hashPassword(new_password) })
+      .update({ password: new_password })
       .eq('id', user.id)
 
     if (updateError) {
