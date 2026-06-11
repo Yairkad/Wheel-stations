@@ -165,6 +165,7 @@ function UsersPageInner() {
   const [loading,    setLoading]    = useState(true)
   const [search,     setSearch]     = useState(searchParams.get('phone') || '')
   const [roleFilter, setRoleFilter] = useState<UserRole['role'] | 'all'>('all')
+  const [showEncrypted, setShowEncrypted] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [busy,       setBusy]       = useState(false)
 
@@ -502,7 +503,8 @@ function UsersPageInner() {
     const q = search.toLowerCase()
     const matchesSearch = !q || u.full_name.toLowerCase().includes(q) || u.phone.includes(q)
     const matchesRole   = roleFilter === 'all' || u.roles.some(r => r.role === roleFilter)
-    return matchesSearch && matchesRole
+    const matchesEncrypted = !showEncrypted || u.password?.startsWith('$2')
+    return matchesSearch && matchesRole && matchesEncrypted
   })
 
   // ── Loading / auth ──────────────────────────────────────────────────────────
@@ -561,6 +563,17 @@ function UsersPageInner() {
               <option key={r} value={r}>{ROLE_LABELS[r]}</option>
             ))}
           </select>
+          <button
+            onClick={() => setShowEncrypted(v => !v)}
+            style={{
+              padding: '8px 14px', borderRadius: 8, border: '1px solid #e2e8f0',
+              fontSize: '0.875rem', cursor: 'pointer', fontWeight: showEncrypted ? 700 : 400,
+              background: showEncrypted ? '#fef3c7' : '#fff',
+              color: showEncrypted ? '#92400e' : '#64748b',
+            }}
+          >
+            {showEncrypted ? 'מוצגים: מוצפנים בלבד' : 'הצג מוצפנים בלבד'}
+          </button>
           <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
             {filtered.length} תוצאות
           </div>
