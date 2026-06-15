@@ -462,6 +462,10 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [borrowsLoading, setBorrowsLoading] = useState(false)
   const [borrowFilter, setBorrowFilter] = useState<'all' | 'pending' | 'borrowed' | 'returned'>('all')
   const [approvalLoading, setApprovalLoading] = useState<string | null>(null)
+  const [previewBorrow, setPreviewBorrow] = useState<BorrowRecord | null>(null)
+  const [previewFormImageUrl, setPreviewFormImageUrl] = useState<string | null>(null)
+  const [previewFormLoading, setPreviewFormLoading] = useState(false)
+  const [showFormLightbox, setShowFormLightbox] = useState(false)
 
   // Push notifications
   const [pushSupported, setPushSupported] = useState(false)
@@ -766,6 +770,25 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       toast.error('שגיאה בביצוע הפעולה')
     } finally {
       setApprovalLoading(null)
+    }
+  }
+
+  const openBorrowPreview = async (borrow: BorrowRecord) => {
+    setPreviewBorrow(borrow)
+    setPreviewFormImageUrl(null)
+    setShowFormLightbox(false)
+    if (borrow.form_id) {
+      setPreviewFormLoading(true)
+      try {
+        const res = await fetch(`/api/signed-forms/${borrow.form_id}?action=view`)
+        if (res.ok) {
+          const data = await res.json()
+          setPreviewFormImageUrl(data.image_url)
+        }
+      } catch {}
+      finally {
+        setPreviewFormLoading(false)
+      }
     }
   }
 
@@ -2357,6 +2380,12 @@ ${formUrl}`
                             {borrow.status === 'pending' && (
                               <>
                                 <button
+                                  style={styles.previewBtn}
+                                  onClick={() => openBorrowPreview(borrow)}
+                                >
+                                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>בדוק</span>
+                                </button>
+                                <button
                                   style={styles.approveBtn}
                                   onClick={() => handleBorrowAction(borrow.id, 'approve')}
                                   disabled={approvalLoading === borrow.id}
@@ -2521,11 +2550,10 @@ ${formUrl}`
                             {borrow.status === 'pending' && (
                               <>
                                 <button
-                                  style={{...styles.approveBtn, flex: 1}}
-                                  onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'approve') }}
-                                  disabled={approvalLoading === borrow.id}
+                                  style={{...styles.previewBtn, flex: 1}}
+                                  onClick={(e) => { e.stopPropagation(); openBorrowPreview(borrow) }}
                                 >
-                                  {approvalLoading === borrow.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>אשר</span>}
+                                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>בדוק ואשר</span>
                                 </button>
                                 <button
                                   style={styles.rejectBtn}
@@ -5190,6 +5218,136 @@ ${formUrl}`
         )
       })()}
 
+      {/* Borrow Preview Modal */}
+      {previewBorrow && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setPreviewBorrow(null)}>
+          <div role="dialog" aria-modal="true" style={styles.previewModal} onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div style={styles.previewModalHeader}>
+              <span style={{fontWeight: 700, fontSize: '1rem'}}>בדיקת בקשת השאלה</span>
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                {previewBorrow.form_id && (
+                  <button
+                    style={styles.formImageBtn}
+                    onClick={() => setShowFormLightbox(true)}
+                    disabled={previewFormLoading}
+                    title="צפה בטופס החתום"
+                  >
+                    {previewFormLoading
+                      ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{animation:'spin 1s linear infinite'}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    }
+                    <span>טופס חתום</span>
+                  </button>
+                )}
+                <button style={styles.modalCloseBtn} onClick={() => setPreviewBorrow(null)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Details */}
+            <div style={styles.previewModalBody}>
+              <div style={styles.previewSection}>
+                <div style={styles.previewSectionTitle}>פרטים אישיים</div>
+                <div style={styles.previewGrid}>
+                  <span style={styles.previewLabel}>שם:</span>
+                  <span style={styles.previewValue}>{previewBorrow.borrower_name}</span>
+                  {previewBorrow.borrower_id_number && (<>
+                    <span style={styles.previewLabel}>תעודת זהות:</span>
+                    <span style={styles.previewValue}>{previewBorrow.borrower_id_number}</span>
+                  </>)}
+                  <span style={styles.previewLabel}>טלפון:</span>
+                  <span style={styles.previewValue}>{previewBorrow.borrower_phone}</span>
+                  {previewBorrow.borrower_address && (<>
+                    <span style={styles.previewLabel}>כתובת:</span>
+                    <span style={styles.previewValue}>{previewBorrow.borrower_address}</span>
+                  </>)}
+                </div>
+              </div>
+
+              <div style={styles.previewSection}>
+                <div style={styles.previewSectionTitle}>פרטי ההשאלה</div>
+                <div style={styles.previewGrid}>
+                  {previewBorrow.wheels && (<>
+                    <span style={styles.previewLabel}>גלגל:</span>
+                    <span style={styles.previewValue}>#{previewBorrow.wheels.wheel_number} — {previewBorrow.wheels.rim_size}&quot; | {previewBorrow.wheels.bolt_count}×{previewBorrow.wheels.bolt_spacing}</span>
+                  </>)}
+                  {previewBorrow.vehicle_model && (<>
+                    <span style={styles.previewLabel}>דגם רכב:</span>
+                    <span style={styles.previewValue}>{previewBorrow.vehicle_model}</span>
+                  </>)}
+                  <span style={styles.previewLabel}>פיקדון:</span>
+                  <span style={styles.previewValue}>
+                    {(() => {
+                      const amt = previewBorrow.wheels?.custom_deposit || station?.deposit_amount || 200
+                      return previewBorrow.deposit_type === 'cash' ? `₪${amt} מזומן` :
+                             previewBorrow.deposit_type === 'bit' ? `₪${amt} ביט` :
+                             previewBorrow.deposit_type === 'paybox' ? `₪${amt} פייבוקס` :
+                             previewBorrow.deposit_type === 'bank_transfer' ? `₪${amt} העברה בנקאית` :
+                             previewBorrow.deposit_type === 'id' ? 'תעודת זהות' :
+                             previewBorrow.deposit_type === 'license' ? 'רישיון נהיגה' : '-'
+                    })()}
+                  </span>
+                  <span style={styles.previewLabel}>תאריך:</span>
+                  <span style={styles.previewValue}>{new Date(previewBorrow.borrow_date || previewBorrow.created_at).toLocaleDateString('he-IL')}</span>
+                  {previewBorrow.notes && (<>
+                    <span style={styles.previewLabel}>הערות:</span>
+                    <span style={styles.previewValue}>{previewBorrow.notes}</span>
+                  </>)}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={styles.previewModalFooter}>
+              <button
+                style={styles.rejectBtnLarge}
+                onClick={() => { handleBorrowAction(previewBorrow.id, 'reject'); setPreviewBorrow(null) }}
+                disabled={approvalLoading === previewBorrow.id}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                דחה
+              </button>
+              <button
+                style={styles.approveBtnLarge}
+                onClick={() => { handleBorrowAction(previewBorrow.id, 'approve'); setPreviewBorrow(null) }}
+                disabled={approvalLoading === previewBorrow.id}
+              >
+                {approvalLoading === previewBorrow.id ? '...' : <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  אשר בקשה
+                </>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form Image Lightbox */}
+      {showFormLightbox && previewFormImageUrl && (
+        <div
+          role="presentation"
+          style={styles.lightboxOverlay}
+          onClick={() => setShowFormLightbox(false)}
+        >
+          <button
+            style={styles.lightboxCloseBtn}
+            onClick={() => setShowFormLightbox(false)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            סגור תמונה
+          </button>
+          <div style={styles.lightboxContent} onClick={e => e.stopPropagation()}>
+            <img
+              src={previewFormImageUrl}
+              alt="טופס השאלה חתום"
+              style={styles.lightboxImage}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Confirm Dialog Modal */}
       {showConfirmDialog && confirmDialogData && (
         <div role="presentation" style={styles.modalOverlay} onClick={closeConfirmDialog}>
@@ -6613,6 +6771,160 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '6px',
     flexWrap: 'wrap' as const,
+  },
+  previewBtn: {
+    padding: '6px 12px',
+    borderRadius: '8px',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    background: '#6366f1',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+  },
+  previewModal: {
+    background: '#fff',
+    borderRadius: '16px',
+    width: '100%',
+    maxWidth: '480px',
+    maxHeight: '90vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    overflow: 'hidden',
+    boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+    margin: '20px',
+  },
+  previewModalHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '16px 20px',
+    borderBottom: '1px solid #e5e7eb',
+    flexShrink: 0,
+  },
+  previewModalBody: {
+    overflowY: 'auto' as const,
+    padding: '16px 20px',
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '16px',
+  },
+  previewModalFooter: {
+    display: 'flex',
+    gap: '10px',
+    padding: '14px 20px',
+    borderTop: '1px solid #e5e7eb',
+    flexShrink: 0,
+  },
+  previewSection: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+  },
+  previewSectionTitle: {
+    fontSize: '0.8rem',
+    fontWeight: 700,
+    color: '#6b7280',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+  },
+  previewGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'auto 1fr',
+    gap: '8px 12px',
+    alignItems: 'start',
+  },
+  previewLabel: {
+    color: '#9ca3af',
+    fontSize: '0.88rem',
+    whiteSpace: 'nowrap' as const,
+  },
+  previewValue: {
+    color: '#111827',
+    fontSize: '0.88rem',
+    fontWeight: 500,
+  },
+  formImageBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    padding: '6px 12px',
+    borderRadius: '8px',
+    background: '#f3f4f6',
+    color: '#374151',
+    border: '1px solid #e5e7eb',
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  approveBtnLarge: {
+    flex: 1,
+    padding: '12px',
+    borderRadius: '10px',
+    fontSize: '0.95rem',
+    fontWeight: 700,
+    background: '#10b981',
+    color: 'white',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+  },
+  rejectBtnLarge: {
+    padding: '12px 18px',
+    borderRadius: '10px',
+    fontSize: '0.95rem',
+    fontWeight: 700,
+    background: '#fee2e2',
+    color: '#ef4444',
+    border: '1px solid #fca5a5',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+  },
+  lightboxOverlay: {
+    position: 'fixed' as const,
+    inset: 0,
+    background: 'rgba(0,0,0,0.92)',
+    zIndex: 10001,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+  },
+  lightboxCloseBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    margin: '14px auto 10px',
+    padding: '8px 18px',
+    borderRadius: '20px',
+    background: 'rgba(255,255,255,0.15)',
+    color: '#fff',
+    border: '1px solid rgba(255,255,255,0.3)',
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  lightboxContent: {
+    flex: 1,
+    overflowY: 'auto' as const,
+    width: '100%',
+    padding: '0 12px 20px',
+  },
+  lightboxImage: {
+    width: '100%',
+    borderRadius: '8px',
+    display: 'block',
   },
   approveBtn: {
     padding: '6px 12px',

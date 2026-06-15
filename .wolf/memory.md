@@ -3,6 +3,8 @@
 > Chronological action log. Hooks and AI append to this file automatically.
 > Old sessions are consolidated by the daemon weekly.
 
+| 15:00 | added borrow preview modal for pending requests | src/app/[stationId]/page.tsx | done - preview modal with details + lightbox for signed form image | ~400 tok |
+
 ## Session: 2026-05-27 14:53
 
 | Time | Action | File(s) | Outcome | ~Tokens |
@@ -293,3 +295,101 @@
 | 11:50 | Edited src/app/api/wheel-stations/recovery/route.ts | 4→3 lines | ~39 |
 | 11:51 | Edited src/app/api/wheel-stations/recovery/route.ts | 7→6 lines | ~59 |
 | 11:51 | Session end: 2 writes across 1 files (route.ts) | 1 reads | ~810 tok |
+| 11:54 | Session end: 2 writes across 1 files (route.ts) | 1 reads | ~810 tok |
+| 11:57 | Session end: 2 writes across 1 files (route.ts) | 1 reads | ~810 tok |
+| 11:59 | Session end: 2 writes across 1 files (route.ts) | 1 reads | ~810 tok |
+| 11:59 | Session end: 2 writes across 1 files (route.ts) | 1 reads | ~810 tok |
+| 12:00 | Session end: 2 writes across 1 files (route.ts) | 1 reads | ~810 tok |
+| 12:14 | Session end: 2 writes across 1 files (route.ts) | 1 reads | ~810 tok |
+
+## Session: 2026-06-08 12:27
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-08 12:27
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 12:33 | Edited src/app/api/ocr/route.ts | modified if() | ~186 |
+| 12:34 | Session end: 1 writes across 1 files (route.ts) | 0 reads | ~186 tok |
+| 12:46 | Session end: 1 writes across 1 files (route.ts) | 0 reads | ~186 tok |
+
+## Session: 2026-06-08 12:49
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 12:50 | Edited src/app/api/ocr/route.ts | added 3 condition(s) | ~252 |
+| 12:51 | Edited src/app/search/page.tsx | inline fix | ~24 |
+| 12:51 | Session end: 2 writes across 2 files (route.ts, page.tsx) | 1 reads | ~276 tok |
+| 12:51 | Session end: 2 writes across 2 files (route.ts, page.tsx) | 1 reads | ~276 tok |
+| 15:09 | Session end: 2 writes across 2 files (route.ts, page.tsx) | 1 reads | ~276 tok |
+| 15:13 | Session end: 2 writes across 2 files (route.ts, page.tsx) | 1 reads | ~276 tok |
+| 15:22 | Session end: 2 writes across 2 files (route.ts, page.tsx) | 1 reads | ~276 tok |
+| 15:50 | Session end: 2 writes across 2 files (route.ts, page.tsx) | 1 reads | ~276 tok |
+| 16:09 | Edited src/app/api/ocr/route.ts | 10→11 lines | ~248 |
+| 16:09 | Session end: 3 writes across 2 files (route.ts, page.tsx) | 1 reads | ~524 tok |
+
+## Session: 2026-06-11 16:59
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-11 17:00
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-11 17:01
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 17:06 | Edited src/app/api/call-center/operators/route.ts | modified GET() | ~29 |
+| 17:06 | Edited src/app/api/call-center/managers/route.ts | modified GET() | ~28 |
+| 17:06 | Edited src/app/api/call-center/history/route.ts | modified GET() | ~34 |
+| 17:08 | Edited src/app/api/admin/users/[userId]/route.ts | 2→1 lines | ~16 |
+| 17:08 | Edited src/app/api/admin/users/[userId]/route.ts | inline fix | ~18 |
+| 17:09 | Edited src/app/api/call-center/managers/[id]/route.ts | 2→1 lines | ~16 |
+| 17:09 | Edited src/app/api/call-center/managers/[id]/route.ts | inline fix | ~18 |
+| 17:09 | Edited src/app/api/admin/super-managers/route.ts | inline fix | ~26 |
+| 17:09 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | 5→5 lines | ~54 |
+| 17:09 | Edited src/app/api/wheel-stations/[stationId]/recovery/route.ts | modified if() | ~51 |
+| 17:10 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | inline fix | ~14 |
+| 17:10 | Edited src/app/api/wheel-stations/[stationId]/recovery/route.ts | inline fix | ~14 |
+| 17:10 | Edited src/app/api/admin/super-managers/route.ts | 2→1 lines | ~16 |
+| 17:11 | Session end: 13 writes across 1 files (route.ts) | 11 reads | ~2596 tok |
+| 17:12 | Edited src/app/admin/users/page.tsx | 1→2 lines | ~40 |
+| 17:12 | Edited src/app/admin/users/page.tsx | added optional chaining | ~114 |
+| 17:12 | Edited src/app/admin/users/page.tsx | expanded (+11 lines) | ~204 |
+| 17:13 | Session end: 16 writes across 2 files (route.ts, page.tsx) | 11 reads | ~2954 tok |
+| 17:20 | Session end: 16 writes across 2 files (route.ts, page.tsx) | 11 reads | ~2954 tok |
+| 17:42 | Session end: 16 writes across 2 files (route.ts, page.tsx) | 11 reads | ~2954 tok |
+| 17:42 | Session end: 16 writes across 2 files (route.ts, page.tsx) | 11 reads | ~2954 tok |
+| 17:42 | Session end: 16 writes across 2 files (route.ts, page.tsx) | 11 reads | ~2954 tok |
+
+## Session: 2026-06-15 22:15
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-15 22:15
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-06-15 22:21
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:26 | Edited src/app/[stationId]/page.tsx | 2→5 lines | ~119 |
+| 22:27 | Session end: 1 writes across 1 files (page.tsx) | 6 reads | ~119 tok |
+| 22:33 | Session end: 1 writes across 1 files (page.tsx) | 6 reads | ~119 tok |
+| 22:34 | Session end: 1 writes across 1 files (page.tsx) | 6 reads | ~119 tok |
+| 22:34 | Session end: 1 writes across 1 files (page.tsx) | 6 reads | ~119 tok |
+| 22:35 | Edited src/app/[stationId]/page.tsx | 3→4 lines | ~86 |
+| 22:35 | Edited src/app/[stationId]/page.tsx | added error handling | ~184 |
+| 22:35 | Edited src/app/[stationId]/page.tsx | expanded (+6 lines) | ~626 |
+| 22:36 | Edited src/app/[stationId]/page.tsx | 19→18 lines | ~437 |
+| 22:36 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~2124 |
+| 22:37 | Edited src/app/[stationId]/page.tsx | expanded (+154 lines) | ~1014 |
+| 22:38 | Session end: 7 writes across 1 files (page.tsx) | 6 reads | ~4590 tok |
