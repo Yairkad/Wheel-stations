@@ -393,3 +393,4 @@
 | 22:36 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~2124 |
 | 22:37 | Edited src/app/[stationId]/page.tsx | expanded (+154 lines) | ~1014 |
 | 22:38 | Session end: 7 writes across 1 files (page.tsx) | 6 reads | ~4590 tok |
+| 22:00 | Universal wheel feature - extra_bolt_spacings numeric[] array | migration, search API, wheels POST/PUT, station page UI | done | ~4000 |
