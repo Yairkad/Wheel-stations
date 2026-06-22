@@ -4244,16 +4244,6 @@ ${formUrl}`
                 </select>
               </div>
               <div className="form-group-item" style={styles.formGroup}>
-                <label style={styles.label}>מרווח ברגים *</label>
-                <input
-                  type="text"
-                  placeholder="100, 108, 114.3"
-                  value={wheelForm.bolt_spacing}
-                  onChange={e => { setWheelForm({...wheelForm, bolt_spacing: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})}}
-                />
-              </div>
-              <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>CB (קוטר מרכז)</label>
                 <input
                   type="text"
@@ -4273,6 +4263,47 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>מרווח ברגים (PCD) *</label>
+              {wheelForm.pcds.map((val, idx) => (
+                <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
+                  <input
+                    type="text"
+                    placeholder="100, 108, 112, 114.3"
+                    value={val}
+                    onChange={e => {
+                      const updated = [...wheelForm.pcds]
+                      updated[idx] = e.target.value
+                      setWheelForm({...wheelForm, pcds: updated})
+                      if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
+                    }}
+                    style={{
+                      ...styles.input,
+                      flex: 1,
+                      marginBottom: 0,
+                      ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
+                    }}
+                  />
+                  {wheelForm.pcds.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                      title="הסר"
+                    >×</button>
+                  )}
+                </div>
+              ))}
+              {wheelForm.pcds.length < 4 && (
+                <button
+                  type="button"
+                  onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
+                  style={{background:'none',border:'1px dashed #aaa',borderRadius:'6px',padding:'4px 12px',cursor:'pointer',color:'#555',fontSize:'13px'}}
+                >
+                  + הוסף PCD
+                </button>
+              )}
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>קטגוריה {wheelForm.category && !predefinedCategories.includes(wheelForm.category) && <span style={{fontSize: '0.75rem', color: '#a0aec0'}}>({wheelForm.category})</span>}</label>
