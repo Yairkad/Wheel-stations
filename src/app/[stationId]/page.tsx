@@ -112,8 +112,7 @@ interface WheelForm {
   wheel_number: string
   rim_size: string
   bolt_count: string
-  bolt_spacing: string
-  extra_bolt_spacings: string[]
+  pcds: string[]
   center_bore: string
   tire_size: string
   category: string
@@ -188,8 +187,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     wheel_number: '',
     rim_size: '',
     bolt_count: '4',
-    bolt_spacing: '',
-    extra_bolt_spacings: [],
+    pcds: [''],
     center_bore: '',
     tire_size: '',
     category: '',
@@ -1330,7 +1328,7 @@ ${signFormUrl}
     const errors: string[] = []
     if (!wheelForm.wheel_number) errors.push('wheel_number')
     if (!wheelForm.rim_size) errors.push('rim_size')
-    if (!wheelForm.bolt_spacing) errors.push('bolt_spacing')
+    if (!wheelForm.pcds[0]) errors.push('bolt_spacing')
 
     if (errors.length > 0) {
       setWheelFormErrors(errors)
@@ -1338,6 +1336,7 @@ ${signFormUrl}
     }
     setWheelFormErrors([])
     setActionLoading(true)
+    const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/wheels`, {
         method: 'POST',
@@ -1346,8 +1345,8 @@ ${signFormUrl}
           wheel_number: wheelForm.wheel_number,
           rim_size: wheelForm.rim_size,
           bolt_count: parseInt(wheelForm.bolt_count),
-          bolt_spacing: parseFloat(wheelForm.bolt_spacing),
-          extra_bolt_spacings: wheelForm.extra_bolt_spacings.map(Number).filter(Boolean),
+          bolt_spacing: validPcds[0],
+          extra_bolt_spacings: validPcds.slice(1),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           tire_size: wheelForm.tire_size || null,
           category: wheelForm.category || null,
@@ -1369,8 +1368,7 @@ ${signFormUrl}
         wheel_number: '',
         rim_size: '',
         bolt_count: '4',
-        bolt_spacing: '',
-        extra_bolt_spacings: [],
+        pcds: [''],
         center_bore: '',
         tire_size: '',
         category: '',
@@ -1394,7 +1392,7 @@ ${signFormUrl}
     const errors: string[] = []
     if (!wheelForm.wheel_number) errors.push('wheel_number')
     if (!wheelForm.rim_size) errors.push('rim_size')
-    if (!wheelForm.bolt_spacing) errors.push('bolt_spacing')
+    if (!wheelForm.pcds[0]) errors.push('bolt_spacing')
 
     if (errors.length > 0) {
       setWheelFormErrors(errors)
@@ -1402,6 +1400,7 @@ ${signFormUrl}
     }
     setWheelFormErrors([])
     setActionLoading(true)
+    const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${selectedWheel.id}`, {
         method: 'PUT',
@@ -1410,8 +1409,8 @@ ${signFormUrl}
           wheel_number: wheelForm.wheel_number,
           rim_size: wheelForm.rim_size,
           bolt_count: parseInt(wheelForm.bolt_count),
-          bolt_spacing: parseFloat(wheelForm.bolt_spacing),
-          extra_bolt_spacings: wheelForm.extra_bolt_spacings.map(Number).filter(Boolean),
+          bolt_spacing: validPcds[0],
+          extra_bolt_spacings: validPcds.slice(1),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           tire_size: wheelForm.tire_size || null,
           category: wheelForm.category || null,
@@ -1434,8 +1433,7 @@ ${signFormUrl}
         wheel_number: '',
         rim_size: '',
         bolt_count: '4',
-        bolt_spacing: '',
-        extra_bolt_spacings: [],
+        pcds: [''],
         center_bore: '',
         tire_size: '',
         category: '',
@@ -3280,8 +3278,7 @@ ${formUrl}`
                                 wheel_number: wheel.wheel_number,
                                 rim_size: wheel.rim_size,
                                 bolt_count: String(wheel.bolt_count),
-                                bolt_spacing: String(wheel.bolt_spacing),
-                                extra_bolt_spacings: wheel.extra_bolt_spacings?.map(String) ?? [],
+                                pcds: [String(wheel.bolt_spacing), ...(wheel.extra_bolt_spacings?.map(String) ?? [])],
                                 center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
                                 tire_size: wheel.tire_size || '',
                                 category: wheel.category || '',
@@ -4065,16 +4062,6 @@ ${formUrl}`
                 </select>
               </div>
               <div style={styles.formGroup} className="form-group-item">
-                <label style={styles.label}>מרווח ברגים *</label>
-                <input
-                  type="text"
-                  placeholder="100, 108, 114.3"
-                  value={wheelForm.bolt_spacing}
-                  onChange={e => { setWheelForm({...wheelForm, bolt_spacing: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'bolt_spacing')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})}}
-                />
-              </div>
-              <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>CB (קוטר מרכז)</label>
                 <input
                   type="text"
@@ -4095,42 +4082,42 @@ ${formUrl}`
                 />
               </div>
             </div>
-            {/* Universal wheel: extra PCDs */}
+            {/* PCD list - all equal, no primary/secondary distinction */}
             <div style={styles.formGroup}>
-              <label style={styles.label}>
-                PCD נוסף (גלגל אוניברסלי)
-                <span style={{fontSize:'11px',color:'#888',marginRight:'6px',fontWeight:'normal'}}>
-                  — למילוי אם הגלגל מתאים ליותר מ-PCD אחד
-                </span>
-              </label>
-              {wheelForm.extra_bolt_spacings.map((val, idx) => (
+              <label style={styles.label}>מרווח ברגים (PCD) *</label>
+              {wheelForm.pcds.map((val, idx) => (
                 <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
                   <input
                     type="text"
-                    placeholder="112"
+                    placeholder="100, 108, 112, 114.3"
                     value={val}
                     onChange={e => {
-                      const updated = [...wheelForm.extra_bolt_spacings]
+                      const updated = [...wheelForm.pcds]
                       updated[idx] = e.target.value
-                      setWheelForm({...wheelForm, extra_bolt_spacings: updated})
+                      setWheelForm({...wheelForm, pcds: updated})
+                      if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
                     }}
-                    style={{...styles.input, flex:1, marginBottom:0}}
+                    style={{
+                      ...styles.input,
+                      flex: 1,
+                      marginBottom: 0,
+                      ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
+                    }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = wheelForm.extra_bolt_spacings.filter((_, i) => i !== idx)
-                      setWheelForm({...wheelForm, extra_bolt_spacings: updated})
-                    }}
-                    style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
-                    title="הסר"
-                  >×</button>
+                  {wheelForm.pcds.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                      title="הסר"
+                    >×</button>
+                  )}
                 </div>
               ))}
-              {wheelForm.extra_bolt_spacings.length < 3 && (
+              {wheelForm.pcds.length < 4 && (
                 <button
                   type="button"
-                  onClick={() => setWheelForm({...wheelForm, extra_bolt_spacings: [...wheelForm.extra_bolt_spacings, '']})}
+                  onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
                   style={{background:'none',border:'1px dashed #aaa',borderRadius:'6px',padding:'4px 12px',cursor:'pointer',color:'#555',fontSize:'13px'}}
                 >
                   + הוסף PCD
