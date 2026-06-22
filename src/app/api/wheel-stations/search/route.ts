@@ -65,7 +65,9 @@ export async function GET(request: NextRequest) {
       query = query.eq('bolt_count', parseInt(bolt_count))
     }
     if (bolt_spacing) {
-      query = query.eq('bolt_spacing', parseFloat(bolt_spacing))
+      // Match primary PCD OR any of the extra PCDs (for universal wheels)
+      const spacingVal = parseFloat(bolt_spacing)
+      query = query.or(`bolt_spacing.eq.${spacingVal},extra_bolt_spacings.cs.{${spacingVal}}`)
     }
     if (center_bore) {
       query = query.eq('center_bore', parseFloat(center_bore))

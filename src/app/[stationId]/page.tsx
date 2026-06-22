@@ -15,6 +15,7 @@ interface Wheel {
   rim_size: string
   bolt_count: number
   bolt_spacing: number
+  extra_bolt_spacings?: number[] | null
   center_bore?: number | null
   tire_size?: string | null
   offset?: number | null
@@ -112,6 +113,7 @@ interface WheelForm {
   rim_size: string
   bolt_count: string
   bolt_spacing: string
+  extra_bolt_spacings: string[]
   center_bore: string
   tire_size: string
   category: string
@@ -187,6 +189,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     rim_size: '',
     bolt_count: '4',
     bolt_spacing: '',
+    extra_bolt_spacings: [],
     center_bore: '',
     tire_size: '',
     category: '',
@@ -1344,6 +1347,7 @@ ${signFormUrl}
           rim_size: wheelForm.rim_size,
           bolt_count: parseInt(wheelForm.bolt_count),
           bolt_spacing: parseFloat(wheelForm.bolt_spacing),
+          extra_bolt_spacings: wheelForm.extra_bolt_spacings.map(Number).filter(Boolean),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           tire_size: wheelForm.tire_size || null,
           category: wheelForm.category || null,
@@ -1366,6 +1370,7 @@ ${signFormUrl}
         rim_size: '',
         bolt_count: '4',
         bolt_spacing: '',
+        extra_bolt_spacings: [],
         center_bore: '',
         tire_size: '',
         category: '',
@@ -1406,6 +1411,7 @@ ${signFormUrl}
           rim_size: wheelForm.rim_size,
           bolt_count: parseInt(wheelForm.bolt_count),
           bolt_spacing: parseFloat(wheelForm.bolt_spacing),
+          extra_bolt_spacings: wheelForm.extra_bolt_spacings.map(Number).filter(Boolean),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           tire_size: wheelForm.tire_size || null,
           category: wheelForm.category || null,
@@ -1429,6 +1435,7 @@ ${signFormUrl}
         rim_size: '',
         bolt_count: '4',
         bolt_spacing: '',
+        extra_bolt_spacings: [],
         center_bore: '',
         tire_size: '',
         category: '',
@@ -3111,7 +3118,10 @@ ${formUrl}`
               <div style={styles.cardInfo}>
                 <div style={styles.cardSpecs}>
                   <span style={styles.spec}>{wheel.rim_size}"</span>
-                  <span style={styles.spec}>{wheel.bolt_count}×{wheel.bolt_spacing}</span>
+                  <span style={styles.spec}>
+                    {wheel.bolt_count}×{wheel.bolt_spacing}
+                    {wheel.extra_bolt_spacings?.map(s => `/${s}`).join('')}
+                  </span>
                   {wheel.center_bore && <span style={styles.spec}>CB {wheel.center_bore}</span>}
                 </div>
                 {wheel.category && <div style={styles.cardCategory}>{wheel.category}</div>}
@@ -3271,6 +3281,7 @@ ${formUrl}`
                                 rim_size: wheel.rim_size,
                                 bolt_count: String(wheel.bolt_count),
                                 bolt_spacing: String(wheel.bolt_spacing),
+                                extra_bolt_spacings: wheel.extra_bolt_spacings?.map(String) ?? [],
                                 center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
                                 tire_size: wheel.tire_size || '',
                                 category: wheel.category || '',
@@ -3344,7 +3355,10 @@ ${formUrl}`
                 <tr key={wheel.id} id={`wheel-${wheel.wheel_number}`} style={{...(wheel.is_available ? {} : styles.rowTaken), transition: 'box-shadow 0.3s ease'}}>
                   <td style={styles.td}><strong>{wheel.wheel_number}</strong></td>
                   <td style={styles.td}>{wheel.rim_size}"</td>
-                  <td style={styles.td}>{wheel.bolt_count}×{wheel.bolt_spacing}</td>
+                  <td style={styles.td}>
+                    {wheel.bolt_count}×{wheel.bolt_spacing}
+                    {wheel.extra_bolt_spacings?.map(s => `/${s}`).join('')}
+                  </td>
                   <td style={styles.td}>{wheel.center_bore || '-'}</td>
                   <td style={styles.td}>{wheel.category || '-'}</td>
                   <td style={styles.td}>
@@ -4080,6 +4094,48 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
+            </div>
+            {/* Universal wheel: extra PCDs */}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                PCD נוסף (גלגל אוניברסלי)
+                <span style={{fontSize:'11px',color:'#888',marginRight:'6px',fontWeight:'normal'}}>
+                  — למילוי אם הגלגל מתאים ליותר מ-PCD אחד
+                </span>
+              </label>
+              {wheelForm.extra_bolt_spacings.map((val, idx) => (
+                <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
+                  <input
+                    type="text"
+                    placeholder="112"
+                    value={val}
+                    onChange={e => {
+                      const updated = [...wheelForm.extra_bolt_spacings]
+                      updated[idx] = e.target.value
+                      setWheelForm({...wheelForm, extra_bolt_spacings: updated})
+                    }}
+                    style={{...styles.input, flex:1, marginBottom:0}}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = wheelForm.extra_bolt_spacings.filter((_, i) => i !== idx)
+                      setWheelForm({...wheelForm, extra_bolt_spacings: updated})
+                    }}
+                    style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                    title="הסר"
+                  >×</button>
+                </div>
+              ))}
+              {wheelForm.extra_bolt_spacings.length < 3 && (
+                <button
+                  type="button"
+                  onClick={() => setWheelForm({...wheelForm, extra_bolt_spacings: [...wheelForm.extra_bolt_spacings, '']})}
+                  style={{background:'none',border:'1px dashed #aaa',borderRadius:'6px',padding:'4px 12px',cursor:'pointer',color:'#555',fontSize:'13px'}}
+                >
+                  + הוסף PCD
+                </button>
+              )}
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>קטגוריה</label>
