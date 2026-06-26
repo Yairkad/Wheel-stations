@@ -1,9 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { hebrewToEnglishMakes } from '@/lib/vehicle-mappings'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+// Inverted map: English make name → Hebrew
+const englishToHebrewMakes: Record<string, string> = Object.fromEntries(
+  Object.entries(hebrewToEnglishMakes).map(([he, en]) => [en.toLowerCase(), he])
+)
+
+async function translateMakeToHebrew(make: string): Promise<string> {
+  const makeLower = make.toLowerCase().trim()
+
+  // 1. Local lookup (instant, no API cost)
+  if (englishToHebrewMakes[makeLower]) {
+    return englishToHebrewMakes[makeLower]
+  }
+
+  // 2. Google Translate API (uses the same Cloud API key as Vision)
+  const apiKey = process.env.GOOGLE_VISION_API_KEY
+  if (apiKey) {
+    try {
+      const response = await fetch(
+        `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q: make, target: 'he', format: 'text' })
+        }
+      )
+      if (response.ok) {
+        const data = await response.json()
+        const translated: string | undefined = data.data?.translations?.[0]?.translatedText
+        if (translated && translated !== make) {
+          return translated
+        }
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  // 3. Fallback: use the English name rather than null
+  return make
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -122,11 +164,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Auto-translate make to Hebrew if not provided (satisfies NOT NULL constraint)
+    const resolvedMakeHe = make_he?.trim() || await translateMakeToHebrew(make.trim())
+
     const { data, error } = await supabase
       .from('vehicle_models')
       .insert([{
         make: make.trim().toLowerCase(),
-        make_he: make_he?.trim() || null,
+        make_he: resolvedMakeHe,
         model: model.trim().toLowerCase(),
         variants: variants?.trim() || null,
         year_from: year_from ? parseInt(year_from) : null,

@@ -11,6 +11,9 @@
 ## Key Learnings
 
 - **Project:** wheels-app
+- **vehicle_models table**: עמודת `make_he` היא NOT NULL. בעת הוספת רכב ב-API route, אם `make_he` לא נשלח, חייבים לתרגם אוטומטית מ-English → Hebrew.
+- **translateMakeToHebrew**: הפונקציה ב-`/api/vehicle-models/route.ts` מחפשת קודם ב-`englishToHebrewMakes` (היפוך של `hebrewToEnglishMakes`), אחר כך Google Translate API עם `GOOGLE_VISION_API_KEY`, ואז פולבק לשם האנגלי.
+- **handleAddScrapedResult** בדף admin/vehicles: שולח `make_he: plateVehicleInfo?.manufacturer_he || ''` — כשב-manual mode `plateVehicleInfo` הוא null ולכן `make_he` ריק. הפתרון הוא בצד שרת, לא ב-client.
 
 ## Do-Not-Repeat
 
