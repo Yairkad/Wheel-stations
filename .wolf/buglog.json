@@ -787,5 +787,18 @@
       "occurrences": 1,
       "last_seen": "2026-06-08T08:42:10.234Z"
     }
+  ,
+    {
+      "id": "bug-050",
+      "timestamp": "2026-06-26T10:30:00.000Z",
+      "error_message": "NOT NULL constraint violation on make_he column in vehicle_models table when adding vehicle from scrape modal in manual mode",
+      "file": "src/app/api/vehicle-models/route.ts",
+      "root_cause": "In handleAddScrapedResult (admin/vehicles page), make_he is set to plateVehicleInfo?.manufacturer_he || '' — when in manual mode plateVehicleInfo is null so make_he is empty string. The API route then does make_he?.trim() || null which inserts null, violating NOT NULL constraint.",
+      "fix": "Added translateMakeToHebrew() function in API route that: (1) looks up English→Hebrew in inverted hebrewToEnglishMakes map, (2) falls back to Google Translate API using GOOGLE_VISION_API_KEY, (3) falls back to the English name. Used as: resolvedMakeHe = make_he?.trim() || await translateMakeToHebrew(make.trim())",
+      "tags": ["not-null", "make_he", "vehicle_models", "scrape", "auto-translate", "hebrew"],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-26T10:30:00.000Z"
+    }
   ]
 }
