@@ -3,7 +3,8 @@ import {
   hebrewToEnglishMakes,
   hebrewToEnglishModels,
   modelToMake,
-  extractRimSize
+  extractRimSize,
+  getTireDiameterMm
 } from '@/lib/vehicle-mappings'
 
 /**
@@ -224,5 +225,56 @@ describe('extractRimSize - חילוץ גודל גלגל ממחרוזת צמיג'
 
   it('returns null for string with only numbers', () => {
     expect(extractRimSize('205/55')).toBeNull()
+  })
+})
+
+// =====================
+// getTireDiameterMm
+// =====================
+describe('getTireDiameterMm - חישוב קוטר גלגול כולל ממחרוזת צמיג', () => {
+  it('computes overall diameter for "205/55R16"', () => {
+    // 16*25.4 + 2*(205*55/100) = 406.4 + 225.5 = 631.9
+    expect(getTireDiameterMm('205/55R16')).toBeCloseTo(631.9, 1)
+  })
+
+  it('computes overall diameter for "225/45R17"', () => {
+    // 17*25.4 + 2*(225*45/100) = 431.8 + 202.5 = 634.3
+    expect(getTireDiameterMm('225/45R17')).toBeCloseTo(634.3, 1)
+  })
+
+  it('a smaller rim with a taller sidewall can have a similar overall diameter to a larger rim', () => {
+    const d17 = getTireDiameterMm('215/55R17')
+    const d18 = getTireDiameterMm('215/50R18')
+    expect(d17).not.toBeNull()
+    expect(d18).not.toBeNull()
+    expect(Math.abs(d17! - d18!) / d17!).toBeLessThan(0.03)
+  })
+
+  it('returns null for null input', () => {
+    expect(getTireDiameterMm(null)).toBeNull()
+  })
+
+  it('returns null for undefined input', () => {
+    expect(getTireDiameterMm(undefined)).toBeNull()
+  })
+
+  it('returns null for string without a width/aspect-ratio prefix', () => {
+    expect(getTireDiameterMm('R16')).toBeNull()
+  })
+
+  it('returns null for string without a rim size and no override given', () => {
+    expect(getTireDiameterMm('205/55')).toBeNull()
+  })
+
+  it('uses rimSizeOverride when the tire string has no rim suffix (wheels.tire_size format)', () => {
+    expect(getTireDiameterMm('205/55', 16)).toBeCloseTo(getTireDiameterMm('205/55R16')!, 5)
+  })
+
+  it('prefers rimSizeOverride even when the string also has its own rim suffix', () => {
+    expect(getTireDiameterMm('205/55R16', 17)).toBeCloseTo(getTireDiameterMm('205/55R17')!, 5)
+  })
+
+  it('returns null when rimSizeOverride is null and the string has no rim suffix', () => {
+    expect(getTireDiameterMm('205/55', null)).toBeNull()
   })
 })

@@ -37,6 +37,7 @@ export interface SearchResult {
     bolt_count: number
     bolt_spacing: number
     center_bore?: number | null
+    tire_size?: string | null
     is_donut: boolean
     is_available: boolean
   }[]

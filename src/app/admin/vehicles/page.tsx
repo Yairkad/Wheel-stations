@@ -24,6 +24,8 @@ interface VehicleModel {
   source_url: string | null
   created_at: string
   added_by: string | null
+  verified_at: string | null
+  verified_by: string | null
 }
 
 interface EditForm {
@@ -1098,6 +1100,25 @@ function VehiclesAdminPage() {
     }
   }
 
+  const handleVerify = async (id: string) => {
+    try {
+      const response = await fetch(`/api/vehicle-models/${id}/verify`, {
+        method: 'POST'
+      })
+
+      if (response.ok) {
+        toast.success('הדגם אושר')
+        fetchVehicles()
+      } else {
+        throw new Error('שגיאה באישור')
+      }
+    } catch {
+      toast.error('שגיאה באישור')
+    }
+  }
+
+  const isPending = (v: VehicleModel) => !v.verified_at && !!v.source_url
+
   // Export to Excel (CSV with BOM for Hebrew support)
   const exportToExcel = () => {
     // Add BOM for UTF-8 Excel compatibility
@@ -1596,6 +1617,12 @@ function VehiclesAdminPage() {
                       </button>
                       {actionMenuVehicleId === v.id && (
                         <div style={styles.actionMenu}>
+                          {isPending(v) && (
+                            <button style={styles.actionMenuItem} onClick={() => { handleVerify(v.id); setActionMenuVehicleId(null) }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                              אשר
+                            </button>
+                          )}
                           <button style={styles.actionMenuItem} onClick={() => { openEditModal(v); setActionMenuVehicleId(null) }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                             ערוך
@@ -1626,6 +1653,11 @@ function VehiclesAdminPage() {
                         <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={styles.cardLink}>
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                         </a>
+                      )}
+                      {isPending(v) && (
+                        <span style={{color: '#b45309', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '3px'}}>
+                          <span style={styles.cardDot}>·</span>ממתין לאישור
+                        </span>
                       )}
                     </div>
                   )}
@@ -1692,9 +1724,14 @@ function VehiclesAdminPage() {
                         <td style={styles.td}>{v.rim_size || '-'}</td>
                         <td style={styles.td}>{v.rim_sizes_allowed?.join(', ') || '-'}</td>
                         <td style={styles.td}>
-                          {v.source_url ? (
-                            <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></a>
-                          ) : '-'}
+                          <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                            {v.source_url ? (
+                              <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={{color: '#60a5fa'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></a>
+                            ) : '-'}
+                            {isPending(v) && (
+                              <span style={{color: '#b45309', fontSize: '11px', whiteSpace: 'nowrap'}}>ממתין לאישור</span>
+                            )}
+                          </div>
                         </td>
                         <td style={styles.td}>
                           <div style={{position:'relative'}}>
@@ -1703,6 +1740,12 @@ function VehiclesAdminPage() {
                             </button>
                             {actionMenuVehicleId === v.id && (
                               <div style={styles.actionMenu}>
+                                {isPending(v) && (
+                                  <button style={styles.actionMenuItem} onClick={() => { handleVerify(v.id); setActionMenuVehicleId(null) }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    אשר
+                                  </button>
+                                )}
                                 <button style={styles.actionMenuItem} onClick={() => { openEditModal(v); setActionMenuVehicleId(null) }}>
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                   ערוך

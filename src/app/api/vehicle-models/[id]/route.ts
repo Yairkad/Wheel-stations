@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,9 +11,13 @@ interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-// DELETE - Delete a vehicle model (managers only)
+// DELETE - Delete a vehicle model (admin only)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+    }
+
     const { id } = await params
 
     if (!id) {
@@ -37,9 +42,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PUT - Update a vehicle model
+// PUT - Update a vehicle model (admin only — editing through the admin UI counts as human verification)
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    if (!await validateAdminSession(request)) {
+      return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
+    }
+
     const { id } = await params
 
     if (!id) {
@@ -69,7 +78,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         rim_size: rim_size || null,
         rim_sizes_allowed: rim_sizes_allowed || null,
         tire_size_front: tire_size_front || null,
-        source_url: source_url || null
+        source_url: source_url || null,
+        verified_at: new Date().toISOString(),
+        verified_by: 'admin'
       })
       .eq('id', id)
       .select()

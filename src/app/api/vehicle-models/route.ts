@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { hebrewToEnglishMakes } from '@/lib/vehicle-mappings'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -167,6 +168,10 @@ export async function POST(request: NextRequest) {
     // Auto-translate make to Hebrew if not provided (satisfies NOT NULL constraint)
     const resolvedMakeHe = make_he?.trim() || await translateMakeToHebrew(make.trim())
 
+    // This endpoint also serves the station-manager "suggest a new model" flow (no admin session),
+    // so we can't require admin auth here — only stamp verification when it's actually an admin submitting.
+    const isAdmin = await validateAdminSession(request)
+
     const { data, error } = await supabase
       .from('vehicle_models')
       .insert([{
@@ -184,7 +189,9 @@ export async function POST(request: NextRequest) {
         tire_size_front: tire_size_front?.trim() || null,
         source_url: source_url?.trim() || null,
         source: source || 'manual',
-        added_by: added_by || null
+        added_by: added_by || null,
+        verified_at: isAdmin ? new Date().toISOString() : null,
+        verified_by: isAdmin ? 'admin' : null
       }])
       .select()
 

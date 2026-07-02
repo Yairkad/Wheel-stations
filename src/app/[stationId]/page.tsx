@@ -115,6 +115,7 @@ interface WheelForm {
   pcds: string[]
   center_bore: string
   tire_size: string
+  offset: string
   category: string
   is_donut: boolean
   notes: string
@@ -190,6 +191,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     pcds: [''],
     center_bore: '',
     tire_size: '',
+    offset: '',
     category: '',
     is_donut: false,
     notes: '',
@@ -1349,6 +1351,7 @@ ${signFormUrl}
           extra_bolt_spacings: validPcds.slice(1),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           tire_size: wheelForm.tire_size || null,
+          offset: wheelForm.offset !== '' ? parseFloat(wheelForm.offset) : null,
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
@@ -1371,6 +1374,7 @@ ${signFormUrl}
         pcds: [''],
         center_bore: '',
         tire_size: '',
+        offset: '',
         category: '',
         is_donut: false,
         notes: '',
@@ -1413,6 +1417,7 @@ ${signFormUrl}
           extra_bolt_spacings: validPcds.slice(1),
           center_bore: wheelForm.center_bore ? parseFloat(wheelForm.center_bore) : null,
           tire_size: wheelForm.tire_size || null,
+          offset: wheelForm.offset !== '' ? parseFloat(wheelForm.offset) : null,
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
@@ -1436,6 +1441,7 @@ ${signFormUrl}
         pcds: [''],
         center_bore: '',
         tire_size: '',
+        offset: '',
         category: '',
         is_donut: false,
         notes: '',
@@ -1934,7 +1940,7 @@ ${formUrl}`
   const boltCounts = [...new Set(station?.wheels.map(w => w.bolt_count.toString()))].sort()
   const boltSpacings = [...new Set(station?.wheels.map(w => w.bolt_spacing.toString()))].sort()
   const centerBores = [...new Set(station?.wheels.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a! - b!)
-  const offsets = [...new Set(station?.wheels.map(w => w.offset).filter(Boolean))].sort((a, b) => a! - b!)
+  const offsets = [...new Set(station?.wheels.map(w => w.offset).filter(v => v !== null && v !== undefined))].sort((a, b) => a! - b!)
   const categories = [...new Set(station?.wheels.map(w => w.category).filter(Boolean))]
 
   if (loading) {
@@ -3281,6 +3287,7 @@ ${formUrl}`
                                 pcds: [String(wheel.bolt_spacing), ...(wheel.extra_bolt_spacings?.map(String) ?? [])],
                                 center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
                                 tire_size: wheel.tire_size || '',
+                                offset: wheel.offset != null ? String(wheel.offset) : '',
                                 category: wheel.category || '',
                                 is_donut: wheel.is_donut,
                                 notes: wheel.notes || '',
@@ -4026,25 +4033,15 @@ ${formUrl}`
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false) }}>
           <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
             <h3 id="add-wheel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוספת גלגל חדש</h3>
-            <div style={styles.formRow} className="add-wheel-form-row">
-              <div style={styles.formGroup} className="form-group-item">
+            <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+              <div style={{...styles.formGroup, width: '110px'}}>
                 <label style={styles.label}>מספר גלגל *</label>
                 <input
                   type="text"
-                  placeholder="A23, 15, וכו'"
+                  placeholder="A23, 15"
                   value={wheelForm.wheel_number}
                   onChange={e => { setWheelForm({...wheelForm, wheel_number: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'wheel_number')) }}
                   style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
-                />
-              </div>
-              <div style={styles.formGroup} className="form-group-item">
-                <label style={styles.label}>גודל ג'אנט *</label>
-                <input
-                  type="text"
-                  placeholder='14", 15", 16"'
-                  value={wheelForm.rim_size}
-                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'rim_size')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
                 />
               </div>
             </div>
@@ -4061,6 +4058,48 @@ ${formUrl}`
                   <option value="6">6</option>
                 </select>
               </div>
+              {/* PCD list - all equal, no primary/secondary distinction */}
+              <div style={styles.formGroup} className="form-group-item">
+                <label style={styles.label}>מרווח ברגים (PCD) *</label>
+                {wheelForm.pcds.map((val, idx) => (
+                  <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
+                    <input
+                      type="text"
+                      placeholder="100, 108, 112, 114.3"
+                      value={val}
+                      onChange={e => {
+                        const updated = [...wheelForm.pcds]
+                        updated[idx] = e.target.value
+                        setWheelForm({...wheelForm, pcds: updated})
+                        if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
+                      }}
+                      style={{
+                        ...styles.input,
+                        flex: 1,
+                        marginBottom: 0,
+                        ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
+                      }}
+                    />
+                    {wheelForm.pcds.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
+                        style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                        title="הסר"
+                      >×</button>
+                    )}
+                  </div>
+                ))}
+                {wheelForm.pcds.length < 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
+                    style={{background:'none',border:'1px dashed #aaa',borderRadius:'6px',padding:'4px 12px',cursor:'pointer',color:'#555',fontSize:'13px'}}
+                  >
+                    + הוסף PCD
+                  </button>
+                )}
+              </div>
               <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>CB (קוטר מרכז)</label>
                 <input
@@ -4071,58 +4110,44 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
+            </div>
+            <div style={styles.formRow} className="add-wheel-form-row">
+              <div style={styles.formGroup} className="form-group-item">
+                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>
+                  ET (אופסט) *
+                  <span title="המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי." style={{display:'inline-flex', cursor: 'help', color: '#94a3b8'}}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="35, -10, 42.5"
+                  value={wheelForm.offset}
+                  onChange={e => setWheelForm({...wheelForm, offset: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
+              <div style={styles.formGroup} className="form-group-item">
+                <label style={styles.label}>גודל ג'אנט *</label>
+                <input
+                  type="text"
+                  placeholder='14", 15", 16"'
+                  value={wheelForm.rim_size}
+                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'rim_size')) }}
+                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
+                />
+              </div>
               <div style={styles.formGroup} className="form-group-item">
                 <label style={styles.label}>מידות צמיג</label>
                 <input
                   type="text"
-                  placeholder="205/55R16"
+                  placeholder="205/55"
                   value={wheelForm.tire_size}
                   onChange={e => setWheelForm({...wheelForm, tire_size: e.target.value})}
                   style={styles.input}
                 />
               </div>
-            </div>
-            {/* PCD list - all equal, no primary/secondary distinction */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>מרווח ברגים (PCD) *</label>
-              {wheelForm.pcds.map((val, idx) => (
-                <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
-                  <input
-                    type="text"
-                    placeholder="100, 108, 112, 114.3"
-                    value={val}
-                    onChange={e => {
-                      const updated = [...wheelForm.pcds]
-                      updated[idx] = e.target.value
-                      setWheelForm({...wheelForm, pcds: updated})
-                      if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
-                    }}
-                    style={{
-                      ...styles.input,
-                      flex: 1,
-                      marginBottom: 0,
-                      ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
-                    }}
-                  />
-                  {wheelForm.pcds.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
-                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
-                      title="הסר"
-                    >×</button>
-                  )}
-                </div>
-              ))}
-              {wheelForm.pcds.length < 4 && (
-                <button
-                  type="button"
-                  onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
-                  style={{background:'none',border:'1px dashed #aaa',borderRadius:'6px',padding:'4px 12px',cursor:'pointer',color:'#555',fontSize:'13px'}}
-                >
-                  + הוסף PCD
-                </button>
-              )}
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>קטגוריה</label>
@@ -4206,27 +4231,17 @@ ${formUrl}`
       {/* Edit Wheel Modal */}
       {showEditWheelModal && selectedWheel && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
-          <div role="dialog" aria-modal="true" aria-label={`עריכת גלגל ${selectedWheel.wheel_number}`} style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת גלגל #{selectedWheel.wheel_number}</h3>
-            <div className="add-wheel-form-row" style={styles.formRow}>
-              <div className="form-group-item" style={styles.formGroup}>
+          <div role="dialog" aria-modal="true" aria-label={`עריכת גלגל ${selectedWheel.wheel_number}`} style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
+            <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת גלגל #{selectedWheel.wheel_number}</h3>
+            <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+              <div style={{...styles.formGroup, width: '110px'}}>
                 <label style={styles.label}>מספר גלגל *</label>
                 <input
                   type="text"
-                  placeholder="A23, 15, וכו'"
+                  placeholder="A23, 15"
                   value={wheelForm.wheel_number}
                   onChange={e => { setWheelForm({...wheelForm, wheel_number: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'wheel_number')) }}
                   style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
-                />
-              </div>
-              <div className="form-group-item" style={styles.formGroup}>
-                <label style={styles.label}>גודל ג'אנט *</label>
-                <input
-                  type="text"
-                  placeholder='14", 15", 16"'
-                  value={wheelForm.rim_size}
-                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'rim_size')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
                 />
               </div>
             </div>
@@ -4244,6 +4259,47 @@ ${formUrl}`
                 </select>
               </div>
               <div className="form-group-item" style={styles.formGroup}>
+                <label style={styles.label}>מרווח ברגים (PCD) *</label>
+                {wheelForm.pcds.map((val, idx) => (
+                  <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
+                    <input
+                      type="text"
+                      placeholder="100, 108, 112, 114.3"
+                      value={val}
+                      onChange={e => {
+                        const updated = [...wheelForm.pcds]
+                        updated[idx] = e.target.value
+                        setWheelForm({...wheelForm, pcds: updated})
+                        if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
+                      }}
+                      style={{
+                        ...styles.input,
+                        flex: 1,
+                        marginBottom: 0,
+                        ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
+                      }}
+                    />
+                    {wheelForm.pcds.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
+                        style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                        title="הסר"
+                      >×</button>
+                    )}
+                  </div>
+                ))}
+                {wheelForm.pcds.length < 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
+                    style={{background:'none',border:'1px dashed #aaa',borderRadius:'6px',padding:'4px 12px',cursor:'pointer',color:'#555',fontSize:'13px'}}
+                  >
+                    + הוסף PCD
+                  </button>
+                )}
+              </div>
+              <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>CB (קוטר מרכז)</label>
                 <input
                   type="text"
@@ -4253,57 +4309,44 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
+            </div>
+            <div className="add-wheel-form-row" style={styles.formRow}>
+              <div className="form-group-item" style={styles.formGroup}>
+                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>
+                  ET (אופסט) *
+                  <span title="המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי." style={{display:'inline-flex', cursor: 'help', color: '#94a3b8'}}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  placeholder="35, -10, 42.5"
+                  value={wheelForm.offset}
+                  onChange={e => setWheelForm({...wheelForm, offset: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
+              <div className="form-group-item" style={styles.formGroup}>
+                <label style={styles.label}>גודל ג'אנט *</label>
+                <input
+                  type="text"
+                  placeholder='14", 15", 16"'
+                  value={wheelForm.rim_size}
+                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'rim_size')) }}
+                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
+                />
+              </div>
               <div className="form-group-item" style={styles.formGroup}>
                 <label style={styles.label}>מידות צמיג</label>
                 <input
                   type="text"
-                  placeholder="205/55R16"
+                  placeholder="205/55"
                   value={wheelForm.tire_size}
                   onChange={e => setWheelForm({...wheelForm, tire_size: e.target.value})}
                   style={styles.input}
                 />
               </div>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>מרווח ברגים (PCD) *</label>
-              {wheelForm.pcds.map((val, idx) => (
-                <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
-                  <input
-                    type="text"
-                    placeholder="100, 108, 112, 114.3"
-                    value={val}
-                    onChange={e => {
-                      const updated = [...wheelForm.pcds]
-                      updated[idx] = e.target.value
-                      setWheelForm({...wheelForm, pcds: updated})
-                      if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
-                    }}
-                    style={{
-                      ...styles.input,
-                      flex: 1,
-                      marginBottom: 0,
-                      ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
-                    }}
-                  />
-                  {wheelForm.pcds.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
-                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
-                      title="הסר"
-                    >×</button>
-                  )}
-                </div>
-              ))}
-              {wheelForm.pcds.length < 4 && (
-                <button
-                  type="button"
-                  onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
-                  style={{background:'none',border:'1px dashed #aaa',borderRadius:'6px',padding:'4px 12px',cursor:'pointer',color:'#555',fontSize:'13px'}}
-                >
-                  + הוסף PCD
-                </button>
-              )}
             </div>
             <div style={styles.formGroup}>
               <label style={styles.label}>קטגוריה {wheelForm.category && !predefinedCategories.includes(wheelForm.category) && <span style={{fontSize: '0.75rem', color: '#a0aec0'}}>({wheelForm.category})</span>}</label>
@@ -4374,7 +4417,7 @@ ${formUrl}`
                 style={styles.input}
               />
             </div>
-            <div style={styles.modalButtons}>
+            <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => { setShowEditWheelModal(false); setSelectedWheel(null) }}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleEditWheel} disabled={actionLoading}>
                 {actionLoading ? 'שומר...' : 'עדכן'}

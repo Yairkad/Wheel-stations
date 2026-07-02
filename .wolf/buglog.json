@@ -786,8 +786,202 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-08T08:42:10.234Z"
-    }
-  ,
+    },
+    {
+      "id": "bug-050",
+      "timestamp": "2026-07-02T17:22:19.401Z",
+      "error_message": "Type error",
+      "file": "src/app/api/admin/users/merge/route.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T17:22:19.401Z"
+    },
+    {
+      "id": "bug-051",
+      "timestamp": "2026-07-02T00:00:00.000Z",
+      "error_message": "DELETE /api/admin/users/[userId] 500 Internal Server Error / '[AdminUsers] Error: שגיאה פנימית'",
+      "file": "src/app/api/admin/users/[userId]/route.ts, src/app/api/admin/users/merge/route.ts",
+      "root_cause": "login_log.user_id is a FK to users(id) with no ON DELETE CASCADE (table has no migration file — created directly in Supabase dashboard, drifted from repo schema). Any user who ever logged in has login_log rows, so a raw `supabase.from('users').delete()` throws a Postgres FK violation (23503), swallowed into a generic 500. The same delete call exists in merge/route.ts's second step, so a merge would move roles to keep_id successfully then fail to delete delete_id, leaving a roleless ghost account that read to the admin as 'role duplication'.",
+      "fix": "In both routes, run `supabase.from('login_log').update({ user_id: null }).eq('user_id', <id>)` before the users delete (login_log already stores full_name/phone independently, so this is safe — see login-report and analytics routes which fall back to full_name). Also added explicit handling for Postgres error code 23503 to return a clearer 409 instead of a generic 500. Added supabase/migrations/20260702_fix_login_log_user_fk.sql to fix the FK at the DB level (ON DELETE SET NULL) — NOT YET APPLIED to the live DB (no DB credentials in this session); user must run it via Supabase SQL editor or `supabase db push`.",
+      "tags": [
+        "foreign-key",
+        "delete-user",
+        "login_log",
+        "schema-drift",
+        "merge-users",
+        "admin-users"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T00:00:00.000Z"
+    },
+    {
+      "id": "bug-052",
+      "timestamp": "2026-07-02T17:28:49.379Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: const offsets = [...new Set(station?.wheels.map(w => w.offse",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T17:31:23.379Z"
+    },
+    {
+      "id": "bug-053",
+      "timestamp": "2026-07-02T17:32:14.252Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: offset: offset ?? null,",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T17:32:53.611Z"
+    },
+    {
+      "id": "bug-054",
+      "timestamp": "2026-07-02T17:37:20.527Z",
+      "error_message": "CSS fix: color",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' → '#7c3aed', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'",
+      "fix": "Changed color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' → '#7c3aed', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T17:38:53.243Z"
+    },
+    {
+      "id": "bug-055",
+      "timestamp": "2026-07-02T17:38:34.404Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/stations/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T17:38:34.404Z"
+    },
+    {
+      "id": "bug-056",
+      "timestamp": "2026-07-02T17:40:38.704Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/lib/version.ts",
+      "root_cause": "Had '17.17.17'",
+      "fix": "Changed to '18.0.01'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T17:40:38.704Z"
+    },
+    {
+      "id": "bug-057",
+      "timestamp": "2026-07-02T17:41:03.743Z",
+      "error_message": "Type error",
+      "file": "src/app/api/vehicle-models/[id]/route.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T17:41:03.743Z"
+    },
+    {
+      "id": "bug-058",
+      "timestamp": "2026-07-02T17:46:55.315Z",
+      "error_message": "CSS fix: method",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "method: 'DELETE' → 'POST'",
+      "fix": "Changed method: 'DELETE' → 'POST'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T17:47:32.146Z"
+    },
+    {
+      "id": "bug-059",
+      "timestamp": "2026-07-02T17:53:57.182Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/admin/users/[userId]/route.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 6→9 lines (3 removed) | Also: // login_log.user_id has no ON DELETE CASCADE — de; // losing it (full_name/phone are already stored o",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T17:54:13.236Z"
+    },
+    {
+      "id": "bug-060",
+      "timestamp": "2026-07-02T18:08:49.162Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Had 'inline-flex'",
+      "fix": "Changed to \"add-wheel-modal\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T18:08:49.162Z"
+    },
+    {
+      "id": "bug-061",
+      "timestamp": "2026-07-02T18:21:00.088Z",
+      "error_message": "CSS fix: display",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "display: 'flex',gap:'6px',marginBottom:'6px',alignItems:'center' → 'inline-flex', cursor: 'help', color: '#94a3b8'",
+      "fix": "Changed display: 'flex',gap:'6px',marginBottom:'6px',alignItems:'center' → 'inline-flex', cursor: 'help', color: '#94a3b8'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T18:22:43.856Z"
+    },
     {
       "id": "bug-050",
       "timestamp": "2026-06-26T10:30:00.000Z",
@@ -795,10 +989,49 @@
       "file": "src/app/api/vehicle-models/route.ts",
       "root_cause": "In handleAddScrapedResult (admin/vehicles page), make_he is set to plateVehicleInfo?.manufacturer_he || '' — when in manual mode plateVehicleInfo is null so make_he is empty string. The API route then does make_he?.trim() || null which inserts null, violating NOT NULL constraint.",
       "fix": "Added translateMakeToHebrew() function in API route that: (1) looks up English→Hebrew in inverted hebrewToEnglishMakes map, (2) falls back to Google Translate API using GOOGLE_VISION_API_KEY, (3) falls back to the English name. Used as: resolvedMakeHe = make_he?.trim() || await translateMakeToHebrew(make.trim())",
-      "tags": ["not-null", "make_he", "vehicle_models", "scrape", "auto-translate", "hebrew"],
+      "tags": [
+        "not-null",
+        "make_he",
+        "vehicle_models",
+        "scrape",
+        "auto-translate",
+        "hebrew"
+      ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-26T10:30:00.000Z"
+    },
+    {
+      "id": "bug-063",
+      "timestamp": "2026-07-02T19:19:05.049Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Had \"205/55R16\"",
+      "fix": "Changed to \"205/55\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T19:19:05.049Z"
+    },
+    {
+      "id": "bug-064",
+      "timestamp": "2026-07-02T19:19:49.762Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T19:19:49.762Z"
     }
   ]
 }

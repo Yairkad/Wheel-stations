@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import { VERSION } from '@/lib/version'
 import { Station, Manager, SearchResult, FilterOptions, VehicleModelRecord } from '@/lib/types'
-import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
+import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, getTireDiameterMm } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 
 type VehicleSearchResult = {
@@ -2297,6 +2297,11 @@ function SearchPageContent() {
                                     const rimMismatch = effectiveRimSizes && wheelRim
                                       ? !effectiveRimSizes.includes(wheelRim)
                                       : false
+                                    const vehicleTireDiameter = getTireDiameterMm(vehicleResult?.vehicle?.front_tire)
+                                    const wheelTireDiameter = getTireDiameterMm(wheel.tire_size, wheelRim)
+                                    const diameterMismatch = !wheel.is_donut && vehicleTireDiameter && wheelTireDiameter
+                                      ? Math.abs(wheelTireDiameter - vehicleTireDiameter) / vehicleTireDiameter > 0.03
+                                      : false
                                     return (
                                     <Link
                                       key={wheel.id}
@@ -2322,6 +2327,11 @@ function SearchPageContent() {
                                       {!rimMismatch && cbNeedsRing && (
                                         <div style={{color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
                                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> יתכן ונדרש טבעת מירכוז
+                                        </div>
+                                      )}
+                                      {diameterMismatch && (
+                                        <div style={{color: '#7c3aed', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> קוטר גלגול שונה משמעותית
                                         </div>
                                       )}
                                     </Link>

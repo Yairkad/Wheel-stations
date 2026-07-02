@@ -118,3 +118,17 @@ export function extractRimSize(tire: string | null | undefined): number | null {
   const match = tire.match(/R(\d+)/i)
   return match ? parseInt(match[1]) : null
 }
+
+// Overall rolled diameter in mm from a tire size string (e.g., "205/55R16", or "205/55" when
+// the rim size is tracked separately — pass it via rimSizeOverride in that case).
+// diameter = rim diameter + 2x sidewall height, sidewall height = width * aspect_ratio / 100
+export function getTireDiameterMm(tire: string | null | undefined, rimSizeOverride?: number | null): number | null {
+  if (!tire) return null
+  const match = tire.match(/^(\d{3})\/(\d{2})/)
+  if (!match) return null
+  const rim = rimSizeOverride ?? extractRimSize(tire)
+  if (rim == null) return null
+  const width = parseInt(match[1])
+  const aspect = parseInt(match[2])
+  return rim * 25.4 + 2 * (width * aspect / 100)
+}
