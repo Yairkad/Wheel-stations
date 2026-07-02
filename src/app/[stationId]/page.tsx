@@ -133,7 +133,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('cards')
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [districts, setDistricts] = useState<District[]>([])
 
   // Manager mode
@@ -252,32 +251,40 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   // Predefined categories
   const predefinedCategories = ['גרמניות', 'צרפתיות', 'יפניות וקוריאניות']
 
-  // Filters
-  const [rimSizeFilter, setRimSizeFilter] = useState('')
-  const [boltCountFilter, setBoltCountFilter] = useState('')
-  const [boltSpacingFilter, setBoltSpacingFilter] = useState('')
-  const [centerBoreFilter, setCenterBoreFilter] = useState('')
-  const [offsetFilter, setOffsetFilter] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('')
-  const [typeFilter, setTypeFilter] = useState('')
-  const [availabilityFilter, setAvailabilityFilter] = useState('')
+  // Filters — each field is multi-select (OR within a field, AND across fields)
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false)
+  const [rimSizeFilter, setRimSizeFilter] = useState<string[]>([])
+  const [boltCountFilter, setBoltCountFilter] = useState<string[]>([])
+  const [boltSpacingFilter, setBoltSpacingFilter] = useState<string[]>([])
+  const [centerBoreFilter, setCenterBoreFilter] = useState<string[]>([])
+  const [offsetFilter, setOffsetFilter] = useState<string[]>([])
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([])
+  const [typeFilter, setTypeFilter] = useState<string[]>([])
+  const [availabilityFilter, setAvailabilityFilter] = useState<string[]>([])
   const [tireSizeWidth, setTireSizeWidth] = useState('')
   const [tireSizeRatio, setTireSizeRatio] = useState('')
 
+  const toggleFilterValue = (setter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
+    setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value])
+  }
+
   const clearAllFilters = () => {
-    setRimSizeFilter('')
-    setBoltCountFilter('')
-    setBoltSpacingFilter('')
-    setCenterBoreFilter('')
-    setOffsetFilter('')
-    setCategoryFilter('')
-    setTypeFilter('')
-    setAvailabilityFilter('')
+    setRimSizeFilter([])
+    setBoltCountFilter([])
+    setBoltSpacingFilter([])
+    setCenterBoreFilter([])
+    setOffsetFilter([])
+    setCategoryFilter([])
+    setTypeFilter([])
+    setAvailabilityFilter([])
     setTireSizeWidth('')
     setTireSizeRatio('')
   }
 
-  const hasActiveFilters = rimSizeFilter || boltCountFilter || boltSpacingFilter || centerBoreFilter || offsetFilter || categoryFilter || typeFilter || availabilityFilter || tireSizeWidth || tireSizeRatio
+  const activeFilterCount = rimSizeFilter.length + boltCountFilter.length + boltSpacingFilter.length +
+    centerBoreFilter.length + offsetFilter.length + categoryFilter.length + typeFilter.length +
+    availabilityFilter.length + (tireSizeWidth ? 1 : 0) + (tireSizeRatio ? 1 : 0)
+  const hasActiveFilters = activeFilterCount > 0
 
   useEffect(() => {
     fetchStation()
@@ -1916,16 +1923,14 @@ ${formUrl}`
   }
 
   const filteredWheels = station?.wheels.filter(wheel => {
-    if (rimSizeFilter && wheel.rim_size !== rimSizeFilter) return false
-    if (boltCountFilter && wheel.bolt_count.toString() !== boltCountFilter) return false
-    if (boltSpacingFilter && wheel.bolt_spacing.toString() !== boltSpacingFilter) return false
-    if (centerBoreFilter && wheel.center_bore?.toString() !== centerBoreFilter) return false
-    if (offsetFilter && wheel.offset?.toString() !== offsetFilter) return false
-    if (categoryFilter && wheel.category !== categoryFilter) return false
-    if (typeFilter === 'donut' && !wheel.is_donut) return false
-    if (typeFilter === 'full' && wheel.is_donut) return false
-    if (availabilityFilter === 'available' && !wheel.is_available) return false
-    if (availabilityFilter === 'taken' && wheel.is_available) return false
+    if (rimSizeFilter.length && !rimSizeFilter.includes(wheel.rim_size)) return false
+    if (boltCountFilter.length && !boltCountFilter.includes(wheel.bolt_count.toString())) return false
+    if (boltSpacingFilter.length && !boltSpacingFilter.includes(wheel.bolt_spacing.toString())) return false
+    if (centerBoreFilter.length && !centerBoreFilter.includes(wheel.center_bore?.toString() ?? '')) return false
+    if (offsetFilter.length && !offsetFilter.includes(wheel.offset?.toString() ?? '')) return false
+    if (categoryFilter.length && !categoryFilter.includes(wheel.category ?? '')) return false
+    if (typeFilter.length && !typeFilter.includes(wheel.is_donut ? 'donut' : 'full')) return false
+    if (availabilityFilter.length && !availabilityFilter.includes(wheel.is_available ? 'available' : 'taken')) return false
     // Tire size search - only for non-donut wheels
     if ((tireSizeWidth || tireSizeRatio) && !wheel.is_donut) {
       const searchText = `${wheel.wheel_number} ${wheel.notes || ''}`.toLowerCase()
@@ -1984,13 +1989,21 @@ ${formUrl}`
         }
         .add-wheel-form-row {
           display: grid !important;
-          gap: 16px !important;
+          gap: 20px !important;
         }
         .add-wheel-form-row:has(.form-group-item:nth-child(3)) {
           grid-template-columns: 80px 1fr 1fr !important;
         }
         .add-wheel-form-row:not(:has(.form-group-item:nth-child(3))) {
           grid-template-columns: 1fr 1fr !important;
+        }
+        .add-wheel-form-row-thirds:has(.form-group-item:nth-child(3)) {
+          grid-template-columns: 1fr 1fr 1fr !important;
+        }
+        @media (max-width: 480px) {
+          .add-wheel-form-row-thirds:has(.form-group-item:nth-child(3)) {
+            grid-template-columns: 1fr !important;
+          }
         }
         .form-group-item {
           min-width: 0 !important;
@@ -2031,13 +2044,6 @@ ${formUrl}`
           .station-login-btn {
             padding: 8px 14px !important;
             font-size: 0.85rem !important;
-          }
-          .station-filter-row {
-            flex-direction: column;
-            gap: 8px !important;
-          }
-          .station-filter-group {
-            min-width: 100% !important;
           }
           .station-grid {
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
@@ -2876,197 +2882,201 @@ ${formUrl}`
         <>
       <div id="onboarding-wheels-area" style={{position:'absolute',pointerEvents:'none',opacity:0,height:0}} />
       {/* Filters */}
-      <div style={styles.filters}>
-        <div style={styles.filtersHeader}>
-          <h3 style={{...styles.filtersTitle,display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>סינון</h3>
-          <div style={{display: 'flex', gap: '8px'}}>
-            {hasActiveFilters && (
-              <button
-                style={{
-                  background: '#ef4444',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                }}
-                onClick={clearAllFilters}
-              >
-                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>נקה הכל</span>
-              </button>
-            )}
+      {/* Filter drawer trigger + View Toggle */}
+      <div style={styles.toolbar}>
+        <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
+          <button
+            style={styles.filterTrigger}
+            onClick={() => setShowFilterDrawer(true)}
+            aria-haspopup="true"
+            aria-expanded={showFilterDrawer}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            סינון
+            {activeFilterCount > 0 && <span style={styles.filterBadge}>{activeFilterCount}</span>}
+          </button>
+          <div style={styles.viewToggle} role="group" aria-label="בחירת תצוגה">
             <button
-              style={{...styles.filtersToggle, ...(showAdvancedFilters ? styles.filtersToggleActive : {})}}
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              style={{...styles.viewBtn, ...(viewMode === 'cards' ? styles.viewBtnActive : {})}}
+              onClick={() => setViewMode('cards')}
+              aria-label="תצוגת כרטיסים"
+              aria-pressed={viewMode === 'cards'}
             >
-              {showAdvancedFilters ? '- פחות אפשרויות' : '+ עוד אפשרויות'}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="9" height="9"/><rect x="13" y="3" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/></svg>
+            </button>
+            <button
+              style={{...styles.viewBtn, ...(viewMode === 'table' ? styles.viewBtnActive : {})}}
+              onClick={() => setViewMode('table')}
+              aria-label="תצוגת טבלה"
+              aria-pressed={viewMode === 'table'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
           </div>
-        </div>
-        <div style={styles.filterRow} className="station-filter-row">
-          <div style={styles.filterGroup} className="station-filter-group">
-            <label style={styles.filterLabel}>גודל ג'אנט</label>
-            <select
-              style={styles.filterSelect}
-              value={rimSizeFilter}
-              onChange={e => setRimSizeFilter(e.target.value)}
-            >
-              <option value="">הכל</option>
-              {rimSizes.map(size => (
-                <option key={size} value={size}>{size}"</option>
-              ))}
-            </select>
-          </div>
-          <div style={styles.filterGroup} className="station-filter-group">
-            <label style={styles.filterLabel}>כמות ברגים</label>
-            <select
-              style={styles.filterSelect}
-              value={boltCountFilter}
-              onChange={e => setBoltCountFilter(e.target.value)}
-            >
-              <option value="">הכל</option>
-              {boltCounts.map(count => (
-                <option key={count} value={count}>{count}</option>
-              ))}
-            </select>
-          </div>
-          <div style={styles.filterGroup} className="station-filter-group">
-            <label style={styles.filterLabel}>מרווח ברגים</label>
-            <select
-              style={styles.filterSelect}
-              value={boltSpacingFilter}
-              onChange={e => setBoltSpacingFilter(e.target.value)}
-            >
-              <option value="">הכל</option>
-              {boltSpacings.map(spacing => (
-                <option key={spacing} value={spacing}>{spacing}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        {showAdvancedFilters && (
-          <>
-            <div style={styles.filterRow} className="station-filter-row">
-              <div style={styles.filterGroup} className="station-filter-group">
-                <label style={styles.filterLabel}>CB (קוטר מרכז)</label>
-                <select
-                  style={styles.filterSelect}
-                  value={centerBoreFilter}
-                  onChange={e => setCenterBoreFilter(e.target.value)}
-                >
-                  <option value="">הכל</option>
-                  {centerBores.map(cb => (
-                    <option key={cb} value={cb?.toString()}>{cb}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={styles.filterGroup} className="station-filter-group">
-                <label style={styles.filterLabel}>קור (ET)</label>
-                <select
-                  style={styles.filterSelect}
-                  value={offsetFilter}
-                  onChange={e => setOffsetFilter(e.target.value)}
-                >
-                  <option value="">הכל</option>
-                  {offsets.map(off => (
-                    <option key={off} value={off?.toString()}>{off}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={styles.filterGroup} className="station-filter-group">
-                <label style={styles.filterLabel}>קטגוריה</label>
-                <select
-                  style={styles.filterSelect}
-                  value={categoryFilter}
-                  onChange={e => setCategoryFilter(e.target.value)}
-                >
-                  <option value="">הכל</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat || ''}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={styles.filterGroup} className="station-filter-group">
-                <label style={styles.filterLabel}>סוג</label>
-                <select
-                  style={styles.filterSelect}
-                  value={typeFilter}
-                  onChange={e => setTypeFilter(e.target.value)}
-                >
-                  <option value="">הכל</option>
-                  <option value="full">מלא</option>
-                  <option value="donut">דונאט</option>
-                </select>
-              </div>
-              <div style={styles.filterGroup} className="station-filter-group">
-                <label style={styles.filterLabel}>זמינות</label>
-                <select
-                  style={styles.filterSelect}
-                  value={availabilityFilter}
-                  onChange={e => setAvailabilityFilter(e.target.value)}
-                >
-                  <option value="">הכל</option>
-                  <option value="available">זמין בלבד</option>
-                  <option value="taken">מושאל</option>
-                </select>
-              </div>
-            </div>
-            {/* Tire Size Filter */}
-            <div style={{marginTop: '12px', padding: '12px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px', border: '1px dashed #3b82f6'}}>
-              <label style={{...styles.filterLabel, marginBottom: '8px', display: 'block', color: '#3b82f6'}}>
-                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>חיפוש לפי מידת גלגל (מחפש במספר גלגל והערות)</span>
-              </label>
-              <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-                <input
-                  type="text"
-                  placeholder="רוחב (205)"
-                  value={tireSizeWidth}
-                  onChange={e => setTireSizeWidth(e.target.value.replace(/\D/g, ''))}
-                  style={{...styles.filterSelect, width: '80px', textAlign: 'center'}}
-                />
-                <span style={{color: '#9ca3af'}}>/</span>
-                <input
-                  type="text"
-                  placeholder="אחוז (55)"
-                  value={tireSizeRatio}
-                  onChange={e => setTireSizeRatio(e.target.value.replace(/\D/g, ''))}
-                  style={{...styles.filterSelect, width: '80px', textAlign: 'center'}}
-                />
-                <span style={{color: '#6b7280', fontSize: '0.85rem'}}>למשל: 205/55</span>
-              </div>
-              <p style={{fontSize: '0.75rem', color: '#9ca3af', marginTop: '6px'}}>
-                מחפש גלגלים שמספר הגלגל או ההערות שלהם מכילים את המידה
-              </p>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* View Toggle */}
-      <div style={styles.toolbar}>
-        <div style={styles.viewToggle} role="group" aria-label="בחירת תצוגה">
-          <button
-            style={{...styles.viewBtn, ...(viewMode === 'cards' ? styles.viewBtnActive : {})}}
-            onClick={() => setViewMode('cards')}
-            aria-label="תצוגת כרטיסים"
-            aria-pressed={viewMode === 'cards'}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="9" height="9"/><rect x="13" y="3" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/></svg>
-          </button>
-          <button
-            style={{...styles.viewBtn, ...(viewMode === 'table' ? styles.viewBtnActive : {})}}
-            onClick={() => setViewMode('table')}
-            aria-label="תצוגת טבלה"
-            aria-pressed={viewMode === 'table'}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          </button>
         </div>
         <div style={styles.resultsCount}>
           מציג {filteredWheels.length} מתוך {station.totalWheels} גלגלים
         </div>
       </div>
+
+      {/* Filter drawer — every field is multi-select (check several values at once) */}
+      {showFilterDrawer && (
+        <div style={styles.filterScrim} onClick={() => setShowFilterDrawer(false)} />
+      )}
+      <aside style={{...styles.filterDrawer, ...(showFilterDrawer ? styles.filterDrawerOpen : {})}} aria-hidden={!showFilterDrawer}>
+        <div style={styles.filterDrawerHead}>
+          <strong style={{fontSize: '0.98rem', color: '#1e293b'}}>סינון</strong>
+          <button style={styles.filterDrawerCloseBtn} onClick={() => setShowFilterDrawer(false)} aria-label="סגור">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div style={styles.filterDrawerBody}>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>גודל ג&apos;אנט</span>
+            <div style={styles.chipsRow}>
+              {rimSizes.map(size => (
+                <button key={size} type="button" style={{...styles.cbox, ...(rimSizeFilter.includes(size) ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setRimSizeFilter, size)}>
+                  <span style={{...styles.cboxMark, ...(rimSizeFilter.includes(size) ? styles.cboxMarkOn : {})}}>
+                    {rimSizeFilter.includes(size) && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </span>
+                  {size}&quot;
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>כמות ברגים</span>
+            <div style={styles.chipsRow}>
+              {boltCounts.map(count => (
+                <button key={count} type="button" style={{...styles.cbox, ...(boltCountFilter.includes(count) ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setBoltCountFilter, count)}>
+                  <span style={{...styles.cboxMark, ...(boltCountFilter.includes(count) ? styles.cboxMarkOn : {})}}>
+                    {boltCountFilter.includes(count) && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </span>
+                  {count}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>מרווח ברגים</span>
+            <div style={styles.chipsRow}>
+              {boltSpacings.map(spacing => (
+                <button key={spacing} type="button" style={{...styles.cbox, ...(boltSpacingFilter.includes(spacing) ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setBoltSpacingFilter, spacing)}>
+                  <span style={{...styles.cboxMark, ...(boltSpacingFilter.includes(spacing) ? styles.cboxMarkOn : {})}}>
+                    {boltSpacingFilter.includes(spacing) && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </span>
+                  {spacing}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>CB (קוטר מרכז)</span>
+            <div style={styles.chipsRow}>
+              {centerBores.map(cb => (
+                <button key={cb} type="button" style={{...styles.cbox, ...(centerBoreFilter.includes(cb?.toString() ?? '') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setCenterBoreFilter, cb?.toString() ?? '')}>
+                  <span style={{...styles.cboxMark, ...(centerBoreFilter.includes(cb?.toString() ?? '') ? styles.cboxMarkOn : {})}}>
+                    {centerBoreFilter.includes(cb?.toString() ?? '') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </span>
+                  {cb}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>קור (ET)</span>
+            <div style={styles.chipsRow}>
+              {offsets.map(off => (
+                <button key={off} type="button" style={{...styles.cbox, ...(offsetFilter.includes(off?.toString() ?? '') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setOffsetFilter, off?.toString() ?? '')}>
+                  <span style={{...styles.cboxMark, ...(offsetFilter.includes(off?.toString() ?? '') ? styles.cboxMarkOn : {})}}>
+                    {offsetFilter.includes(off?.toString() ?? '') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </span>
+                  {off}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>קטגוריה</span>
+            <div style={styles.chipsRow}>
+              {categories.map(cat => (
+                <button key={cat} type="button" style={{...styles.cbox, ...(categoryFilter.includes(cat || '') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setCategoryFilter, cat || '')}>
+                  <span style={{...styles.cboxMark, ...(categoryFilter.includes(cat || '') ? styles.cboxMarkOn : {})}}>
+                    {categoryFilter.includes(cat || '') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </span>
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>סוג</span>
+            <div style={styles.chipsRow}>
+              <button type="button" style={{...styles.cbox, ...(typeFilter.includes('full') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setTypeFilter, 'full')}>
+                <span style={{...styles.cboxMark, ...(typeFilter.includes('full') ? styles.cboxMarkOn : {})}}>
+                  {typeFilter.includes('full') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </span>
+                מלא
+              </button>
+              <button type="button" style={{...styles.cbox, ...(typeFilter.includes('donut') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setTypeFilter, 'donut')}>
+                <span style={{...styles.cboxMark, ...(typeFilter.includes('donut') ? styles.cboxMarkOn : {})}}>
+                  {typeFilter.includes('donut') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </span>
+                דונאט
+              </button>
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>זמינות</span>
+            <div style={styles.chipsRow}>
+              <button type="button" style={{...styles.cbox, ...(availabilityFilter.includes('available') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setAvailabilityFilter, 'available')}>
+                <span style={{...styles.cboxMark, ...(availabilityFilter.includes('available') ? styles.cboxMarkOn : {})}}>
+                  {availabilityFilter.includes('available') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </span>
+                זמין
+              </button>
+              <button type="button" style={{...styles.cbox, ...(availabilityFilter.includes('taken') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setAvailabilityFilter, 'taken')}>
+                <span style={{...styles.cboxMark, ...(availabilityFilter.includes('taken') ? styles.cboxMarkOn : {})}}>
+                  {availabilityFilter.includes('taken') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </span>
+                מושאל
+              </button>
+            </div>
+          </div>
+          <div style={styles.fgroup}>
+            <span style={styles.filterLabel}>
+              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>חיפוש לפי מידת צמיג</span>
+            </span>
+            <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
+              <input
+                type="text"
+                placeholder="רוחב (205)"
+                value={tireSizeWidth}
+                onChange={e => setTireSizeWidth(e.target.value.replace(/\D/g, ''))}
+                style={{...styles.filterTextInput, width: '80px', textAlign: 'center'}}
+              />
+              <span style={{color: '#9ca3af'}}>/</span>
+              <input
+                type="text"
+                placeholder="אחוז (55)"
+                value={tireSizeRatio}
+                onChange={e => setTireSizeRatio(e.target.value.replace(/\D/g, ''))}
+                style={{...styles.filterTextInput, width: '80px', textAlign: 'center'}}
+              />
+              <span style={{color: '#9ca3af', fontSize: '0.8rem'}}>למשל: 205/55</span>
+            </div>
+            <p style={{fontSize: '0.75rem', color: '#9ca3af', margin: '6px 0 0'}}>
+              מחפש גלגלים שמספר הגלגל או ההערות שלהם מכילים את המידה
+            </p>
+          </div>
+        </div>
+        <div style={styles.filterDrawerFoot}>
+          {hasActiveFilters && (
+            <button style={styles.filterClearBtn} onClick={clearAllFilters}>נקה הכל</button>
+          )}
+          <button style={styles.filterApplyBtn} onClick={() => setShowFilterDrawer(false)}>החל סינון</button>
+        </div>
+      </aside>
 
       {/* Wheels Grid (Cards View) */}
       {viewMode === 'cards' && (
@@ -3127,6 +3137,7 @@ ${formUrl}`
                     {wheel.extra_bolt_spacings?.map(s => `/${s}`).join('')}
                   </span>
                   {wheel.center_bore && <span style={styles.spec}>CB {wheel.center_bore}</span>}
+                  {wheel.offset != null && <span style={styles.spec}>ET {wheel.offset}</span>}
                 </div>
                 {wheel.category && <div style={styles.cardCategory}>{wheel.category}</div>}
                 {wheel.notes && <div style={styles.cardNotes}>{wheel.notes}</div>}
@@ -3337,6 +3348,7 @@ ${formUrl}`
                 <th style={styles.th}>ג'אנט</th>
                 <th style={styles.th}>ברגים</th>
                 <th style={styles.th}>CB</th>
+                <th style={styles.th}>ET</th>
                 <th style={styles.th}>קטגוריה</th>
                 <th style={styles.th}>סוג</th>
                 <th style={styles.th}>הערות</th>
@@ -3346,7 +3358,7 @@ ${formUrl}`
             <tbody>
               {filteredWheels.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{padding: '40px'}}>
+                  <td colSpan={9} style={{padding: '40px'}}>
                     <div style={styles.emptyState}>
                       <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
                       <div style={styles.emptyTitle}>לא נמצאו גלגלים</div>
@@ -3364,6 +3376,7 @@ ${formUrl}`
                     {wheel.extra_bolt_spacings?.map(s => `/${s}`).join('')}
                   </td>
                   <td style={styles.td}>{wheel.center_bore || '-'}</td>
+                  <td style={styles.td}>{wheel.offset ?? '-'}</td>
                   <td style={styles.td}>{wheel.category || '-'}</td>
                   <td style={styles.td}>
                     {wheel.is_donut ? (
@@ -4032,9 +4045,9 @@ ${formUrl}`
       {showAddWheelModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false) }}>
           <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
-            <h3 id="add-wheel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוספת גלגל חדש</h3>
-            <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-              <div style={{...styles.formGroup, width: '110px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'}}>
+              <h3 id="add-wheel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px',margin:0}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוספת גלגל חדש</h3>
+              <div style={{width: '90px', flexShrink: 0}}>
                 <label style={styles.label}>מספר גלגל *</label>
                 <input
                   type="text"
@@ -4111,10 +4124,10 @@ ${formUrl}`
                 />
               </div>
             </div>
-            <div style={styles.formRow} className="add-wheel-form-row">
+            <div style={styles.formRow} className="add-wheel-form-row add-wheel-form-row-thirds">
               <div style={styles.formGroup} className="form-group-item">
                 <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>
-                  ET (אופסט) *
+                  ET *
                   <span title="המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי." style={{display:'inline-flex', cursor: 'help', color: '#94a3b8'}}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   </span>
@@ -4232,9 +4245,9 @@ ${formUrl}`
       {showEditWheelModal && selectedWheel && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowEditWheelModal(false); setShowCustomCategory(false); setSelectedWheel(null) }}>
           <div role="dialog" aria-modal="true" aria-label={`עריכת גלגל ${selectedWheel.wheel_number}`} style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
-            <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת גלגל #{selectedWheel.wheel_number}</h3>
-            <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-              <div style={{...styles.formGroup, width: '110px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'}}>
+              <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px',margin:0}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת גלגל #{selectedWheel.wheel_number}</h3>
+              <div style={{width: '90px', flexShrink: 0}}>
                 <label style={styles.label}>מספר גלגל *</label>
                 <input
                   type="text"
@@ -4310,10 +4323,10 @@ ${formUrl}`
                 />
               </div>
             </div>
-            <div className="add-wheel-form-row" style={styles.formRow}>
+            <div className="add-wheel-form-row add-wheel-form-row-thirds" style={styles.formRow}>
               <div className="form-group-item" style={styles.formGroup}>
                 <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>
-                  ET (אופסט) *
+                  ET *
                   <span title="המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי." style={{display:'inline-flex', cursor: 'help', color: '#94a3b8'}}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   </span>
@@ -5760,48 +5773,153 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#64748b',
     fontSize: '0.9rem',
   },
-  filters: {
+  filterTrigger: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
     background: '#ffffff',
     border: '1px solid #e2e8f0',
-    borderRadius: '12px',
-    padding: '15px',
-    marginBottom: '20px',
+    borderRadius: '999px',
+    padding: '10px 18px',
+    fontWeight: 700,
+    fontSize: '0.88rem',
+    color: '#1e293b',
+    cursor: 'pointer',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
   },
-  filtersHeader: {
+  filterBadge: {
+    background: '#2563eb',
+    color: '#fff',
+    borderRadius: '999px',
+    padding: '1px 8px',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+  },
+  filterScrim: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(15,23,42,0.4)',
+    zIndex: 940,
+  },
+  filterDrawer: {
+    position: 'fixed',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    width: '88vw',
+    maxWidth: '340px',
+    background: '#ffffff',
+    boxShadow: '-10px 0 30px rgba(0,0,0,0.14)',
+    transform: 'translateX(100%)',
+    transition: 'transform 0.28s ease',
+    display: 'flex',
+    flexDirection: 'column',
+    zIndex: 950,
+  },
+  filterDrawerOpen: {
+    transform: 'translateX(0)',
+  },
+  filterDrawerHead: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '12px',
+    padding: '16px',
+    borderBottom: '1px solid #e2e8f0',
+    flex: 'none',
   },
-  filtersTitle: {
-    color: '#1e293b',
-    fontSize: '1rem',
-    margin: 0,
-    fontWeight: 600,
-  },
-  filtersToggle: {
-    background: '#f8fafc',
+  filterDrawerCloseBtn: {
+    background: '#f1f5f9',
     border: '1px solid #e2e8f0',
-    color: '#64748b',
-    padding: '6px 12px',
-    borderRadius: '6px',
+    borderRadius: '8px',
+    width: '34px',
+    height: '34px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     cursor: 'pointer',
-    fontSize: '0.85rem',
+    color: '#64748b',
   },
-  filtersToggleActive: {
+  filterDrawerBody: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  fgroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  chipsRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+  },
+  cbox: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '7px',
+    padding: '8px 12px 8px 10px',
+    borderRadius: '8px',
+    border: '1px solid #e2e8f0',
+    background: '#f8fafc',
+    color: '#64748b',
+    fontSize: '0.82rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  cboxOn: {
     background: '#eff6ff',
     borderColor: '#bfdbfe',
     color: '#2563eb',
   },
-  filterRow: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '12px',
-    marginTop: '12px',
+  cboxMark: {
+    width: '16px',
+    height: '16px',
+    borderRadius: '4px',
+    border: '1.5px solid #e2e8f0',
+    background: '#ffffff',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 'none',
+    color: '#ffffff',
   },
-  filterGroup: {
+  cboxMarkOn: {
+    background: '#2563eb',
+    borderColor: '#2563eb',
+  },
+  filterDrawerFoot: {
+    display: 'flex',
+    gap: '10px',
+    padding: '16px',
+    borderTop: '1px solid #e2e8f0',
+    flex: 'none',
+  },
+  filterClearBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#ef4444',
+    fontSize: '0.82rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: '8px 4px',
+  },
+  filterApplyBtn: {
     flex: 1,
-    minWidth: '100px',
+    background: '#2563eb',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '999px',
+    padding: '10px 16px',
+    fontWeight: 700,
+    fontSize: '0.85rem',
+    cursor: 'pointer',
   },
   filterLabel: {
     display: 'block',
@@ -5810,8 +5928,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.8rem',
     fontWeight: 600,
   },
-  filterSelect: {
-    width: '100%',
+  filterTextInput: {
     padding: '8px',
     borderRadius: '6px',
     border: '1px solid #e2e8f0',

@@ -1,11 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-02T19:22:37.925Z
-> Files: 7 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-02T20:19:56.843Z
+> Files: 9 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
 - `filter-drawer-checkbox.html` — סינון — מגירה + תיבות סימון מרובות (~3491 tok)
+- `verify-filter-drawer.mjs` — Declares shotDir (~372 tok)
 
 ## ../../../.claude/plans/
 
@@ -15,6 +16,7 @@
 
 ## ./
 
+- `tmp-verify-filter.mjs` — Declares shotDir (~456 tok)
 
 ## .claude/
 
@@ -49,7 +51,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — StationPage (~91308 tok)
+- `page.tsx` — StationPage (~93271 tok)
 
 ## src/app/accessibility/
 

@@ -1032,6 +1032,134 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-02T19:19:49.762Z"
+    },
+    {
+      "id": "bug-065",
+      "timestamp": "2026-07-02T19:33:19.385Z",
+      "error_message": "Wrong operator: || should be !==",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Used \"||\" instead of \"!==\"",
+      "fix": "Changed operator || → !==",
+      "tags": [
+        "auto-detected",
+        "operator-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T19:33:19.385Z"
+    },
+    {
+      "id": "bug-066",
+      "timestamp": "2026-07-02T19:33:36.280Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: {/* Filter drawer trigger + View Toggle */}; <div style={{display: 'flex', gap: '10px', alignItems: 'cent",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T19:36:50.668Z"
+    },
+    {
+      "id": "bug-067",
+      "timestamp": "2026-07-02T19:35:33.725Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "19 lines replaced/restructured",
+      "fix": "Rewrote 59→163 lines (19 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T19:35:33.725Z"
+    },
+    {
+      "id": "bug-068",
+      "timestamp": "2026-07-02T20:01:53.914Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: <td style={styles.td}>{wheel.offset ?? '-'}</td>",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T20:03:12.810Z"
+    },
+    {
+      "id": "bug-069",
+      "timestamp": "2026-07-02T20:06:06.482Z",
+      "error_message": "CSS fix: display, width",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "display: 'flex', justifyContent: 'flex-end' → 'inline-flex',alignItems:'center',gap:'6px',margin:0; width: '110px' → '90px', flexShrink: 0",
+      "fix": "Changed display: 'flex', justifyContent: 'flex-end' → 'inline-flex',alignItems:'center',gap:'6px',margin:0; width: '110px' → '90px', flexShrink: 0",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-07-02T20:07:28.314Z"
+    },
+    {
+      "id": "bug-070",
+      "timestamp": "2026-07-02T20:09:11.343Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Had \"add-wheel-form-row\"",
+      "fix": "Changed to \"add-wheel-form-row add-wheel-form-row-thirds\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-02T20:09:55.015Z"
+    },
+    {
+      "id": "bug-071",
+      "timestamp": "2026-07-02T20:15:44.029Z",
+      "error_message": "Incorrect value in code",
+      "file": "tmp-verify-filter.mjs",
+      "root_cause": "Had 'networkidle'",
+      "fix": "Changed to 'domcontentloaded'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T20:15:44.029Z"
+    },
+    {
+      "id": "bug-072",
+      "timestamp": "2026-07-02T20:19:56.893Z",
+      "error_message": "Null/undefined access in ",
+      "file": "tmp-verify-filter.mjs",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T20:19:56.894Z"
     }
   ]
 }
