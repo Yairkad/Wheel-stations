@@ -43,10 +43,12 @@ const newVersion = `${newMajor}.${newMinor}.${newPatch}`
 
 console.log(`Bumping version: ${major}.${minor}.${patch} -> ${newVersion}`)
 
-// Update version.ts
-const newVersionFileContent = `// Version number - auto-incremented on each commit
-export const VERSION = '${newVersion}'
-`
+// Update only the VERSION line — preserve everything else in the file
+// (e.g. SESSION_VERSION and its comments)
+const newVersionFileContent = versionFileContent.replace(
+  /VERSION = '\d+\.\d+\.\d+'/,
+  `VERSION = '${newVersion}'`
+)
 fs.writeFileSync(versionFilePath, newVersionFileContent, 'utf8')
 
 console.log(`Version updated to ${newVersion} in src/lib/version.ts`)
