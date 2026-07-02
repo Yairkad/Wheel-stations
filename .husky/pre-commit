@@ -1,0 +1,1 @@
+node scripts/bump-version.js && git add src/lib/version.ts

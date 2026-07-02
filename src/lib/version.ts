@@ -1,6 +1,2 @@
-// App version - displayed in footer
-export const VERSION = '18.0.3'
-
-// Session version - increment this to force all users to re-login
-// When you change this, users with old sessions will be logged out automatically
-export const SESSION_VERSION = 4
+// Version number - auto-incremented on each commit
+export const VERSION = '18.0.4'
