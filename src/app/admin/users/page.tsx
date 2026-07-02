@@ -301,12 +301,12 @@ function UsersPageInner() {
         body: JSON.stringify({}),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.detail ? `${data.error}: ${data.detail}` : data.error)
       setDeleteUser(null)
       if (expandedId === deleteUser.id) setExpandedId(null)
       await fetchUsers()
       toast.success('משתמש נמחק')
-    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה במחיקה') }
+    } catch (err) { console.error('[AdminUsers]', err); toast.error(err instanceof Error ? err.message : 'שגיאה במחיקה') }
     finally { setBusy(false) }
   }
 
@@ -320,12 +320,12 @@ function UsersPageInner() {
         body: JSON.stringify({ keep_id: mergeTarget, delete_id: mergeSource.id }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.detail ? `${data.error}: ${data.detail}` : data.error)
       setMergeSource(null)
       setMergeTarget('')
       await fetchUsers()
       toast.success('משתמשים אוחדו')
-    } catch (err) { console.error('[AdminUsers]', err); toast.error('שגיאה במיזוג') }
+    } catch (err) { console.error('[AdminUsers]', err); toast.error(err instanceof Error ? err.message : 'שגיאה במיזוג') }
     finally { setBusy(false) }
   }
 

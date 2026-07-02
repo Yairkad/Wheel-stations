@@ -54,9 +54,25 @@ export async function DELETE(
       return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
     }
 
-    // Roles deleted via CASCADE (user_roles.user_id FK)
+    // The live DB's FK constraints don't actually match the CASCADE defined
+    // in the migration files (confirmed via Postgres error on user_roles_user_id_fkey),
+    // so clean up dependent rows explicitly instead of trusting ON DELETE CASCADE.
+    await supabase.from('login_log').update({ user_id: null }).eq('user_id', userId)
+    await supabase.from('user_roles').delete().eq('user_id', userId)
+    await supabase.from('webauthn_credentials').delete().eq('user_id', userId)
+    await supabase.from('webauthn_challenges').delete().eq('user_id', userId)
+
     const { error } = await supabase.from('users').delete().eq('id', userId)
-    if (error) throw error
+    if (error) {
+      if (error.code === '23503') {
+        console.error('DELETE /api/admin/users/[userId] FK violation:', error.message, error.details)
+        return NextResponse.json(
+          { error: 'לא ניתן למחוק משתמש עם רשומות מקושרות במערכת', detail: error.details || error.message },
+          { status: 409 }
+        )
+      }
+      throw error
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {

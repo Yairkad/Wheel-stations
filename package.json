@@ -12,7 +12,8 @@
     "test:coverage": "tsc && vitest run --coverage",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "guide": "node scripts/generate-guide.mjs"
+    "guide": "node scripts/generate-guide.mjs",
+    "prepare": "husky"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -67,6 +68,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "eslint-plugin-storybook": "^10.3.5",
+    "husky": "^9.1.7",
     "jsdom": "^27.4.0",
     "msw": "^2.13.6",
     "playwright": "^1.59.1",
