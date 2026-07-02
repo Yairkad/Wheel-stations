@@ -31,13 +31,17 @@ export async function POST(request: NextRequest) {
 
     if (moveErr) throw moveErr
 
-    // login_log.user_id has no ON DELETE CASCADE — detach history instead of
-    // losing it (full_name/phone are already stored on each row). Without
-    // this, the delete below fails after roles were already moved above,
+    // The live DB's FK constraints don't actually match the CASCADE defined
+    // in the migration files (confirmed via Postgres error on user_roles_user_id_fkey),
+    // so clean up dependent rows explicitly instead of trusting ON DELETE CASCADE.
+    // Without this, the delete below fails after roles were already moved above,
     // leaving delete_id as a roleless ghost account.
     await supabase.from('login_log').update({ user_id: null }).eq('user_id', delete_id)
+    await supabase.from('user_roles').delete().eq('user_id', delete_id)
+    await supabase.from('webauthn_credentials').delete().eq('user_id', delete_id)
+    await supabase.from('webauthn_challenges').delete().eq('user_id', delete_id)
 
-    // Delete the duplicate user (cascade removes any leftover roles)
+    // Delete the duplicate user
     const { error: delErr } = await supabase
       .from('users')
       .delete()
@@ -45,8 +49,9 @@ export async function POST(request: NextRequest) {
 
     if (delErr) {
       if (delErr.code === '23503') {
+        console.error('POST /api/admin/users/merge FK violation:', delErr.message, delErr.details)
         return NextResponse.json(
-          { error: 'התפקידים הועברו, אך לא ניתן היה למחוק את המשתמש המקורי (רשומות מקושרות)' },
+          { error: 'התפקידים הועברו, אך לא ניתן היה למחוק את המשתמש המקורי (רשומות מקושרות)', detail: delErr.details || delErr.message },
           { status: 409 }
         )
       }
