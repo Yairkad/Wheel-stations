@@ -31,13 +31,27 @@ export async function POST(request: NextRequest) {
 
     if (moveErr) throw moveErr
 
+    // login_log.user_id has no ON DELETE CASCADE — detach history instead of
+    // losing it (full_name/phone are already stored on each row). Without
+    // this, the delete below fails after roles were already moved above,
+    // leaving delete_id as a roleless ghost account.
+    await supabase.from('login_log').update({ user_id: null }).eq('user_id', delete_id)
+
     // Delete the duplicate user (cascade removes any leftover roles)
     const { error: delErr } = await supabase
       .from('users')
       .delete()
       .eq('id', delete_id)
 
-    if (delErr) throw delErr
+    if (delErr) {
+      if (delErr.code === '23503') {
+        return NextResponse.json(
+          { error: 'התפקידים הועברו, אך לא ניתן היה למחוק את המשתמש המקורי (רשומות מקושרות)' },
+          { status: 409 }
+        )
+      }
+      throw delErr
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {

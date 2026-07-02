@@ -54,9 +54,21 @@ export async function DELETE(
       return NextResponse.json({ error: 'לא מורשה' }, { status: 403 })
     }
 
+    // login_log.user_id has no ON DELETE CASCADE — detach history instead of
+    // losing it (full_name/phone are already stored on each row)
+    await supabase.from('login_log').update({ user_id: null }).eq('user_id', userId)
+
     // Roles deleted via CASCADE (user_roles.user_id FK)
     const { error } = await supabase.from('users').delete().eq('id', userId)
-    if (error) throw error
+    if (error) {
+      if (error.code === '23503') {
+        return NextResponse.json(
+          { error: 'לא ניתן למחוק משתמש עם רשומות מקושרות במערכת' },
+          { status: 409 }
+        )
+      }
+      throw error
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
