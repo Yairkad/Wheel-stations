@@ -1226,6 +1226,87 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-03T08:20:00.000Z"
+    },
+    {
+      "id": "bug-077",
+      "timestamp": "2026-07-03T05:47:16.430Z",
+      "error_message": "CSS fix: display, gap, max-width",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "display: grid !important → flex !important; gap: 20px !important → 20px 16px !important; max-width: 480px) { → 130px",
+      "fix": "Changed display: grid !important → flex !important; gap: 20px !important → 20px 16px !important; max-width: 480px) { → 130px",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-07-03T05:51:04.169Z"
+    },
+    {
+      "id": "bug-078",
+      "timestamp": "2026-07-03T05:47:48.106Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "9 lines replaced/restructured",
+      "fix": "Rewrote 12→3 lines (9 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T05:47:48.106Z"
+    },
+    {
+      "id": "bug-079",
+      "timestamp": "2026-07-03T06:23:24.319Z",
+      "error_message": "Type error",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: <label style={{...styles.label, display: 'inline-flex', alig",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-07-03T06:26:19.085Z"
+    },
+    {
+      "id": "bug-080",
+      "timestamp": "2026-07-03T06:27:47.289Z",
+      "error_message": "CSS fix: display",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "display: 'inline-flex', cursor: 'help', color: '#94a3b8' → 'inline-flex', alignItems:'center', gap:'4px'",
+      "fix": "Changed display: 'inline-flex', cursor: 'help', color: '#94a3b8' → 'inline-flex', alignItems:'center', gap:'4px'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-03T06:28:21.533Z"
+    },
+    {
+      "id": "bug-081",
+      "timestamp": "2026-07-03T09:00:00.000Z",
+      "error_message": "המשתמש: מגירת הסינון נפתחת מתחת להדר ואז מוסתרת - השורה העליונה שלה (כותרת + כפתור סגירה) לא נראית",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "styles.filterDrawer/filterScrim הוגדרו עם top:0, אבל AppHeader.tsx הוא position:fixed עם zIndex:1000 (styles.header ~line 735-739 שם), גבוה מ-zIndex:950 של המגירה - כך שההדר תמיד מצויר מעל תחילת המגירה ומכסה אותה.",
+      "fix": "שינוי top של filterScrim ו-filterDrawer מ-0 ל-calc(70px + env(safe-area-inset-top, 0px)) - אותו ערך בדיוק ש-AppHeader.tsx (.app-header-spacer) כבר משתמש בו כדי לדחוף תוכן מתחת להדר - כך שהמגירה נפתחת מתחת להדר במקום מתחתיו/מוסתרת על ידו. נוסף גם borderRadius: '16px 0 0 0' כי הפינה העליונה-שמאלית של המגירה כבר לא צמודה לקצה המסך.",
+      "tags": [
+        "z-index",
+        "fixed-header",
+        "filter-drawer",
+        "station-page"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T09:00:00.000Z"
     }
   ]
 }

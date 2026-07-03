@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T05:28:28.857Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T06:28:48.914Z
 > Files: 14 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
@@ -10,7 +10,7 @@
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/
 
-- `wheel-form-layout.html` — פריסת טופס גלגל — לפי רוחב תוכן (~2218 tok)
+- `wheel-form-layout.html` — 5 פריסות טופס גלגל — לפי רוחב תוכן (~5010 tok)
 - `wheel-form-layouts.html` — 4 פריסות לטופס גלגל (~3592 tok)
 
 ## ../../../.claude/plans/
@@ -58,7 +58,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — StationPage (~93632 tok)
+- `page.tsx` — StationPage (~95038 tok)
 
 ## src/app/accessibility/
 

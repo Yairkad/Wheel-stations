@@ -201,6 +201,45 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   // Form validation errors (highlight missing fields)
   const [wheelFormErrors, setWheelFormErrors] = useState<string[]>([])
   const [showCustomCategory, setShowCustomCategory] = useState(false)
+  const [fitmentInfoOpen, setFitmentInfoOpen] = useState<'pcd' | 'cb' | 'et' | null>(null)
+  const fitmentInfo: Record<'pcd' | 'cb' | 'et', { title: string; text: string; image?: string }> = {
+    pcd: {
+      title: 'PCD — מרווח ברגים',
+      text: 'מספר הברגים וקוטר המעגל שעליהם הם יושבים (למשל 5×114.3). חייב להתאים בול לרכב.',
+    },
+    cb: {
+      title: 'CB — קוטר חור מרכזי',
+      text: 'קוטר החור באמצע הגלגל. חייב להיות שווה או גדול מהנדרש ברכב — אסור שיהיה קטן ממנו.',
+    },
+    et: {
+      title: 'ET — אופסט',
+      text: 'המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי.',
+    },
+  }
+  const renderFitmentInfoIcon = (key: 'pcd' | 'cb' | 'et') => (
+    <span style={{position: 'relative', display: 'inline-flex'}}>
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); setFitmentInfoOpen(fitmentInfoOpen === key ? null : key) }}
+        style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', background: 'none', cursor: 'pointer', fontSize: '0.62rem', padding: 0, flexShrink: 0}}
+        aria-label={`מידע על ${fitmentInfo[key].title}`}
+      >i</button>
+      {fitmentInfoOpen === key && (
+        <>
+          <div style={{position: 'fixed', inset: 0, zIndex: 19}} onClick={() => setFitmentInfoOpen(null)} />
+          <div style={{position: 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '220px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal'}}>
+            <div style={{fontWeight: 600, fontSize: '0.82rem', marginBottom: '6px', color: '#1e293b'}}>{fitmentInfo[key].title}</div>
+            <div style={{width: '100%', height: '90px', background: '#f1f5f9', borderRadius: '6px', border: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.72rem', marginBottom: '8px', overflow: 'hidden'}}>
+              {fitmentInfo[key].image ? (
+                <img src={fitmentInfo[key].image} alt={fitmentInfo[key].title} style={{width: '100%', height: '100%', objectFit: 'contain'}} />
+              ) : 'תמונה תתווסף בקרוב'}
+            </div>
+            <div style={{fontSize: '0.78rem', color: '#475569', lineHeight: 1.5}}>{fitmentInfo[key].text}</div>
+          </div>
+        </>
+      )}
+    </span>
+  )
 
   // Mobile tracking cards - track which cards are expanded (collapsed by default)
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
@@ -1988,29 +2027,32 @@ ${formUrl}`
         .add-wheel-modal {
           max-width: 520px !important;
         }
-        .add-wheel-form-row {
-          display: grid !important;
-          gap: 20px !important;
+        /* Content-aware flow: each field's width matches what it actually holds
+           (bolt count = one digit = narrow, tire size = "205/55" = wider) and fields
+           wrap to a new line on their own via flex-wrap — no per-breakpoint rules needed. */
+        .wheel-fitment-flow {
+          display: flex !important;
+          flex-wrap: wrap !important;
+          gap: 20px 16px !important;
+          margin-bottom: 15px !important;
         }
-        .add-wheel-form-row:has(.form-group-item:nth-child(3)) {
-          grid-template-columns: 80px 1fr 1fr !important;
+        /* Labels never wrap to a second line — a narrow column lets the label
+           overflow into the gap beside it instead, which keeps every field in
+           the row starting at the same height. */
+        .wheel-fitment-flow > * > label {
+          white-space: nowrap !important;
         }
-        .add-wheel-form-row:not(:has(.form-group-item:nth-child(3))) {
-          grid-template-columns: 1fr 1fr !important;
-        }
-        .add-wheel-form-row-thirds:has(.form-group-item:nth-child(3)) {
-          grid-template-columns: 1fr 1fr 1fr !important;
-        }
-        @media (max-width: 480px) {
-          .add-wheel-form-row-thirds:has(.form-group-item:nth-child(3)) {
-            grid-template-columns: 1fr !important;
-          }
-        }
-        .form-group-item {
-          min-width: 0 !important;
-        }
-        .form-group-item input,
-        .form-group-item select {
+        .wf-rim { flex: 1 1 60px; max-width: 90px; }
+        .wf-bolts { flex: 1 1 56px; max-width: 72px; }
+        .wf-pcd-inline { flex: 2 1 160px; }
+        .wf-cb { flex: 1 1 70px; max-width: 100px; }
+        .wf-et { flex: 1 1 60px; max-width: 90px; }
+        .wf-tire { flex: 1 1 90px; max-width: 130px; }
+        .wf-category { flex: 2 1 160px; }
+        .wf-deposit { flex: 2 1 220px; }
+        .wf-full { flex: 1 1 100%; }
+        .wheel-fitment-flow input,
+        .wheel-fitment-flow select {
           width: 100% !important;
           box-sizing: border-box !important;
         }
@@ -2142,15 +2184,6 @@ ${formUrl}`
 
         /* Add Wheel Modal responsive styles */
         @media (max-width: 480px) {
-          .add-wheel-form-row {
-            display: grid !important;
-            grid-template-columns: 1fr !important;
-            gap: 0 !important;
-          }
-          .add-wheel-form-row .form-group-item {
-            width: 100% !important;
-            margin-bottom: 12px !important;
-          }
           .add-wheel-modal {
             padding: 20px !important;
             max-height: 90vh !important;
@@ -4076,8 +4109,18 @@ ${formUrl}`
                 />
               </div>
             </div>
-            <div style={styles.formRow} className="add-wheel-form-row">
-              <div style={styles.formGroup} className="form-group-item">
+            <div className="wheel-fitment-flow">
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-rim">
+                <label style={styles.label}>גודל ג'אנט *</label>
+                <input
+                  type="text"
+                  placeholder='14", 15", 16"'
+                  value={wheelForm.rim_size}
+                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'rim_size')) }}
+                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
+                />
+              </div>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-bolts">
                 <label style={styles.label}>כמות ברגים</label>
                 <select
                   value={wheelForm.bolt_count}
@@ -4089,11 +4132,41 @@ ${formUrl}`
                   <option value="6">6</option>
                 </select>
               </div>
-              {/* PCD list - all equal, no primary/secondary distinction */}
-              <div style={styles.formGroup} className="form-group-item">
-                <label style={styles.label}>מרווח ברגים (PCD) *</label>
-                {wheelForm.pcds.map((val, idx) => (
-                  <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
+              {/* PCD list - first value flows inline, extra values (rare) stack full-width below */}
+              <div style={{...styles.formGroup, marginBottom: 0}} className={wheelForm.pcds.length > 1 ? 'wf-full' : 'wf-pcd-inline'}>
+                <label style={{...styles.label, display: 'inline-flex', alignItems: 'center', gap: '4px'}}>PCD * {renderFitmentInfoIcon('pcd')}</label>
+                <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+                  <input
+                    type="text"
+                    placeholder="100, 108, 112, 114.3"
+                    value={wheelForm.pcds[0]}
+                    onChange={e => {
+                      const updated = [...wheelForm.pcds]
+                      updated[0] = e.target.value
+                      setWheelForm({...wheelForm, pcds: updated})
+                      setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
+                    }}
+                    style={{
+                      ...styles.input,
+                      flex: 1,
+                      marginBottom: 0,
+                      ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
+                    }}
+                  />
+                  {wheelForm.pcds.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== 0)})}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                      title="הסר"
+                    >×</button>
+                  )}
+                </div>
+              </div>
+              {wheelForm.pcds.slice(1).map((val, i) => {
+                const idx = i + 1
+                return (
+                  <div key={idx} className="wf-full" style={{display:'flex',gap:'6px',alignItems:'center'}}>
                     <input
                       type="text"
                       placeholder="100, 108, 112, 114.3"
@@ -4102,26 +4175,20 @@ ${formUrl}`
                         const updated = [...wheelForm.pcds]
                         updated[idx] = e.target.value
                         setWheelForm({...wheelForm, pcds: updated})
-                        if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
                       }}
-                      style={{
-                        ...styles.input,
-                        flex: 1,
-                        marginBottom: 0,
-                        ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
-                      }}
+                      style={{...styles.input, flex: 1, marginBottom: 0}}
                     />
-                    {wheelForm.pcds.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
-                        style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
-                        title="הסר"
-                      >×</button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i2) => i2 !== idx)})}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                      title="הסר"
+                    >×</button>
                   </div>
-                ))}
-                {wheelForm.pcds.length < 4 && (
+                )
+              })}
+              {wheelForm.pcds.length < 4 && (
+                <div className="wf-full">
                   <button
                     type="button"
                     onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
@@ -4129,10 +4196,10 @@ ${formUrl}`
                   >
                     + הוסף PCD
                   </button>
-                )}
-              </div>
-              <div style={styles.formGroup} className="form-group-item">
-                <label style={styles.label}>CB (קוטר מרכז)</label>
+                </div>
+              )}
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-cb">
+                <label style={{...styles.label, display: 'inline-flex', alignItems: 'center', gap: '4px'}}>CB {renderFitmentInfoIcon('cb')}</label>
                 <input
                   type="text"
                   placeholder="54.1, 60.1, 66.6"
@@ -4141,15 +4208,8 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
-            </div>
-            <div style={styles.formRow} className="add-wheel-form-row add-wheel-form-row-thirds">
-              <div style={styles.formGroup} className="form-group-item">
-                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>
-                  ET *
-                  <span title="המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי." style={{display:'inline-flex', cursor: 'help', color: '#94a3b8'}}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                  </span>
-                </label>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-et">
+                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>ET * {renderFitmentInfoIcon('et')}</label>
                 <input
                   type="number"
                   step="any"
@@ -4159,17 +4219,7 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
-              <div style={styles.formGroup} className="form-group-item">
-                <label style={styles.label}>גודל ג'אנט *</label>
-                <input
-                  type="text"
-                  placeholder='14", 15", 16"'
-                  value={wheelForm.rim_size}
-                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'rim_size')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
-                />
-              </div>
-              <div style={styles.formGroup} className="form-group-item">
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-tire">
                 <label style={styles.label}>מידות צמיג</label>
                 <input
                   type="text"
@@ -4179,75 +4229,75 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>קטגוריה</label>
-              {!showCustomCategory ? (
-                <select
-                  value={predefinedCategories.includes(wheelForm.category) ? wheelForm.category : ''}
-                  onChange={e => {
-                    if (e.target.value === '__custom__') {
-                      setShowCustomCategory(true)
-                      setWheelForm({...wheelForm, category: ''})
-                    } else {
-                      setWheelForm({...wheelForm, category: e.target.value})
-                    }
-                  }}
-                  style={styles.input}
-                >
-                  <option value="">ללא קטגוריה</option>
-                  {predefinedCategories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                  <option value="__custom__">+ קטגוריה אחרת...</option>
-                </select>
-              ) : (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="הזן קטגוריה..."
-                    value={wheelForm.category}
-                    onChange={e => setWheelForm({...wheelForm, category: e.target.value})}
-                    style={{ ...styles.input, flex: 1 }}
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setShowCustomCategory(false); setWheelForm({...wheelForm, category: ''}) }}
-                    style={{ ...styles.smallBtn, background: '#4a5568' }}
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-category">
+                <label style={styles.label}>קטגוריה</label>
+                {!showCustomCategory ? (
+                  <select
+                    value={predefinedCategories.includes(wheelForm.category) ? wheelForm.category : ''}
+                    onChange={e => {
+                      if (e.target.value === '__custom__') {
+                        setShowCustomCategory(true)
+                        setWheelForm({...wheelForm, category: ''})
+                      } else {
+                        setWheelForm({...wheelForm, category: e.target.value})
+                      }
+                    }}
+                    style={styles.input}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  </button>
-                </div>
-              )}
-            </div>
-            <div style={styles.checkboxGroup}>
-              <input
-                type="checkbox"
-                id="is_donut"
-                checked={wheelForm.is_donut}
-                onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
-              />
-              <label htmlFor="is_donut" style={styles.checkboxLabel}>גלגל דונאט (חילוף)</label>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>הערות</label>
-              <input
-                type="text"
-                value={wheelForm.notes}
-                onChange={e => setWheelForm({...wheelForm, notes: e.target.value})}
-                style={styles.input}
-              />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>פיקדון חריג (ריק = ברירת מחדל ₪{station?.deposit_amount || 200})</label>
-              <input
-                type="number"
-                placeholder={`ברירת מחדל: ₪${station?.deposit_amount || 200}`}
-                value={wheelForm.custom_deposit}
-                onChange={e => setWheelForm({...wheelForm, custom_deposit: e.target.value})}
-                style={styles.input}
-              />
+                    <option value="">ללא קטגוריה</option>
+                    {predefinedCategories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                    <option value="__custom__">+ קטגוריה אחרת...</option>
+                  </select>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      placeholder="הזן קטגוריה..."
+                      value={wheelForm.category}
+                      onChange={e => setWheelForm({...wheelForm, category: e.target.value})}
+                      style={{ ...styles.input, flex: 1 }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setShowCustomCategory(false); setWheelForm({...wheelForm, category: ''}) }}
+                      style={{ ...styles.smallBtn, background: '#4a5568' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-deposit">
+                <label style={styles.label}>פיקדון חריג (ריק = ברירת מחדל ₪{station?.deposit_amount || 200})</label>
+                <input
+                  type="number"
+                  placeholder={`ברירת מחדל: ₪${station?.deposit_amount || 200}`}
+                  value={wheelForm.custom_deposit}
+                  onChange={e => setWheelForm({...wheelForm, custom_deposit: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
+              <div style={styles.checkboxGroup} className="wf-full">
+                <input
+                  type="checkbox"
+                  id="is_donut"
+                  checked={wheelForm.is_donut}
+                  onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
+                />
+                <label htmlFor="is_donut" style={styles.checkboxLabel}>גלגל דונאט (חילוף)</label>
+              </div>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-full">
+                <label style={styles.label}>הערות</label>
+                <input
+                  type="text"
+                  value={wheelForm.notes}
+                  onChange={e => setWheelForm({...wheelForm, notes: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
             </div>
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => setShowAddWheelModal(false)}>ביטול</button>
@@ -4276,8 +4326,18 @@ ${formUrl}`
                 />
               </div>
             </div>
-            <div className="add-wheel-form-row" style={styles.formRow}>
-              <div className="form-group-item" style={styles.formGroup}>
+            <div className="wheel-fitment-flow">
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-rim">
+                <label style={styles.label}>גודל ג'אנט *</label>
+                <input
+                  type="text"
+                  placeholder='14", 15", 16"'
+                  value={wheelForm.rim_size}
+                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'rim_size')) }}
+                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
+                />
+              </div>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-bolts">
                 <label style={styles.label}>כמות ברגים</label>
                 <select
                   value={wheelForm.bolt_count}
@@ -4289,10 +4349,41 @@ ${formUrl}`
                   <option value="6">6</option>
                 </select>
               </div>
-              <div className="form-group-item" style={styles.formGroup}>
-                <label style={styles.label}>מרווח ברגים (PCD) *</label>
-                {wheelForm.pcds.map((val, idx) => (
-                  <div key={idx} style={{display:'flex',gap:'6px',marginBottom:'6px',alignItems:'center'}}>
+              {/* PCD list - first value flows inline, extra values (rare) stack full-width below */}
+              <div style={{...styles.formGroup, marginBottom: 0}} className={wheelForm.pcds.length > 1 ? 'wf-full' : 'wf-pcd-inline'}>
+                <label style={{...styles.label, display: 'inline-flex', alignItems: 'center', gap: '4px'}}>PCD * {renderFitmentInfoIcon('pcd')}</label>
+                <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+                  <input
+                    type="text"
+                    placeholder="100, 108, 112, 114.3"
+                    value={wheelForm.pcds[0]}
+                    onChange={e => {
+                      const updated = [...wheelForm.pcds]
+                      updated[0] = e.target.value
+                      setWheelForm({...wheelForm, pcds: updated})
+                      setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
+                    }}
+                    style={{
+                      ...styles.input,
+                      flex: 1,
+                      marginBottom: 0,
+                      ...(wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
+                    }}
+                  />
+                  {wheelForm.pcds.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== 0)})}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                      title="הסר"
+                    >×</button>
+                  )}
+                </div>
+              </div>
+              {wheelForm.pcds.slice(1).map((val, i) => {
+                const idx = i + 1
+                return (
+                  <div key={idx} className="wf-full" style={{display:'flex',gap:'6px',alignItems:'center'}}>
                     <input
                       type="text"
                       placeholder="100, 108, 112, 114.3"
@@ -4301,26 +4392,20 @@ ${formUrl}`
                         const updated = [...wheelForm.pcds]
                         updated[idx] = e.target.value
                         setWheelForm({...wheelForm, pcds: updated})
-                        if (idx === 0) setWheelFormErrors(wheelFormErrors.filter(err => err !== 'bolt_spacing'))
                       }}
-                      style={{
-                        ...styles.input,
-                        flex: 1,
-                        marginBottom: 0,
-                        ...(idx === 0 && wheelFormErrors.includes('bolt_spacing') ? styles.inputError : {})
-                      }}
+                      style={{...styles.input, flex: 1, marginBottom: 0}}
                     />
-                    {wheelForm.pcds.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i) => i !== idx)})}
-                        style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
-                        title="הסר"
-                      >×</button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setWheelForm({...wheelForm, pcds: wheelForm.pcds.filter((_, i2) => i2 !== idx)})}
+                      style={{background:'none',border:'none',cursor:'pointer',color:'#e53e3e',fontSize:'18px',lineHeight:1,padding:'0 4px'}}
+                      title="הסר"
+                    >×</button>
                   </div>
-                ))}
-                {wheelForm.pcds.length < 4 && (
+                )
+              })}
+              {wheelForm.pcds.length < 4 && (
+                <div className="wf-full">
                   <button
                     type="button"
                     onClick={() => setWheelForm({...wheelForm, pcds: [...wheelForm.pcds, '']})}
@@ -4328,10 +4413,10 @@ ${formUrl}`
                   >
                     + הוסף PCD
                   </button>
-                )}
-              </div>
-              <div className="form-group-item" style={styles.formGroup}>
-                <label style={styles.label}>CB (קוטר מרכז)</label>
+                </div>
+              )}
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-cb">
+                <label style={{...styles.label, display: 'inline-flex', alignItems: 'center', gap: '4px'}}>CB {renderFitmentInfoIcon('cb')}</label>
                 <input
                   type="text"
                   placeholder="54.1, 60.1, 66.6"
@@ -4340,15 +4425,8 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
-            </div>
-            <div className="add-wheel-form-row add-wheel-form-row-thirds" style={styles.formRow}>
-              <div className="form-group-item" style={styles.formGroup}>
-                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>
-                  ET *
-                  <span title="המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי." style={{display:'inline-flex', cursor: 'help', color: '#94a3b8'}}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                  </span>
-                </label>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-et">
+                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>ET * {renderFitmentInfoIcon('et')}</label>
                 <input
                   type="number"
                   step="any"
@@ -4358,17 +4436,7 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
-              <div className="form-group-item" style={styles.formGroup}>
-                <label style={styles.label}>גודל ג'אנט *</label>
-                <input
-                  type="text"
-                  placeholder='14", 15", 16"'
-                  value={wheelForm.rim_size}
-                  onChange={e => { setWheelForm({...wheelForm, rim_size: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'rim_size')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('rim_size') ? styles.inputError : {})}}
-                />
-              </div>
-              <div className="form-group-item" style={styles.formGroup}>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-tire">
                 <label style={styles.label}>מידות צמיג</label>
                 <input
                   type="text"
@@ -4378,75 +4446,75 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>קטגוריה {wheelForm.category && !predefinedCategories.includes(wheelForm.category) && <span style={{fontSize: '0.75rem', color: '#a0aec0'}}>({wheelForm.category})</span>}</label>
-              {!showCustomCategory && (!wheelForm.category || predefinedCategories.includes(wheelForm.category)) ? (
-                <select
-                  value={predefinedCategories.includes(wheelForm.category) ? wheelForm.category : ''}
-                  onChange={e => {
-                    if (e.target.value === '__custom__') {
-                      setShowCustomCategory(true)
-                      setWheelForm({...wheelForm, category: ''})
-                    } else {
-                      setWheelForm({...wheelForm, category: e.target.value})
-                    }
-                  }}
-                  style={styles.input}
-                >
-                  <option value="">ללא קטגוריה</option>
-                  {predefinedCategories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                  <option value="__custom__">+ קטגוריה אחרת...</option>
-                </select>
-              ) : (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="הזן קטגוריה..."
-                    value={wheelForm.category}
-                    onChange={e => setWheelForm({...wheelForm, category: e.target.value})}
-                    style={{ ...styles.input, flex: 1 }}
-                    autoFocus
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setShowCustomCategory(false); setWheelForm({...wheelForm, category: ''}) }}
-                    style={{ ...styles.smallBtn, background: '#4a5568' }}
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-category">
+                <label style={styles.label}>קטגוריה {wheelForm.category && !predefinedCategories.includes(wheelForm.category) && <span style={{fontSize: '0.75rem', color: '#a0aec0'}}>({wheelForm.category})</span>}</label>
+                {!showCustomCategory && (!wheelForm.category || predefinedCategories.includes(wheelForm.category)) ? (
+                  <select
+                    value={predefinedCategories.includes(wheelForm.category) ? wheelForm.category : ''}
+                    onChange={e => {
+                      if (e.target.value === '__custom__') {
+                        setShowCustomCategory(true)
+                        setWheelForm({...wheelForm, category: ''})
+                      } else {
+                        setWheelForm({...wheelForm, category: e.target.value})
+                      }
+                    }}
+                    style={styles.input}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  </button>
-                </div>
-              )}
-            </div>
-            <div style={styles.checkboxGroup}>
-              <input
-                type="checkbox"
-                id="is_donut_edit"
-                checked={wheelForm.is_donut}
-                onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
-              />
-              <label htmlFor="is_donut_edit" style={styles.checkboxLabel}>גלגל דונאט (חילוף)</label>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>הערות</label>
-              <input
-                type="text"
-                value={wheelForm.notes}
-                onChange={e => setWheelForm({...wheelForm, notes: e.target.value})}
-                style={styles.input}
-              />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>פיקדון חריג (ריק = ברירת מחדל ₪{station?.deposit_amount || 200})</label>
-              <input
-                type="number"
-                placeholder={`ברירת מחדל: ₪${station?.deposit_amount || 200}`}
-                value={wheelForm.custom_deposit}
-                onChange={e => setWheelForm({...wheelForm, custom_deposit: e.target.value})}
-                style={styles.input}
-              />
+                    <option value="">ללא קטגוריה</option>
+                    {predefinedCategories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                    <option value="__custom__">+ קטגוריה אחרת...</option>
+                  </select>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      placeholder="הזן קטגוריה..."
+                      value={wheelForm.category}
+                      onChange={e => setWheelForm({...wheelForm, category: e.target.value})}
+                      style={{ ...styles.input, flex: 1 }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setShowCustomCategory(false); setWheelForm({...wheelForm, category: ''}) }}
+                      style={{ ...styles.smallBtn, background: '#4a5568' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-deposit">
+                <label style={styles.label}>פיקדון חריג (ריק = ברירת מחדל ₪{station?.deposit_amount || 200})</label>
+                <input
+                  type="number"
+                  placeholder={`ברירת מחדל: ₪${station?.deposit_amount || 200}`}
+                  value={wheelForm.custom_deposit}
+                  onChange={e => setWheelForm({...wheelForm, custom_deposit: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
+              <div style={styles.checkboxGroup} className="wf-full">
+                <input
+                  type="checkbox"
+                  id="is_donut_edit"
+                  checked={wheelForm.is_donut}
+                  onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
+                />
+                <label htmlFor="is_donut_edit" style={styles.checkboxLabel}>גלגל דונאט (חילוף)</label>
+              </div>
+              <div style={{...styles.formGroup, marginBottom: 0}} className="wf-full">
+                <label style={styles.label}>הערות</label>
+                <input
+                  type="text"
+                  value={wheelForm.notes}
+                  onChange={e => setWheelForm({...wheelForm, notes: e.target.value})}
+                  style={styles.input}
+                />
+              </div>
             </div>
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => { setShowEditWheelModal(false); setSelectedWheel(null) }}>ביטול</button>
@@ -5815,7 +5883,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   filterScrim: {
     position: 'fixed',
-    top: 0,
+    top: 'calc(70px + env(safe-area-inset-top, 0px))',
     left: 0,
     right: 0,
     bottom: 0,
@@ -5824,13 +5892,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   filterDrawer: {
     position: 'fixed',
-    top: 0,
+    top: 'calc(70px + env(safe-area-inset-top, 0px))',
     bottom: 0,
     right: 0,
     width: '88vw',
     maxWidth: '340px',
     background: '#ffffff',
     boxShadow: '-10px 0 30px rgba(0,0,0,0.14)',
+    borderRadius: '16px 0 0 0',
     transform: 'translateX(100%)',
     transition: 'transform 0.28s ease',
     display: 'flex',
