@@ -206,18 +206,22 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     pcd: {
       title: 'PCD — מרווח ברגים',
       text: 'מספר הברגים וקוטר המעגל שעליהם הם יושבים (למשל 5×114.3). חייב להתאים בול לרכב.',
+      image: '/images/fitment/pcd.png',
     },
     cb: {
       title: 'CB — קוטר חור מרכזי',
       text: 'קוטר החור באמצע הגלגל. חייב להיות שווה או גדול מהנדרש ברכב — אסור שיהיה קטן ממנו.',
+      image: '/images/fitment/cb.png',
     },
     et: {
       title: 'ET — אופסט',
       text: 'המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי.',
+      image: '/images/fitment/et.png',
     },
     rim: {
       title: 'גודל ג׳אנט',
       text: 'קוטר הג׳אנט באינצ׳ים. עדיף להתאים בול לרכב — הבדל קטן אפשר לפעמים לפצות דרך חתך הצמיג, אבל זה לא תמיד מדויק.',
+      image: '/images/fitment/rim.png',
     },
   }
   const renderFitmentInfoIcon = (key: 'pcd' | 'cb' | 'et' | 'rim') => (
