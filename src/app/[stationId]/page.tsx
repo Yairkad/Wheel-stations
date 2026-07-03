@@ -201,8 +201,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   // Form validation errors (highlight missing fields)
   const [wheelFormErrors, setWheelFormErrors] = useState<string[]>([])
   const [showCustomCategory, setShowCustomCategory] = useState(false)
-  const [fitmentInfoOpen, setFitmentInfoOpen] = useState<'pcd' | 'cb' | 'et' | null>(null)
-  const fitmentInfo: Record<'pcd' | 'cb' | 'et', { title: string; text: string; image?: string }> = {
+  const [fitmentInfoOpen, setFitmentInfoOpen] = useState<'pcd' | 'cb' | 'et' | 'rim' | null>(null)
+  const fitmentInfo: Record<'pcd' | 'cb' | 'et' | 'rim', { title: string; text: string; image?: string }> = {
     pcd: {
       title: 'PCD — מרווח ברגים',
       text: 'מספר הברגים וקוטר המעגל שעליהם הם יושבים (למשל 5×114.3). חייב להתאים בול לרכב.',
@@ -215,21 +215,44 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       title: 'ET — אופסט',
       text: 'המרחק במ״מ בין קו המרכז של הגלגל למשטח ההרכבה. ET גבוה = הגלגל נכנס פנימה, ET נמוך = הגלגל בולט החוצה. יכול להיות שלילי.',
     },
+    rim: {
+      title: 'גודל ג׳אנט',
+      text: 'קוטר הג׳אנט באינצ׳ים. עדיף להתאים בול לרכב — הבדל קטן אפשר לפעמים לפצות דרך חתך הצמיג, אבל זה לא תמיד מדויק.',
+    },
   }
-  const renderFitmentInfoIcon = (key: 'pcd' | 'cb' | 'et') => (
-    <span style={{position: 'relative', display: 'inline-flex'}}>
+  const renderFitmentInfoIcon = (key: 'pcd' | 'cb' | 'et' | 'rim') => (
+    <span style={{position: 'relative', display: 'inline-flex', flexShrink: 0, flexGrow: 0}}>
+      {/* The global mobile stylesheet forces `button { padding, font-size } !important`,
+          which fought any size we set on the button itself. So the button here is just an
+          unstyled hit target — the actual circle is an inner span with its own box model,
+          completely insulated from whatever the button's padding/font-size get forced to. */}
       <button
         type="button"
         onClick={e => { e.stopPropagation(); setFitmentInfoOpen(fitmentInfoOpen === key ? null : key) }}
-        style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', background: 'none', cursor: 'pointer', fontSize: '0.62rem', padding: 0, flexShrink: 0}}
+        style={{boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', minWidth: '14px', minHeight: '14px', maxWidth: '14px', maxHeight: '14px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0}}
         aria-label={`מידע על ${fitmentInfo[key].title}`}
-      >i</button>
+      >
+        <span style={{boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', minWidth: '14px', minHeight: '14px', maxWidth: '14px', maxHeight: '14px', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', fontSize: '0.62rem', lineHeight: 1}}>i</span>
+      </button>
       {fitmentInfoOpen === key && (
         <>
-          <div style={{position: 'fixed', inset: 0, zIndex: 19}} onClick={() => setFitmentInfoOpen(null)} />
-          <div style={{position: 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '220px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal'}}>
-            <div style={{fontWeight: 600, fontSize: '0.82rem', marginBottom: '6px', color: '#1e293b'}}>{fitmentInfo[key].title}</div>
-            <div style={{width: '100%', height: '90px', background: '#f1f5f9', borderRadius: '6px', border: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.72rem', marginBottom: '8px', overflow: 'hidden'}}>
+          {/* Centered on the viewport (position: fixed) rather than anchored next to the icon —
+              an anchored popover could open past the modal's edge and get clipped, since the
+              modal has an implicit overflow-x: auto from its own overflow-y: auto. */}
+          <div style={{position: 'fixed', inset: 0, zIndex: 19, background: 'rgba(15,23,42,0.25)'}} onClick={() => setFitmentInfoOpen(null)} />
+          <div style={{position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 20, width: '260px', maxWidth: '85vw', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 12px 32px rgba(15,23,42,.25)', padding: '14px', textAlign: 'right', whiteSpace: 'normal'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px'}}>
+              <div style={{fontWeight: 600, fontSize: '0.82rem', color: '#1e293b'}}>{fitmentInfo[key].title}</div>
+              <button
+                type="button"
+                onClick={() => setFitmentInfoOpen(null)}
+                style={{boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', maxWidth: '18px', maxHeight: '18px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0}}
+                aria-label="סגור"
+              >
+                <span style={{boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', maxWidth: '18px', maxHeight: '18px', borderRadius: '50%', background: '#f1f5f9', color: '#64748b', fontSize: '0.75rem', lineHeight: 1}}>×</span>
+              </button>
+            </div>
+            <div style={{width: '100%', height: '150px', background: '#f1f5f9', borderRadius: '6px', border: '1px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.72rem', marginBottom: '8px', overflow: 'hidden'}}>
               {fitmentInfo[key].image ? (
                 <img src={fitmentInfo[key].image} alt={fitmentInfo[key].title} style={{width: '100%', height: '100%', objectFit: 'contain'}} />
               ) : 'תמונה תתווסף בקרוב'}
@@ -4098,20 +4121,31 @@ ${formUrl}`
           <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'}}>
               <h3 id="add-wheel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px',margin:0}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוספת גלגל חדש</h3>
-              <div style={{width: '90px', flexShrink: 0}}>
-                <label style={styles.label}>מספר גלגל *</label>
-                <input
-                  type="text"
-                  placeholder="A23, 15"
-                  value={wheelForm.wheel_number}
-                  onChange={e => { setWheelForm({...wheelForm, wheel_number: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'wheel_number')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
-                />
+              <div style={{width: '90px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                <div>
+                  <label style={styles.label}>מספר גלגל *</label>
+                  <input
+                    type="text"
+                    placeholder="A23, 15"
+                    value={wheelForm.wheel_number}
+                    onChange={e => { setWheelForm({...wheelForm, wheel_number: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(e => e !== 'wheel_number')) }}
+                    style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
+                  />
+                </div>
+                <div style={{...styles.checkboxGroup, marginBottom: 0}}>
+                  <input
+                    type="checkbox"
+                    id="is_donut"
+                    checked={wheelForm.is_donut}
+                    onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
+                  />
+                  <label htmlFor="is_donut" style={{...styles.checkboxLabel, fontSize: '0.78rem'}}>דונאט</label>
+                </div>
               </div>
             </div>
             <div className="wheel-fitment-flow">
               <div style={{...styles.formGroup, marginBottom: 0}} className="wf-rim">
-                <label style={styles.label}>גודל ג'אנט *</label>
+                <label style={{...styles.label, display: 'inline-flex', alignItems: 'center', gap: '4px'}}>ג'אנט * {renderFitmentInfoIcon('rim')}</label>
                 <input
                   type="text"
                   placeholder='14", 15", 16"'
@@ -4280,15 +4314,6 @@ ${formUrl}`
                   style={styles.input}
                 />
               </div>
-              <div style={styles.checkboxGroup} className="wf-full">
-                <input
-                  type="checkbox"
-                  id="is_donut"
-                  checked={wheelForm.is_donut}
-                  onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
-                />
-                <label htmlFor="is_donut" style={styles.checkboxLabel}>גלגל דונאט (חילוף)</label>
-              </div>
               <div style={{...styles.formGroup, marginBottom: 0}} className="wf-full">
                 <label style={styles.label}>הערות</label>
                 <input
@@ -4315,20 +4340,31 @@ ${formUrl}`
           <div role="dialog" aria-modal="true" aria-label={`עריכת גלגל ${selectedWheel.wheel_number}`} style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'}}>
               <h3 style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px',margin:0}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>עריכת גלגל #{selectedWheel.wheel_number}</h3>
-              <div style={{width: '90px', flexShrink: 0}}>
-                <label style={styles.label}>מספר גלגל *</label>
-                <input
-                  type="text"
-                  placeholder="A23, 15"
-                  value={wheelForm.wheel_number}
-                  onChange={e => { setWheelForm({...wheelForm, wheel_number: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'wheel_number')) }}
-                  style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
-                />
+              <div style={{width: '90px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                <div>
+                  <label style={styles.label}>מספר גלגל *</label>
+                  <input
+                    type="text"
+                    placeholder="A23, 15"
+                    value={wheelForm.wheel_number}
+                    onChange={e => { setWheelForm({...wheelForm, wheel_number: e.target.value}); setWheelFormErrors(wheelFormErrors.filter(err => err !== 'wheel_number')) }}
+                    style={{...styles.input, ...(wheelFormErrors.includes('wheel_number') ? styles.inputError : {})}}
+                  />
+                </div>
+                <div style={{...styles.checkboxGroup, marginBottom: 0}}>
+                  <input
+                    type="checkbox"
+                    id="is_donut_edit"
+                    checked={wheelForm.is_donut}
+                    onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
+                  />
+                  <label htmlFor="is_donut_edit" style={{...styles.checkboxLabel, fontSize: '0.78rem'}}>דונאט</label>
+                </div>
               </div>
             </div>
             <div className="wheel-fitment-flow">
               <div style={{...styles.formGroup, marginBottom: 0}} className="wf-rim">
-                <label style={styles.label}>גודל ג'אנט *</label>
+                <label style={{...styles.label, display: 'inline-flex', alignItems: 'center', gap: '4px'}}>ג'אנט * {renderFitmentInfoIcon('rim')}</label>
                 <input
                   type="text"
                   placeholder='14", 15", 16"'
@@ -4496,15 +4532,6 @@ ${formUrl}`
                   onChange={e => setWheelForm({...wheelForm, custom_deposit: e.target.value})}
                   style={styles.input}
                 />
-              </div>
-              <div style={styles.checkboxGroup} className="wf-full">
-                <input
-                  type="checkbox"
-                  id="is_donut_edit"
-                  checked={wheelForm.is_donut}
-                  onChange={e => setWheelForm({...wheelForm, is_donut: e.target.checked})}
-                />
-                <label htmlFor="is_donut_edit" style={styles.checkboxLabel}>גלגל דונאט (חילוף)</label>
               </div>
               <div style={{...styles.formGroup, marginBottom: 0}} className="wf-full">
                 <label style={styles.label}>הערות</label>

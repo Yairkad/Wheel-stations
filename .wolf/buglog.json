@@ -1307,6 +1307,118 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-03T09:00:00.000Z"
+    },
+    {
+      "id": "bug-082",
+      "timestamp": "2026-07-03T06:39:16.065Z",
+      "error_message": "CSS fix: position, display, fontWeight",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "position: 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '220px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal' → 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '240px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal'; display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', background: 'none', cursor: 'pointer', fontSize: '0.62rem', padding: 0, flexShrink: 0 → 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', borderRadius: '50%', border: 'none', background: '#f1f5f9', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, padding: 0, flexShrink: 0; fontWeight: 600, fontSize: '0.82rem', marginBottom: '6px', color: '#1e293b' → 600, fontSize: '0.82rem', color: '#1e293b'",
+      "fix": "Changed position: 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '220px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal' → 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '240px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal'; display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', background: 'none', cursor: 'pointer', fontSize: '0.62rem', padding: 0, flexShrink: 0 → 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', minWidth: '18px', minHeight: '18px', borderRadius: '50%', border: 'none', background: '#f1f5f9', color: '#64748b', cursor: 'pointer', fontSize: '0.75rem', lineHeight: 1, padding: 0, flexShrink: 0; fontWeight: 600, fontSize: '0.82rem', marginBottom: '6px', color: '#1e293b' → 600, fontSize: '0.82rem', color: '#1e293b'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-07-03T06:43:02.380Z"
+    },
+    {
+      "id": "bug-083",
+      "timestamp": "2026-07-03T06:42:09.099Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 12→3 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T06:42:09.099Z"
+    },
+    {
+      "id": "bug-084",
+      "timestamp": "2026-07-03T06:52:24.375Z",
+      "error_message": "CSS fix: position",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "position: 'relative', display: 'inline-flex' → 'relative', display: 'inline-flex', flexShrink: 0, flexGrow: 0",
+      "fix": "Changed position: 'relative', display: 'inline-flex' → 'relative', display: 'inline-flex', flexShrink: 0, flexGrow: 0",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T06:52:24.375Z"
+    },
+    {
+      "id": "bug-085",
+      "timestamp": "2026-07-03T06:57:30.993Z",
+      "error_message": "CSS fix: boxSizing",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', minWidth: '14px', minHeight: '14px', maxWidth: '14px', maxHeight: '14px', aspectRatio: '1 / 1', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', background: 'none', cursor: 'pointer', fontSize: '0.62rem', lineHeight: 1, padding: 0, flexShrink: 0, flexGrow: 0 → 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', minWidth: '14px', minHeight: '14px', maxWidth: '14px', maxHeight: '14px', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', fontSize: '0.62rem', lineHeight: 1",
+      "fix": "Changed boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', minWidth: '14px', minHeight: '14px', maxWidth: '14px', maxHeight: '14px', aspectRatio: '1 / 1', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', background: 'none', cursor: 'pointer', fontSize: '0.62rem', lineHeight: 1, padding: 0, flexShrink: 0, flexGrow: 0 → 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', minWidth: '14px', minHeight: '14px', maxWidth: '14px', maxHeight: '14px', borderRadius: '50%', border: '1.4px solid #94a3b8', color: '#94a3b8', fontSize: '0.62rem', lineHeight: 1",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-03T06:58:06.933Z"
+    },
+    {
+      "id": "bug-086",
+      "timestamp": "2026-07-03T07:01:29.236Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Had 'inline-flex'",
+      "fix": "Changed to 'border-box'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-07-03T07:06:48.182Z"
+    },
+    {
+      "id": "bug-087",
+      "timestamp": "2026-07-03T07:07:31.116Z",
+      "error_message": "CSS fix: position",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "position: 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '240px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal' → 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 20, width: '260px', maxWidth: '85vw', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 12px 32px rgba(15,23,42,.25)', padding: '14px', textAlign: 'right', whiteSpace: 'normal'",
+      "fix": "Changed position: 'absolute', top: '20px', right: '-8px', zIndex: 20, width: '240px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', boxShadow: '0 8px 24px rgba(15,23,42,.15)', padding: '12px', textAlign: 'right', whiteSpace: 'normal' → 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 20, width: '260px', maxWidth: '85vw', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 12px 32px rgba(15,23,42,.25)', padding: '14px', textAlign: 'right', whiteSpace: 'normal'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T07:07:31.116Z"
+    },
+    {
+      "id": "bug-088",
+      "timestamp": "2026-07-03T07:11:50.032Z",
+      "error_message": "Wrong reference: label should be display",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Used \"label\" instead of \"display\"",
+      "fix": "Changed label → display",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T07:11:50.032Z"
     }
   ]
 }
