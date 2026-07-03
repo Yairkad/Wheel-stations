@@ -43,6 +43,7 @@ interface Wheel {
     signed_at?: string
     form_id?: string
   }
+  last_form_id?: string | null
 }
 
 interface BorrowRecord {
@@ -3227,16 +3228,17 @@ ${formUrl}`
                             </button>
                           )}
 
-                          {/* View form - only for borrowed wheels with form */}
-                          {!wheel.is_available && wheel.current_borrow?.form_id && (
+                          {/* View form - shows the current borrow's form, or the last one on
+                              record if the wheel has since been returned */}
+                          {(wheel.current_borrow?.form_id || wheel.last_form_id) && (
                             <a
-                              href={`/forms/${wheel.current_borrow.form_id}`}
+                              href={`/forms/${wheel.current_borrow?.form_id || wheel.last_form_id}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{...styles.optionItem, textDecoration: 'none', display: 'block'}}
                               onClick={() => setOpenOptionsMenu(null)}
                             >
-                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>צפייה בטופס</span>
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>{wheel.current_borrow?.form_id ? 'צפייה בטופס' : 'צפייה בטופס אחרון'}</span>
                             </a>
                           )}
 
@@ -3353,12 +3355,13 @@ ${formUrl}`
                 <th style={styles.th}>סוג</th>
                 <th style={styles.th}>הערות</th>
                 <th style={styles.th}>סטטוס</th>
+                <th style={styles.th}>טופס</th>
               </tr>
             </thead>
             <tbody>
               {filteredWheels.length === 0 && (
                 <tr>
-                  <td colSpan={9} style={{padding: '40px'}}>
+                  <td colSpan={10} style={{padding: '40px'}}>
                     <div style={styles.emptyState}>
                       <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
                       <div style={styles.emptyTitle}>לא נמצאו גלגלים</div>
@@ -3391,6 +3394,21 @@ ${formUrl}`
                     }}>
                       {wheel.is_available ? 'זמין' : 'מושאל'}
                     </span>
+                  </td>
+                  <td style={styles.td}>
+                    {(wheel.current_borrow?.form_id || wheel.last_form_id) ? (
+                      <a
+                        href={`/forms/${wheel.current_borrow?.form_id || wheel.last_form_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{color: '#8b5cf6', display: 'inline-flex', alignItems: 'center'}}
+                        title={wheel.current_borrow?.form_id ? 'צפייה בטופס' : 'צפייה בטופס אחרון'}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      </a>
+                    ) : (
+                      <span style={{color: '#cbd5e1'}}>-</span>
+                    )}
                   </td>
                 </tr>
               ))}

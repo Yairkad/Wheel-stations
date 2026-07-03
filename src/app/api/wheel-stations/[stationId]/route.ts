@@ -69,16 +69,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .is('deleted_at', null)
       .order('wheel_number')
 
-    // Get active borrows to show borrower info (with signed_forms join)
-    const { data: activeBorrows } = await supabase
+    // Get every borrow (any status) to show current borrower info and the most recent
+    // signed form per wheel — the form must stay reachable even after the wheel is returned
+    const { data: allBorrows } = await supabase
       .from('wheel_borrows')
-      .select('id, wheel_id, borrower_name, borrower_phone, borrower_id_number, borrower_address, vehicle_model, borrow_date, expected_return_date, deposit_type, deposit_details, signature_data, signed_at, signed_forms(id)')
+      .select('id, wheel_id, borrower_name, borrower_phone, borrower_id_number, borrower_address, vehicle_model, borrow_date, expected_return_date, deposit_type, deposit_details, signature_data, signed_at, status, created_at, signed_forms(id)')
       .eq('station_id', stationId)
-      .eq('status', 'borrowed')
+      .order('created_at', { ascending: false })
 
-    // Map borrows to wheels
+    // Map currently-active borrows to their wheels (unchanged: only status='borrowed')
     const borrowMap = new Map(
-      activeBorrows?.map(b => [b.wheel_id, {
+      allBorrows?.filter(b => b.status === 'borrowed').map(b => [b.wheel_id, {
         id: b.id,
         borrower_name: b.borrower_name,
         borrower_phone: b.borrower_phone,
@@ -95,9 +96,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }]) || []
     )
 
+    // Map each wheel to its most recent signed form regardless of borrow status, so the
+    // form stays reachable even after the wheel has been returned (allBorrows is already
+    // sorted newest-first, so the first form_id seen per wheel is the most recent one)
+    const lastFormMap = new Map<string, string>()
+    for (const b of allBorrows || []) {
+      const formId = (b as unknown as { signed_forms?: Array<{ id: string }> }).signed_forms?.[0]?.id
+      if (formId && !lastFormMap.has(b.wheel_id)) {
+        lastFormMap.set(b.wheel_id, formId)
+      }
+    }
+
     const wheelsWithBorrowInfo = wheels?.map(w => ({
       ...w,
-      current_borrow: w.is_available ? undefined : borrowMap.get(w.id)
+      current_borrow: w.is_available ? undefined : borrowMap.get(w.id),
+      last_form_id: lastFormMap.get(w.id) ?? null
     })) || []
 
     return NextResponse.json({

@@ -547,3 +547,24 @@
 | 23:16 | Edited tmp-verify-filter.mjs | 3→5 lines | ~78 |
 | 23:18 | Session end: 31 writes across 7 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~108044 tok |
 | 23:19 | Edited tmp-verify-filter.mjs | added optional chaining | ~97 |
+| 23:22 | Session end: 32 writes across 7 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~108148 tok |
+| 23:23 | Edited tmp-verify-filter.mjs | 2→5 lines | ~70 |
+| 23:25 | Edited tmp-verify-filter.mjs | Turbopack() → this() | ~114 |
+| 23:29 | Created tmp-verify-filter2.mjs | — | ~475 |
+| 08:02 | Session end: 35 writes across 8 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~108860 tok |
+| 08:05 | Session end: 35 writes across 8 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~108860 tok |
+| 08:08 | Session end: 35 writes across 8 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~108860 tok |
+| 08:09 | Edited src/app/api/wheel-stations/[stationId]/route.ts | added 1 condition(s) | ~618 |
+| 08:10 | Edited src/app/[stationId]/page.tsx | 5→6 lines | ~30 |
+| 08:10 | Edited src/app/[stationId]/page.tsx | 12→13 lines | ~339 |
+| 08:11 | Edited src/app/[stationId]/page.tsx | 8→9 lines | ~97 |
+| 08:11 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~328 |
+| 08:12 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/wheel-form-layouts.html | — | ~3592 |
+| 08:16 | Session end: 41 writes across 9 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~114180 tok |
+| 08:16 | Created tmp-verify-formlink.mjs | — | ~402 |
+| 08:20 | Rebuilt station filter UI as multi-select side drawer (chip checkboxes replacing single-select dropdowns), per user-approved combo of design options 2+7 | src/app/[stationId]/page.tsx | done - tsc clean, user confirmed working in browser | ~9000 tok |
+| 08:20 | Fixed signed-form link disappearing after a wheel is returned — API now derives last_form_id across all borrow statuses, cards/table views show it whenever current or last form exists | src/app/api/wheel-stations/[stationId]/route.ts, src/app/[stationId]/page.tsx | done - tsc clean, unverified by browser automation (pre-existing Playwright/Turbopack fetch-abort quirk on this route, see cerebrum.md) | ~1200 tok |
+| 08:20 | Deleted throwaway tmp-*.mjs verification scripts before commit | — | cleanup | — |
+| 08:28 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/wheel-form-layout.html | — | ~2218 |
+| 08:28 | Session end: 43 writes across 11 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~116987 tok |
+| 08:33 | Session end: 43 writes across 11 files (page.tsx, route.ts, filter-drawer-checkbox.html, vehicle-mappings.ts, vehicle-mappings.test.ts) | 11 reads | ~116987 tok |

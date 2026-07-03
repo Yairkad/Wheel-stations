@@ -1160,6 +1160,72 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-02T20:19:56.894Z"
+    },
+    {
+      "id": "bug-073",
+      "timestamp": "2026-07-02T20:25:31.526Z",
+      "error_message": "Significant refactor of ",
+      "file": "tmp-verify-filter.mjs",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 5→7 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-02T20:25:31.526Z"
+    },
+    {
+      "id": "bug-074",
+      "timestamp": "2026-07-03T05:09:41.533Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/wheel-stations/[stationId]/route.ts",
+      "root_cause": "7 lines replaced/restructured",
+      "fix": "Rewrote 30→43 lines (7 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T05:09:41.533Z"
+    },
+    {
+      "id": "bug-075",
+      "timestamp": "2026-07-03T05:11:22.215Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T05:11:22.215Z"
+    },
+    {
+      "id": "bug-076",
+      "timestamp": "2026-07-03T08:20:00.000Z",
+      "error_message": "המשתמש: קישור לטופס החתום נעלם ברגע שגלגל מוחזר - אין דרך לראות טופס ישן אחרי החזרה, למרות שרוצים גישה בכל שלב",
+      "file": "src/app/api/wheel-stations/[stationId]/route.ts, src/app/[stationId]/page.tsx",
+      "root_cause": "GET /api/wheel-stations/[stationId] בנה current_borrow רק מ-wheel_borrows במצב status='borrowed', והחזיר current_borrow=undefined ברגע ש-wheel.is_available===true (כלומר מיד אחרי החזרה) — כך שה-form_id שהיה תלוי אך ורק ב-current_borrow.form_id נעלם לגמרי מהתצוגה הראשית (כרטיסים/טבלה), בניגוד לטאב המעקב שכבר שאב את כל הסטטוסים בנפרד ולא סבל מהבעיה.",
+      "fix": "השאילתה ב-route.ts הורחבה לכל הסטטוסים (ללא .eq('status','borrowed')) וממוינת created_at desc, ונגזר last_form_id נפרד לכל גלגל (הטופס האחרון שנמצא, ללא תלות בסטטוס). current_borrow נשאר כשהיה (רק borrowed, כדי לא לחשוף פרטי שואל אחרי החזרה). ב-page.tsx: תפריט הפעולות בכרטיס גלגל ועמודת 'טופס' חדשה בתצוגת הטבלה מציגים קישור כש-current_borrow?.form_id || last_form_id קיים.",
+      "tags": [
+        "signed-forms",
+        "wheel-return",
+        "missing-link",
+        "station-page",
+        "api-query-scope"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T08:20:00.000Z"
     }
   ]
 }

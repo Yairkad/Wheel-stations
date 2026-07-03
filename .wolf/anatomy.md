@@ -1,12 +1,17 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-02T20:19:56.843Z
-> Files: 9 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T05:28:28.857Z
+> Files: 14 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
 - `filter-drawer-checkbox.html` — סינון — מגירה + תיבות סימון מרובות (~3491 tok)
 - `verify-filter-drawer.mjs` — Declares shotDir (~372 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/
+
+- `wheel-form-layout.html` — פריסת טופס גלגל — לפי רוחב תוכן (~2218 tok)
+- `wheel-form-layouts.html` — 4 פריסות לטופס גלגל (~3592 tok)
 
 ## ../../../.claude/plans/
 
@@ -16,7 +21,9 @@
 
 ## ./
 
-- `tmp-verify-filter.mjs` — Declares shotDir (~456 tok)
+- `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
+- `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
+- `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
 
 ## .claude/
 
@@ -51,7 +58,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — StationPage (~93271 tok)
+- `page.tsx` — StationPage (~93632 tok)
 
 ## src/app/accessibility/
 
@@ -263,6 +270,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/
 
+- `route.ts` — Single Wheel Station API (~3375 tok)
 
 ## src/app/api/wheel-stations/[stationId]/auth/
 
