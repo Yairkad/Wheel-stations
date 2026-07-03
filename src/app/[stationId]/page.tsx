@@ -324,7 +324,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [boltCountFilter, setBoltCountFilter] = useState<string[]>([])
   const [boltSpacingFilter, setBoltSpacingFilter] = useState<string[]>([])
   const [centerBoreFilter, setCenterBoreFilter] = useState<string[]>([])
-  const [offsetFilter, setOffsetFilter] = useState<string[]>([])
   const [categoryFilter, setCategoryFilter] = useState<string[]>([])
   const [typeFilter, setTypeFilter] = useState<string[]>([])
   const [availabilityFilter, setAvailabilityFilter] = useState<string[]>([])
@@ -340,7 +339,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     setBoltCountFilter([])
     setBoltSpacingFilter([])
     setCenterBoreFilter([])
-    setOffsetFilter([])
     setCategoryFilter([])
     setTypeFilter([])
     setAvailabilityFilter([])
@@ -349,7 +347,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   }
 
   const activeFilterCount = rimSizeFilter.length + boltCountFilter.length + boltSpacingFilter.length +
-    centerBoreFilter.length + offsetFilter.length + categoryFilter.length + typeFilter.length +
+    centerBoreFilter.length + categoryFilter.length + typeFilter.length +
     availabilityFilter.length + (tireSizeWidth ? 1 : 0) + (tireSizeRatio ? 1 : 0)
   const hasActiveFilters = activeFilterCount > 0
 
@@ -1994,7 +1992,6 @@ ${formUrl}`
     if (boltCountFilter.length && !boltCountFilter.includes(wheel.bolt_count.toString())) return false
     if (boltSpacingFilter.length && !boltSpacingFilter.includes(wheel.bolt_spacing.toString())) return false
     if (centerBoreFilter.length && !centerBoreFilter.includes(wheel.center_bore?.toString() ?? '')) return false
-    if (offsetFilter.length && !offsetFilter.includes(wheel.offset?.toString() ?? '')) return false
     if (categoryFilter.length && !categoryFilter.includes(wheel.category ?? '')) return false
     if (typeFilter.length && !typeFilter.includes(wheel.is_donut ? 'donut' : 'full')) return false
     if (availabilityFilter.length && !availabilityFilter.includes(wheel.is_available ? 'available' : 'taken')) return false
@@ -2012,7 +2009,6 @@ ${formUrl}`
   const boltCounts = [...new Set(station?.wheels.map(w => w.bolt_count.toString()))].sort()
   const boltSpacings = [...new Set(station?.wheels.map(w => w.bolt_spacing.toString()))].sort()
   const centerBores = [...new Set(station?.wheels.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a! - b!)
-  const offsets = [...new Set(station?.wheels.map(w => w.offset).filter(v => v !== null && v !== undefined))].sort((a, b) => a! - b!)
   const categories = [...new Set(station?.wheels.map(w => w.category).filter(Boolean))]
 
   if (loading) {
@@ -3045,19 +3041,6 @@ ${formUrl}`
             </div>
           </div>
           <div style={styles.fgroup}>
-            <span style={styles.filterLabel}>קור (ET)</span>
-            <div style={styles.chipsRow}>
-              {offsets.map(off => (
-                <button key={off} type="button" style={{...styles.cbox, ...(offsetFilter.includes(off?.toString() ?? '') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setOffsetFilter, off?.toString() ?? '')}>
-                  <span style={{...styles.cboxMark, ...(offsetFilter.includes(off?.toString() ?? '') ? styles.cboxMarkOn : {})}}>
-                    {offsetFilter.includes(off?.toString() ?? '') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                  </span>
-                  {off}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={styles.fgroup}>
             <span style={styles.filterLabel}>קטגוריה</span>
             <div style={styles.chipsRow}>
               {categories.map(cat => (
@@ -3198,7 +3181,6 @@ ${formUrl}`
                     {wheel.extra_bolt_spacings?.map(s => `/${s}`).join('')}
                   </span>
                   {wheel.center_bore && <span style={styles.spec}>CB {wheel.center_bore}</span>}
-                  {wheel.offset != null && <span style={styles.spec}>ET {wheel.offset}</span>}
                 </div>
                 {wheel.category && <div style={styles.cardCategory}>{wheel.category}</div>}
                 {wheel.notes && <div style={styles.cardNotes}>{wheel.notes}</div>}
@@ -3410,7 +3392,6 @@ ${formUrl}`
                 <th style={styles.th}>ג'אנט</th>
                 <th style={styles.th}>ברגים</th>
                 <th style={styles.th}>CB</th>
-                <th style={styles.th}>ET</th>
                 <th style={styles.th}>קטגוריה</th>
                 <th style={styles.th}>סוג</th>
                 <th style={styles.th}>הערות</th>
@@ -3421,7 +3402,7 @@ ${formUrl}`
             <tbody>
               {filteredWheels.length === 0 && (
                 <tr>
-                  <td colSpan={10} style={{padding: '40px'}}>
+                  <td colSpan={9} style={{padding: '40px'}}>
                     <div style={styles.emptyState}>
                       <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
                       <div style={styles.emptyTitle}>לא נמצאו גלגלים</div>
@@ -3439,7 +3420,6 @@ ${formUrl}`
                     {wheel.extra_bolt_spacings?.map(s => `/${s}`).join('')}
                   </td>
                   <td style={styles.td}>{wheel.center_bore || '-'}</td>
-                  <td style={styles.td}>{wheel.offset ?? '-'}</td>
                   <td style={styles.td}>{wheel.category || '-'}</td>
                   <td style={styles.td}>
                     {wheel.is_donut ? (
@@ -4247,7 +4227,7 @@ ${formUrl}`
                 />
               </div>
               <div style={{...styles.formGroup, marginBottom: 0}} className="wf-et">
-                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>ET * {renderFitmentInfoIcon('et')}</label>
+                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>ET {renderFitmentInfoIcon('et')}</label>
                 <input
                   type="number"
                   step="any"
@@ -4466,7 +4446,7 @@ ${formUrl}`
                 />
               </div>
               <div style={{...styles.formGroup, marginBottom: 0}} className="wf-et">
-                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>ET * {renderFitmentInfoIcon('et')}</label>
+                <label style={{...styles.label, display:'inline-flex', alignItems:'center', gap:'4px'}}>ET {renderFitmentInfoIcon('et')}</label>
                 <input
                   type="number"
                   step="any"

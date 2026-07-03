@@ -1,12 +1,16 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T07:54:01.492Z
-> Files: 14 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T10:37:42.068Z
+> Files: 18 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
 - `filter-drawer-checkbox.html` — סינון — מגירה + תיבות סימון מרובות (~3491 tok)
 - `verify-filter-drawer.mjs` — Declares shotDir (~372 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/
+
+- `append_bug.py` (~408 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/
 
@@ -18,6 +22,8 @@
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
+- `MEMORY.md` — Memory Index (~270 tok)
+- `project_et_offset_misunderstanding.md` (~575 tok)
 
 ## ./
 
@@ -42,6 +48,7 @@
 
 ## public/
 
+- `guide.html` — מדריך עבודה – מערכת גלגלים ידידים (~4513 tok)
 
 ## scripts/
 
@@ -58,7 +65,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — StationPage (~95880 tok)
+- `page.tsx` — StationPage (~95455 tok)
 
 ## src/app/accessibility/
 

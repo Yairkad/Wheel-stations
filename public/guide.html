@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>מדריך עבודה – מערכת גלגלים ידידים</title>
+<style>
+  @font-face {
+    font-family: 'Rubik';
+    src: url('fonts/Rubik.ttf') format('truetype-variations');
+    font-weight: 300 900;
+  }
+  @page {
+    size: A4;
+    margin: 24mm 18mm 20mm 18mm;
+    @bottom-center {
+      content: counter(page) " מתוך " counter(pages);
+      font-family: 'Rubik', sans-serif;
+      font-size: 10pt;
+      color: #666;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    direction: rtl;
+    font-family: 'Rubik', 'FreeSans', sans-serif;
+    font-size: 13.5pt;
+    line-height: 1.72;
+    color: #17181a;
+  }
+  body { margin: 0; padding: 0; }
+  .ltr { direction: ltr; unicode-bidi: embed; }
+  code, .code { font-family: monospace; direction: ltr; unicode-bidi: embed; background:#f2f2ee; padding:2px 6px; border-radius:3px; font-size:0.86em; }
+
+  .cover {
+    height: 253mm; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+    page-break-after: always; border-bottom: 6px solid #d4a017; padding-bottom:30px;
+  }
+  .cover .kicker { font-size:15pt; color:#b8860b; font-weight:600; margin-bottom:20px; }
+  .cover .cover-title { font-size:32pt; font-weight:800; margin:0 0 12px 0; line-height:1.35; }
+  .cover .cover-subtitle { font-size:17pt; color:#444; max-width:480px; margin-bottom:30px; }
+  .cover .meta { font-size:13pt; color:#555; line-height:2.1; }
+  .cover .meta b { color:#111; }
+
+  .toc { page-break-after: always; }
+  .toc h2 { border-bottom: 2px solid #333; padding-bottom:6px; }
+  .toc ol { list-style: none; padding-right:0; }
+  .toc li { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dotted #ccc; font-size:12.5pt; }
+
+  h1 { font-size:23pt; font-weight:800; margin:0 0 14px 0; border-bottom:4px solid #8a6d0b; padding-bottom:9px; page-break-before: always; }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size:16.5pt; font-weight:700; margin:22px 0 9px 0; color:#3b2f0b; border-right:6px solid #d4a017; padding-right:12px; }
+  h3 { font-size:13.5pt; font-weight:600; margin:12px 0 5px 0; color:#333; }
+  p { margin:5px 0 9px 0; text-align:justify; }
+  ul, ol { margin:4px 0 10px 0; padding-right:22px; }
+  li { margin-bottom:6px; }
+
+  .lead { font-size:13.5pt; font-weight:500; background:#faf6ea; border-right:5px solid #d4a017; padding:11px 15px; margin:9px 0 14px 0; }
+
+  .step-box { border:1px solid #ddd; border-radius:10px; margin:10px 0; padding:12px 16px; background:#fbfbfa; page-break-inside: avoid; }
+  .step-box h3 { margin-top:0; color:#8a6d0b; }
+  .step-box ol { margin-bottom:0; }
+
+  table { border-collapse:collapse; width:100%; margin:10px 0 16px 0; font-size:12pt; }
+  th, td { border:1px solid #ccc; padding:7px 9px; text-align:right; }
+  th { background:#3b2f0b; color:#fff; }
+  tr:nth-child(even) td { background:#faf9f4; }
+
+  .tip { background:#eef6ee; border-right:5px solid #2b6a2b; padding:9px 13px; margin:9px 0; font-size:12.3pt; }
+  .warn { background:#fdeaea; border-right:5px solid #a11; padding:9px 13px; margin:9px 0; font-size:12.3pt; }
+
+  .diagram-wrap { margin:12px 0 16px 0; padding:12px; background:#fcfcf9; border:1px solid #e5e0cf; border-radius:8px; text-align:center; page-break-inside:avoid; }
+  .diagram-wrap .cap { font-size:10.5pt; color:#888; margin-top:6px; }
+  .diagram-wrap svg { max-width:100%; height:auto; }
+
+  .signoff { margin-top:26px; font-size:10.5pt; color:#777; border-top:1px solid #ccc; padding-top:9px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="kicker">מדריך עבודה · תחנות השאלת גלגלים ידידים</div>
+  <div class="cover-title">איך זה עובד אצלנו</div>
+  <div class="cover-subtitle">מדריך מעשי ומלא: מסך המערכת, ניהול מלאי, חיפוש, מוקד השירות, ובדיקת התאמה בשטח</div>
+  <div class="meta">
+    <div>תאריך: <b>1.7.2026</b></div>
+  </div>
+</div>
+
+<div class="toc">
+<h2>תוכן העניינים</h2>
+<ol>
+  <li><span>1. כניסה למערכת</span><span>3</span></li>
+  <li><span>2. תחנת גלגלים - מה כל אחד רואה</span><span>4</span></li>
+  <li><span>3. למנהל תחנה: ניהול מלאי והשאלות</span><span>5</span></li>
+  <li><span>4. התראות ודוחות</span><span>6</span></li>
+  <li><span>5. חיפוש גלגל מתאים</span><span>7</span></li>
+  <li><span>6. איך בודקים שהגלגל באמת מתאים</span><span>8</span></li>
+  <li><span>7. מוקד השירות</span><span>11</span></li>
+  <li><span>8. כללי אצבע חשובים</span><span>12</span></li>
+</ol>
+</div>
+
+<h1>1. כניסה למערכת</h1>
+<p>הכתובת: <span class="ltr">wheel-stations.vercel.app</span>. מזינים שם משתמש (טלפון או שם) וסיסמה/קוד, ולוחצים "כניסה" - המערכת מפנה אוטומטית למסך המתאים לפי ההרשאה.</p>
+<table>
+<tr><th>תפקיד</th><th>מה עושה</th></tr>
+<tr><td>מנהל תחנה</td><td>מנהל את מלאי הגלגלים בתחנה שלו, מאשר השאלות ומעקב</td></tr>
+<tr><td>מנהל מחוז</td><td>מפקח על כמה תחנות במחוז, רואה נתונים של כולן</td></tr>
+<tr><td>מנהל מוקד</td><td>מנהל את המוקד הטלפוני - מוסיף ומנהל מוקדנים</td></tr>
+<tr><td>מוקדן</td><td>מקבל שיחות מנהגים שנתקעו, מחפש תחנה עם גלגל מתאים ומפנה</td></tr>
+</table>
+<p>מנהלים נכנסים עם שם משתמש וסיסמה; יש קישור "שכחתי סיסמה" לאיפוס דרך קוד שחזור. מוקדנים נכנסים עם קוד קצר בן 4 ספרות שמקבלים ממנהל המוקד - בלי סיסמה ארוכה, כדי שיהיה מהיר גם בלחץ.</p>
+<div class="tip"><b>טיפ:</b> המערכת שומרת את הכניסה למשך 7 ימים - אין צורך להתחבר מחדש בכל פעם.</div>
+
+<h1>2. תחנת גלגלים - מה כל אחד רואה</h1>
+<p>כל תחנה מציגה את מלאי הגלגלים הזמינים שלה, כולל פרטים טכניים ומידע ליצירת קשר. אפשר לסנן לפי שלושה פרמטרים: גודל ג'אנט (באינצ'ים), מספר ברגים (4 או 5), ומרווח ברגים - PCD (במ"מ, למשל 100, 108, 112). יש תצוגת כרטיסים ותצוגת רשימה (נוחה יותר לסריקה מהירה של נתונים טכניים) - עם כפתור מעבר ביניהן.</p>
+<div class="tip"><b>שימו לב:</b> גלגלים שמסומנים בצבע אדום כבר מושאלים כרגע ולא זמינים לאיסוף מיידי.</div>
+
+<h1>3. למנהל תחנה: ניהול מלאי והשאלות</h1>
+<p>אחרי כניסה, מנהל התחנה רואה כמה לשוניות נוספות: מלאי גלגלים, מעקב השאלות, התראות ודוחות.</p>
+
+<div class="step-box">
+<h3>הוספת גלגל חדש</h3>
+<ol>
+<li>לחצו על כפתור "+ הוסף גלגל" בפינה.</li>
+<li>מלאו: מספר הגלגל, גודל הג'אנט, מספר ברגים ומרווח ברגים.</li>
+<li>בחרו קטגוריה (גרמניות / צרפתיות / יפניות) אם רלוונטי.</li>
+<li>לחצו "שמור" - הגלגל יופיע מיד ברשימה.</li>
+</ol>
+</div>
+
+<div class="step-box">
+<h3>השאלת גלגל ידנית</h3>
+<ol>
+<li>לחצו על תפריט שלוש הנקודות (⋮) על כרטיס הגלגל, ובחרו "השאלה ידנית".</li>
+<li>מלאו שם שואל, טלפון, דגם רכב וסוג הפיקדון.</li>
+<li>לאחר אישור, הגלגל יסומן "מושאל" והרשומה תישמר במעקב.</li>
+</ol>
+<p>אפשר לקבל פיקדון במזומן, ביט, פייבוקס או העברה בנקאית - בהתאם להגדרות התחנה. יש סכום ברירת מחדל לכל תחנה, ואפשר לחרוג לגלגל ספציפי (למשל גלגל יקר יותר).</p>
+</div>
+
+<h2>מעקב השאלות</h2>
+<p>מרכזת את כל ההשאלות הפעילות והסגורות בתחנה - שם השואל, מספר הרכב, תאריך ההשאלה ופרטי הפיקדון. אפשר לסנן לפי סטטוס: הכל / ממתינות לאישור (טרם נחתם טופס דיגיטלי) / מושאלים / הוחזרו.</p>
+<p>כשגלגל חוזר: לחצו על השורה המתאימה, בחרו "סמן כהוחזר" ואשרו - הגלגל יחזור לסטטוס "זמין" במלאי.</p>
+<div class="tip"><b>ייצוא לאקסל:</b> כפתור הייצוא בראש הדף מוריד את כל נתוני ההשאלות כקובץ Excel.</div>
+
+<h1>4. התראות ודוחות</h1>
+<h2>התראות</h2>
+<p>מציגה אירועים שדורשים תשומת לב מיידית. המספר על הלשונית מציין כמה התראות פעילות יש.</p>
+<ul>
+<li><b>התראות Push</b> - אפשר להפעיל בדפדפן כדי לקבל עדכון מיידי על כל בקשת השאלה חדשה.</li>
+<li><b>השאלות ארוכות</b> - כל גלגל שהושאל לפני יותר מ-7 ימים ועדיין לא הוחזר. לחיצה על ההתראה מראה את פרטי השואל, ואפשר ליצור קשר ישירות משם.</li>
+<li><b>גלגלים שנמחקו</b> - גלגלים שהוסרו מהמלאי, עם אפשרות שחזור.</li>
+</ul>
+<p>אחרי טיפול בהתראה, לחצו "סמן כטופל" להסרתה מהרשימה.</p>
+
+<h2>דוחות</h2>
+<p>תמונה סטטיסטית על פעילות התחנה לאורך זמן: כמה השאלות בוצעו, מה שיעור הניצול, ואילו גלגלים הכי פעילים.</p>
+<ul>
+<li>השאלות לפי חודש (גרף עמודות).</li>
+<li>שיעור ניצול מלאי - אחוז הגלגלים שמושאלים בממוצע.</li>
+<li>ממוצע זמן השאלה בימים.</li>
+<li>פילוח סוגי פיקדון - מזומן / ביט / פייבוקס.</li>
+</ul>
+<p>אפשר לבחור טווח תאריכים מותאם אישית, ולייצא קובץ Excel מפורט לדיווח וניתוח חיצוני.</p>
+
+<h1>5. חיפוש גלגל מתאים</h1>
+<p>יש שתי דרכים לחפש - וזה זמין גם בלי להתחבר בכלל:</p>
+
+<div class="step-box">
+<h3>לפי מספר רכב</h3>
+<p>מזינים מספר לוחית רישוי, או בוחרים יצרן ודגם מרשימה. המערכת מביאה אוטומטית את מפרט הגלגל הסטנדרטי לרכב, ומציגה תחנות עם גלגל מתאים.</p>
+</div>
+
+<div class="step-box">
+<h3>לפי מפרט טכני</h3>
+<p>אם כבר יודעים את המידות (למשל מדדתם בשטח): גודל ג'אנט, מספר ברגים, ומרווח ברגים (PCD).</p>
+</div>
+
+<p>התוצאות מסודרות לפי מרחק. כל תחנה מציגה: כמות גלגלים זמינים, כתובת ומספר טלפון לתיאום.</p>
+<div class="tip"><b>חיפוש הפוך:</b> מזינים פרטי רכב אחד, והמערכת מראה אילו דגמים אחרים משתמשים באותה מידת גלגל בדיוק - שימושי כשרוצים לדעת אם אפשר לתת גלגל שכבר יש לכם ברכב אחר.</div>
+<p><b>הערה:</b> אפשרות שיתוף קישור ישירות עם הפונה קיימת במסך מפת הפנצ'ריות (לילה), לא במסך חיפוש הגלגלים עצמו.</p>
+
+<h1>6. איך בודקים שהגלגל באמת מתאים</h1>
+<div class="lead">זה החלק הכי חשוב. החיפוש באפליקציה הוא כלי עזר מהיר - אבל לפני שמוציאים גלגל בפועל, תמיד לוודא בשלושה דברים:</div>
+
+<div class="diagram-wrap">
+<svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <circle cx="200" cy="160" r="130" fill="#f4f1e6" stroke="#555" stroke-width="2.5"/>
+    <circle cx="200" cy="160" r="46" fill="#ffffff" stroke="#a11" stroke-width="3"/>
+    <circle cx="200" cy="160" r="90" fill="none" stroke="#8a6d0b" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <circle cx="200" cy="70"  r="9" fill="#333"/>
+    <circle cx="281" cy="118" r="9" fill="#333"/>
+    <circle cx="281" cy="202" r="9" fill="#333"/>
+    <circle cx="200" cy="250" r="9" fill="#333"/>
+    <circle cx="119" cy="202" r="9" fill="#333"/>
+    <circle cx="119" cy="118" r="9" fill="#333"/>
+    <line x1="200" y1="160" x2="281" y2="118" stroke="#8a6d0b" stroke-width="1.6"/>
+    <text x="245" y="128" font-size="12" fill="#8a6d0b" font-weight="700">PCD</text>
+    <text x="200" y="165" font-size="11" fill="#a11" font-weight="700" text-anchor="middle">חור מרכזי</text>
+    <text x="200" y="315" font-size="14" font-weight="700" text-anchor="middle" fill="#333">מבט חזית</text>
+  </g>
+</svg>
+<div class="cap">מרווח ברגים וחור מרכזי, מבט מהחזית</div>
+</div>
+
+<div class="diagram-wrap">
+<svg viewBox="0 0 780 340" xmlns="http://www.w3.org/2000/svg">
+  <!-- Panel A: ET high -->
+  <text x="180" y="22" font-size="16" font-weight="700" text-anchor="middle" fill="#2b6a2b">ET גבוה - הגלגל נכנס פנימה</text>
+  <text x="60"  y="45" font-size="11" text-anchor="middle" fill="#888">כלפי חוץ (כנף)</text>
+  <text x="300" y="45" font-size="11" text-anchor="middle" fill="#888">כלפי הרכב (שילדה)</text>
+  <rect x="20"  y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="285" y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="75"  y="95" width="210" height="110" fill="#eee9da" stroke="#999" stroke-width="1.5"/>
+  <line x1="180" y1="35" x2="180" y2="295" stroke="#a11" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="94" y="95" width="12" height="110" fill="#8a6d0b"/>
+  <circle cx="100" cy="150" r="17" fill="#fff" stroke="#8a6d0b" stroke-width="3"/>
+  <circle cx="100" cy="150" r="6" fill="#8a6d0b"/>
+  <line x1="100" y1="270" x2="180" y2="270" stroke="#8a6d0b" stroke-width="2"/>
+  <polygon points="100,270 110,265 110,275" fill="#8a6d0b"/>
+  <polygon points="180,270 170,265 170,275" fill="#8a6d0b"/>
+  <text x="140" y="262" font-size="12" font-weight="700" text-anchor="middle" fill="#8a6d0b">ET</text>
+  <text x="180" y="320" font-size="12" text-anchor="middle" fill="#555">משטח ההרכבה קרוב לכנף - הגלגל שוקע פנימה</text>
+
+  <!-- Panel B: ET low -->
+  <text x="600" y="22" font-size="16" font-weight="700" text-anchor="middle" fill="#8a6d0b">ET נמוך - הגלגל בולט החוצה</text>
+  <text x="480" y="45" font-size="11" text-anchor="middle" fill="#888">כלפי חוץ (כנף)</text>
+  <text x="720" y="45" font-size="11" text-anchor="middle" fill="#888">כלפי הרכב (שילדה)</text>
+  <rect x="440" y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="705" y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="495" y="95" width="210" height="110" fill="#eee9da" stroke="#999" stroke-width="1.5"/>
+  <line x1="600" y1="35" x2="600" y2="295" stroke="#a11" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="674" y="95" width="12" height="110" fill="#8a6d0b"/>
+  <circle cx="680" cy="150" r="17" fill="#fff" stroke="#8a6d0b" stroke-width="3"/>
+  <circle cx="680" cy="150" r="6" fill="#8a6d0b"/>
+  <line x1="600" y1="270" x2="680" y2="270" stroke="#8a6d0b" stroke-width="2"/>
+  <polygon points="600,270 610,265 610,275" fill="#8a6d0b"/>
+  <polygon points="680,270 670,265 670,275" fill="#8a6d0b"/>
+  <text x="640" y="262" font-size="12" font-weight="700" text-anchor="middle" fill="#8a6d0b">ET</text>
+  <text x="600" y="320" font-size="12" text-anchor="middle" fill="#555">משטח ההרכבה קרוב לרכב - הגלגל בולט החוצה</text>
+</svg>
+<div class="cap">ET (Offset): כמה הגלגל נכנס פנימה או בולט החוצה ביחס לקו הכנף - הגדרה בלבד, לא בדיקת התאמה (ראו הסבר למטה)</div>
+</div>
+
+<h2>ET (Offset) - למה זה בעצם לא הפרמטר שצריך לבדוק</h2>
+<p>האיור למעלה מסביר <b>מה</b> זה ET, אבל חשוב להבין: <b>ET כמספר לא ניבא אף אחת מהתקריות האמיתיות שקרו בשטח</b>. בכל מקרה מתועד שבו גלגל התחכך בבלם, הסיבה לא הייתה פער ב-ET אלא <b>צורת החישוק הפנימי של אותו דגם גלגל ספציפי</b> (המרחק/הגיאומטריה ליד הרכזת מול הקליפר) - וזה משתנה בין דגמי גלגל גם כשה-ET זהה.</p>
+<div class="warn"><b>לכן:</b> אין טעם למדוד או להשוות ET בין גלגלים כדי לדעת אם יהיה חיכוך בבלם - זה לא בודק את הדבר הנכון, וגם אם תמדדו, זה לא באמת מבטיח כלום. שדה ה-ET באפליקציה נשאר אופציונלי בלבד ולא חלק מהבדיקה.</div>
+<div class="tip"><b>מה כן עוזר בפועל:</b> אם גיליתם בשטח שגלגל מסוים (או דגם גלגל מסוים) מתחכך בבלם ברכב מסוים - תעדו את זה מיד בשדה "הערות" של הגלגל בתחנה (למשל: "מתחכך בבלם קדמי - BYD Atto 3, נסו גלגל אחר"). ההערה מוצגת על כרטיס הגלגל ומחפשים לפיה, כך שהידע נשאר בתחנה גם אם מי שגילה את הבעיה כבר לא שם. אם יש ספק בין להרכיב את הגלגל קדימה או אחורה - הקליפר האחורי בדרך כלל קטן יותר, אז עדיף לשים שם את הגלגל שיש לגביו ספק.</div>
+
+<h2>1. מרווח ברגים (PCD)</h2>
+<p>מספר הברגים <b>חייב</b> להיות זהה - אין סבילות בזה. מרווח הברגים (למשל 5×114.3) הוא הבדיקה הראשונה והכי מהירה.</p>
+
+<h2>2. חור מרכזי (Center Bore) - הכי חשוב לבטיחות</h2>
+<p>כלל הזהב: <b>מותר</b> חור גדול יותר מהרכב (זה מה שיש ברזרבי מקורי), <b>אסור</b> חור קטן יותר - הגלגל פשוט לא ייכנס, ואל תנסו לדחוף בכוח. אם יש ספק, למדוד עם קליבר או מד ייעודי.</p>
+<div class="warn"><b>שימו לב:</b> כבר קרו מקרים שגלגל "נראה מתאים" לפי מרווח הברגים בלבד, אבל בשטח החור המרכזי לא התאים. תמיד לבדוק את שניהם.</div>
+
+<h2>3. גודל ג'אנט וקוטר כולל</h2>
+<p>עדיף גודל זהה לרכב. אפשר לתת ג'אנט קטן יותר עם צמיג בעל חתך גבוה יותר (או להפך), כל עוד הקוטר הכולל נשאר דומה. הכיוון המסוכן: ג'אנט גדול עם חתך נמוך מדי - עלול לגרום להתחככות בבטנת בית הגלגל.</p>
+
+<h2>לפני שמוציאים גלגל - לוודא מול האתר הרשמי</h2>
+<p>האפליקציה עוזרת לעבוד מהר, אבל <b>היא לא תחליף לבדיקה מול אתר רשמי</b>. לפני שמוציאים גלגל, לבדוק את מפרט הרכב באתר:</p>
+<p style="text-align:center"><span class="ltr">wheelfitment.eu/car.html</span></p>
+<p>בוחרים יצרן, דגם ושנתון - האתר מציג את מרווח הברגים, קוטר החור המרכזי, וטווח גדלי הג'אנט המותרים לרכב הזה.</p>
+
+<h1>7. מוקד השירות</h1>
+<h2>ניהול מוקדנים</h2>
+<p>לכל מוקדן יש קוד כניסה אישי בן 4 ספרות. הוספת מוקדן חדש: "+ הוסף מוקדן" → מלאו שם מלא ושם משתמש (טלפון) → אפשר להגדיר קוד מותאם אישית או להשאיר ריק לקוד אוטומטי → "הוסף" - הקוד יוצג מיד.</p>
+<p>לניהול מוקדן קיים - תפריט שלוש הנקודות ליד השם: עריכה (שינוי שם/שם משתמש), קוד חדש, חסימה זמנית (בלי למחוק), או מחיקה מלאה.</p>
+
+<h2>ניהול מנהלי מוקד</h2>
+<p>מוצגת רק למנהל ראשי של המוקד. מאפשרת הוספה וניהול של מנהלי מוקד נוספים. מנהל ראשי - גישה לניהול מנהלים, אי אפשר למחוק אותו. מנהל רגיל - ניהול מוקדנים והיסטוריה בלבד.</p>
+
+<h2>היסטוריית הפניות</h2>
+<p>יומן של כל ההפניות שביצעו המוקדנים: מי ביצע, לאיזו תחנה, ופרטי הלקוח שהופנה. עוזר למעקב אחר ביצועי המוקדנים ובדיקת מקרים ספציפיים. אפשר לגלול אחורה ולראות את כל ההיסטוריה מאז פתיחת המוקד.</p>
+
+<h1>8. כללי אצבע חשובים</h1>
+<ul>
+<li><b>מספר ברגים תמיד זהה, בלי יוצא מן הכלל.</b></li>
+<li><b>חור מרכזי - גדול מותר, קטן אסור.</b></li>
+<li><b>תמיד לוודא מול האתר הרשמי לפני שמוציאים גלגל</b> - האפליקציה היא כלי עזר, לא החלטה סופית.</li>
+<li><b>אם יש ספק בין ג'אנט אחורי לקדמי</b> - הקליפר האחורי בדרך כלל קטן יותר, אז לרוב עדיף לשים שם את הגלגל הפחות בטוח.</li>
+<li><b>ET הוא לא בדיקת התאמה</b> - חיכוך בבלם נגרם מצורת החישוק הפנימי של דגם הגלגל הספציפי, לא ממספר ה-ET. אין טעם למדוד או להשוות אותו.</li>
+<li><b>גלגל שהתגלה כבעייתי (מתחכך) ברכב מסוים</b> - תעדו זאת מיד בשדה "הערות" של הגלגל, כדי שהידע יישאר בתחנה.</li>
+<li><b>אפשר להוסיף עד 8 מנהלים לתחנה</b> - כדאי לנצל את זה כדי שתמיד יהיה מי שזמין.</li>
+<li><b>לכל תחנה יש פיקדון ברירת מחדל, אבל אפשר לחרוג לגלגל ספציפי כשצריך.</b></li>
+</ul>
+
+<div class="signoff">מדריך זה משלב את מדריך המשתמש הרשמי של האפליקציה (גרסה 5.5.5) עם הידע שהצטבר בקבוצת מנהלי התחנות · 1.7.2026 · תוקן 3.7.2026: הובהר שET אינו פרמטר בדיקה אמין (ראו סעיף 6)</div>
+
+</body>
+</html>

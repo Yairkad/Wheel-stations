@@ -1419,6 +1419,74 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-03T07:11:50.032Z"
+    },
+    {
+      "id": "bug-089",
+      "timestamp": "2026-07-03T08:21:10.505Z",
+      "error_message": "Wrong reference: setOffsetFilter should be setCategoryFilter",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Used \"setOffsetFilter\" instead of \"setCategoryFilter\"",
+      "fix": "Changed setOffsetFilter → setCategoryFilter",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-03T08:21:51.703Z"
+    },
+    {
+      "id": "bug-090",
+      "timestamp": "2026-07-03T08:21:24.785Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Had ')) return false\n    if (offsetFilter.length && !o",
+      "fix": "Changed to ')) return false\n    if (categoryFilter.length && ",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-03T08:22:17.766Z"
+    },
+    {
+      "id": "bug-091",
+      "timestamp": "2026-07-03T08:24:47.862Z",
+      "error_message": "Significant refactor of ",
+      "file": "public/guide.html",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 21→26 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T08:24:47.862Z"
+    },
+    {
+      "id": "bug-092",
+      "timestamp": "2026-07-03T11:30:00.000Z",
+      "error_message": "שדה ET (offset) שנוסף בקומיט e962846 סומן כחובה (*) בטופס הוספת/עריכת גלגל וכפילטר בממשק, אבל לא נאכף כחובה ב-validation ולא פותר בפועל את סיכון החיכוך בבלם שהוא נועד למנוע",
+      "file": "src/app/[stationId]/page.tsx, public/guide.html",
+      "root_cause": "טעות הבנה מושגית: ET (offset) נתפס כפרמטר שאפשר למדוד/להשוות כדי לחזות חיכוך בבלם, אבל לפי כל התקריות המתועדות בשטח (קיה ריו, BYD Atto 3, לקסוס) חיכוך בבלם נגרם מצורת החישוק הפנימי של דגם הגלגל הספציפי, לא ממספר ה-ET. אף תקרית לא נפתרה או נחזתה על ידי חישוב ET.",
+      "fix": "הוסר סימון החובה (*) משדה ET, הוסר פילטר ה-ET מהמגירה, הוסרה תצוגת ET מכרטיס הגלגל ומהטבלה (השדה עצמו נשאר אופציונלי בטופס, ה-DB column לא נגע). guide.html עודכן להסביר שET לא פרמטר בדיקה אמין, ושהפתרון בפועל הוא לתעד גלגל/דגם בעייתי ידוע בשדה הערות הקיים על הגלגל.",
+      "tags": [
+        "product-misunderstanding",
+        "ET",
+        "offset",
+        "wheel-fitment",
+        "caliper-clearance",
+        "documentation-fix",
+        "stationId-page"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T11:30:00.000Z"
     }
   ]
 }

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>מערכת גלגלים ידידים – ניתוח משולב: שדה, נוהל וקוד</title>
+<style>
+  @font-face {
+    font-family: 'Rubik';
+    src: url('fonts/Rubik.ttf') format('truetype-variations');
+    font-weight: 300 900;
+  }
+  @page {
+    size: A4;
+    margin: 24mm 18mm 20mm 18mm;
+    @bottom-center {
+      content: counter(page) " מתוך " counter(pages);
+      font-family: 'Rubik', 'FreeSans', sans-serif;
+      font-size: 10pt;
+      color: #666;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    direction: rtl;
+    font-family: 'Rubik', 'FreeSans', sans-serif;
+    font-size: 13.5pt;
+    line-height: 1.75;
+    color: #17181a;
+    font-weight: 400;
+  }
+  body { margin: 0; padding: 0; }
+  .ltr { direction: ltr; unicode-bidi: embed; font-family: 'Rubik', sans-serif; }
+  code, .code { font-family: 'FreeSans', monospace; direction: ltr; unicode-bidi: embed; background:#f2f2ee; padding:2px 6px; border-radius:3px; font-size:0.86em; }
+
+  .cover {
+    height: 253mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    page-break-after: always; border-bottom: 6px solid #d4a017; padding-bottom: 30px;
+  }
+  .cover .kicker { font-size: 15pt; color:#b8860b; letter-spacing:1px; margin-bottom: 20px; font-weight:600;}
+  .cover .cover-title { font-size: 32pt; margin: 0 0 12px 0; line-height:1.35; font-weight:800; page-break-before: avoid; }
+  .cover .cover-subtitle { font-size: 17pt; font-weight: 400; color:#444; margin: 0 0 40px 0; max-width: 480px; }
+  .cover .meta { font-size: 13pt; color:#555; line-height:2.1; }
+  .cover .meta b { color:#111; }
+  .cover .stat-row { display:flex; gap: 28px; margin: 34px 0; }
+  .cover .stat { text-align:center; }
+  .cover .stat .num { font-size:26pt; font-weight:800; color:#8a6d0b; }
+  .cover .stat .lbl { font-size:10.5pt; color:#777; }
+
+  .toc { page-break-after: always; page-break-before: always; }
+  .toc h2 { border-bottom: 2px solid #333; padding-bottom:6px; }
+  .toc ol { list-style: none; padding-right:0; }
+  .toc li { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px dotted #ccc; font-size:13pt; }
+  .toc li.sub { padding-right:20px; font-size:11.5pt; color:#444; }
+
+  h1 { font-size: 24pt; font-weight:700; margin: 0 0 18px 0; border-bottom: 4px solid #8a6d0b; padding-bottom:10px; page-break-before: always;}
+  h2 { font-size: 18pt; font-weight:700; margin: 28px 0 10px 0; color:#3b2f0b; border-right: 6px solid #d4a017; padding-right:12px; }
+  h3 { font-size: 14.5pt; font-weight:600; margin: 18px 0 8px 0; color:#333; }
+  p { margin: 6px 0 10px 0; text-align: justify; }
+  ul, ol { margin: 5px 0 12px 0; padding-right: 24px; }
+  li { margin-bottom: 6px; }
+
+  .lead { font-size: 14pt; font-weight:500; color:#2a2a2a; background:#faf6ea; border-right:5px solid #d4a017; padding:14px 18px; margin: 10px 0 18px 0;}
+  blockquote {
+    margin: 10px 0; padding: 9px 15px; background:#f7f7f2; border-right:4px solid #999;
+    font-size: 12.3pt; color:#2a2a2a;
+  }
+  blockquote .src { display:block; font-size:10.5pt; color:#888; margin-top:4px; }
+
+  table { border-collapse: collapse; width:100%; margin: 12px 0 18px 0; font-size:12pt; }
+  th, td { border: 1px solid #ccc; padding: 7px 9px; text-align:right; vertical-align:top; }
+  th { background:#3b2f0b; color:#fff; font-weight:700; }
+  tr:nth-child(even) td { background:#faf9f4; }
+  td.ok { color:#1a7a1a; font-weight:700; }
+  td.bad { color:#a11; font-weight:700; }
+  td.partial { color:#a37a00; font-weight:700; }
+
+  .finding-box {
+    border: 1px solid #ddd; border-right: 6px solid #555; padding: 11px 15px; margin: 12px 0; background:#fbfbfa;
+  }
+  .finding-box .ftitle { font-weight:700; font-size:12.8pt; color:#222; margin-bottom:5px;}
+
+  .pagebreak { page-break-before: always; }
+  .signoff { margin-top: 30px; font-size:11pt; color:#777; border-top:1px solid #ccc; padding-top:10px; }
+
+  .diagram-wrap {
+    margin: 14px 0 20px 0; padding: 14px; background:#fcfcf9; border:1px solid #e5e0cf; border-radius:8px;
+    page-break-inside: avoid; text-align:center;
+  }
+  .diagram-wrap .cap { font-size:10.5pt; color:#888; margin-top:8px; }
+  .diagram-wrap svg { max-width:100%; height:auto; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<div class="cover">
+  <div class="kicker">ניתוח · ארגון ידידים</div>
+  <div class="cover-title">תחנות השאלת גלגלים<br>מהשטח לאפליקציה</div>
+  <div class="cover-subtitle">מה למדנו בדרך, מה המערכת כבר פותרת, ומה עוד חסר</div>
+  <div class="stat-row">
+    <div class="stat"><div class="num">1,251</div><div class="lbl">הודעות בקבוצה</div></div>
+    <div class="stat"><div class="num">14</div><div class="lbl">תחנות</div></div>
+    <div class="stat"><div class="num">4</div><div class="lbl">מחוזות</div></div>
+  </div>
+  <div class="meta">
+    <div>מקורות: קבוצת מנהלי התחנות ב-WhatsApp, מדריך המשתמש, מצגת ההדרכה הרשמית, וקוד המערכת</div>
+    <div>תאריך: <b>1.7.2026</b></div>
+  </div>
+</div>
+
+<!-- ============ TOC ============ -->
+<div class="toc">
+<h2>תוכן העניינים</h2>
+<ol>
+  <li><span>איך נבנה המסמך</span><span>3</span></li>
+  <li><span>1. מבנה הרשת: מי עושה מה</span><span>4</span></li>
+  <li><span>2. איך הגענו לכאן: מפרוטוקול מדובר לאפליקציה</span><span>6</span></li>
+  <li><span>3. איך בודקים שגלגל מתאים</span><span>8</span></li>
+  <li><span>4. הפיקדון</span><span>12</span></li>
+  <li><span>5. מוקד, אחמ"ש ותחנה – איך זה עובד בפועל</span><span>13</span></li>
+  <li><span>6. מקור מידע אחד או כמה?</span><span>14</span></li>
+  <li><span>7. מה האפליקציה כבר נותנת</span><span>15</span></li>
+  <li><span>8. מה עוד חסר – טבלה מסכמת</span><span>16</span></li>
+  <li><span>9. המלצות</span><span>17</span></li>
+  <li><span>10. מצגת ההדרכה: מה לתקן בה</span><span>18</span></li>
+  <li><span>לסיכום</span><span>19</span></li>
+</ol>
+</div>
+
+<!-- ============ INTRO ============ -->
+<h1>איך נבנה המסמך</h1>
+<div class="lead">המסמך משווה בין שלושה דברים: מה שקרה בפועל בשטח (קבוצת WhatsApp של מנהלי התחנות, 1,251 הודעות מדצמבר 2025 עד יוני 2026), מה שכתוב בחומרי ההדרכה, ומה שבאמת קיים בקוד של האפליקציה. המטרה: לזהות בדיוק איפה יש התאמה, ואיפה יש פער.</div>
+<p>חשוב לציין: גרסה קודמת של מסמך זה כללה כמה טעויות בבדיקת הקוד, שתוקנו לאחר בדיקה חוזרת מול קובי (מנהל תחנת נתיבות) שהכיר את המערכת מקרוב. כל הממצאים במסמך הנוכחי אומתו מחדש.</p>
+
+<!-- ============ PART 1 ============ -->
+<h1>1. מבנה הרשת: מי עושה מה</h1>
+
+<p>הקבוצה מתעדת איך תחנות השאלת גלגלים התפתחו מרעיון בודד של מנהל תחנה אחד (חדרה, דצמבר 2025) לרשת ארצית עם אפליקציה, נוהל כתוב, ופיקדון מוסדר – תוך כחצי שנה. כיום יש כ-14 תחנות בארבעה מחוזות.</p>
+
+<h2>מפת התחנות</h2>
+<table>
+<tr><th>מחוז</th><th>תחנה</th><th>הערה</th></tr>
+<tr><td>צפון</td><td>צפת</td><td>הראשונה בצפון; נהריה עדיין בהקמה</td></tr>
+<tr><td>מרכז</td><td>חדרה</td><td>התחנה המתקדמת ביותר טכנולוגית ותפעולית</td></tr>
+<tr><td>ירושלים</td><td>ירושלים, בית שמש, הר חברון, גוש עציון</td><td>4 תחנות; בית שמש היא הבית של מפתח האפליקציה. תחנת מטה יהודה נסגרה; תחנה חדשה בהקמה במודיעין עילית</td></tr>
+<tr><td>דרום</td><td>אשדוד, קרית מלאכי, נתיבות, אופקים, מצפה רמון, אילת</td><td>הכי הרבה תחנות, אבל גם הכי הרבה שינועים בין תחנות</td></tr>
+</table>
+
+<h2>מי עושה מה</h2>
+<ul>
+<li><b>מנהל תחנה</b> – אחראי למלאי, לתיאום שינוע, לפיקדון.</li>
+<li><b>אחמ"ש (אחראי משמרת מוקד)</b> – שכבת ביניים בין המוקדן לתחנה, כדי שמנהלי תחנה לא יקבלו פניות ישירות בכל שעה.</li>
+<li><b>מוקדן</b> – מקבל את הפנייה מהשטח, מחפש גלגל מתאים.</li>
+<li><b>יאיר קדוש</b> – הקים ומפתח את האפליקציה בהתנדבות מתחילת הפרויקט. במהלך הזמן הצטרף אליו <b>בר אמסלם</b> (מנהל תחנת חדרה), שתרם המון פיצ'רים, עזרה ותמיכה בקוד.</li>
+<li><b>"לייזי"</b> – סמנכ"ל הארגון, והאיש שהקים בפועל את הרעיון. למרות התפקיד הבכיר, הוא לא חבר בקבוצת מנהלי התחנות עצמה, ומקבל עדכונים רק דרך אחרים.</li>
+</ul>
+
+<div class="diagram-wrap">
+<svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="20" width="720" height="200" rx="14" fill="#faf8f0" stroke="#d4a017" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="700" y="45" font-size="15" font-weight="700" fill="#8a6d0b" text-anchor="end">בתוך קבוצת מנהלי התחנות</text>
+  <g>
+    <rect x="480" y="65" width="200" height="55" rx="10" fill="#ffffff" stroke="#8a6d0b" stroke-width="2"/>
+    <text x="580" y="98" font-size="16" font-weight="700" text-anchor="middle" fill="#222">מנהל תחנה</text>
+  </g>
+  <g>
+    <rect x="480" y="140" width="200" height="55" rx="10" fill="#ffffff" stroke="#8a6d0b" stroke-width="2"/>
+    <text x="580" y="173" font-size="16" font-weight="700" text-anchor="middle" fill="#222">אחמ"ש מוקד</text>
+  </g>
+  <g>
+    <rect x="240" y="140" width="200" height="55" rx="10" fill="#ffffff" stroke="#8a6d0b" stroke-width="2"/>
+    <text x="340" y="173" font-size="16" font-weight="700" text-anchor="middle" fill="#222">מוקדן</text>
+  </g>
+  <g>
+    <rect x="240" y="65" width="200" height="55" rx="10" fill="#fff7e0" stroke="#8a6d0b" stroke-width="2"/>
+    <text x="340" y="90" font-size="16" font-weight="700" text-anchor="middle" fill="#222">יאיר קדוש + בר אמסלם</text>
+    <text x="340" y="110" font-size="12.5" text-anchor="middle" fill="#666">מפתחי האפליקציה</text>
+  </g>
+  <line x1="480" y1="92" x2="440" y2="92" stroke="#999" stroke-width="2"/>
+  <line x1="580" y1="120" x2="580" y2="140" stroke="#999" stroke-width="2"/>
+  <line x1="480" y1="167" x2="440" y2="167" stroke="#999" stroke-width="2"/>
+  <rect x="60" y="250" width="190" height="42" rx="21" fill="#fdeaea" stroke="#a11" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="155" y="277" font-size="14" font-weight="700" text-anchor="middle" fill="#a11">לייזי (מחוץ לקבוצה)</text>
+  <line x1="155" y1="250" x2="220" y2="120" stroke="#a11" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <text x="155" y="320" font-size="12.5" text-anchor="middle" fill="#a11">סמנכ"ל הארגון - מקבל עדכונים</text>
+  <text x="155" y="340" font-size="12.5" text-anchor="middle" fill="#a11">בעקיפין, לא נוכח בהחלטות היומיות</text>
+</svg>
+<div class="cap">מי נוכח בקבוצה - ומי לא</div>
+</div>
+
+<!-- ============ PART 2 ============ -->
+<h1>2. איך הגענו לכאן: מפרוטוקול מדובר לאפליקציה</h1>
+
+<p>בהתחלה (דצמבר 2025) לא היה שום נוהל כתוב – כל מנהל תחנה ידע את המלאי שלו בעל-פה. אחרי תקרית שבה שני מוקדנים לא ידעו איך להגיב לפנייה, נכתב לראשונה נוהל: פונים לאחמ"ש, מעבירים רישיון רכב ותמונת גלגל, האחמ"ש בודק זמינות ומנחה. תוך שבוע התיישבו על 48 שעות כזמן החזרה, ועל השימוש במילה "גלגל" ולא "צמיג" (צמיג זה רק הגומי).</p>
+
+<p>במקביל קרה משהו טכנולוגי מעניין: בהתחלה השתמשו ב-ChatGPT עם פרומפט קבוע כדי לבדוק מידות רכב. תוך כחודשיים זה הפך לאפליקציה ייעודית (<span class="ltr">wheel-stations.vercel.app</span>) שיאיר קדוש בנה. במהלך הדרך הצטרף אליו בר אמסלם (מנהל תחנת חדרה) עם המון פיצ'רים, עזרה ותמיכה בקוד. האפליקציה השתפרה כל הזמן על סמך בקשות שעלו בקבוצה בזמן אמת.</p>
+
+<table>
+<tr><th>תאריך</th><th>מה נוסף</th></tr>
+<tr><td>9.2.2026</td><td>השקת האפליקציה, העלאת מלאי</td></tr>
+<tr><td>12.2.2026</td><td>הרשאות למנהל אזורי, חיפוש הפוך (רכב → אילו גלגלים מתאימים)</td></tr>
+<tr><td>19.3.2026</td><td>הוספת גודל ג'אנט + חתך צמיג לכל גלגל</td></tr>
+<tr><td>22.6.2026</td><td>תמיכה בכמה מרווחי ברגים (PCD) לגלגל אחד - גלגלים אוניברסליים</td></tr>
+</table>
+
+<div class="diagram-wrap">
+<svg viewBox="0 0 780 190" xmlns="http://www.w3.org/2000/svg">
+  <line x1="740" y1="95" x2="40" y2="95" stroke="#8a6d0b" stroke-width="3"/>
+  <polygon points="40,95 55,88 55,102" fill="#8a6d0b"/>
+  <g>
+    <circle cx="650" cy="95" r="9" fill="#8a6d0b"/>
+    <text x="650" y="70" font-size="13" font-weight="700" text-anchor="middle" fill="#222">9.2</text>
+    <text x="650" y="125" font-size="12" text-anchor="middle" fill="#555">השקה</text>
+  </g>
+  <g>
+    <circle cx="460" cy="95" r="9" fill="#8a6d0b"/>
+    <text x="460" y="70" font-size="13" font-weight="700" text-anchor="middle" fill="#222">12.2</text>
+    <text x="460" y="125" font-size="12" text-anchor="middle" fill="#555">חיפוש הפוך</text>
+  </g>
+  <g>
+    <circle cx="270" cy="95" r="9" fill="#8a6d0b"/>
+    <text x="270" y="70" font-size="13" font-weight="700" text-anchor="middle" fill="#222">19.3</text>
+    <text x="270" y="125" font-size="12" text-anchor="middle" fill="#555">ג'אנט + חתך צמיג</text>
+  </g>
+  <g>
+    <circle cx="90" cy="95" r="10" fill="#8a6d0b"/>
+    <text x="90" y="70" font-size="13" font-weight="700" text-anchor="middle" fill="#222">22.6</text>
+    <text x="90" y="125" font-size="12" text-anchor="middle" fill="#555">PCD מרובה</text>
+  </g>
+</svg>
+<div class="cap">ציר הזמן של האפליקציה</div>
+</div>
+
+<div class="finding-box"><div class="ftitle">חשוב לזכור</div>
+מנהלי התחנות עצמם מזכירים שוב ושוב: האפליקציה היא כלי עזר מהיר, אבל <b>לא</b> תחליף לבדיקה מול האתר הרשמי לפני שמוציאים גלגל בפועל. זה כלל טוב שכדאי לשמר.</div>
+
+<!-- ============ PART 3 ============ -->
+<h1>3. איך בודקים שגלגל מתאים</h1>
+
+<p>זה החלק המרכזי: אילו מידות בודקים, באילו כלים, ואיך יודעים שזה באמת מתאים.</p>
+
+<h2>מרווח ברגים (PCD)</h2>
+<p>המדד הראשון והבסיסי ביותר. מיוצג כמספר ברגים כפול קוטר המעגל שעליו הם יושבים (למשל 5×114.3). התגבשה טבלה לפי משפחת יצרן:</p>
+<table>
+<tr><th>קטגוריה</th><th>יצרנים</th><th>PCD</th></tr>
+<tr><td>גרמניות</td><td>אאודי, מרצדס, פורשה, BMW, פולקסווגן, סובארו, סקודה, סיאט</td><td class="ltr">5×100, 5×112 (מרצדס: 5×120)</td></tr>
+<tr><td>צרפתיות</td><td>רנו, סיטרואן, פיג'ו</td><td class="ltr">4×108, 5×108</td></tr>
+<tr><td>יפניות/קוריאניות/חשמליות</td><td>טויוטה, הונדה, מאזדה, ניסאן, יונדאי, קיה, ורוב הרכבים החשמליים</td><td class="ltr">4×100, 5×114.3</td></tr>
+</table>
+<p>המערכת שומרת מאגר PCD לפי דגם ושנה (<span class="code">src/lib/pcd-database.ts</span>), וחיפוש לפי מספר רכב עובר דרך כמה מקורות: קודם מאגר משרד התחבורה, ואם אין - גירוד אתר חיצוני עם אזהרה מפורשת לאמת את התוצאה.</p>
+
+<h2>קוטר החור המרכזי (Center Bore) – הפרמטר הכי מסוכן</h2>
+<p>זה הנושא שקיבל הכי הרבה תשומת לב בקבוצה, ובצדק - יש לו סיכון בטיחותי ישיר. תקרית אמיתית: כונן הגיע לפנצ'ר, מדד רק את מרווח הברגים ומצא התאמה - אבל בשטח הגלגל לא נכנס כי החור המרכזי לא התאים. במקרה אחר, מישהו דחף גלגל עם נאבה אחרת בכוח, ונשבר לו בורג.</p>
+<p>הכלל שהתגבש: הגלגל חייב להיכנס בחור המרכזי - אי אפשר "לדחוף בכוח". חור גדול יותר מהנדרש בסדר (זה מה שיש ברזרבי מקורי - "דונאט"), אבל חור קטן מדי - הגלגל פשוט לא נכנס.</p>
+<p>הבדיקה הזו מיושמת בקוד היטב: המערכת בודקת שהחור של הגלגל המושאל גדול או שווה לחור היעד, עם דירוג התאמה (מדויק / עם טבעת מרכוז / טכני בלבד) - בדיוק ההיגיון שהתגבש בשטח.</p>
+
+<h2>ET (Offset) – הפרמטר שהיה חסר בהדרכה</h2>
+<p>ET הוא כמה הגלגל "יוצא החוצה" או "נכנס פנימה" ביחס לבית הגלגל. ET גבוה = נכנס פנימה, ET נמוך = בולט החוצה. אם שמים גלגל עם ET לא מתאים, הוא עלול להתחכך בבלמים.</p>
+<p>הבעיה: הנושא הזה לא הופיע כלל במצגת ההדרכה הרשמית, למרות שכבר קרו תקריות בגללו (למשל דונאט של קיה ריו שגרם לרעש - הפתרון היה להחליף בין קדמי לאחורי, כי הקליפר האחורי בדרך כלל קטן יותר). באפליקציה יש שדה סינון לפי ET במסך, אבל <b>אין דרך להזין אותו</b> בפועל כשמוסיפים גלגל חדש - כך שהשדה תמיד ריק. זה בדיוק מה שיאיר קדוש עצמו אמר בקבוצה: יש את זה במסך, אבל למדוד את כל הגלגלים זה מסובך מדי כרגע.</p>
+
+<h2>חתך הצמיג וקוטר כולל</h2>
+<p>אפשר להשוות ג'אנט קטן עם חתך גבוה לג'אנט גדול עם חתך נמוך - כל עוד הקוטר הכולל (ג'אנט + צמיג) נשאר דומה. הכיוון המסוכן: להחליף מחתך גבוה לנמוך, כי זה עלול לגרום להתחככות בבטנת בית הגלגל. המערכת שומרת את מידת הצמיג לכל גלגל, אבל לא מחשבת אוטומטית את הקוטר הכולל או מתריעה על הפרש גדול מדי.</p>
+
+<h2>גלגלים אוניברסליים (כמה PCD בגלגל אחד)</h2>
+<p>חדשנות שהתפתחה במהלך יוני 2026: גלגלים עם 8-10 חורים שמכסים כמה מרווחי ברגים במקביל (למשל 108/112/114), עם חור מרכזי גדול מאוד שמתאים לרוב הרכבים. פתרון מצוין לתחנת השאלה זמנית - עולה 700-1,200 ₪ לגלגל, פחות מרזרבי מקורי ספציפי.</p>
+<p><b>עדכון חשוב:</b> התכונה הזו כבר <b>פעילה במלואה</b> באפליקציה - אפשר להזין כמה מרווחי ברגים לאותו גלגל, והחיפוש מתאים לפי כולם. גרסה קודמת של מסמך זה טעתה כשקבעה שהתכונה חסרה - זה תוקן.</p>
+
+<div class="diagram-wrap">
+<svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <circle cx="200" cy="160" r="130" fill="#f4f1e6" stroke="#555" stroke-width="2.5"/>
+    <circle cx="200" cy="160" r="46" fill="#ffffff" stroke="#a11" stroke-width="3"/>
+    <circle cx="200" cy="160" r="90" fill="none" stroke="#8a6d0b" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <circle cx="200" cy="70"  r="9" fill="#333"/>
+    <circle cx="281" cy="118" r="9" fill="#333"/>
+    <circle cx="281" cy="202" r="9" fill="#333"/>
+    <circle cx="200" cy="250" r="9" fill="#333"/>
+    <circle cx="119" cy="202" r="9" fill="#333"/>
+    <circle cx="119" cy="118" r="9" fill="#333"/>
+    <line x1="200" y1="160" x2="281" y2="118" stroke="#8a6d0b" stroke-width="1.6"/>
+    <text x="245" y="128" font-size="12" fill="#8a6d0b" font-weight="700">PCD</text>
+    <text x="200" y="165" font-size="11" fill="#a11" font-weight="700" text-anchor="middle">CB</text>
+    <text x="200" y="315" font-size="14" font-weight="700" text-anchor="middle" fill="#333">מבט חזית: PCD + חור מרכזי</text>
+  </g>
+</svg>
+<div class="cap">מרווח ברגים (PCD) וקוטר חור מרכזי (Center Bore), מבט מהחזית</div>
+</div>
+
+<div class="diagram-wrap">
+<svg viewBox="0 0 780 340" xmlns="http://www.w3.org/2000/svg">
+  <!-- Panel A: ET high -->
+  <text x="180" y="22" font-size="16" font-weight="700" text-anchor="middle" fill="#2b6a2b">ET גבוה - הגלגל נכנס פנימה</text>
+  <text x="60"  y="45" font-size="11" text-anchor="middle" fill="#888">כלפי חוץ (כנף)</text>
+  <text x="300" y="45" font-size="11" text-anchor="middle" fill="#888">כלפי הרכב (שילדה)</text>
+  <rect x="20"  y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="285" y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="75"  y="95" width="210" height="110" fill="#eee9da" stroke="#999" stroke-width="1.5"/>
+  <line x1="180" y1="35" x2="180" y2="295" stroke="#a11" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="94" y="95" width="12" height="110" fill="#8a6d0b"/>
+  <circle cx="100" cy="150" r="17" fill="#fff" stroke="#8a6d0b" stroke-width="3"/>
+  <circle cx="100" cy="150" r="6" fill="#8a6d0b"/>
+  <line x1="100" y1="270" x2="180" y2="270" stroke="#8a6d0b" stroke-width="2"/>
+  <polygon points="100,270 110,265 110,275" fill="#8a6d0b"/>
+  <polygon points="180,270 170,265 170,275" fill="#8a6d0b"/>
+  <text x="140" y="262" font-size="12" font-weight="700" text-anchor="middle" fill="#8a6d0b">ET</text>
+  <text x="180" y="320" font-size="12" text-anchor="middle" fill="#555">משטח ההרכבה קרוב לכנף - הגלגל שוקע פנימה</text>
+
+  <!-- Panel B: ET low -->
+  <text x="600" y="22" font-size="16" font-weight="700" text-anchor="middle" fill="#a11">ET נמוך - הגלגל בולט החוצה</text>
+  <text x="480" y="45" font-size="11" text-anchor="middle" fill="#888">כלפי חוץ (כנף)</text>
+  <text x="720" y="45" font-size="11" text-anchor="middle" fill="#888">כלפי הרכב (שילדה)</text>
+  <rect x="440" y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="705" y="55" width="55" height="190" rx="27" fill="#333"/>
+  <rect x="495" y="95" width="210" height="110" fill="#eee9da" stroke="#999" stroke-width="1.5"/>
+  <line x1="600" y1="35" x2="600" y2="295" stroke="#a11" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="674" y="95" width="12" height="110" fill="#8a6d0b"/>
+  <circle cx="680" cy="150" r="17" fill="#fff" stroke="#8a6d0b" stroke-width="3"/>
+  <circle cx="680" cy="150" r="6" fill="#8a6d0b"/>
+  <line x1="600" y1="270" x2="680" y2="270" stroke="#8a6d0b" stroke-width="2"/>
+  <polygon points="600,270 610,265 610,275" fill="#8a6d0b"/>
+  <polygon points="680,270 670,265 670,275" fill="#8a6d0b"/>
+  <text x="640" y="262" font-size="12" font-weight="700" text-anchor="middle" fill="#8a6d0b">ET</text>
+  <text x="600" y="320" font-size="12" text-anchor="middle" fill="#a11">משטח ההרכבה קרוב לרכב - הגלגל בולט החוצה, עלול להתחכך</text>
+</svg>
+<div class="cap">ET (Offset): מיקום משטח ההרכבה (נקודת הבורג הזהובה) ביחס למרכז הגלגל (הקו האדום המקווקו)</div>
+</div>
+
+<!-- ============ PART 4 ============ -->
+<h1>4. הפיקדון</h1>
+<p>פיקדון נועד לתמריץ החזרה, לא להכנסה. הסכומים משתנים בין תחנות: 200-500 ₪ לגלגל רגיל, עד 800-1,200 ₪ לגלגלים יקרים (טסלה, גלגל אוניברסלי). אמצעי התשלום המועדפים: מזומן, ביט או פייבוקס (מיידי ולא הפיך). צ'ק ותעודת זהות נפסלו - קל מדי להשיג מסמך זהות חדש, כך שזה לא מהווה ערבון אמיתי.</p>
+<p>המסקנה שהתגבשה בקבוצה: עדיף לתכנן את גובה הפיקדון כך שיכסה עלות רכישה חלופית אם הגלגל לא יוחזר, ולא לרדוף אחרי אנשים. הארגון בחר במודע ב"ביטחון כלכלי" על פני אכיפה קשוחה.</p>
+<p><b>עדכון:</b> באפליקציה יש גם סכום פיקדון ברירת מחדל שנקבע ברמת התחנה (בהגדרות התחנה), וגם אפשרות לחריגה לגלגל ספציפי כשצריך (למשל גלגל יקר יותר). כלומר יש כאן פתרון מלא לגמישות שמנהלי התחנות צריכים.</p>
+<p>הרעיון שעלה לתזכורת SMS אוטומטית לפני מועד ההחזרה לא מומש בפועל, בעיקר בגלל עלויות.</p>
+
+<!-- ============ PART 5 ============ -->
+<h1>5. מוקד, אחמ"ש ותחנה – איך זה עובד בפועל</h1>
+<p>הנוהל התפעולי הוא תלת-שכבתי: פונה ← מוקדן ← אחמ"ש ← מנהל תחנה. השכבה האמצעית (אחמ"ש) נועדה למנוע הצפה ישירה של מנהלי תחנה, ולשמור על תיעוד.</p>
+<p>למי שמכיר את המערכת מקרוב: הגישה כמוקדן באפליקציה ניתנת בפועל רק לאחמ"שים ולמוקדנים שעברו הדרכה מסודרת על איך לעבוד ולמצוא גלגלים. כלומר - הבקרה על מי מחובר למערכת כבר מתבצעת נכון, דרך תהליך ההרשאה עצמו ולא דרך מבנה טכני נפרד. זו לא בעיה שדורשת שינוי בקוד.</p>
+<p>מה שכן נשאר תלוי בתיאום ידני מחוץ לאפליקציה: התיאום בין מוקדנים לאחמ"שים עצמם קורה כרגע דרך קבוצות WhatsApp נפרדות, לא דרך המערכת. השאלה אם שווה לשלב את זה בתוך האפליקציה בעתיד היא החלטת מוצר, לא פער דחוף.</p>
+
+<!-- ============ PART 6 ============ -->
+<h1>6. מקור מידע אחד או כמה?</h1>
+<p>יש כרגע שני מקומות שבהם מופיע מידע דומה: "הידידעון" (מדריך הארגון הרשמי) והאפליקציה. חשוב לדייק: הידידעון מכיל רק מי מנהל כל תחנה ואילו תחנות קיימות - לא פרטי מלאי גלגלים, כך שהוא לא רלוונטי לפערי רישום גלגלים. אבל הוא כן חופף לאפליקציה בדיוק בנתון הזה (רשימת תחנות ואנשי קשר), ואף אחד מהם לא מסונכרן אוטומטית מול השני - כך שכל עדכון (תחנה חדשה, מנהל שהתחלף) צריך להיעשות פעמיים באופן ידני.</p>
+<p>ההמלצה הפשוטה: לבחור מקור אחד (הכי הגיוני: האפליקציה, כי היא מתעדכנת הכי מהר) ולוותר על העדכון הכפול בשני מקומות.</p>
+
+<!-- ============ PART 7 ============ -->
+<h1>7. מה האפליקציה כבר נותנת</h1>
+<p>חשוב לתת קרדיט: האפליקציה רחבה ומפותחת בהרבה ממה שמצפים מפרויקט התנדבותי. הנה מה שכבר קיים ועובד:</p>
+<ul>
+<li><b>כניסה והרשאות</b> - 4 סוגי משתמשים (מנהל תחנה, מנהל מחוז, מנהל מוקד, מוקדן), איפוס סיסמה, כניסת מוקדן בקוד קצר.</li>
+<li><b>ניהול מלאי</b> - הוספה/עריכה של גלגלים עם כל המידות, פיקדון ברירת מחדל לתחנה + חריגה לגלגל ספציפי, מחיקה רכה עם שחזור עד 14 יום.</li>
+<li><b>מעקב השאלות</b> - סינון לפי סטטוס, והתראה על "השאלות ארוכות" (7+ ימים שלא הוחזרו) - מוצגת בלוח הבקרה כשמנהל התחנה נכנס.</li>
+<li><b>חיפוש</b> - לפי מספר רכב או לפי מפרט טכני, וגם "חיפוש הפוך" - איזה דגמים אחרים מתאימים לאותו גלגל.</li>
+<li><b>מוקד</b> - ניהול מוקדנים ומנהלי מוקד, היסטוריית הפניות מלאה.</li>
+<li><b>דוחות</b> - השאלות לפי חודש, שיעור ניצול מלאי, ייצוא לאקסל.</li>
+<li><b>מודולים נלווים</b> - זיהוי אוטומטי של פרטי רכב מצילום רישיון (OCR - שולחים צילום רישיון והמערכת שולפת את הפרטים לבד, כדי לחסוך זמן הקלדה), טפסים חתומים דיגיטלית, מפת פנצ'ריות לילה.</li>
+</ul>
+
+<!-- ============ PART 8: GAP MATRIX ============ -->
+<h1>8. מה עוד חסר – טבלה מסכמת</h1>
+<div class="diagram-wrap">
+<svg viewBox="0 0 700 130" xmlns="http://www.w3.org/2000/svg">
+  <rect x="45"    y="30" width="281.5" height="46" fill="#f4dede" stroke="#a11" stroke-width="1.5"/>
+  <rect x="326.5" y="30" width="93.8" height="46" fill="#faf0d2" stroke="#8a6d0b" stroke-width="1.5"/>
+  <rect x="420.3" y="30" width="234.6" height="46" fill="#dff0d8" stroke="#2b6a2b" stroke-width="1.5"/>
+  <text x="186" y="58" text-anchor="middle" font-size="15" font-weight="700" fill="#a11">חסר · 6</text>
+  <text x="373" y="58" text-anchor="middle" font-size="15" font-weight="700" fill="#8a6d0b">חלקי · 2</text>
+  <text x="538" y="58" text-anchor="middle" font-size="15" font-weight="700" fill="#2b6a2b">מלא · 5</text>
+  <text x="350" y="110" font-size="13" text-anchor="middle" fill="#555">מתוך 13 נושאים שנבדקו מול הקוד</text>
+</svg>
+<div class="cap">התפלגות הממצאים</div>
+</div>
+
+<table>
+<tr><th>נושא</th><th>מצב</th></tr>
+<tr><td>מרווח ברגים וחור מרכזי (PCD/CB)</td><td class="ok">מלא - כולל טווחי סבילות נכונים</td></tr>
+<tr><td>גלגלים אוניברסליים (כמה PCD)</td><td class="ok">מלא - פעיל</td></tr>
+<tr><td>פיקדון ברירת מחדל לתחנה + חריגה לגלגל</td><td class="ok">מלא</td></tr>
+<tr><td>התראת "השאלות ארוכות" (7 ימים)</td><td class="ok">מלא, אך פסיבית בלבד (לא שולחת התראה יזומה)</td></tr>
+<tr><td>חיפוש הפוך (רכב → דגמים תואמים)</td><td class="ok">מלא</td></tr>
+<tr><td>שדה ET (Offset)</td><td class="bad">קיים בממשק אך אי אפשר להזין אותו בפועל</td></tr>
+<tr><td>חישוב אוטומטי של קוטר כולל (חתך צמיג)</td><td class="partial">הנתון נשמר, אך אין חישוב/אזהרה אוטומטית</td></tr>
+<tr><td>תזכורת אוטומטית להחזרה (SMS/Push)</td><td class="bad">לא קיימת</td></tr>
+<tr><td>סנכרון בין האפליקציה לידידעון</td><td class="bad">לא קיים - שני מקורות נפרדים</td></tr>
+<tr><td>קישור בין מודול פנצ'ריות לילה להשאלת גלגל</td><td class="bad">שני מודולים נפרדים, אין המלצה אוטומטית ביניהם</td></tr>
+<tr><td>רשת "אימוץ גלגלים" בין מתנדבים פרטיים</td><td class="bad">רעיון שהוצע, לא מומש</td></tr>
+<tr><td>אימות אנושי לפני עדכון אוטומטי מאתר חיצוני</td><td class="bad">המערכת מעדכנת נתונים אוטומטית בלי אישור</td></tr>
+<tr><td>ראות מלאי למוקד לפני חיוג לתחנה</td><td class="partial">קיים טכנית, אבל לא נהוג בפועל</td></tr>
+</table>
+
+<!-- ============ PART 9: RECOMMENDATIONS ============ -->
+<h1>9. המלצות</h1>
+
+<h2>לאפליקציה</h2>
+<ol>
+<li><b>ET</b> - להחליט: להוסיף שדה קלט אמיתי, או להסיר את המסנן כדי לא להטעות.</li>
+<li><b>חתך צמיג</b> - להוסיף חישוב אוטומטי של קוטר כולל ואזהרה כשההפרש גדול מדי (הנתון כבר קיים, רק חסרה הלוגיקה).</li>
+<li><b>תזכורת החזרה</b> - לבדוק פתרון זול ל-SMS/Push אוטומטי, גם אם חלקי.</li>
+<li><b>אימות מול אתר חיצוני</b> - להוסיף שלב אישור לפני שהמערכת מעדכנת נתונים אוטומטית.</li>
+</ol>
+
+<h2>לתהליך ולארגון</h2>
+<ol>
+<li><b>מקור מידע אחד</b> - לבחור בין הידידעון לאפליקציה, לא לתחזק שניהם.</li>
+<li><b>לנצל את האפשרות לכמה אנשי קשר לתחנה</b> - המערכת כבר תומכת בעד 8 מנהלים לתחנה אחת; כדאי לוודא שבכל תחנה רשום יותר ממנהל אחד, למניעת מצבים שהיחיד הרשום לא זמין בלילה.</li>
+<li><b>קישור בין פנצ'ריות לילה להשאלה</b> - אם יש פנצ'ריה פתוחה קרוב, להציע אותה קודם.</li>
+</ol>
+
+<!-- ============ PART 10: PRESENTATION ============ -->
+<h1>10. מצגת ההדרכה: מה לתקן בה</h1>
+<div class="lead">בדקנו גם את מצגת ההדרכה הרשמית (40 שקפים, אגף הדרכות ובטיחות). היא נמצאת כרגע בתהליך עדכון יזום, אז זה הזמן הטוב לתקן.</div>
+
+<h2>מה כבר תואם נכון</h2>
+<p>הכלל על החור המרכזי (אפשר גדול יותר, אסור קטן יותר) וטבלת ה-PCD לפי יצרן - זהים כמעט מילה במילה למה שקיים בקוד ובידע שהתגבש בקבוצה. עבודה טובה.</p>
+
+<h2>מה לתקן</h2>
+<table>
+<tr><th>מה לתקן</th><th>למה</th></tr>
+<tr><td>להוסיף פרק על ET</td><td>נעדר לגמרי מ-40 השקפים, למרות תקריות אמיתיות שקרו בגללו</td></tr>
+<tr><td>לתקן: "חתך צמיג לא משנה"</td><td>קביעה שגויה - יש סיכון התחככות אמיתי בחתך לא מתאים</td></tr>
+<tr><td>לעדכן זמן החזרה מ-24 ל-48 שעות</td><td>המצגת לא עודכנה אחרי שהפרוטוקול הארצי השתנה</td></tr>
+<tr><td>להחליף פיקדון קבוע (200 ₪) בטווח מדורג</td><td>בפועל נע בין 200-1,200 ₪ לפי סוג גלגל</td></tr>
+<tr><td>להוסיף פרק על השימוש באפליקציה</td><td>המצגת מלמדת רק חיפוש ידני באתר חיצוני, לא מזכירה את המערכת</td></tr>
+<tr><td>להוסיף התייחסות לגלגלים אוניברסליים</td><td>פתרון חשוב שכבר פעיל ולא מוזכר</td></tr>
+</table>
+
+<!-- ============ CONCLUSION ============ -->
+<h1>לסיכום</h1>
+<ol>
+<li><b>הידע הטכני נבנה מתקריות אמיתיות בשטח</b>, לא מספר לימוד - כל כלל (בדוק חור מרכזי, החלף קדמי-אחורי) נולד מתקרית ספציפית.</li>
+<li><b>האפליקציה עברה ממש מהר</b> מכלי עזר כללי (GPT) לכלי ייעודי, תוך כחודשיים, כי יש מפתח מסור אחד.</li>
+<li><b>המערכת מפותחת ומקצועית יותר ממה שנראה בהתחלה</b> - הפיקדון, ההתאמה, וההתראות כבר עובדות היטב. הפערים האמיתיים שנשארו קטנים ומדויקים: ET, חתך צמיג, תזכורת החזרה, וסנכרון מול הידידעון.</li>
+<li><b>הפער הכי עקבי הוא בין ידע שדה לתיעוד רשמי</b> - זה חוזר גם במצגת ההדרכה וגם בידידעון. ידע שדה מתעדכן תוך שבועות, תיעוד רשמי מתעדכן פעם בשנה.</li>
+</ol>
+
+<div class="signoff">מסמך זה מבוסס על קבוצת WhatsApp (11.12.2025–30.6.2026), מדריך המשתמש, מצגת ההדרכה, ובדיקה ישירה של קוד המערכת. עודכן לאחר בדיקה חוזרת מול קובי, מנהל תחנת נתיבות · 1.7.2026</div>
+
+</body>
+</html>
