@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T10:37:42.068Z
-> Files: 18 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T10:49:08.354Z
+> Files: 19 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -49,6 +49,7 @@
 ## public/
 
 - `guide.html` — מדריך עבודה – מערכת גלגלים ידידים (~4513 tok)
+- `report.html` — מערכת גלגלים ידידים – ניתוח משולב: שדה, נוהל וקוד (~8058 tok)
 
 ## scripts/
 

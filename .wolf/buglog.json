@@ -1487,6 +1487,38 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-03T11:30:00.000Z"
+    },
+    {
+      "id": "bug-093",
+      "timestamp": "2026-07-03T10:47:13.876Z",
+      "error_message": "Significant refactor of ",
+      "file": "public/report.html",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 3→9 lines (3 removed) | Also: <li><b>המערכת מפותחת ומקצועית יותר ממה שנראה בהתחל; <div class=\"signoff\">מסמך זה מבוסס על קבוצת WhatsA",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-03T10:49:08.386Z"
+    },
+    {
+      "id": "bug-094",
+      "timestamp": "2026-07-03T10:47:47.447Z",
+      "error_message": "Incorrect value in code",
+      "file": "public/report.html",
+      "root_cause": "Had \"bad\"",
+      "fix": "Changed to \"ok\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-03T10:47:47.447Z"
     }
   ]
 }
