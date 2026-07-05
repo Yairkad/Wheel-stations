@@ -4,7 +4,9 @@ import {
   hebrewToEnglishModels,
   modelToMake,
   extractRimSize,
-  getTireDiameterMm
+  getTireDiameterMm,
+  checkRimFit,
+  checkVehicleRimFit
 } from '@/lib/vehicle-mappings'
 
 /**
@@ -276,5 +278,92 @@ describe('getTireDiameterMm - חישוב קוטר גלגול כולל ממחרו
 
   it('returns null when rimSizeOverride is null and the string has no rim suffix', () => {
     expect(getTireDiameterMm('205/55', null)).toBeNull()
+  })
+})
+
+// =====================
+// checkRimFit
+// =====================
+describe('checkRimFit - התאמת גלגל לרכב (מידה עצמית ± 1, בלי הסתמכות על "גדלים מותרים")', () => {
+  it('matches a wheel that is the vehicle\'s exact own rim size with the same tire profile', () => {
+    expect(checkRimFit('205/60R16', 16, '205/60', true)).toBe('match')
+    expect(checkRimFit('205/60R16', 16, '205/60R16', false)).toBe('match')
+  })
+
+  it('matches one size up when the tire profile compensates for the diameter change', () => {
+    // vehicle: 16*25.4 + 2*(205*60/100) = 652.4mm; wheel: 17*25.4 + 2*(215*50/100) = 646.8mm (0.86% diff)
+    expect(checkRimFit('205/60R16', 17, '215/50', false)).toBe('match')
+  })
+
+  it('flags one size up as a mismatch when the tire profile does not compensate', () => {
+    // vehicle: 652.4mm; wheel: 17*25.4 + 2*(205*60/100) = 677.8mm (3.89% diff)
+    expect(checkRimFit('205/60R16', 17, '205/60', false)).toBe('mismatch')
+  })
+
+  it('matches one size down when the tire profile compensates', () => {
+    expect(checkRimFit('215/50R17', 16, '205/60', false)).toBe('match')
+  })
+
+  it('flags a rim 2 sizes away as a mismatch regardless of tire data (regression: the Mazda 6 report)', () => {
+    // Vehicle's own rim is 16" (from its 205/60R16 tire). A donor wheel of 16" must match;
+    // a donor wheel of 18" must NOT — this was backwards before this fix (rim_sizes_allowed
+    // said "17-20" for this vehicle, which doesn't even include its own 16" size).
+    expect(checkRimFit('205/60R16', 16, '205/60', false)).toBe('match')
+    expect(checkRimFit('205/60R16', 18, '205/60', false)).toBe('mismatch')
+    expect(checkRimFit('205/60R16', 14, '205/60', false)).toBe('mismatch')
+  })
+
+  it('marks an in-window wheel with no recorded tire size as needing tire data, not a silent pass', () => {
+    expect(checkRimFit('205/60R16', 17, null, false)).toBe('needs_tire_data')
+    expect(checkRimFit('205/60R16', 16, undefined, false)).toBe('needs_tire_data')
+  })
+
+  it('does not block when the vehicle itself has no tire data', () => {
+    expect(checkRimFit(null, 17, '205/60', false)).toBe('match')
+  })
+
+  it('donut/spare wheels skip the diameter check but still must be within the ±1 window', () => {
+    // In-window donut with a very different profile still matches (diameter check skipped)
+    expect(checkRimFit('205/60R16', 16, '155/70', true)).toBe('match')
+    // Out-of-window donut is still flagged
+    expect(checkRimFit('205/60R16', 19, '155/70', true)).toBe('mismatch')
+  })
+
+  it('uses the manually-picked rim size as the window anchor when the vehicle has no tire data on file (e.g. personal imports)', () => {
+    // No vehicle tire string at all — a manually-selected rim of 17 still gates the ±1 window
+    expect(checkRimFit(null, 17, '205/60', false, 17)).toBe('match')
+    expect(checkRimFit(null, 16, '205/60', false, 17)).toBe('match')
+    expect(checkRimFit(null, 19, '205/60', false, 17)).toBe('mismatch')
+    // No diameter data available for the vehicle even with a rim fallback — can't validate diameter, so pass
+    expect(checkRimFit(undefined, 17, '215/50', false, 17)).toBe('match')
+  })
+})
+
+// =====================
+// checkVehicleRimFit
+// =====================
+describe('checkVehicleRimFit - התאמת רכב מול רכב (חיפוש הפוך)', () => {
+  it('matches two vehicles with the same own rim size', () => {
+    expect(checkVehicleRimFit('205/60R16', '205/60R16')).toBe('match')
+  })
+
+  it('matches a candidate one size up with a compensating profile', () => {
+    expect(checkVehicleRimFit('205/60R16', '215/50R17')).toBe('match')
+  })
+
+  it('flags a candidate two sizes away as a mismatch', () => {
+    expect(checkVehicleRimFit('205/60R16', '205/60R18')).toBe('mismatch')
+  })
+
+  it('uses the rim fallback for both the window check and the diameter override when the tire string has no rim suffix', () => {
+    expect(checkVehicleRimFit('205/60R16', '205/60', 16)).toBe('match')
+  })
+
+  it('marks a candidate with no tire string at all as needing tire data when its rim is in-window', () => {
+    expect(checkVehicleRimFit('205/60R16', null, 16)).toBe('needs_tire_data')
+  })
+
+  it('still flags a mismatch from the rim fallback alone when no tire string is available', () => {
+    expect(checkVehicleRimFit('205/60R16', null, 19)).toBe('mismatch')
   })
 })

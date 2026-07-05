@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
-import { hebrewToEnglishMakes, hebrewToEnglishModels } from '@/lib/vehicle-mappings'
+import { hebrewToEnglishMakes, hebrewToEnglishModels, extractRimSize, checkVehicleRimFit, RimFitStatus } from '@/lib/vehicle-mappings'
 
 interface VehicleResult {
   vehicle: {
@@ -18,7 +18,6 @@ interface VehicleResult {
     bolt_count: number
     bolt_spacing: number
     center_bore?: number
-    rim_sizes_allowed?: number[]
   } | null
   source?: string
 }
@@ -35,7 +34,6 @@ interface ReverseResult {
   bolt_spacing: number
   center_bore?: number | null
   rim_size?: string | null
-  rim_sizes_allowed?: number[] | null
   tire_size_front?: string | null
   cb_difference: number | null
   match_level: 'exact' | 'with_ring' | 'technical'
@@ -60,8 +58,7 @@ interface CompareOutcome {
   pcdMatch: boolean
   cbLevel: 'exact' | 'with_ring' | 'no_fit' | 'unknown'
   cbDiff: number | null
-  rimOverlap: boolean
-  commonRimSizes: number[]
+  rimFit: RimFitStatus
   overall: 'compatible' | 'with_ring' | 'incompatible'
 }
 
@@ -183,14 +180,14 @@ export default function ReverseSearchPage() {
   }
 
   // Perform reverse search
-  const doReverseSearch = async (bolt_count: number, bolt_spacing: number, center_bore?: number, rim_sizes?: number[]) => {
+  const doReverseSearch = async (bolt_count: number, bolt_spacing: number, center_bore?: number, source_tire?: string | null) => {
     setReverseLoading(true)
     try {
       const params = new URLSearchParams()
       params.set('bolt_count', bolt_count.toString())
       params.set('bolt_spacing', bolt_spacing.toString())
       if (center_bore) params.set('center_bore', center_bore.toString())
-      if (rim_sizes && rim_sizes.length > 0) params.set('rim_sizes', rim_sizes.join(','))
+      if (source_tire) params.set('source_tire', source_tire)
 
       const response = await fetch(`/api/vehicle-models/reverse-search?${params}`)
       if (!response.ok) throw new Error('שגיאה בחיפוש')
@@ -228,7 +225,7 @@ export default function ReverseSearchPage() {
           data.wheel_fitment.bolt_count,
           data.wheel_fitment.bolt_spacing,
           data.wheel_fitment.center_bore,
-          data.wheel_fitment.rim_sizes_allowed
+          data.vehicle?.front_tire
         )
       } else {
         setVehicleError('לא נמצאו מידות גלגל לרכב זה')
@@ -277,7 +274,6 @@ export default function ReverseSearchPage() {
           bolt_count: model.bolt_count,
           bolt_spacing: model.bolt_spacing,
           center_bore: model.center_bore || undefined,
-          rim_sizes_allowed: model.rim_sizes_allowed || undefined,
         }
         const vResult = {
           vehicle: {
@@ -291,12 +287,11 @@ export default function ReverseSearchPage() {
         }
         setVehicleResult(vResult)
         populateSpecsFromFitment(wheelFitment, model.tire_size_front)
-        const rimSizes = wheelFitment.rim_sizes_allowed || (model.rim_size ? [parseInt(model.rim_size)] : undefined)
         await doReverseSearch(
           wheelFitment.bolt_count,
           wheelFitment.bolt_spacing,
           wheelFitment.center_bore,
-          rimSizes
+          model.tire_size_front
         )
       } else {
         setVehicleError('לא נמצאו מידות גלגל לדגם זה')
@@ -351,7 +346,6 @@ export default function ReverseSearchPage() {
           pcd: `${m.bolt_count}×${m.bolt_spacing}`,
           bolt_count: m.bolt_count, bolt_spacing: m.bolt_spacing,
           center_bore: m.center_bore || undefined,
-          rim_sizes_allowed: m.rim_sizes_allowed || undefined,
         },
         source: 'local_db'
       }
@@ -390,16 +384,13 @@ export default function ReverseSearchPage() {
       else if (cbDiff <= 3) cbLevel = 'with_ring'
       else cbLevel = 'no_fit'
     }
-    const rimA = fitA.rim_sizes_allowed || []
-    const rimB = fitB.rim_sizes_allowed || []
-    const commonRimSizes = rimA.filter(r => rimB.includes(r))
-    const rimOverlap = rimA.length === 0 || rimB.length === 0 || commonRimSizes.length > 0
+    const rimFit = checkVehicleRimFit(cmpA.result?.vehicle?.front_tire, cmpB.result?.vehicle?.front_tire)
 
     let overall: CompareOutcome['overall'] = 'incompatible'
     if (pcdMatch && (cbLevel === 'exact' || cbLevel === 'unknown')) overall = 'compatible'
     else if (pcdMatch && cbLevel === 'with_ring') overall = 'with_ring'
 
-    return { pcdMatch, cbLevel, cbDiff, rimOverlap, commonRimSizes, overall }
+    return { pcdMatch, cbLevel, cbDiff, rimFit, overall }
   }
 
   const handleReset = () => {
@@ -425,12 +416,12 @@ export default function ReverseSearchPage() {
     setSpecBoltCount(fitment.bolt_count.toString())
     setSpecBoltSpacing(fitment.bolt_spacing.toString())
     setSpecCenterBore(fitment.center_bore?.toString() || '')
-    setSpecRimSize(fitment.rim_sizes_allowed?.[0]?.toString() || '')
+    setSpecRimSize('')
     if (frontTire) {
       const parsed = parseTireSize(frontTire)
       setSpecTireWidth(parsed.width?.toString() || '')
       setSpecTireProfile(parsed.profile?.toString() || '')
-      if (!fitment.rim_sizes_allowed?.length && parsed.rim) setSpecRimSize(parsed.rim.toString())
+      if (parsed.rim) setSpecRimSize(parsed.rim.toString())
     }
   }
 
@@ -439,9 +430,9 @@ export default function ReverseSearchPage() {
     const bs = parseFloat(specBoltSpacing)
     if (!bc || !bs) { toast.error('נא למלא מספר ברגים ומרווח PCD'); return }
     const cb = specCenterBore ? parseFloat(specCenterBore) : undefined
-    const rs = specRimSize ? [parseInt(specRimSize)] : undefined
+    const sourceTire = specRimSize ? `${specTireWidth || ''}/${specTireProfile || ''}R${specRimSize}` : undefined
     setShowSpecsEditor(false)
-    await doReverseSearch(bc, bs, cb, rs)
+    await doReverseSearch(bc, bs, cb, sourceTire)
   }
 
   const isLoading = vehicleLoading || modelSearchLoading || reverseLoading
@@ -581,7 +572,7 @@ export default function ReverseSearchPage() {
                       <span style={{ color: '#9ca3af', marginRight: '8px' }}>
                         PCD {v.result.wheel_fitment.pcd}
                         {v.result.wheel_fitment.center_bore ? ` · CB ${v.result.wheel_fitment.center_bore}` : ''}
-                        {v.result.wheel_fitment.rim_sizes_allowed?.length ? ` · R${v.result.wheel_fitment.rim_sizes_allowed.join('/')}` : ''}
+                        {extractRimSize(v.result.vehicle.front_tire) ? ` · R${extractRimSize(v.result.vehicle.front_tire)}` : ''}
                       </span>
                     )}
                     <button onClick={() => set(prev => ({...prev, result: null, plate: '', make: '', model: '', year: '', boltCount: '', boltSpacing: '', centerBore: '', rimSize: ''}))}
@@ -629,13 +620,17 @@ export default function ReverseSearchPage() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#9ca3af' }}>גודל חישוק</span>
-                    <span style={{ fontWeight: 600, color: outcome.rimOverlap ? '#10b981' : '#d97706' }}>
-                      {outcome.rimOverlap
-                        ? outcome.commonRimSizes.length > 0
-                          ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>{`R${outcome.commonRimSizes.join('/')}`}</span>
-                          : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>לא ידוע</span>
-                        : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{`שים לב - גדלים שונים (R${cmpA.result!.wheel_fitment!.rim_sizes_allowed?.join('/')} vs R${cmpB.result!.wheel_fitment!.rim_sizes_allowed?.join('/')})`}</span>}
+                    <span style={{ color: '#9ca3af' }}>גודל חישוק (± מידה אחת)</span>
+                    <span style={{ fontWeight: 600, color: outcome.rimFit === 'mismatch' ? '#ef4444' : outcome.rimFit === 'needs_tire_data' ? '#d97706' : '#10b981' }}>
+                      {outcome.rimFit === 'match' && (
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 12 4 10"/></svg>{`R${extractRimSize(cmpA.result!.vehicle.front_tire) ?? '?'} / R${extractRimSize(cmpB.result!.vehicle.front_tire) ?? '?'}`}</span>
+                      )}
+                      {outcome.rimFit === 'needs_tire_data' && (
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא ניתן לאמת - חסרה מידת צמיג מלאה</span>
+                      )}
+                      {outcome.rimFit === 'mismatch' && (
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{`שים לב - גדלים שונים (R${extractRimSize(cmpA.result!.vehicle.front_tire) ?? '?'} vs R${extractRimSize(cmpB.result!.vehicle.front_tire) ?? '?'})`}</span>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -972,27 +967,27 @@ export default function ReverseSearchPage() {
                                 {vehicle.cb_difference > 0 ? '+' : ''}{vehicle.cb_difference}mm
                               </span>
                             )}
-                            {/* Rim size badge */}
+                            {/* Rim size badge — candidate's own rim vs. the source vehicle's, ±1" window */}
                             {(() => {
-                              const donorRims: number[] = vehicle.rim_sizes_allowed?.map(Number) ||
-                                (vehicle.rim_size ? [parseInt(vehicle.rim_size)] : [])
-                              const targetRim = specRimSize ? parseInt(specRimSize) : null
-                              if (donorRims.length === 0) {
+                              const candidateRimFallback = vehicle.rim_size ? parseInt(vehicle.rim_size) : null
+                              const candidateRim = extractRimSize(vehicle.tire_size_front) ?? candidateRimFallback
+                              if (candidateRim == null) {
                                 return (
                                   <span style={{ ...styles.detailBadge, background: '#fefce8', border: '1px solid #fde68a', color: '#92400e' }}>
                                     R לא ידוע
                                   </span>
                                 )
                               }
-                              const rimStr = `R${donorRims.join('/')}`
-                              const matches = targetRim ? donorRims.includes(targetRim) : true
+                              const sourceTire = specRimSize ? `${specTireWidth || ''}/${specTireProfile || ''}R${specRimSize}` : null
+                              const rimFit = sourceTire ? checkVehicleRimFit(sourceTire, vehicle.tire_size_front, candidateRimFallback) : 'match'
+                              const style = rimFit === 'mismatch'
+                                ? { background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626' }
+                                : rimFit === 'needs_tire_data'
+                                ? { background: '#fefce8', border: '1px solid #fde68a', color: '#92400e' }
+                                : { background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d' }
                               return (
-                                <span style={{ ...styles.detailBadge,
-                                  background: matches ? '#f0fdf4' : '#fef2f2',
-                                  border: matches ? '1px solid #bbf7d0' : '1px solid #fecaca',
-                                  color: matches ? '#15803d' : '#dc2626'
-                                }}>
-                                  {rimStr}
+                                <span style={{ ...styles.detailBadge, ...style }}>
+                                  R{candidateRim}
                                 </span>
                               )
                             })()}

@@ -132,3 +132,61 @@ export function getTireDiameterMm(tire: string | null | undefined, rimSizeOverri
   const aspect = parseInt(match[2])
   return rim * 25.4 + 2 * (width * aspect / 100)
 }
+
+// 'match': rim within ±1" of the reference and (if checked) rolled diameter within 3%.
+// 'needs_tire_data': rim is in the ±1" window but there's no tire size on record to confirm
+// the rolled diameter actually compensates for the size change.
+// 'mismatch': rim more than 1" away, or rolled diameter differs by more than 3%.
+export type RimFitStatus = 'match' | 'needs_tire_data' | 'mismatch'
+
+function compareRimAndDiameter(
+  ownRim: number | null,
+  candidateRim: number | null,
+  ownDiameter: number | null,
+  candidateDiameter: number | null,
+  skipDiameterCheck: boolean
+): RimFitStatus {
+  if (ownRim == null || candidateRim == null) return 'match' // no data to judge — don't block
+  if (Math.abs(candidateRim - ownRim) > 1) return 'mismatch'
+  if (skipDiameterCheck) return 'match'
+  if (ownDiameter == null) return 'match' // can't compare, don't block
+  if (candidateDiameter == null) return 'needs_tire_data'
+  const relDiff = Math.abs(candidateDiameter - ownDiameter) / ownDiameter
+  return relDiff <= 0.03 ? 'match' : 'mismatch'
+}
+
+// Whether a donor wheel is a size-compatible match for a vehicle: rim within one size up/down
+// from the vehicle's own rim (derived from its own tire spec), with the rim-size change validated
+// by comparing overall rolled diameter (not the vehicle's stored "allowed sizes" — that data has
+// repeatedly proven unreliable, see .wolf/cerebrum.md). Donut/spare wheels still have to be within
+// the ±1 window, but are exempt from the diameter check itself, same as before.
+// `vehicleRimFallback` covers vehicles with no tire data on file at all (e.g. personal imports)
+// where the station manager manually picked a rim size in the UI — that manual pick still anchors
+// the ±1 window even though no tire profile exists to compute a diameter from.
+export function checkRimFit(
+  vehicleTire: string | null | undefined,
+  wheelRimSize: number | null,
+  wheelTireSize: string | null | undefined,
+  isDonut: boolean,
+  vehicleRimFallback?: number | null
+): RimFitStatus {
+  const vehicleRim = extractRimSize(vehicleTire) ?? vehicleRimFallback ?? null
+  const vehicleDiameter = getTireDiameterMm(vehicleTire)
+  const wheelDiameter = getTireDiameterMm(wheelTireSize, wheelRimSize)
+  return compareRimAndDiameter(vehicleRim, wheelRimSize, vehicleDiameter, wheelDiameter, isDonut)
+}
+
+// Same idea for reverse search (vehicle vs. vehicle, no wheel inventory involved): does a
+// candidate vehicle model's own stock rim/tire fall within one size of the source vehicle's?
+// `candidateRimFallback` covers vehicle_models rows whose tire string lacks a rim suffix.
+export function checkVehicleRimFit(
+  sourceTire: string | null | undefined,
+  candidateTire: string | null | undefined,
+  candidateRimFallback?: number | null
+): RimFitStatus {
+  const sourceRim = extractRimSize(sourceTire)
+  const candidateRim = extractRimSize(candidateTire) ?? candidateRimFallback ?? null
+  const sourceDiameter = getTireDiameterMm(sourceTire)
+  const candidateDiameter = getTireDiameterMm(candidateTire, candidateRim)
+  return compareRimAndDiameter(sourceRim, candidateRim, sourceDiameter, candidateDiameter, false)
+}

@@ -20,7 +20,6 @@ interface WheelFitment {
   bolt_spacing: number
   pcd: string
   center_bore?: number
-  rim_sizes_allowed?: number[]
   source_url?: string
 }
 
@@ -241,16 +240,6 @@ export default function VehicleLookupPage() {
                     </p>
                   </div>
                 </div>
-
-                {/* Allowed sizes */}
-                {result.wheel_fitment.rim_sizes_allowed && result.wheel_fitment.rim_sizes_allowed.length > 0 && (
-                  <div className="mt-4 bg-green-100 rounded-xl p-4 text-center">
-                    <span className="text-sm text-green-700">גדלים מותרים לרכב:</span>
-                    <p className="text-lg font-bold text-green-800 mt-1">
-                      {result.wheel_fitment.rim_sizes_allowed.join('" / ')}"
-                    </p>
-                  </div>
-                )}
 
                 {/* Source link */}
                 {result.wheel_fitment.source_url && (

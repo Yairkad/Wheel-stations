@@ -19,7 +19,6 @@ interface VehicleModel {
   bolt_spacing: number
   center_bore: number | null
   rim_size: string | null
-  rim_sizes_allowed: number[] | null
   tire_size_front: string | null
   source_url: string | null
   created_at: string
@@ -39,7 +38,6 @@ interface EditForm {
   bolt_spacing: string
   center_bore: string
   rim_size: string
-  rim_sizes_allowed: string
   tire_size_front: string
   source_url: string
 }
@@ -142,7 +140,6 @@ function VehiclesAdminPage() {
     bolt_spacing: '',
     center_bore: '',
     rim_size: '',
-    rim_sizes_allowed: '',
     tire_size_front: '',
     source_url: ''
   })
@@ -174,7 +171,6 @@ function VehiclesAdminPage() {
     bolt_spacing: { type: '', value: '' },
     center_bore: { type: '', value: '' },
     rim_size: { type: '', value: '' },
-    rim_sizes_allowed: { type: '', value: '', valueTo: '' },
     source_url: { type: '', value: '' },
   })
 
@@ -949,7 +945,7 @@ function VehiclesAdminPage() {
     // Initialize selections - prefer non-empty values
     const fields = ['make', 'make_he', 'model', 'variants', 'year_from', 'year_to',
                     'bolt_count', 'bolt_spacing', 'center_bore', 'rim_size',
-                    'rim_sizes_allowed', 'tire_size_front', 'source_url']
+                    'tire_size_front', 'source_url']
     const selections: {[key: string]: 'source' | 'target'} = {}
 
     fields.forEach(field => {
@@ -1032,7 +1028,6 @@ function VehiclesAdminPage() {
       bolt_spacing: vehicle.bolt_spacing?.toString() || '',
       center_bore: vehicle.center_bore?.toString() || '',
       rim_size: vehicle.rim_size || '',
-      rim_sizes_allowed: vehicle.rim_sizes_allowed?.join(', ') || '',
       tire_size_front: vehicle.tire_size_front || '',
       source_url: vehicle.source_url || ''
     })
@@ -1059,7 +1054,6 @@ function VehiclesAdminPage() {
           bolt_count: parseInt(editForm.bolt_count),
           bolt_spacing: parseFloat(editForm.bolt_spacing),
           center_bore: editForm.center_bore ? parseFloat(editForm.center_bore) : null,
-          rim_sizes_allowed: editForm.rim_sizes_allowed ? editForm.rim_sizes_allowed.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : null,
           source_url: editForm.source_url || null
         })
       })
@@ -1233,7 +1227,6 @@ function VehiclesAdminPage() {
       bolt_spacing: { type: '', value: '' },
       center_bore: { type: '', value: '' },
       rim_size: { type: '', value: '' },
-      rim_sizes_allowed: { type: '', value: '', valueTo: '' },
       source_url: { type: '', value: '' },
     })
     setSearchQuery('')
@@ -1312,27 +1305,6 @@ function VehiclesAdminPage() {
       if (v.rim_size !== columnFilters.rim_size.value) return false
     } else if (columnFilters.rim_size.type === 'empty') {
       if (v.rim_size !== null && v.rim_size !== '') return false
-    }
-
-    // Rim sizes allowed filter - range filter (e.g., 14-16 means has any size between 14 and 16)
-    if (columnFilters.rim_sizes_allowed.type === 'range' && columnFilters.rim_sizes_allowed.value) {
-      const fromVal = parseInt(columnFilters.rim_sizes_allowed.value)
-      const toVal = columnFilters.rim_sizes_allowed.valueTo ? parseInt(columnFilters.rim_sizes_allowed.valueTo) : fromVal
-      if (!isNaN(fromVal)) {
-        if (!v.rim_sizes_allowed || v.rim_sizes_allowed.length === 0) return false
-        // Check if any allowed size falls within the range
-        const hasMatchingSize = v.rim_sizes_allowed.some(size => size >= fromVal && size <= toVal)
-        if (!hasMatchingSize) return false
-      }
-    } else if (columnFilters.rim_sizes_allowed.type === 'equals' && columnFilters.rim_sizes_allowed.value) {
-      const filterVal = parseInt(columnFilters.rim_sizes_allowed.value)
-      if (!isNaN(filterVal)) {
-        if (!v.rim_sizes_allowed || !v.rim_sizes_allowed.includes(filterVal)) return false
-      }
-    } else if (columnFilters.rim_sizes_allowed.type === 'empty') {
-      if (v.rim_sizes_allowed && v.rim_sizes_allowed.length > 0) return false
-    } else if (columnFilters.rim_sizes_allowed.type === 'has_value') {
-      if (!v.rim_sizes_allowed || v.rim_sizes_allowed.length === 0) return false
     }
 
     // Source URL filter - has value or empty
@@ -1563,9 +1535,6 @@ function VehiclesAdminPage() {
               {columnFilters.rim_size.value && (
                 <div style={styles.chip}>חישוק: {columnFilters.rim_size.value} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, rim_size: { type: '', value: '' }})}>×</button></div>
               )}
-              {(columnFilters.rim_sizes_allowed.value || columnFilters.rim_sizes_allowed.valueTo) && (
-                <div style={styles.chip}>קוטר: {columnFilters.rim_sizes_allowed.value || ''}–{columnFilters.rim_sizes_allowed.valueTo || ''} <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}>×</button></div>
-              )}
               {columnFilters.source_url.type === 'has_value' && (
                 <div style={styles.chip}>עם קישור <button style={styles.chipClose} onClick={() => setColumnFilters({...columnFilters, source_url: { type: '', value: '' }})}>×</button></div>
               )}
@@ -1643,12 +1612,9 @@ function VehiclesAdminPage() {
                     {v.center_bore != null && <><span style={styles.cardDot}>·</span><span>CB {v.center_bore}</span></>}
                   </div>
                   {/* Row 3: rim info (conditional) */}
-                  {(v.rim_size || (v.rim_sizes_allowed && v.rim_sizes_allowed.length > 0) || v.source_url) && (
+                  {(v.rim_size || v.source_url) && (
                     <div style={styles.cardRow3}>
                       {v.rim_size && <span>חישוק {v.rim_size}</span>}
-                      {v.rim_sizes_allowed && v.rim_sizes_allowed.length > 0 && (
-                        <><span style={styles.cardDot}>·</span><span>{v.rim_sizes_allowed.join(', ')}</span></>
-                      )}
                       {v.source_url && (
                         <a href={v.source_url} target="_blank" rel="noopener noreferrer" style={styles.cardLink}>
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -1681,7 +1647,6 @@ function VehiclesAdminPage() {
                     <th style={styles.th}>מרווח</th>
                     <th style={styles.th}>CB</th>
                     <th style={styles.th}>חישוק</th>
-                    <th style={styles.th}>קוטר מתאים</th>
                     <th style={styles.th}>קישור</th>
                     <th style={styles.th}>פעולות</th>
                   </tr>
@@ -1689,7 +1654,7 @@ function VehiclesAdminPage() {
                 <tbody>
                   {filteredVehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={10} style={styles.emptyRow}>
+                      <td colSpan={9} style={styles.emptyRow}>
                         <div style={styles.emptyMessage}>
                           {hasActiveFilters() ? (
                             <>
@@ -1722,7 +1687,6 @@ function VehiclesAdminPage() {
                         <td style={styles.td}>{v.bolt_spacing}</td>
                         <td style={styles.td}>{v.center_bore || '-'}</td>
                         <td style={styles.td}>{v.rim_size || '-'}</td>
-                        <td style={styles.td}>{v.rim_sizes_allowed?.join(', ') || '-'}</td>
                         <td style={styles.td}>
                           <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
                             {v.source_url ? (
@@ -1996,29 +1960,6 @@ function VehiclesAdminPage() {
                       <div key={s} style={styles.filterSuggestionItem} onMouseDown={() => { setColumnFilters({...columnFilters, rim_size: { type: 'equals', value: s }}); setOpenFilter(null) }}>{s}</div>
                     ))}
                   </div>
-                )}
-              </div>
-            </div>
-            <div style={styles.drawerGroup}>
-              <label style={styles.drawerLabel}>קוטר מתאים (טווח)</label>
-              <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-                <input
-                  type="number"
-                  style={{...styles.drawerInput, flex: 1}}
-                  placeholder="מ-"
-                  value={columnFilters.rim_sizes_allowed.value}
-                  onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: e.target.value ? 'range' : '', value: e.target.value, valueTo: columnFilters.rim_sizes_allowed.valueTo || '' }})}
-                />
-                <span style={{color:'#94a3b8'}}>—</span>
-                <input
-                  type="number"
-                  style={{...styles.drawerInput, flex: 1}}
-                  placeholder="עד"
-                  value={columnFilters.rim_sizes_allowed.valueTo || ''}
-                  onChange={e => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: columnFilters.rim_sizes_allowed.value ? 'range' : '', value: columnFilters.rim_sizes_allowed.value, valueTo: e.target.value }})}
-                />
-                {(columnFilters.rim_sizes_allowed.value || columnFilters.rim_sizes_allowed.valueTo) && (
-                  <button style={styles.filterClearBtn} onClick={() => setColumnFilters({...columnFilters, rim_sizes_allowed: { type: '', value: '', valueTo: '' }})}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                 )}
               </div>
             </div>
@@ -2640,16 +2581,6 @@ function VehiclesAdminPage() {
 
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>קטרים מתאימים</label>
-                  <input
-                    type="text"
-                    placeholder="14, 15, 16"
-                    value={editForm.rim_sizes_allowed}
-                    onChange={e => setEditForm({...editForm, rim_sizes_allowed: e.target.value})}
-                    style={styles.formInput}
-                  />
-                </div>
-                <div style={styles.formGroup}>
                   <label style={styles.formLabel}>קישור למקור</label>
                   <input
                     type="url"
@@ -2791,7 +2722,6 @@ function VehiclesAdminPage() {
                       {key: 'bolt_spacing', label: 'PCD'},
                       {key: 'center_bore', label: 'Center Bore'},
                       {key: 'rim_size', label: 'חישוק'},
-                      {key: 'rim_sizes_allowed', label: 'קטרים מתאימים'},
                       {key: 'tire_size_front', label: 'צמיג'},
                       {key: 'source_url', label: 'מקור'}
                     ].map(({key, label}) => {

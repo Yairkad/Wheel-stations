@@ -218,7 +218,6 @@ async function scrapeWheelfitmentForLookup(make: string, model: string, year: nu
   bolt_count: number
   bolt_spacing: number
   center_bore: number | null
-  rim_sizes_allowed: number[]
   source_url: string
 } | null> {
   const makeNormalized = normalizeMakeForWheelfitment(make)
@@ -299,26 +298,10 @@ async function scrapeWheelfitmentForLookup(make: string, model: string, year: nu
     const cbMatch = modelHtml.match(/Center\s*bore[^<]*<\/td>\s*<td[^>]*>([\d.]+)/i)
     const centerBore = cbMatch ? parseFloat(cbMatch[1]) : null
 
-    // Extract rim sizes
-    const tireSizesMatch = modelHtml.match(/Possible\s*tire\s*sizes[^<]*<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/i)
-    const rimSizesAllowed: number[] = []
-
-    if (tireSizesMatch) {
-      const rimMatches = tireSizesMatch[1].matchAll(/R(\d{2})/g)
-      for (const m of rimMatches) {
-        const size = parseInt(m[1])
-        if (size >= 12 && size <= 24 && !rimSizesAllowed.includes(size)) {
-          rimSizesAllowed.push(size)
-        }
-      }
-      rimSizesAllowed.sort((a, b) => a - b)
-    }
-
     return {
       bolt_count: boltCount,
       bolt_spacing: boltSpacing,
       center_bore: centerBore,
-      rim_sizes_allowed: rimSizesAllowed,
       source_url: modelPageUrl
     }
   } catch (error) {
@@ -453,7 +436,6 @@ async function findPcdData(
           bolt_count: wheelfitmentData.bolt_count,
           bolt_spacing: wheelfitmentData.bolt_spacing,
           center_bore: wheelfitmentData.center_bore,
-          rim_sizes_allowed: wheelfitmentData.rim_sizes_allowed,
           source_url: wheelfitmentData.source_url,
           source: 'wheelfitment.eu'
         })
@@ -473,7 +455,6 @@ async function findPcdData(
           bolt_count: wheelfitmentData.bolt_count,
           bolt_spacing: wheelfitmentData.bolt_spacing,
           center_bore: wheelfitmentData.center_bore,
-          rim_sizes_allowed: wheelfitmentData.rim_sizes_allowed,
           source_url: wheelfitmentData.source_url,
           source: 'wheelfitment.eu',
           added_by: 'auto-lookup'
@@ -564,7 +545,6 @@ export async function GET(request: NextRequest) {
             bolt_spacing: pcdData.bolt_spacing,
             pcd: `${pcdData.bolt_count}x${pcdData.bolt_spacing}`,
             center_bore: pcdData.center_bore,
-            rim_sizes_allowed: pcdData.rim_sizes_allowed,
             source_url: pcdData.source_url,
           } : null,
           pcd_found: !!pcdData
@@ -624,7 +604,6 @@ export async function GET(request: NextRequest) {
             bolt_spacing: pcdData.bolt_spacing,
             pcd: `${pcdData.bolt_count}x${pcdData.bolt_spacing}`,
             center_bore: pcdData.center_bore,
-            rim_sizes_allowed: pcdData.rim_sizes_allowed,
             source_url: pcdData.source_url,
           } : null,
           pcd_found: !!pcdData
@@ -678,7 +657,6 @@ export async function GET(request: NextRequest) {
         bolt_spacing: pcdData.bolt_spacing,
         pcd: `${pcdData.bolt_count}x${pcdData.bolt_spacing}`,
         center_bore: pcdData.center_bore,
-        rim_sizes_allowed: pcdData.rim_sizes_allowed,
         source_url: pcdData.source_url,
       } : null,
       pcd_found: !!pcdData

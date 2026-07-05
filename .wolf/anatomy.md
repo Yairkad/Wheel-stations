@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-03T11:18:48.224Z
-> Files: 19 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-05T23:11:09.026Z
+> Files: 29 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -11,6 +11,7 @@
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/
 
 - `append_bug.py` (~408 tok)
+- `append_bug2.py` (~650 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/
 
@@ -19,11 +20,13 @@
 
 ## ../../../.claude/plans/
 
+- `velvet-weaving-planet.md` — Replace "allowed rim sizes" with a computed own-rim ±1 + relative-diameter rule (~3441 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
-- `MEMORY.md` — Memory Index (~270 tok)
+- `MEMORY.md` — Memory Index (~314 tok)
 - `project_et_offset_misunderstanding.md` (~575 tok)
+- `project_rim_sizes_allowed_removed.md` — Declares of (~641 tok)
 
 ## ./
 
@@ -59,7 +62,7 @@
 
 ## src/__tests__/
 
-- `vehicle-mappings.test.ts` — Vehicle Mappings Tests (~2434 tok)
+- `vehicle-mappings.test.ts` — Vehicle Mappings Tests (~3699 tok)
 
 ## src/app/
 
@@ -97,6 +100,7 @@
 
 ## src/app/admin/vehicles/
 
+- `page.tsx` — VehiclesAdminPageWrapper (~44236 tok)
 
 ## src/app/api/admin/analytics/
 
@@ -136,6 +140,7 @@
 
 ## src/app/api/admin/scrape-wheelfitment/
 
+- `route.ts` — Scrape Wheel Fitment API (~2836 tok)
 
 ## src/app/api/admin/session/
 
@@ -263,12 +268,14 @@
 
 ## src/app/api/vehicle-models/reverse-search/
 
+- `route.ts` — Next.js API route: GET (~1276 tok)
 
 ## src/app/api/vehicle-models/scrape/
 
 
 ## src/app/api/vehicle/lookup/
 
+- `route.ts` — Vehicle Lookup API (~6783 tok)
 
 ## src/app/api/vehicle/ocr/
 
@@ -366,12 +373,14 @@
 
 ## src/app/lookup/
 
+- `page.tsx` — extractRimSize (~3893 tok)
 
 ## src/app/ocr-test/
 
 
 ## src/app/operator/
 
+- `page.tsx` — OperatorPage (~24830 tok)
 
 ## src/app/privacy/
 
@@ -381,17 +390,18 @@
 
 ## src/app/reverse-search/
 
+- `page.tsx` — ReverseSearchPage (~17837 tok)
 
 ## src/app/search/
 
-- `page.tsx` — VEHICLE_HISTORY_KEY (~47232 tok)
+- `page.tsx` — VEHICLE_HISTORY_KEY (~46660 tok)
 
 ## src/app/sign/[stationId]/
 
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~37344 tok)
+- `page.tsx` — WheelStationsPage (~36796 tok)
 
 ## src/app/super-manager/
 
@@ -410,7 +420,7 @@
 
 ## src/lib/
 
-- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~1819 tok)
+- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~2734 tok)
 
 ## src/stories/mocks/
 

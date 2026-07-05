@@ -1535,6 +1535,268 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-03T11:10:59.601Z"
+    },
+    {
+      "id": "bug-096",
+      "timestamp": "2026-07-05T19:03:11.794Z",
+      "error_message": "Type error",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T19:03:11.794Z"
+    },
+    {
+      "id": "bug-097",
+      "timestamp": "2026-07-05T19:03:34.700Z",
+      "error_message": "Wrong reference: getTireDiameterMm should be checkRimFit",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Used \"getTireDiameterMm\" instead of \"checkRimFit\"",
+      "fix": "Changed getTireDiameterMm → checkRimFit",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-05T19:07:51.893Z"
+    },
+    {
+      "id": "bug-098",
+      "timestamp": "2026-07-05T19:03:55.228Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 13→3 lines (8 removed) | Also: const allowedSizes = vehicleResult.wheel_fitment?.; const effectiveRimSizes: number[] | null = | Also: {/* Allowed sizes row */}; {vehicleResult.wheel_fitment.rim_sizes_allowed && ",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-07-05T19:08:37.600Z"
+    },
+    {
+      "id": "bug-099",
+      "timestamp": "2026-07-05T19:06:12.428Z",
+      "error_message": "CSS fix: color",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "color: '#7c3aed', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' → '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'",
+      "fix": "Changed color: '#7c3aed', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' → '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-05T19:09:02.271Z"
+    },
+    {
+      "id": "bug-100",
+      "timestamp": "2026-07-05T19:16:06.306Z",
+      "error_message": "CSS fix: bolt_count",
+      "file": "src/app/reverse-search/page.tsx",
+      "root_cause": "bolt_count: number, bolt_spacing: number, center_bore?: number, rim_sizes?: number[]) => { → number, bolt_spacing: number, center_bore?: number, source_tire?: string | null) => {",
+      "fix": "Changed bolt_count: number, bolt_spacing: number, center_bore?: number, rim_sizes?: number[]) => { → number, bolt_spacing: number, center_bore?: number, source_tire?: string | null) => {",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T19:16:06.306Z"
+    },
+    {
+      "id": "bug-101",
+      "timestamp": "2026-07-05T19:16:17.676Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/reverse-search/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: const rimFit = checkVehicleRimFit(cmpA.result?.vehicle?.fron; return { pcdMatch, cbLevel, cbDiff, rimFit, overall } | Also: <span style={{ color: '#9ca3af' }}>גודל חישוק (± מידה אחת)</; <span style={{ fontWeight: 600, color: outcome.rimFit === 'm | Also: {/* Rim size badge — candidate's own rim vs. the source vehi; const candidateRimFallback = vehicle.rim_size ? parseInt(veh",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-07-05T19:18:26.139Z"
+    },
+    {
+      "id": "bug-102",
+      "timestamp": "2026-07-05T19:17:45.927Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/reverse-search/page.tsx",
+      "root_cause": "Had '}\n                        {v.result.wheel_fitment",
+      "fix": "Changed to '}\n                        {extractRimSize(v.resul",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 5,
+      "last_seen": "2026-07-05T19:25:38.882Z"
+    },
+    {
+      "id": "bug-103",
+      "timestamp": "2026-07-05T19:19:27.245Z",
+      "error_message": "Wrong operator: === should be !==",
+      "file": "src/app/api/vehicle-models/reverse-search/route.ts",
+      "root_cause": "Used \"===\" instead of \"!==\"",
+      "fix": "Changed operator === → !==",
+      "tags": [
+        "auto-detected",
+        "operator-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T19:19:27.245Z"
+    },
+    {
+      "id": "bug-104",
+      "timestamp": "2026-07-05T19:24:53.981Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 8→5 lines (4 removed) | Also: <div style={styles.drawerGroup}>; <label style={styles.drawerLabel}>קוטר מתאים (טווח | Also: <label style={styles.formLabel}>קטרים מתאימים</lab; <input",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-07-05T19:27:53.999Z"
+    },
+    {
+      "id": "bug-105",
+      "timestamp": "2026-07-05T19:29:42.336Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "11 lines replaced/restructured",
+      "fix": "Rewrote 22→6 lines (11 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T19:29:42.336Z"
+    },
+    {
+      "id": "bug-106",
+      "timestamp": "2026-07-05T19:42:14.479Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/api/admin/scrape-wheelfitment/route.ts",
+      "root_cause": "Had 'center_bore.is.null,rim_sizes_allowed.is.null,sou",
+      "fix": "Changed to 'center_bore.is.null,source_url.is.null'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T19:42:14.479Z"
+    },
+    {
+      "id": "bug-107",
+      "timestamp": "2026-07-05T19:42:32.198Z",
+      "error_message": "Wrong condition in logic",
+      "file": "src/app/api/admin/scrape-wheelfitment/route.ts",
+      "root_cause": "Condition was: if (wheelData.rimSizes.length > 0 && !vehicle.rim_size)",
+      "fix": "Changed to: if (match.url && !vehicle.source_url)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T19:42:32.198Z"
+    },
+    {
+      "id": "bug-108",
+      "timestamp": "2026-07-05T19:43:51.614Z",
+      "error_message": "Type error",
+      "file": "src/__tests__/vehicle-mappings.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: it('uses the rim fallback for both the window check and the ; expect(checkVehicleRimFit('205/60R16', '205/60', 16)).toBe('",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-05T19:44:20.543Z"
+    },
+    {
+      "id": "bug-109",
+      "timestamp": "2026-07-05T23:00:00.000Z",
+      "error_message": "חיפוש רכב (מזדה 6, 205/60R16, מידה עצמית 16) הציג 'קוטר לא תואם' על גלגלי 16 האמיתיים של הרכב, בעוד גלגלי 18 (2 מידות גדול יותר) עברו בלי אזהרה. גם דווח שהנתון מה-DB (rim_sizes_allowed) הציג 17-20 - טווח שלא כלל את המידה המקורית של הרכב בכלל",
+      "file": "src/lib/vehicle-mappings.ts, src/app/search/page.tsx, src/app/stations/page.tsx, src/app/operator/page.tsx, src/app/lookup/page.tsx, src/app/reverse-search/page.tsx, src/app/api/vehicle-models/reverse-search/route.ts, src/app/admin/vehicles/page.tsx, src/app/api/vehicle/lookup/route.ts, src/app/api/admin/scrape-wheelfitment/route.ts",
+      "root_cause": "effectiveRimSizes דרס לגמרי את מידת הג'אנט העצמית של הרכב בכל פעם שדה rim_sizes_allowed (מגיע מסקרייפ חיצוני של wheelfitment.eu) לא היה ריק - כלומר גם כשהוא לא כלל את המידה האמיתית. השדה עצמו התגלה כשביר: text[] ב-DB למרות טיפוס number[] ב-TS (bug-001 הישן), טופס אדמין free-text שיכול לחתוך טווח שהוקלד עם מקף ('17-20'->17 בשקט דרך parseInt), וסקרייפ אוטומטי בכל חיפוש לוחית שדורס את השדה בשקט כשאין source_url.",
+      "fix": "הוחלף לגמרי: פונקציה חדשה checkRimFit()/checkVehicleRimFit() ב-vehicle-mappings.ts - מידת ג'אנט עצמית של הרכב (מהצמיג המקורי) +-1 מידה, מאומת ביחס לקוטר גלגול יחסי (getTireDiameterMm, סף 3%, קיים כבר). נוסף מצב שלישי needs_tire_data לגלגל בטווח בלי מידת צמיג רשומה (במקום מעבר שקט). הוסר rim_sizes_allowed לגמרי מהתאמה/תצוגה בכל הדפים (search, stations, operator, lookup, reverse-search כולל ה-API שלו), מכלי האדמין (admin/vehicles), ומשני נתיבי הכתיבה השקטים (api/vehicle/lookup auto-rescrape, admin scrape-wheelfitment batch job). עמודת ה-DB לא נמחקה בסשן הזה (אין גישת DB) - צעד נפרד עתידי.",
+      "tags": [
+        "product-misunderstanding",
+        "rim-size",
+        "wheel-fitment",
+        "data-corruption",
+        "reverse-search",
+        "vehicle-mappings",
+        "safety"
+      ],
+      "related_bugs": [
+        "bug-001"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T23:00:00.000Z"
+    },
+    {
+      "id": "bug-110",
+      "timestamp": "2026-07-05T23:10:06.661Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T23:10:06.661Z"
+    },
+    {
+      "id": "bug-111",
+      "timestamp": "2026-07-05T23:11:09.051Z",
+      "error_message": "Type error",
+      "file": "src/__tests__/vehicle-mappings.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-05T23:11:09.051Z"
     }
   ]
 }

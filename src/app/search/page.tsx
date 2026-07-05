@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import { VERSION } from '@/lib/version'
 import { Station, Manager, SearchResult, FilterOptions, VehicleModelRecord } from '@/lib/types'
-import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, getTireDiameterMm } from '@/lib/vehicle-mappings'
+import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 
 type VehicleSearchResult = {
@@ -26,7 +26,6 @@ type VehicleSearchResult = {
     bolt_count: number
     bolt_spacing: number
     center_bore?: number
-    rim_sizes_allowed?: number[]
     source_url?: string
   } | null
   source?: string
@@ -616,7 +615,6 @@ function SearchPageContent() {
           bolt_count: model.bolt_count,
           bolt_spacing: model.bolt_spacing,
           center_bore: model.center_bore || undefined,
-          rim_sizes_allowed: model.rim_sizes_allowed || undefined,
           source_url: model.source_url || undefined
         }
         setVehicleResult({
@@ -666,7 +664,6 @@ function SearchPageContent() {
         bolt_count: selectedModel.bolt_count,
         bolt_spacing: selectedModel.bolt_spacing,
         center_bore: selectedModel.center_bore || undefined,
-        rim_sizes_allowed: selectedModel.rim_sizes_allowed || undefined,
         source_url: selectedModel.source_url || undefined
       }
 
@@ -2155,16 +2152,6 @@ function SearchPageContent() {
                       )}
                     </div>
 
-                    {/* Allowed sizes row */}
-                    {vehicleResult.wheel_fitment.rim_sizes_allowed && vehicleResult.wheel_fitment.rim_sizes_allowed.length > 0 && (
-                      <div style={styles.allowedSizesRow}>
-                        <span style={styles.allowedSizesLabel}>גדלים מותרים:</span>
-                        <span style={styles.allowedSizesValue}>
-                          {vehicleResult.wheel_fitment.rim_sizes_allowed.join('" / ')}"
-                        </span>
-                      </div>
-                    )}
-
                     {/* Actions row */}
                     <div style={styles.fitmentActionsRow}>
                       {/* Manual rim size selector when no tire info available */}
@@ -2204,11 +2191,6 @@ function SearchPageContent() {
                     {(() => {
                       const vehicleRimSize = extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize
                       const isPersonalImport = vehicleResult.is_personal_import
-                      const allowedSizes = vehicleResult.wheel_fitment?.rim_sizes_allowed
-                      const effectiveRimSizes: number[] | null =
-                        (allowedSizes && allowedSizes.length > 0) ? allowedSizes.map(Number)
-                        : vehicleRimSize ? [vehicleRimSize]
-                        : null
 
                       // Show all wheels with matching PCD — available as clickable, borrowed as grayed-out
                       const allResults = vehicleSearchResults?.filter(result => result.wheels.length > 0) || []
@@ -2294,14 +2276,8 @@ function SearchPageContent() {
                                     const wheelCB = wheel.center_bore
                                     const cbNeedsRing = vehicleCB && wheelCB && (wheelCB - vehicleCB) >= 2
                                     const wheelRim = wheel.rim_size ? parseInt(wheel.rim_size) : null
-                                    const rimMismatch = effectiveRimSizes && wheelRim
-                                      ? !effectiveRimSizes.includes(wheelRim)
-                                      : false
-                                    const vehicleTireDiameter = getTireDiameterMm(vehicleResult?.vehicle?.front_tire)
-                                    const wheelTireDiameter = getTireDiameterMm(wheel.tire_size, wheelRim)
-                                    const diameterMismatch = !wheel.is_donut && vehicleTireDiameter && wheelTireDiameter
-                                      ? Math.abs(wheelTireDiameter - vehicleTireDiameter) / vehicleTireDiameter > 0.03
-                                      : false
+                                    const rimFit = checkRimFit(vehicleResult?.vehicle?.front_tire, wheelRim, wheel.tire_size, wheel.is_donut, manualRimSize)
+                                    const rimMismatch = rimFit === 'mismatch'
                                     return (
                                     <Link
                                       key={wheel.id}
@@ -2329,9 +2305,9 @@ function SearchPageContent() {
                                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> יתכן ונדרש טבעת מירכוז
                                         </div>
                                       )}
-                                      {diameterMismatch && (
-                                        <div style={{color: '#7c3aed', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> קוטר גלגול שונה משמעותית
+                                      {rimFit === 'needs_tire_data' && (
+                                        <div style={{color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> חסרה מידת צמיג לגלגל זה — יש לבדוק ולמלא
                                         </div>
                                       )}
                                     </Link>
@@ -3569,26 +3545,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1.1rem',
     fontWeight: 'bold',
     color: '#1e293b',
-  },
-  allowedSizesRow: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: '8px',
-    marginBottom: '12px',
-    padding: '8px 16px',
-    background: '#f0fdf4',
-    borderRadius: '8px',
-    border: '1px solid #bbf7d0',
-  },
-  allowedSizesLabel: {
-    fontSize: '0.8rem',
-    color: '#16a34a',
-  },
-  allowedSizesValue: {
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
-    color: '#15803d',
   },
   fitmentActionsRow: {
     display: 'flex',

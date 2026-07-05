@@ -52,7 +52,6 @@ interface VehicleInfo {
   rim_size: string
   front_tire?: string | null
   center_bore?: number | null
-  rim_sizes_allowed?: number[] | null
   source_url?: string | null
 }
 
@@ -553,7 +552,6 @@ export default function OperatorPage() {
             rim_size: rimSize ? rimSize.toString() : '',
             front_tire: plateData.vehicle.front_tire,
             center_bore: plateData.wheel_fitment.center_bore || null,
-            rim_sizes_allowed: plateData.wheel_fitment.rim_sizes_allowed || null,
             source_url: plateData.wheel_fitment.source_url || null
           }
         } else {
@@ -607,7 +605,6 @@ export default function OperatorPage() {
           rim_size: vehicleModel.rim_size || '',
           front_tire: vehicleModel.tire_size_front || null,
           center_bore: vehicleModel.center_bore || null,
-          rim_sizes_allowed: vehicleModel.rim_sizes_allowed || null,
           source_url: vehicleModel.source_url || null
         }
       }
@@ -696,7 +693,6 @@ export default function OperatorPage() {
         rim_size: selectedModel.rim_size || '',
         front_tire: selectedModel.tire_size_front || null,
         center_bore: selectedModel.center_bore || null,
-        rim_sizes_allowed: selectedModel.rim_sizes_allowed || null,
         source_url: selectedModel.source_url || null
       }
 
@@ -1258,14 +1254,6 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                   </div>
                 )}
               </div>
-              {vehicleInfo.rim_sizes_allowed && vehicleInfo.rim_sizes_allowed.length > 0 && (
-                <div style={styles.allowedSizesBox}>
-                  <span style={styles.allowedSizesLabel}>גדלים מותרים:</span>
-                  <span style={styles.allowedSizesValue}>
-                    {vehicleInfo.rim_sizes_allowed.join('" / ')}"
-                  </span>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -1915,25 +1903,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1rem',
     fontWeight: 'bold',
     color: '#1e293b',
-  },
-  allowedSizesBox: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '6px 12px',
-    background: '#f0fdf4',
-    borderRadius: '8px',
-    border: '1px solid #bbf7d0',
-  },
-  allowedSizesLabel: {
-    fontSize: '0.75rem',
-    color: '#16a34a',
-  },
-  allowedSizesValue: {
-    fontSize: '0.85rem',
-    fontWeight: 'bold',
-    color: '#16a34a',
   },
   sourceLink: {
     background: '#eff6ff',

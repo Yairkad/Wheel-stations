@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { checkVehicleRimFit } from '@/lib/vehicle-mappings'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const bolt_count = searchParams.get('bolt_count')
     const bolt_spacing = searchParams.get('bolt_spacing')
     const center_bore = searchParams.get('center_bore')
-    const rim_size = searchParams.get('rim_size')
+    const source_tire = searchParams.get('source_tire')
 
     if (!bolt_count || !bolt_spacing) {
       return NextResponse.json(
@@ -72,23 +73,14 @@ export async function GET(request: NextRequest) {
       }
     }).filter(v => v !== null)
 
-    // Filter by rim sizes - donors must have at least one rim size overlapping with target
-    const rim_sizes_param = searchParams.get('rim_sizes') // comma-separated list
-    let targetRimSizes: number[] = []
-    if (rim_sizes_param) {
-      targetRimSizes = rim_sizes_param.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
-    } else if (rim_size) {
-      const n = parseInt(rim_size)
-      if (!isNaN(n)) targetRimSizes = [n]
-    }
+    // Filter by rim size - candidate's own rim must be within ±1" of the source vehicle's own
+    // rim, with a relative rolled-diameter check when both tire specs are known (checkVehicleRimFit).
+    // A candidate with no rim data at all, or a source with no rim data, is treated as compatible —
+    // only an actual confirmed mismatch excludes a candidate.
     const filtered = results.filter(v => {
-      if (targetRimSizes.length === 0) return true
-      const donorRimSize = v.rim_size ? parseInt(v.rim_size) : null
-      const donorRimSizes: number[] = v.rim_sizes_allowed?.map(Number) || (donorRimSize ? [donorRimSize] : [])
-      // Donor has no rim data → unknown, treat as compatible
-      if (donorRimSizes.length === 0) return true
-      // Check overlap between donor rim sizes and target allowed rim sizes
-      return donorRimSizes.some(size => targetRimSizes.includes(size))
+      if (!source_tire) return true
+      const candidateRimFallback = v.rim_size ? parseInt(v.rim_size) : null
+      return checkVehicleRimFit(source_tire, v.tire_size_front, candidateRimFallback) !== 'mismatch'
     })
 
     // Sort: exact first, then with_ring, then technical. Within each level, sort by CB difference

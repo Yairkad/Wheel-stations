@@ -3,7 +3,7 @@
  * POST /api/admin/scrape-wheelfitment
  *
  * Scrapes wheelfitment.eu for vehicles missing data in our Supabase database
- * and updates them with center_bore, rim_sizes_allowed, and source_url
+ * and updates them with center_bore and source_url
  *
  * Body parameters:
  *   - make?: string - Filter by make name
@@ -121,7 +121,6 @@ async function getModelsForMake(make: string): Promise<WheelfitmentModel[]> {
 interface WheelData {
   pcd: string | null
   centerBore: number | null
-  rimSizes: number[]
   boltCount: number | null
   boltSpacing: number | null
 }
@@ -155,23 +154,7 @@ async function getWheelData(url: string): Promise<WheelData | null> {
     const cbMatch = html.match(/Center\s*bore[^<]*<\/td>\s*<td[^>]*>([\d.]+)/i)
     const centerBore = cbMatch ? parseFloat(cbMatch[1]) : null
 
-    // Extract tire sizes
-    const tireSizesMatch = html.match(/Possible\s*tire\s*sizes[^<]*<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/i)
-    const rimSizes: number[] = []
-
-    if (tireSizesMatch) {
-      const sizesStr = tireSizesMatch[1]
-      const rimMatches = sizesStr.matchAll(/R(\d{2})/g)
-      for (const m of rimMatches) {
-        const size = parseInt(m[1])
-        if (size >= 12 && size <= 24 && !rimSizes.includes(size)) {
-          rimSizes.push(size)
-        }
-      }
-      rimSizes.sort((a, b) => a - b)
-    }
-
-    return { pcd, centerBore, rimSizes, boltCount, boltSpacing }
+    return { pcd, centerBore, boltCount, boltSpacing }
   } catch (error) {
     console.error(`Error fetching wheel data from ${url}:`, error)
     return null
@@ -223,7 +206,7 @@ export async function POST(request: NextRequest) {
     let query = supabase
       .from('vehicle_models')
       .select('*')
-      .or('center_bore.is.null,rim_sizes_allowed.is.null,source_url.is.null')
+      .or('center_bore.is.null,source_url.is.null')
       .limit(limit)
 
     if (makeFilter) {
@@ -307,9 +290,6 @@ export async function POST(request: NextRequest) {
 
       if (wheelData.centerBore && !vehicle.center_bore) {
         updates.center_bore = wheelData.centerBore
-      }
-      if (wheelData.rimSizes.length > 0 && !vehicle.rim_sizes_allowed) {
-        updates.rim_sizes_allowed = wheelData.rimSizes
       }
       if (match.url && !vehicle.source_url) {
         updates.source_url = match.url
