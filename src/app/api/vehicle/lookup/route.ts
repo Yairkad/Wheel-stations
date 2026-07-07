@@ -351,66 +351,47 @@ async function findPcdData(
       }
     }
 
-    // Second try: exact model match by commercial name
-    const { data: vehicleModels, error } = await supabase
-      .from('vehicle_models')
-      .select('*')
-      .or(makeCondition)
-      .ilike('model', `%${modelLower}%`)
-      .lte('year_from', year)
-      .or(`year_to.gte.${year},year_to.is.null`)
-      .limit(1)
-
-    if (!error && vehicleModels && vehicleModels.length > 0) {
-      return vehicleModels[0]
-    }
-
-    // Second-B try: model match with spaces stripped (e.g. "mazda 2" → "mazda2")
+    // Second try: match by commercial model name or variants, requiring the DB
+    // row's model/variant text to be fully contained WITHIN the query — not the
+    // other way around. A query-contained-in-DB-text match (the old behavior)
+    // let a generic query like "impreza" match a more specific trim row like
+    // "impreza wrx sti" (different bolt pattern) whenever no row existed for the
+    // base model in that exact year range. Among all rows the query covers,
+    // keep the most specific (longest) one — it's the closest real match.
     const modelNoSpaces = modelLower.replace(/\s+/g, '')
-    if (modelNoSpaces !== modelLower) {
-      const resultNoSpaces = await supabase
-        .from('vehicle_models')
-        .select('*')
-        .or(makeCondition)
-        .ilike('model', `%${modelNoSpaces}%`)
-        .lte('year_from', year)
-        .or(`year_to.gte.${year},year_to.is.null`)
-        .limit(1)
-
-      if (!resultNoSpaces.error && resultNoSpaces.data && resultNoSpaces.data.length > 0) {
-        return resultNoSpaces.data[0]
-      }
-    }
-
-    // Third try: search in variants column
-    const result2 = await supabase
+    const { data: candidates, error } = await supabase
       .from('vehicle_models')
       .select('*')
       .or(makeCondition)
-      .ilike('variants', `%${modelLower}%`)
       .lte('year_from', year)
       .or(`year_to.gte.${year},year_to.is.null`)
-      .limit(1)
+      .limit(200)
 
-    if (!result2.error && result2.data && result2.data.length > 0) {
-      return result2.data[0]
-    }
+    if (!error && candidates && candidates.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let best: { row: any; specificity: number } | null = null
 
-    // Fourth try: search for first word only
-    if (modelLower.includes(' ')) {
-      const firstWord = modelLower.split(' ')[0]
-      const result3 = await supabase
-        .from('vehicle_models')
-        .select('*')
-        .or(makeCondition)
-        .ilike('model', `%${firstWord}%`)
-        .lte('year_from', year)
-        .or(`year_to.gte.${year},year_to.is.null`)
-        .limit(1)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const row of candidates as any[]) {
+        const dbModel = (row.model || '').toLowerCase().trim()
+        const dbModelNoSpaces = dbModel.replace(/\s+/g, '')
+        const modelMatches = dbModel.length > 0 &&
+          (modelLower.includes(dbModel) || modelNoSpaces.includes(dbModelNoSpaces))
 
-      if (!result3.error && result3.data && result3.data.length > 0) {
-        return result3.data[0]
+        const dbVariants = (row.variants || '').toLowerCase().split(/[|,]/).map((v: string) => v.trim()).filter(Boolean)
+        const matchedVariant = dbVariants.find((v: string) =>
+          modelLower.includes(v) || modelNoSpaces.includes(v.replace(/\s+/g, ''))
+        )
+
+        if (modelMatches || matchedVariant) {
+          const specificity = Math.max(dbModel.length, matchedVariant ? matchedVariant.length : 0)
+          if (!best || specificity > best.specificity) {
+            best = { row, specificity }
+          }
+        }
       }
+
+      if (best) return best.row
     }
 
     return null

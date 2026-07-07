@@ -5,6 +5,7 @@ import {
   modelToMake,
   extractRimSize,
   getTireDiameterMm,
+  getDiameterDiffPct,
   checkRimFit,
   checkVehicleRimFit
 } from '@/lib/vehicle-mappings'
@@ -278,6 +279,32 @@ describe('getTireDiameterMm - חישוב קוטר גלגול כולל ממחרו
 
   it('returns null when rimSizeOverride is null and the string has no rim suffix', () => {
     expect(getTireDiameterMm('205/55', null)).toBeNull()
+  })
+})
+
+// =====================
+// getDiameterDiffPct
+// =====================
+describe('getDiameterDiffPct - הפרש קוטר גלגול באחוזים (למחשבון ולהצגת האחוז המדויק באזהרה)', () => {
+  it('computes the exact percentage difference between two tire specs', () => {
+    // vehicle: 652.4mm; wheel: 677.8mm → diff 25.4mm → 25.4/652.4 = 3.893%
+    expect(getDiameterDiffPct('205/60R16', '205/60', 17)).toBeCloseTo(3.893, 2)
+  })
+
+  it('returns 0 for identical diameters', () => {
+    expect(getDiameterDiffPct('205/60R16', '205/60R16', 16)).toBe(0)
+  })
+
+  it('returns null when the vehicle tire is missing', () => {
+    expect(getDiameterDiffPct(null, '205/60', 17)).toBeNull()
+  })
+
+  it('returns null when the wheel tire is missing', () => {
+    expect(getDiameterDiffPct('205/60R16', null, 17)).toBeNull()
+  })
+
+  it('returns null when either tire string is unparseable', () => {
+    expect(getDiameterDiffPct('invalid', '205/60', 17)).toBeNull()
   })
 })
 

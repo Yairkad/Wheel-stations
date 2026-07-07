@@ -1797,6 +1797,152 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-05T23:11:09.051Z"
+    },
+    {
+      "id": "bug-112",
+      "timestamp": "2026-07-06T00:01:57.139Z",
+      "error_message": "Incorrect value in code",
+      "file": "public/report.html",
+      "root_cause": "Had \"partial\"",
+      "fix": "Changed to 'אנט (\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-06T00:01:57.139Z"
+    },
+    {
+      "id": "bug-113",
+      "timestamp": "2026-07-06T04:55:20.287Z",
+      "error_message": "Missing guard clause",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "No early return/throw for edge case: vehicleDiameter == null || wheelDiameter == null",
+      "fix": "Added guard clause: if (vehicleDiameter == null || wheelDiameter)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-06T04:55:20.287Z"
+    },
+    {
+      "id": "bug-114",
+      "timestamp": "2026-07-06T05:10:12.238Z",
+      "error_message": "Type error",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-06T05:10:12.238Z"
+    },
+    {
+      "id": "bug-115",
+      "timestamp": "2026-07-06T05:12:31.323Z",
+      "error_message": "Type error",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: const [calcModalWheel, setCalcModalWheel] = useState<{ wheel",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-06T05:16:59.567Z"
+    },
+    {
+      "id": "bug-116",
+      "timestamp": "2026-07-06T05:13:12.787Z",
+      "error_message": "CSS fix: wheelTireSize",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "wheelTireSize: string | null, wheelRimSize: number | null, wheelNumber: string → string | null | undefined, wheelRimSize: number | null, wheelNumber: string",
+      "fix": "Changed wheelTireSize: string | null, wheelRimSize: number | null, wheelNumber: string → string | null | undefined, wheelRimSize: number | null, wheelNumber: string",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-06T05:13:12.788Z"
+    },
+    {
+      "id": "bug-117",
+      "timestamp": "2026-07-06T05:14:05.417Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: {calcModalWheel && (; <TireDiameterCalculatorModal | Also: const diffPct = rimMismatch ? getDiameterDiffPct(vehicleResu; const openCalcModal = (e: React.MouseEvent) => {",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-07-06T05:18:11.335Z"
+    },
+    {
+      "id": "bug-118",
+      "timestamp": "2026-07-06T05:19:17.004Z",
+      "error_message": "Type error",
+      "file": "src/__tests__/vehicle-mappings.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-06T05:19:17.004Z"
+    },
+    {
+      "id": "bug-119",
+      "timestamp": "2026-07-07T20:40:26.297Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "No early return/throw for edge case: !error && candidates && candidates.length > 0",
+      "fix": "Added guard clause: if (!error && candidates && candidates.lengt)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T20:40:26.297Z"
+    },
+    {
+      "id": "bug-120",
+      "timestamp": "2026-07-07T00:00:00.000Z",
+      "error_message": "חיפוש לפי מספר רכב 5843659 (סובארו אימפרזה 2014) החזיר PCD של 114.3 במקום 100",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "findPcdData/searchDb() used `.ilike('model', '%modelLower%')` — requiring the DB's model text to CONTAIN the query. Since 'impreza wrx sti' contains 'impreza' as a substring, a plain query for \"impreza\" (year 2014) matched the more specific WRX STI trim row (bolt_spacing 114.3) instead of the base Impreza row (bolt_spacing 100), because the DB had no 'impreza' row covering exactly 2014 (only +2017) while the WRX STI row's 2007-2014 range happened to satisfy the year filter. Verified live against data.gov.il: plate 5843659 = kinuy_mishari \"IMPREZA\", shnat_yitzur 2014.",
+      "fix": "Rewrote the commercial-model match tier to fetch all make+year candidates and score them in JS, requiring the DB row's model/variant text to be fully CONTAINED WITHIN the query (`modelLower.includes(dbModel)`), not the reverse — then picks the most specific (longest) matching row. This also subsumed the old no-spaces and first-word fallback tiers (now redundant since containment on the full query handles both). When no DB row's text is contained in the query, searchDb() correctly returns null and findPcdData() falls through to the live wheelfitment.eu scrape instead of guessing.",
+      "tags": [
+        "vehicle-lookup",
+        "pcd-matching",
+        "substring-match",
+        "subaru",
+        "search-precision"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T00:00:00.000Z"
     }
   ]
 }

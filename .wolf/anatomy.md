@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-05T23:11:09.026Z
-> Files: 29 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-07T20:40:26.165Z
+> Files: 34 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -12,6 +12,7 @@
 
 - `append_bug.py` (~408 tok)
 - `append_bug2.py` (~650 tok)
+- `verify-calc.mjs` — Declares shotDir (~400 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/
 
@@ -20,7 +21,7 @@
 
 ## ../../../.claude/plans/
 
-- `velvet-weaving-planet.md` — Replace "allowed rim sizes" with a computed own-rim ±1 + relative-diameter rule (~3441 tok)
+- `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
@@ -30,6 +31,8 @@
 
 ## ./
 
+- `tmp-crop.mjs` — Declares shotDir (~149 tok)
+- `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
@@ -52,7 +55,7 @@
 ## public/
 
 - `guide.html` — מדריך עבודה – מערכת גלגלים ידידים (~4580 tok)
-- `report.html` — מערכת גלגלים ידידים – ניתוח משולב: שדה, נוהל וקוד (~8176 tok)
+- `report.html` — מערכת גלגלים ידידים – ניתוח משולב: שדה, נוהל וקוד (~9558 tok)
 
 ## scripts/
 
@@ -62,7 +65,7 @@
 
 ## src/__tests__/
 
-- `vehicle-mappings.test.ts` — Vehicle Mappings Tests (~3699 tok)
+- `vehicle-mappings.test.ts` — Vehicle Mappings Tests (~3984 tok)
 
 ## src/app/
 
@@ -275,7 +278,7 @@
 
 ## src/app/api/vehicle/lookup/
 
-- `route.ts` — Vehicle Lookup API (~6783 tok)
+- `route.ts` — Vehicle Lookup API (~6800 tok)
 
 ## src/app/api/vehicle/ocr/
 
@@ -394,20 +397,25 @@
 
 ## src/app/search/
 
-- `page.tsx` — VEHICLE_HISTORY_KEY (~46660 tok)
+- `page.tsx` — VEHICLE_HISTORY_KEY (~47573 tok)
 
 ## src/app/sign/[stationId]/
 
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~36796 tok)
+- `page.tsx` — WheelStationsPage (~37696 tok)
 
 ## src/app/super-manager/
 
 
+## src/app/tmp-calc-test/
+
+- `page.tsx` — TmpCalcTest (~500 tok)
+
 ## src/components/
 
+- `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
 ## src/components/admin/
 
@@ -420,7 +428,7 @@
 
 ## src/lib/
 
-- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~2734 tok)
+- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3026 tok)
 
 ## src/stories/mocks/
 

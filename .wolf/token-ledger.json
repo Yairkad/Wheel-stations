@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-27T11:27:32.663Z",
   "lifetime": {
-    "total_tokens_estimated": 12606560,
-    "total_reads": 1574,
-    "total_writes": 3366,
-    "total_sessions": 24,
-    "anatomy_hits": 738,
-    "anatomy_misses": 831,
-    "repeated_reads_blocked": 3092,
-    "estimated_savings_vs_bare_cli": 180203435
+    "total_tokens_estimated": 12730175,
+    "total_reads": 1590,
+    "total_writes": 3408,
+    "total_sessions": 27,
+    "anatomy_hits": 746,
+    "anatomy_misses": 839,
+    "repeated_reads_blocked": 3102,
+    "estimated_savings_vs_bare_cli": 180423324
   },
   "sessions": [
     {
@@ -28871,6 +28871,363 @@
         "writes_count": 73,
         "repeated_reads_blocked": 112,
         "anatomy_lookups": 6
+      }
+    },
+    {
+      "id": "session-2026-07-05-2314",
+      "started": "2026-07-05T20:14:41.990Z",
+      "ended": "2026-07-05T23:50:31.886Z",
+      "reads": [
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/vehicle-mappings.ts",
+          "tokens_estimated": 2634,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/vehicle-mappings.ts",
+          "tokens_estimated": 230,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 45,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/stations/page.tsx",
+          "tokens_estimated": 45,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/__tests__/vehicle-mappings.test.ts",
+          "tokens_estimated": 291,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 2634,
+        "output_tokens_estimated": 611,
+        "reads_count": 1,
+        "writes_count": 4,
+        "repeated_reads_blocked": 0,
+        "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-07-05-2314",
+      "started": "2026-07-05T20:14:41.990Z",
+      "ended": "2026-07-06T11:29:55.317Z",
+      "reads": [
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/vehicle-mappings.ts",
+          "tokens_estimated": 2918,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/report.html",
+          "tokens_estimated": 9427,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 47469,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/stations/page.tsx",
+          "tokens_estimated": 37592,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/bundled-skills/2.1.201/81a9819ce834e9b474f58664f9594bdd/run/examples/playwright.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/01-search-page.png",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/middleware.ts",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/calc-01-mismatch-case.png",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/calc-close-btn-zoom.png",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/TireDiameterCalculatorModal.tsx",
+          "tokens_estimated": 1728,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/calc-01-mismatch-case-v2.png",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/calc-03-needs-tire-data-case-v2.png",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/tmp-calc-test/page.tsx",
+          "tokens_estimated": 322,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/calc_diff.txt",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/vehicle-mappings.ts",
+          "tokens_estimated": 230,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 45,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/stations/page.tsx",
+          "tokens_estimated": 45,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/__tests__/vehicle-mappings.test.ts",
+          "tokens_estimated": 291,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/report.html",
+          "tokens_estimated": 1258,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/report.html",
+          "tokens_estimated": 83,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/report.html",
+          "tokens_estimated": 141,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/report.html",
+          "tokens_estimated": 216,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/report.html",
+          "tokens_estimated": 95,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/report.html",
+          "tokens_estimated": 317,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/.claude/plans/velvet-weaving-planet.md",
+          "tokens_estimated": 1664,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/vehicle-mappings.ts",
+          "tokens_estimated": 206,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/vehicle-mappings.ts",
+          "tokens_estimated": 406,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/TireDiameterCalculatorModal.tsx",
+          "tokens_estimated": 1728,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 84,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 59,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 79,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 264,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 463,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 555,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 127,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/stations/page.tsx",
+          "tokens_estimated": 66,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/stations/page.tsx",
+          "tokens_estimated": 68,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/stations/page.tsx",
+          "tokens_estimated": 1499,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/stations/page.tsx",
+          "tokens_estimated": 127,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/__tests__/vehicle-mappings.test.ts",
+          "tokens_estimated": 58,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/__tests__/vehicle-mappings.test.ts",
+          "tokens_estimated": 289,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/verify-calc.mjs",
+          "tokens_estimated": 429,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/tmp-verify-calc.mjs",
+          "tokens_estimated": 399,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/tmp-calc-test/page.tsx",
+          "tokens_estimated": 322,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/tmp-verify-calc.mjs",
+          "tokens_estimated": 559,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/tmp-crop.mjs",
+          "tokens_estimated": 159,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/TireDiameterCalculatorModal.tsx",
+          "tokens_estimated": 54,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/TireDiameterCalculatorModal.tsx",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/tmp-verify-calc.mjs",
+          "tokens_estimated": 412,
+          "action": "create"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/tmp-calc-test/page.tsx",
+          "tokens_estimated": 343,
+          "action": "edit"
+        },
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/tmp-verify-calc.mjs",
+          "tokens_estimated": 362,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 99456,
+        "output_tokens_estimated": 13540,
+        "reads_count": 14,
+        "writes_count": 37,
+        "repeated_reads_blocked": 8,
+        "anatomy_lookups": 6
+      }
+    },
+    {
+      "id": "session-2026-07-07-2335",
+      "started": "2026-07-07T20:35:18.924Z",
+      "ended": "2026-07-07T20:43:20.027Z",
+      "reads": [
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/vehicle/lookup/route.ts",
+          "tokens_estimated": 6800,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/vehicle/lookup/route.ts",
+          "tokens_estimated": 574,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 6800,
+        "output_tokens_estimated": 574,
+        "reads_count": 1,
+        "writes_count": 1,
+        "repeated_reads_blocked": 2,
+        "anatomy_lookups": 1
       }
     }
   ],

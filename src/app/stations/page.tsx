@@ -6,7 +6,8 @@ import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import { VERSION } from '@/lib/version'
 import { Station, Manager, SearchResult, FilterOptions } from '@/lib/types'
-import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit } from '@/lib/vehicle-mappings'
+import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit, getDiameterDiffPct } from '@/lib/vehicle-mappings'
+import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModal'
 import AppHeader from '@/components/AppHeader'
 
 export default function WheelStationsPage() {
@@ -106,6 +107,7 @@ export default function WheelStationsPage() {
   const [pendingVehicleData, setPendingVehicleData] = useState<any>(null)
 
   // Error report state
+  const [calcModalWheel, setCalcModalWheel] = useState<{ wheelTireSize: string | null | undefined, wheelRimSize: number | null, wheelNumber: string } | null>(null)
   const [showErrorReportModal, setShowErrorReportModal] = useState(false)
   const [errorReportVehicle, setErrorReportVehicle] = useState<any>(null)
   const [errorReportForm, setErrorReportForm] = useState({
@@ -1711,6 +1713,12 @@ export default function WheelStationsPage() {
                                     const wheelRim = wheel.rim_size ? parseInt(wheel.rim_size) : null
                                     const rimFit = checkRimFit(vehicleResult?.vehicle?.front_tire, wheelRim, wheel.tire_size, wheel.is_donut, manualRimSize)
                                     const rimMismatch = rimFit === 'mismatch'
+                                    const diffPct = rimMismatch ? getDiameterDiffPct(vehicleResult?.vehicle?.front_tire, wheel.tire_size, wheelRim) : null
+                                    const openCalcModal = (e: React.MouseEvent) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setCalcModalWheel({ wheelTireSize: wheel.tire_size, wheelRimSize: wheelRim, wheelNumber: wheel.wheel_number })
+                                    }
                                     return (
                                     <Link
                                       key={wheel.id}
@@ -1729,12 +1737,20 @@ export default function WheelStationsPage() {
                                       </div>
                                       {rimMismatch && (
                                         <div style={{color: '#dc2626', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> קוטר לא תואם
+                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                          <span>קוטר לא תואם{diffPct != null ? ` (הפרש ${diffPct.toFixed(1)}%)` : ''}</span>
+                                          <button onClick={openCalcModal} title="פתח מחשבון הפרש קוטר" style={{background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', display: 'inline-flex', flexShrink: 0}}>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="8" y1="18" x2="8.01" y2="18"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                          </button>
                                         </div>
                                       )}
                                       {rimFit === 'needs_tire_data' && (
                                         <div style={{color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> חסרה מידת צמיג לגלגל זה — יש לבדוק ולמלא
+                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                          <span>חסרה מידת צמיג לגלגל זה — יש לבדוק ולמלא</span>
+                                          <button onClick={openCalcModal} title="פתח מחשבון הפרש קוטר" style={{background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', display: 'inline-flex', flexShrink: 0}}>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="16" y1="10" x2="16.01" y2="10"/><line x1="8" y1="14" x2="8.01" y2="14"/><line x1="12" y1="14" x2="12.01" y2="14"/><line x1="16" y1="14" x2="16.01" y2="14"/><line x1="8" y1="18" x2="8.01" y2="18"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                                          </button>
                                         </div>
                                       )}
                                     </Link>
@@ -2232,6 +2248,16 @@ export default function WheelStationsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {calcModalWheel && (
+        <TireDiameterCalculatorModal
+          vehicleTire={vehicleResult?.vehicle?.front_tire}
+          wheelTireSize={calcModalWheel.wheelTireSize}
+          wheelRimSize={calcModalWheel.wheelRimSize}
+          wheelNumber={calcModalWheel.wheelNumber}
+          onClose={() => setCalcModalWheel(null)}
+        />
       )}
     </div>
     </>

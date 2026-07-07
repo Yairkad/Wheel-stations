@@ -133,10 +133,28 @@ export function getTireDiameterMm(tire: string | null | undefined, rimSizeOverri
   return rim * 25.4 + 2 * (width * aspect / 100)
 }
 
-// 'match': rim within ±1" of the reference and (if checked) rolled diameter within 3%.
+// Exact rolled-diameter difference as a percentage of the vehicle's own diameter, for display
+// (e.g. "קוטר לא תואם (הפרש 4.2%)") — null when either side's diameter can't be computed.
+export function getDiameterDiffPct(
+  vehicleTire: string | null | undefined,
+  wheelTireSize: string | null | undefined,
+  wheelRimSize: number | null
+): number | null {
+  const vehicleDiameter = getTireDiameterMm(vehicleTire)
+  const wheelDiameter = getTireDiameterMm(wheelTireSize, wheelRimSize)
+  if (vehicleDiameter == null || wheelDiameter == null) return null
+  return (Math.abs(wheelDiameter - vehicleDiameter) / vehicleDiameter) * 100
+}
+
+// Max relative rolled-diameter difference (as a fraction) still considered a match.
+// Shared with getDiameterDiffPct()'s consumers so the UI's calculator uses the same cutoff
+// as the actual match/mismatch decision, instead of a second hardcoded copy of "3%".
+export const DIAMETER_MISMATCH_THRESHOLD = 0.03
+
+// 'match': rim within ±1" of the reference and (if checked) rolled diameter within DIAMETER_MISMATCH_THRESHOLD.
 // 'needs_tire_data': rim is in the ±1" window but there's no tire size on record to confirm
 // the rolled diameter actually compensates for the size change.
-// 'mismatch': rim more than 1" away, or rolled diameter differs by more than 3%.
+// 'mismatch': rim more than 1" away, or rolled diameter differs by more than the threshold.
 export type RimFitStatus = 'match' | 'needs_tire_data' | 'mismatch'
 
 function compareRimAndDiameter(
@@ -152,7 +170,7 @@ function compareRimAndDiameter(
   if (ownDiameter == null) return 'match' // can't compare, don't block
   if (candidateDiameter == null) return 'needs_tire_data'
   const relDiff = Math.abs(candidateDiameter - ownDiameter) / ownDiameter
-  return relDiff <= 0.03 ? 'match' : 'mismatch'
+  return relDiff <= DIAMETER_MISMATCH_THRESHOLD ? 'match' : 'mismatch'
 }
 
 // Whether a donor wheel is a size-compatible match for a vehicle: rim within one size up/down
