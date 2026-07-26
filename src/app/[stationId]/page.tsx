@@ -299,6 +299,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [whatsAppPhone, setWhatsAppPhone] = useState('')
   const [whatsAppWheel, setWhatsAppWheel] = useState<Wheel | null>(null)
 
+  // Personal WhatsApp message wording modal
+  const [showWhatsAppTemplateModal, setShowWhatsAppTemplateModal] = useState(false)
+
   // Options menu for wheel cards
   const [openOptionsMenu, setOpenOptionsMenu] = useState<string | null>(null)
 
@@ -676,8 +679,11 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           break
         case 'password':
           setPasswordForm({ current: '', new: '', confirm: '' })
-          setWhatsappTemplateForm(currentManager?.whatsapp_message_template || '')
           setShowChangePasswordModal(true)
+          break
+        case 'whatsappTemplate':
+          setWhatsappTemplateForm(currentManager?.whatsapp_message_template || '')
+          setShowWhatsAppTemplateModal(true)
           break
         case 'recovery':
           handleShowRecoveryCert()
@@ -5054,35 +5060,42 @@ ${signFormUrl}
                 ביטול
               </button>
             </div>
+          </div>
+        </div>
+      )}
 
-            {/* Section: Personal WhatsApp message wording */}
-            <div style={{marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #374151'}}>
-              <h4 style={{margin: '0 0 8px', color: '#f59e0b', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>נוסח הודעת הוואטסאפ שלי</h4>
-              <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
-                הנוסח האישי שלך ישמש אוטומטית בכל פעם שאתה שולח קישור לטופס בוואטסאפ. השתמש ב-<code style={{background: '#374151', padding: '1px 5px', borderRadius: '4px'}}>{'{link}'}</code> במקום שבו הקישור לטופס יופיע.
-              </p>
-              <textarea
-                value={whatsappTemplateForm}
-                onChange={e => setWhatsappTemplateForm(e.target.value)}
-                placeholder={DEFAULT_WHATSAPP_TEMPLATE}
-                rows={5}
-                style={{...styles.input, width: '100%', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5}}
-              />
-              <div style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
-                <button
-                  style={{...styles.submitBtn, flex: 1, background: 'linear-gradient(135deg, #10b981, #059669)'}}
-                  onClick={handleSaveWhatsAppTemplate}
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? 'שומר...' : 'שמור נוסח'}
-                </button>
-                <button
-                  style={{...styles.cancelBtn, flex: 1}}
-                  onClick={() => setWhatsappTemplateForm('')}
-                >
-                  איפוס לברירת מחדל
-                </button>
-              </div>
+      {/* Personal WhatsApp Message Wording Modal */}
+      {showWhatsAppTemplateModal && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowWhatsAppTemplateModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="whatsapp-template-modal-title" style={{...styles.modal, maxWidth: '450px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="whatsapp-template-modal-title" style={{...styles.modalTitle, display:'inline-flex', alignItems:'center', gap:'6px'}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              נוסח הודעת הוואטסאפ שלי
+            </h3>
+            <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
+              הנוסח האישי שלך ישמש אוטומטית בכל פעם שאתה שולח קישור לטופס בוואטסאפ. השתמש ב-<code style={{background: '#374151', padding: '1px 5px', borderRadius: '4px'}}>{'{link}'}</code> במקום שבו הקישור לטופס יופיע.
+            </p>
+            <textarea
+              value={whatsappTemplateForm}
+              onChange={e => setWhatsappTemplateForm(e.target.value)}
+              placeholder={DEFAULT_WHATSAPP_TEMPLATE}
+              rows={6}
+              style={{...styles.input, width: '100%', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5}}
+            />
+            <div style={{display: 'flex', gap: '10px', marginTop: '14px'}}>
+              <button
+                style={{...styles.submitBtn, flex: 1, background: 'linear-gradient(135deg, #10b981, #059669)'}}
+                onClick={async () => { await handleSaveWhatsAppTemplate(); setShowWhatsAppTemplateModal(false) }}
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'שומר...' : 'שמור נוסח'}
+              </button>
+              <button
+                style={{...styles.cancelBtn, flex: 1}}
+                onClick={() => setShowWhatsAppTemplateModal(false)}
+              >
+                ביטול
+              </button>
             </div>
           </div>
         </div>
