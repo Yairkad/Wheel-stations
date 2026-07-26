@@ -38,7 +38,7 @@ interface Station {
 
 interface WheelResult {
   station: Station
-  wheels: { wheel_number: number; rim_size: string; pcd: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
+  wheels: { wheel_number: number; rim_size: string; pcd: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
   availableCount: number
   totalCount: number
 }
@@ -500,7 +500,7 @@ export default function OperatorPage() {
         // Transform results
         const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
           station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
+          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
           availableCount: number
           totalCount: number
         }) => ({
@@ -523,7 +523,7 @@ export default function OperatorPage() {
         if (transformedResults.length === 0) {
           toast('לא נמצאו גלגלים מתאימים')
         } else {
-          const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
+          const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length, 0)
           toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
         }
         return
@@ -643,7 +643,7 @@ export default function OperatorPage() {
       // Transform results to our format
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
         station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-        wheels: { wheel_number: number; rim_size: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
+        wheels: { wheel_number: number; rim_size: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
         availableCount: number
         totalCount: number
       }) => ({
@@ -666,7 +666,7 @@ export default function OperatorPage() {
       if (transformedResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים')
       } else {
-        const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
+        const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length, 0)
         toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
       }
     } catch (error) {
@@ -727,7 +727,7 @@ export default function OperatorPage() {
       // Transform results
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
         station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-        wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean }[]
+        wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
         availableCount: number
         totalCount: number
       }) => ({
@@ -750,7 +750,7 @@ export default function OperatorPage() {
       if (transformedResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים')
       } else {
-        const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available).length, 0)
+        const totalAvailable = transformedResults.reduce((sum, r) => sum + r.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length, 0)
         toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
       }
     } catch (error) {
@@ -1267,7 +1267,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                 נמצאו {results.reduce((sum, r) => sum + r.wheels.filter(w => {
                   const ws = parseInt(w.rim_size)
                   const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                  return w.is_available && !(vrs && ws > vrs)
+                  return w.is_available && !w.temporarily_unavailable && !(vrs && ws > vrs)
                 }).length, 0)} גלגלים זמינים ב-{results.length} תחנות
               </span>
             </div>
@@ -1283,11 +1283,11 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                     {result.wheels.filter(w => {
                       const ws = parseInt(w.rim_size)
                       const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                      return w.is_available && !(vrs && ws > vrs)
+                      return w.is_available && !w.temporarily_unavailable && !(vrs && ws > vrs)
                     }).length} זמינים
-                    {result.wheels.filter(w => !w.is_available).length > 0 && (
+                    {result.wheels.filter(w => !w.is_available || w.temporarily_unavailable).length > 0 && (
                       <span style={{color: '#94a3b8', fontSize: '0.8em', marginRight: '4px'}}>
-                        ({result.wheels.filter(w => !w.is_available).length} בהשאלה)
+                        ({result.wheels.filter(w => !w.is_available || w.temporarily_unavailable).length} בהשאלה)
                       </span>
                     )}
                   </span>
@@ -1309,7 +1309,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                       if (wheelSize === vehicleRimSize) sizeMatch = 'exact'
                       else if (wheelSize < vehicleRimSize) sizeMatch = 'smaller'
                     }
-                    if (!wheel.is_available) {
+                    if (!wheel.is_available || wheel.temporarily_unavailable) {
                       return (
                         <div
                           key={wheel.wheel_number}
@@ -1323,7 +1323,7 @@ ${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&r
                         >
                           <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
                           <div style={styles.wheelSpecs}>{wheel.rim_size}&quot;</div>
-                          <div style={{fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600, display:'flex', alignItems:'center', gap:'2px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> בהשאלה</div>
+                          <div style={{fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600, display:'flex', alignItems:'center', gap:'2px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {wheel.temporarily_unavailable ? 'לא זמין' : 'בהשאלה'}</div>
                         </div>
                       )
                     }

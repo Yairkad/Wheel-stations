@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T09:30:51.959Z
-> Files: 40 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T19:27:24.289Z
+> Files: 41 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -72,7 +72,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~96602 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~96916 tok)
 
 ## src/app/accessibility/
 
@@ -168,6 +168,7 @@
 
 ## src/app/api/auth/login/
 
+- `route.ts` — Next.js API route: POST (~2060 tok)
 
 ## src/app/api/auth/webauthn/authenticate/begin/
 
@@ -386,7 +387,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~24830 tok)
+- `page.tsx` — OperatorPage (~24952 tok)
 
 ## src/app/privacy/
 

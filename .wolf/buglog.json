@@ -2047,6 +2047,75 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-26T09:30:06.556Z"
+    },
+    {
+      "id": "bug-127",
+      "timestamp": "2026-07-26T19:25:49.790Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Was returning: w.is_available && !(vrs && ws > vrs)",
+      "fix": "Now returns: w.is_available && !w.temporarily_unavailable && !(",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T19:25:49.790Z"
+    },
+    {
+      "id": "bug-128",
+      "timestamp": "2026-07-26T19:27:00.359Z",
+      "error_message": "CSS fix: is_primary",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "is_primary: session.manager.is_primary || false → session.manager.is_primary || false,",
+      "fix": "Changed is_primary: session.manager.is_primary || false → session.manager.is_primary || false,",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T19:27:00.359Z"
+    },
+    {
+      "id": "bug-129",
+      "timestamp": "2026-07-26T00:00:00.000Z",
+      "error_message": "המשתמש דיווח שאחרי תיקון bug-122, עדיין ניתן לבחור גלגל שמסומן temporarily_unavailable בטופס",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "bug-122 תיקן את search/page.tsx ו-stations/page.tsx, אבל פספס לגמרי משטח שלישי עם אותה בעיה בדיוק: עמוד המוקדנים (/operator) מבצע חיפוש גלגלים עצמאי משלו (3 עותקים כמעט זהים של אותה לוגיקת טרנספורמציה, אחד לכל טאב: לוחית/דגם/ידני) שמייבא מ-/api/wheel-stations/search (אותו API שמחזיר select('*') וכולל temporarily_unavailable בפועל), אבל שלושתם בדקו רק wheel.is_available בכל מקום — בטייפ, בספירות ('X זמינים'), ובלוגיקת התצוגה שמחליטה אם גלגל לחיץ או מוצג כ'בהשאלה'. כשמוקדן בוחר גלגל כזה, openModal() מייצר קישור ל-/sign/{stationId}?wheel={number} שהמוקדן מעתיק/שולח ללקוח — הגלגל לא היה נבחר בפועל אצל הלקוח (כי sign page כבר מסונן נכון), אבל המוקדן חווה את זה כ'עדיין אפשר לבחור גלגל לא תקין'.",
+      "fix": "הוספת temporarily_unavailable?: boolean לטייפ WheelResult ולשלושת ה-inline map types, סינון בספירות (totalAvailable/'X זמינים') ותיקון תנאי ה-'taken card' (!wheel.is_available || wheel.temporarily_unavailable) בשלושת הטאבים, עם תווית 'לא זמין' נפרדת מ'בהשאלה'.",
+      "tags": [
+        "temporarily_unavailable",
+        "operator-page",
+        "call-center",
+        "wheel-search",
+        "missed-in-bug-122"
+      ],
+      "related_bugs": ["bug-122"],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T00:00:00.000Z"
+    },
+    {
+      "id": "bug-130",
+      "timestamp": "2026-07-26T00:00:00.000Z",
+      "error_message": "המשתמש דיווח: הטקסט שנשלח בוואטסאפ עדיין ללא שינוי, למרות שנוסח אישי נשמר",
+      "file": "src/app/api/auth/login/route.ts, src/app/[stationId]/page.tsx",
+      "root_cause": "כשבניתי את תכונת הנוסח האישי (bug/feature מאותו יום), עדכנתי רק את /api/wheel-stations/[stationId]/auth (POST/GET/PATCH) להחזיר whatsapp_message_template. אבל זרימת ההתחברות הראשית בפועל היא /login (עמוד מאוחד לכל התפקידים) → /api/auth/login → checkUnifiedUser() — שלא נגעתי בה בכלל: היא שלפה users עם select('id, full_name, phone, password, is_active') (בלי העמודה החדשה) ובנתה את אובייקט ה-station_manager result.data ידנית בלי לכלול אותו. בנוסף, גם לו checkUnifiedUser היה מחזיר את השדה, [stationId]/page.tsx בפונקציית validateSession (שרצה בכל טעינת עמוד) בונה currentManager מחדש מ-session.manager אבל שולפת רק 5 שדות מפורשים (id/full_name/phone/role/is_primary) ומשמיטה whatsapp_message_template — כך שגם login מתוקן היה מאבד את הערך בכל רענון דף. וגם handleSaveWhatsAppTemplate עדכן localStorage רק תחת wheel_manager_{stationId} (הפורמט הישן), לא station_session_{stationId} (הפורמט החדש שכותב /login) — כך שגם שמירה מוצלחת לא שרדה רענון.",
+      "fix": "הוספת whatsapp_message_template ל-select ולאובייקט data.station_manager ב-checkUnifiedUser (api/auth/login/route.ts), הוספת השדה לשחזור currentManager מ-station_session ב-validateSession, ועדכון handleSaveWhatsAppTemplate שיכתוב גם ל-station_session_{stationId} בנוסף ל-wheel_manager_{stationId}.",
+      "tags": [
+        "whatsapp-template",
+        "login-flow",
+        "session-restore",
+        "unified-auth",
+        "localStorage",
+        "missed-code-path"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T00:00:00.000Z"
     }
   ]
 }

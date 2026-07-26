@@ -37,9 +37,9 @@ async function checkUnifiedUser(supabase: ReturnType<typeof createClient<any>>, 
 
   const { data: user } = await supabase
     .from('users')
-    .select('id, full_name, phone, password, is_active')
+    .select('id, full_name, phone, password, is_active, whatsapp_message_template')
     .eq('phone', cleanPhone)
-    .single() as { data: { id: string; full_name: string; phone: string; password: string | null; is_active: boolean } | null }
+    .single() as { data: { id: string; full_name: string; phone: string; password: string | null; is_active: boolean; whatsapp_message_template: string | null } | null }
 
   if (!user || user.is_active === false) return []
   if (!user.password) return []
@@ -66,7 +66,7 @@ async function checkUnifiedUser(supabase: ReturnType<typeof createClient<any>>, 
         results.push({ role: 'district_manager', label: 'מנהל מחוז', data: { id: user.id, full_name: user.full_name, phone: user.phone, allowed_districts: r.allowed_districts || null, can_edit: r.can_edit ?? false } })
         break
       case 'station_manager':
-        results.push({ role: 'station_manager', label: 'מנהל תחנה', data: { id: user.id, full_name: user.full_name, phone: user.phone, station_id: r.station_id, station_name: ws?.name, role: r.title || 'מנהל תחנה', is_primary: r.is_primary || false } })
+        results.push({ role: 'station_manager', label: 'מנהל תחנה', data: { id: user.id, full_name: user.full_name, phone: user.phone, station_id: r.station_id, station_name: ws?.name, role: r.title || 'מנהל תחנה', is_primary: r.is_primary || false, whatsapp_message_template: user.whatsapp_message_template || null } })
         break
       case 'call_center_manager':
         if (cc?.is_active === false) break

@@ -384,7 +384,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
               full_name: session.manager.full_name,
               phone: session.manager.phone,
               role: session.manager.role || 'manager',
-              is_primary: session.manager.is_primary || false
+              is_primary: session.manager.is_primary || false,
+              whatsapp_message_template: session.manager.whatsapp_message_template || null
             })
             setSessionPassword(session.password || '')
             return
@@ -1110,11 +1111,19 @@ ${signFormUrl}
       }
       const updatedManager = { ...currentManager, whatsapp_message_template: data.whatsapp_message_template }
       setCurrentManager(updatedManager)
+      // Old session format (wheel_manager_*)
       const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
       if (savedSession) {
         const session = JSON.parse(savedSession)
         session.manager = updatedManager
         localStorage.setItem(`wheel_manager_${stationId}`, JSON.stringify(session))
+      }
+      // New session format (station_session_*, written by /login)
+      const newSession = localStorage.getItem(`station_session_${stationId}`)
+      if (newSession) {
+        const session = JSON.parse(newSession)
+        session.manager = { ...session.manager, whatsapp_message_template: data.whatsapp_message_template }
+        localStorage.setItem(`station_session_${stationId}`, JSON.stringify(session))
       }
       toast.success('נוסח הודעת הוואטסאפ נשמר!')
     } catch {
