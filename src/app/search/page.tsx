@@ -143,11 +143,13 @@ function SearchPageContent() {
       if (ocr.rimSize) setSearchFilters(prev => ({ ...prev, rim_size: String(ocr.rimSize) }))
       setVehicleSearchTab('model')
       await handleModelSearch({ make: ocr.manufacturer!, model: ocr.model!, year: ocr.year! })
+      setOcrAutoSearch(false)
       setShowVehicleModal(true)  // reopen only after results are ready
     } else if (ocr.plate) {
       setVehiclePlate(ocr.plate)
       setVehicleSearchTab('plate')
       await handleVehicleLookup(ocr.plate)
+      setOcrAutoSearch(false)
       setShowVehicleModal(true)  // reopen only after results are ready
     } else if (ocr.manufacturer || ocr.model) {
       if (ocr.manufacturer) setModelSearchMake(ocr.manufacturer)
@@ -2201,8 +2203,8 @@ function SearchPageContent() {
                       const filteredResults = vehicleStationFilter.trim()
                         ? allResults.filter(r => r.station.name.includes(vehicleStationFilter.trim()))
                         : allResults
-                      const totalAvailable = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => w.is_available).length, 0)
-                      const totalBorrowed = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => !w.is_available).length, 0)
+                      const totalAvailable = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length, 0)
+                      const totalBorrowed = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => !w.is_available || w.temporarily_unavailable).length, 0)
 
                       if (allResults.length > 0) {
                         return (
@@ -2256,13 +2258,13 @@ function SearchPageContent() {
                                 <div style={styles.resultWheelsList}>
                                   {result.wheels.filter(w => {
                                     // For available wheels: exclude those whose CB is physically incompatible
-                                    if (w.is_available) {
+                                    if (w.is_available && !w.temporarily_unavailable) {
                                       const vehicleCB = vehicleResult?.wheel_fitment?.center_bore
                                       if (vehicleCB && w.center_bore && w.center_bore < vehicleCB) return false
                                     }
                                     return true
                                   }).map(wheel => {
-                                    if (!wheel.is_available) {
+                                    if (!wheel.is_available || wheel.temporarily_unavailable) {
                                       return (
                                         <div key={wheel.id} style={{...styles.resultWheelCard, ...styles.resultWheelTaken, cursor: 'default'}}>
                                           <div style={{...styles.resultWheelNumber, color: '#94a3b8'}}>#{wheel.wheel_number}</div>
@@ -2271,7 +2273,7 @@ function SearchPageContent() {
                                             {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                           </div>
                                           <div style={{color: '#ef4444', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px'}}>
-                                            <svg width="9" height="9" viewBox="0 0 24 24" fill="#ef4444"><circle cx="12" cy="12" r="12"/></svg> מושאל
+                                            <svg width="9" height="9" viewBox="0 0 24 24" fill="#ef4444"><circle cx="12" cy="12" r="12"/></svg> {wheel.temporarily_unavailable ? 'לא זמין' : 'מושאל'}
                                           </div>
                                         </div>
                                       )

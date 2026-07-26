@@ -805,3 +805,50 @@
 | 23:40 | Edited src/app/api/vehicle/lookup/route.ts | modified if() | ~574 |
 | 23:58 | Fixed vehicle-lookup PCD mismatch: plate 5843659 (Subaru Impreza 2014) matched WRX STI's 114.3 instead of 100 — flipped ILIKE containment direction in findPcdData/searchDb, scored candidates by specificity | src/app/api/vehicle/lookup/route.ts | fixed, tsc clean, logged bug-120 | ~2400 |
 | 23:43 | Session end: 1 writes across 1 files (route.ts) | 1 reads | ~7374 tok |
+| 00:05 | Committed + pushed to origin/main (646f345): PCD-matching fix + previously pending tire-diameter calculator modal work (search/stations pages, vehicle-mappings.ts, report.html docs sync) | 14 files | pushed, auto version bump 18.1.9 | ~300 |
+| 23:49 | Session end: 1 writes across 1 files (route.ts) | 1 reads | ~7374 tok |
+
+## Session: 2026-07-26 12:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-07-26 12:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-07-26 12:07
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 12:17 | Edited src/app/api/wheel-stations/[stationId]/public-borrow/route.ts | added 1 condition(s) | ~146 |
+| 12:17 | Edited src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/route.ts | added 1 condition(s) | ~143 |
+| 12:17 | Edited src/app/sign/[stationId]/page.tsx | 5→6 lines | ~38 |
+| 12:17 | Edited src/app/sign/[stationId]/page.tsx | inline fix | ~30 |
+| 12:18 | Edited src/lib/types.ts | 4→5 lines | ~34 |
+| 12:18 | Edited src/app/search/page.tsx | 2→2 lines | ~94 |
+| 12:18 | Edited src/app/search/page.tsx | modified filter() | ~538 |
+| 12:18 | Edited src/app/stations/page.tsx | inline fix | ~46 |
+| 12:18 | Edited src/app/stations/page.tsx | inline fix | ~35 |
+| 12:19 | Edited src/app/[stationId]/page.tsx | 6→6 lines | ~97 |
+| 12:19 | Edited src/app/[stationId]/page.tsx | inline fix | ~57 |
+| 12:19 | Edited src/app/[stationId]/page.tsx | 6→6 lines | ~107 |
+| 12:19 | Edited src/app/search/page.tsx | modified if() | ~135 |
+| 12:20 | Fixed bug-122 (temporarily_unavailable wheels borrowable via public-borrow/borrow API + shown as available in search/sign pages) and bug-123 (OCR search stuck-UI: ocrAutoSearch never reset after plate/model branches) per 3 user-reported issues; tsc --noEmit clean | see bug-122/123 in buglog.json | done | ~200 |
+| 12:40 | Added per-manager custom WhatsApp message wording: new users.whatsapp_message_template column (migration written, not applied), PATCH /api/wheel-stations/[stationId]/auth, self-service UI in showChangePasswordModal, buildWhatsAppMessage() helper replacing duplicated hardcoded text | supabase/migrations/20260726_add_manager_whatsapp_template.sql, src/app/api/wheel-stations/[stationId]/auth/route.ts, src/app/[stationId]/page.tsx | done - tsc clean, migration needs manual apply | ~350 |
+| 12:27 | Edited src/app/[stationId]/page.tsx | 8→9 lines | ~51 |
+| 12:27 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | added 1 import(s) | ~72 |
+| 12:28 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | 6→6 lines | ~64 |
+| 12:28 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | 10→11 lines | ~118 |
+| 12:28 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | 5→5 lines | ~56 |
+| 12:28 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | 9→10 lines | ~84 |
+| 12:28 | Edited src/app/api/wheel-stations/[stationId]/auth/route.ts | added 3 condition(s) | ~428 |
+| 12:28 | Edited src/app/[stationId]/page.tsx | 1→2 lines | ~46 |
+| 12:29 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~66 |
+| 12:29 | Edited src/app/[stationId]/page.tsx | expanded (+6 lines) | ~64 |
+| 12:29 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~536 |
+| 12:30 | Edited src/app/[stationId]/page.tsx | added 3 condition(s) | ~422 |
+| 12:30 | Edited src/app/[stationId]/page.tsx | expanded (+30 lines) | ~633 |
+| 12:30 | Created supabase/migrations/20260726_add_manager_whatsapp_template.sql | — | ~81 |
+| 12:31 | Session end: 27 writes across 4 files (route.ts, page.tsx, types.ts, 20260726_add_manager_whatsapp_template.sql) | 14 reads | ~189282 tok |

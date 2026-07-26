@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac } from 'crypto'
 import { verifyPassword } from '@/lib/password'
+import { verifyStationManager } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -164,7 +165,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
       const { data: user } = await supabase
         .from('users')
-        .select('id, full_name, phone, is_active')
+        .select('id, full_name, phone, is_active, whatsapp_message_template')
         .eq('id', managerId)
         .eq('phone', cleanPhone)
         .single()
@@ -193,7 +194,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           full_name: user.full_name,
           phone: user.phone,
           role: roleRow.title || 'מנהל תחנה',
-          is_primary: roleRow.is_primary || false
+          is_primary: roleRow.is_primary || false,
+          whatsapp_message_template: user.whatsapp_message_template || null
         }
       })
     } catch {
@@ -237,7 +239,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const cleanPhone = phone.replace(/\D/g, '')
     const { data: user } = await supabase
       .from('users')
-      .select('id, full_name, phone, password, is_active')
+      .select('id, full_name, phone, password, is_active, whatsapp_message_template')
       .eq('phone', cleanPhone)
       .single()
 
@@ -310,7 +312,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         full_name: user.full_name,
         phone: user.phone,
         role: roleRow.title || 'מנהל תחנה',
-        is_primary: roleRow.is_primary || false
+        is_primary: roleRow.is_primary || false,
+        whatsapp_message_template: user.whatsapp_message_template || null
       },
       token
     })
@@ -376,6 +379,37 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ success: true, message: 'הסיסמא שונתה בהצלחה' })
   } catch (error) {
     console.error('Error in PUT /api/wheel-stations/[stationId]/auth:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// PATCH - Update own personal WhatsApp message template (any manager can set their own wording)
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { stationId } = await params
+    const body = await request.json()
+    const { phone, password, whatsapp_message_template } = body
+
+    if (!phone || !password) {
+      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
+    }
+
+    const auth = await verifyStationManager(stationId, phone, password)
+    if (!auth.success) {
+      return NextResponse.json({ error: auth.error }, { status: 401 })
+    }
+
+    const template = typeof whatsapp_message_template === 'string' ? whatsapp_message_template.trim() : null
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ whatsapp_message_template: template || null })
+      .eq('id', auth.managerId)
+    if (updateError) throw updateError
+
+    return NextResponse.json({ success: true, whatsapp_message_template: template || null })
+  } catch (error) {
+    console.error('Error in PATCH /api/wheel-stations/[stationId]/auth:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

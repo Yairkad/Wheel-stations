@@ -98,7 +98,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check wheel exists, belongs to this station, and is available
     const { data: wheel, error: wheelError } = await supabase
       .from('wheels')
-      .select('id, wheel_number, is_available')
+      .select('id, wheel_number, is_available, temporarily_unavailable')
       .eq('id', wheel_id)
       .eq('station_id', stationId)
       .single()
@@ -109,6 +109,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!wheel.is_available) {
       return NextResponse.json({ error: 'הצמיג כבר מושאל' }, { status: 400 })
+    }
+
+    if (wheel.temporarily_unavailable) {
+      return NextResponse.json({ error: 'הצמיג אינו זמין כרגע' }, { status: 400 })
     }
 
     // Calculate expected return date (72 hours from borrow date)

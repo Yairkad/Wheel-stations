@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-07T20:40:26.165Z
-> Files: 34 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T09:30:51.959Z
+> Files: 40 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -72,7 +72,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — StationPage (~95455 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~96602 tok)
 
 ## src/app/accessibility/
 
@@ -292,6 +292,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/auth/
 
+- `route.ts` — Station Manager Authentication API (~4023 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/
 
@@ -310,6 +311,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/public-borrow/
 
+- `route.ts` — Public Wheel Borrow API (~3088 tok)
 
 ## src/app/api/wheel-stations/[stationId]/push/send/
 
@@ -328,6 +330,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/
 
+- `route.ts` — Wheel Borrow API (~2187 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/restore/
 
@@ -397,14 +400,15 @@
 
 ## src/app/search/
 
-- `page.tsx` — VEHICLE_HISTORY_KEY (~47573 tok)
+- `page.tsx` — VEHICLE_HISTORY_KEY (~47639 tok)
 
 ## src/app/sign/[stationId]/
 
+- `page.tsx` — SignFormContent (~14128 tok)
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~37696 tok)
+- `page.tsx` — WheelStationsPage (~37713 tok)
 
 ## src/app/super-manager/
 
@@ -428,6 +432,7 @@
 
 ## src/lib/
 
+- `types.ts` — Shared TypeScript interfaces used across pages (~433 tok)
 - `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3026 tok)
 
 ## src/stories/mocks/
@@ -468,3 +473,4 @@
 
 ## supabase/migrations/
 
+- `20260726_add_manager_whatsapp_template.sql` — Lets each station manager set their own WhatsApp message wording, (~81 tok)

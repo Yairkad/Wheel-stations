@@ -37,7 +37,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check wheel exists and is available
     const { data: wheel, error: wheelError } = await supabase
       .from('wheels')
-      .select('id, is_available')
+      .select('id, is_available, temporarily_unavailable')
       .eq('id', wheelId)
       .eq('station_id', stationId)
       .single()
@@ -48,6 +48,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!wheel.is_available) {
       return NextResponse.json({ error: 'הגלגל כבר מושאל' }, { status: 400 })
+    }
+
+    if (wheel.temporarily_unavailable) {
+      return NextResponse.json({ error: 'הגלגל אינו זמין כרגע' }, { status: 400 })
     }
 
     if (!borrower_name || !borrower_phone) {

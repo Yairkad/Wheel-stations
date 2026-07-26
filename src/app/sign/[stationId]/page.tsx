@@ -14,6 +14,7 @@ interface Wheel {
   bolt_spacing: number
   is_donut: boolean
   is_available: boolean
+  temporarily_unavailable?: boolean
   notes?: string
   custom_deposit?: number | null
 }
@@ -157,7 +158,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
       const data = await response.json()
       setStation(data.station)
       // Filter only available wheels
-      setWheels(data.station.wheels.filter((w: Wheel) => w.is_available))
+      setWheels(data.station.wheels.filter((w: Wheel) => w.is_available && !w.temporarily_unavailable))
     } catch (err) {
       setError('שגיאה בטעינת נתוני התחנה')
       console.error(err)

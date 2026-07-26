@@ -40,6 +40,7 @@ export interface SearchResult {
     tire_size?: string | null
     is_donut: boolean
     is_available: boolean
+    temporarily_unavailable?: boolean
   }[]
   availableCount: number
   totalCount: number

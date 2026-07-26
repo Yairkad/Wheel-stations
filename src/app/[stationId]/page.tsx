@@ -9,6 +9,12 @@ import { isPushSupported, requestNotificationPermission, registerServiceWorker, 
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import AppHeader from '@/components/AppHeader'
 
+const DEFAULT_WHATSAPP_TEMPLATE = `שלום רב 👋
+מצורף כאן קישור לחתימה על טופס השאלת גלגל.
+הגלגל המתאים ביותר עבורך כבר נבחר ורק נשאר להשלים פרטים.
+
+{link}`
+
 interface Wheel {
   id: string
   wheel_number: string
@@ -83,6 +89,7 @@ interface Manager {
   role: string
   is_primary: boolean
   password?: string | null
+  whatsapp_message_template?: string | null
 }
 
 interface PaymentMethods {
@@ -146,6 +153,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [sessionPassword, setSessionPassword] = useState('')
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
+  const [whatsappTemplateForm, setWhatsappTemplateForm] = useState('')
 
   // Recovery certificate state
   const [showRecoveryCertModal, setShowRecoveryCertModal] = useState(false)
@@ -668,6 +676,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           break
         case 'password':
           setPasswordForm({ current: '', new: '', confirm: '' })
+          setWhatsappTemplateForm(currentManager?.whatsapp_message_template || '')
           setShowChangePasswordModal(true)
           break
         case 'recovery':
@@ -1069,6 +1078,41 @@ ${signFormUrl}
       setPasswordForm({ current: '', new: '', confirm: '' })
     } catch {
       toast.error('שגיאה בשינוי סיסמא')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Save own WhatsApp message wording (used automatically whenever this manager sends a form link)
+  const handleSaveWhatsAppTemplate = async () => {
+    if (!currentManager || !sessionPassword) return
+    setActionLoading(true)
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/auth`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: currentManager.phone,
+          password: sessionPassword,
+          whatsapp_message_template: whatsappTemplateForm.trim()
+        })
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        toast.error(data.error || 'שגיאה בשמירת הנוסח')
+        return
+      }
+      const updatedManager = { ...currentManager, whatsapp_message_template: data.whatsapp_message_template }
+      setCurrentManager(updatedManager)
+      const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
+      if (savedSession) {
+        const session = JSON.parse(savedSession)
+        session.manager = updatedManager
+        localStorage.setItem(`wheel_manager_${stationId}`, JSON.stringify(session))
+      }
+      toast.success('נוסח הודעת הוואטסאפ נשמר!')
+    } catch {
+      toast.error('שגיאה בשמירת הנוסח')
     } finally {
       setActionLoading(false)
     }
@@ -1565,6 +1609,12 @@ ${signFormUrl}
     setShowWhatsAppModal(true)
   }
 
+  // Builds the WhatsApp message from the current manager's own wording (if they set one), else the default
+  const buildWhatsAppMessage = (formUrl: string) => {
+    const template = currentManager?.whatsapp_message_template?.trim() || DEFAULT_WHATSAPP_TEMPLATE
+    return template.includes('{link}') ? template.replace('{link}', formUrl) : `${template}\n\n${formUrl}`
+  }
+
   // Send WhatsApp message with pre-filled form link
   const sendWhatsAppLink = () => {
     if (!whatsAppPhone.trim() || !whatsAppWheel) {
@@ -1579,12 +1629,7 @@ ${signFormUrl}
     // Build the form URL with pre-filled wheel and phone
     const formUrl = `${window.location.origin}/sign/${stationId}?wheel=${whatsAppWheel.wheel_number}&phone=${encodeURIComponent(whatsAppPhone)}`
 
-    // WhatsApp message
-    const message = `שלום רב 👋
-מצורף כאן קישור לחתימה על טופס השאלת גלגל.
-הגלגל המתאים ביותר עבורך כבר נבחר ורק נשאר להשלים פרטים.
-
-${formUrl}`
+    const message = buildWhatsAppMessage(formUrl)
 
     // Open WhatsApp
     const whatsappUrl = `https://wa.me/${internationalPhone}?text=${encodeURIComponent(message)}`
@@ -1602,11 +1647,7 @@ ${formUrl}`
 
     const formUrl = `${window.location.origin}/sign/${stationId}?wheel=${whatsAppWheel.wheel_number}&phone=${encodeURIComponent(whatsAppPhone)}`
 
-    const message = `שלום רב 👋
-מצורף כאן קישור לחתימה על טופס השאלת גלגל.
-הגלגל המתאים ביותר עבורך כבר נבחר ורק נשאר להשלים פרטים.
-
-${formUrl}`
+    const message = buildWhatsAppMessage(formUrl)
 
     navigator.clipboard.writeText(message)
     setShowWhatsAppModal(false)
@@ -3168,9 +3209,9 @@ ${formUrl}`
                 )}
                 <span style={{
                   ...styles.cardStatus,
-                  ...(wheel.is_available ? styles.statusAvailable : styles.statusTaken)
+                  ...(wheel.is_available && !wheel.temporarily_unavailable ? styles.statusAvailable : styles.statusTaken)
                 }}>
-                  {wheel.is_available ? 'זמין' : 'מושאל'}
+                  {wheel.temporarily_unavailable ? 'לא זמין' : wheel.is_available ? 'זמין' : 'מושאל'}
                 </span>
               </div>
               <div style={styles.cardInfo}>
@@ -3412,7 +3453,7 @@ ${formUrl}`
                 </tr>
               )}
               {filteredWheels.map(wheel => (
-                <tr key={wheel.id} id={`wheel-${wheel.wheel_number}`} style={{...(wheel.is_available ? {} : styles.rowTaken), transition: 'box-shadow 0.3s ease'}}>
+                <tr key={wheel.id} id={`wheel-${wheel.wheel_number}`} style={{...(wheel.is_available && !wheel.temporarily_unavailable ? {} : styles.rowTaken), transition: 'box-shadow 0.3s ease'}}>
                   <td style={styles.td}><strong>{wheel.wheel_number}</strong></td>
                   <td style={styles.td}>{wheel.rim_size}"</td>
                   <td style={styles.td}>
@@ -3430,9 +3471,9 @@ ${formUrl}`
                   <td style={styles.td}>
                     <span style={{
                       ...styles.tableStatus,
-                      ...(wheel.is_available ? styles.tableStatusAvailable : styles.tableStatusTaken)
+                      ...(wheel.is_available && !wheel.temporarily_unavailable ? styles.tableStatusAvailable : styles.tableStatusTaken)
                     }}>
-                      {wheel.is_available ? 'זמין' : 'מושאל'}
+                      {wheel.temporarily_unavailable ? 'לא זמין' : wheel.is_available ? 'זמין' : 'מושאל'}
                     </span>
                   </td>
                   <td style={styles.td}>
@@ -5012,6 +5053,36 @@ ${formUrl}`
               >
                 ביטול
               </button>
+            </div>
+
+            {/* Section: Personal WhatsApp message wording */}
+            <div style={{marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #374151'}}>
+              <h4 style={{margin: '0 0 8px', color: '#f59e0b', fontSize: '1rem', display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>נוסח הודעת הוואטסאפ שלי</h4>
+              <p style={{fontSize: '0.85rem', color: '#9ca3af', marginBottom: '12px'}}>
+                הנוסח האישי שלך ישמש אוטומטית בכל פעם שאתה שולח קישור לטופס בוואטסאפ. השתמש ב-<code style={{background: '#374151', padding: '1px 5px', borderRadius: '4px'}}>{'{link}'}</code> במקום שבו הקישור לטופס יופיע.
+              </p>
+              <textarea
+                value={whatsappTemplateForm}
+                onChange={e => setWhatsappTemplateForm(e.target.value)}
+                placeholder={DEFAULT_WHATSAPP_TEMPLATE}
+                rows={5}
+                style={{...styles.input, width: '100%', resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5}}
+              />
+              <div style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
+                <button
+                  style={{...styles.submitBtn, flex: 1, background: 'linear-gradient(135deg, #10b981, #059669)'}}
+                  onClick={handleSaveWhatsAppTemplate}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'שומר...' : 'שמור נוסח'}
+                </button>
+                <button
+                  style={{...styles.cancelBtn, flex: 1}}
+                  onClick={() => setWhatsappTemplateForm('')}
+                >
+                  איפוס לברירת מחדל
+                </button>
+              </div>
             </div>
           </div>
         </div>

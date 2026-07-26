@@ -1943,6 +1943,110 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-07T00:00:00.000Z"
+    },
+    {
+      "id": "bug-121",
+      "timestamp": "2026-07-26T09:17:50.752Z",
+      "error_message": "CSS fix: w",
+      "file": "src/app/sign/[stationId]/page.tsx",
+      "root_cause": "w: Wheel) => w.is_available)) → Wheel) => w.is_available && !w.temporarily_unavailable))",
+      "fix": "Changed w: Wheel) => w.is_available)) → Wheel) => w.is_available && !w.temporarily_unavailable))",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T09:17:50.752Z"
+    },
+    {
+      "id": "bug-122",
+      "timestamp": "2026-07-26T00:00:00.000Z",
+      "error_message": "משתמשים דיווחו: גלגל שמסומן ידנית כ'לא זמין' (למשל לתחזוקה) עדיין מופיע בתוצאות חיפוש לפי רכב וניתן להוציא עליו טופס השאלה",
+      "file": "src/app/api/wheel-stations/[stationId]/public-borrow/route.ts, src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/route.ts, src/app/sign/[stationId]/page.tsx, src/app/search/page.tsx, src/app/stations/page.tsx, src/app/[stationId]/page.tsx, src/lib/types.ts",
+      "root_cause": "temporarily_unavailable הוא flag נפרד מ-is_available (בכוונה — כדי לא לבלבל בין 'מושאל' ל'בתחזוקה' באנליטיקס, ראה api/admin/analytics/route.ts ו-super-manager/page.tsx שכבר סומכים על ההפרדה הזו). אבל שני ה-API routes שיוצרים השאלה (public-borrow הציבורי ו-borrow המנוהל ע'י מנהל) בדקו רק is_available ולא temporarily_unavailable — כך שגלגל בתחזוקה (is_available עדיין true) עבר את הבדיקה בשרת. באותו אופן, sign/[stationId]/page.tsx (בורר הגלגלים הציבורי), search/page.tsx ו-stations/page.tsx (תוצאות חיפוש לפי מספר רכב) סיננו/הציגו זמינות לפי is_available בלבד. הקוד ב-[stationId]/page.tsx (עמוד המנהל עצמו) כבר היה כתוב עם !wheel.temporarily_unavailable לצד כל בדיקת is_available בכפתורי הפעולה — מה שמראה שהכוונה המקורית הייתה שכל הצרכנים יבדקו את שני השדות, אבל זה מעולם לא חובר בפועל בנתיבים האחרים.",
+      "fix": "הוספת בדיקת temporarily_unavailable בצד שרת בשני נתיבי ה-borrow (מחזיר 400 אם הגלגל לא זמין זמנית), סינון גלגלים כאלה מרשימת הבחירה בעמוד sign הציבורי, טיפול בהם כ'לא זמין' (כרטיס אפור, לא לחיץ) בתוצאות חיפוש לרכב ב-search/page.tsx ו-stations/page.tsx, ותיקון התג הירוק 'זמין' ב-[stationId]/page.tsx (גם בכרטיס וגם בטבלה) שהראה 'זמין' גם כשהגלגל מסומן כלא זמין זמנית. is_available עצמו נשאר ללא שינוי (לא הפכתי אותו ל-false) כדי לא לשבור את הספירות הקיימות באנליטיקס שמבדילות בין 'מושאל' ל'לא זמין'.",
+      "tags": [
+        "temporarily_unavailable",
+        "is_available",
+        "wheel-search",
+        "borrow-api",
+        "sign-page",
+        "public-borrow",
+        "security-gap"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T00:00:00.000Z"
+    },
+    {
+      "id": "bug-123",
+      "timestamp": "2026-07-26T00:00:00.000Z",
+      "error_message": "משתמשים דיווחו: חיפוש בזיהוי לפי תמונת רישיון לפעמים עובר לחיפוש לפי מספר רכב במקום יצרן/דגם למרות שהזיהוי אושר כנכון, והרבה פעמים החיפוש 'מתבטל' ללא סיבה נראית לעין",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "שתי בעיות נפרדות: (1) handleOcrSearch דורש manufacturer && model && year (וכולם) כדי לבצע חיפוש לפי דגם; ה-OCR (Gemini, api/ocr/route.ts) קורא את השנה מטקסט קטן ברישיון והרבה פעמים לא מצליח לחלץ אותה גם כשיצרן/דגם זוהו נכון — מה שגורם לנפילה אוטומטית לחיפוש לפי מספר רכב. (2) ocrAutoSearch (ה-state שמסתיר את טופס החיפוש הרגיל ומציג מסך טעינה) אופס ל-false רק בענף אחד מתוך שלושה ב-handleOcrSearch (כשאין גם יצרן/דגם/שנה מלאים וגם אין מספר רכב) — בענפי חיפוש-לפי-דגם וחיפוש-לפי-מספר-רכב הוא נשאר true לצמיתות אחרי סיום החיפוש, כך שגם אם היה שגיאה (רכב לא נמצא) או הצליח, טופס החיפוש הרגיל (לשוניות, שדה קלט, הודעת שגיאה מלאה) נשאר מוסתר — למשתמש זה נראה כאילו החיפוש 'התבטל' ללא סיבה.",
+      "fix": "הוספת setOcrAutoSearch(false) בסוף שני הענפים הנוספים (חיפוש לפי דגם וחיפוש לפי מספר רכב) ב-handleOcrSearch, כך שהטופס האינטראקטיבי (כולל תצוגת שגיאה מלאה ואפשרות לתקן/לנסות שוב) תמיד חוזר להיות גלוי ברגע שהתוצאה (הצלחה או שגיאה) מוכנה. הדרישה ל-year לא הוסרה בכוונה — הוחלט לדון עם המשתמש אם רוצים fallback לחיפוש לפי דגם גם בלי year, כי המערכת רגישה לדיוק PCD לפי שנה (ראה bug-120).",
+      "tags": [
+        "ocr",
+        "vehicle-search",
+        "stuck-ui",
+        "ocrAutoSearch",
+        "search-page"
+      ],
+      "related_bugs": [
+        "bug-120"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T00:00:00.000Z"
+    },
+    {
+      "id": "bug-124",
+      "timestamp": "2026-07-26T09:28:47.555Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/api/wheel-stations/[stationId]/auth/route.ts",
+      "root_cause": "No early return/throw for edge case: !phone || !password",
+      "fix": "Added guard clause: if (!phone || !password)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T09:28:47.555Z"
+    },
+    {
+      "id": "bug-125",
+      "timestamp": "2026-07-26T09:29:02.191Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: // Builds the WhatsApp message from the current manager's ow; const buildWhatsAppMessage = (formUrl: string) => {",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-26T09:29:45.498Z"
+    },
+    {
+      "id": "bug-126",
+      "timestamp": "2026-07-26T09:30:06.556Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "No early return/throw for edge case: !currentManager || !sessionPassword",
+      "fix": "Added guard clause: if (!currentManager || !sessionPassword)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T09:30:06.556Z"
     }
   ]
 }

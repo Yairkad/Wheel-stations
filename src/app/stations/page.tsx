@@ -1687,7 +1687,7 @@ export default function WheelStationsPage() {
                       const isPersonalImport = vehicleResult.is_personal_import
 
                       // Show all available wheels with matching PCD (filtered by API)
-                      const filteredResults = vehicleSearchResults?.filter(result => result.wheels.some(w => w.is_available)) || []
+                      const filteredResults = vehicleSearchResults?.filter(result => result.wheels.some(w => w.is_available && !w.temporarily_unavailable)) || []
 
                       if (filteredResults.length > 0) {
                         return (
@@ -1709,7 +1709,7 @@ export default function WheelStationsPage() {
                                   <div style={styles.resultStationName}>{result.station.name}</div>
                                 </div>
                                 <div style={styles.resultWheelsList}>
-                                  {result.wheels.filter(w => w.is_available).map(wheel => {
+                                  {result.wheels.filter(w => w.is_available && !w.temporarily_unavailable).map(wheel => {
                                     const wheelRim = wheel.rim_size ? parseInt(wheel.rim_size) : null
                                     const rimFit = checkRimFit(vehicleResult?.vehicle?.front_tire, wheelRim, wheel.tire_size, wheel.is_donut, manualRimSize)
                                     const rimMismatch = rimFit === 'mismatch'
