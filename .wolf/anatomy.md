@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T20:50:06.665Z
-> Files: 48 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T21:34:31.202Z
+> Files: 49 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -26,7 +26,8 @@
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
-- `MEMORY.md` — Memory Index (~314 tok)
+- `feedback_user_is_male.md` (~219 tok)
+- `MEMORY.md` — Memory Index (~343 tok)
 - `project_et_offset_misunderstanding.md` (~575 tok)
 - `project_rim_sizes_allowed_removed.md` — Declares of (~641 tok)
 
@@ -73,7 +74,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~100841 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~101452 tok)
 
 ## src/app/accessibility/
 

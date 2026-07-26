@@ -2251,6 +2251,38 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-26T00:00:00.000Z"
+    },
+    {
+      "id": "bug-139",
+      "timestamp": "2026-07-26T21:32:43.349Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "32 lines replaced/restructured",
+      "fix": "Rewrote 41→5 lines (32 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T21:32:43.350Z"
+    },
+    {
+      "id": "bug-140",
+      "timestamp": "2026-07-26T21:34:10.480Z",
+      "error_message": "Type error",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T21:34:10.480Z"
     }
   ]
 }

@@ -330,8 +330,10 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [manualBorrowFormErrors, setManualBorrowFormErrors] = useState<string[]>([])
 
   // Per-wheel request history — cached by wheel_id so the tracking tab, the manual-borrow
-  // modal, and the edit-wheel modal's history section can all reuse the same fetch.
+  // modal, and the history modal (opened from the wheel's options menu) can all reuse the same fetch.
   const [wheelHistoryCache, setWheelHistoryCache] = useState<Record<string, WheelHistoryEntry[]>>({})
+  const [showWheelHistoryModal, setShowWheelHistoryModal] = useState(false)
+  const [historyWheel, setHistoryWheel] = useState<Wheel | null>(null)
 
   const ensureWheelHistoryLoaded = async (wheelId: string) => {
     if (!wheelId || wheelHistoryCache[wheelId]) return
@@ -596,6 +598,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         else if (openOptionsMenu) setOpenOptionsMenu(null)
         else if (showManualBorrowModal) setShowManualBorrowModal(false)
         else if (showEditWheelModal) setShowEditWheelModal(false)
+        else if (showWheelHistoryModal) setShowWheelHistoryModal(false)
+        else if (showReturnModal) setShowReturnModal(false)
         else if (showAddWheelModal) setShowAddWheelModal(false)
         else if (showEditDetailsModal) setShowEditDetailsModal(false)
         else if (showExcelModal) setShowExcelModal(false)
@@ -609,7 +613,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog, openOptionsMenu, showManualBorrowModal, showManagerMenu, showLinkMenu])
+  }, [showLoginModal, showAddWheelModal, showEditWheelModal, showWheelHistoryModal, showReturnModal, showEditDetailsModal, showExcelModal, showUnavailableModal, showChangePasswordModal, showContactsModal, showWhatsAppModal, showConfirmDialog, openOptionsMenu, showManualBorrowModal, showManagerMenu, showLinkMenu])
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -3476,10 +3480,22 @@ ${signFormUrl}
                               })
                               setShowEditWheelModal(true)
                               setOpenOptionsMenu(null)
-                              ensureWheelHistoryLoaded(wheel.id)
                             }}
                           >
                             <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>ערוך גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}</span>
+                          </button>
+
+                          {/* Request history - available regardless of borrowed state */}
+                          <button
+                            style={styles.optionItem}
+                            onClick={() => {
+                              setHistoryWheel(wheel)
+                              setShowWheelHistoryModal(true)
+                              setOpenOptionsMenu(null)
+                              ensureWheelHistoryLoaded(wheel.id)
+                            }}
+                          >
+                            <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>היסטוריית שאלות</span>
                           </button>
 
                           {/* Delete wheel - disabled for borrowed wheels */}
@@ -3697,6 +3713,59 @@ ${signFormUrl}
       )}
 
       {/* Manual Borrow Modal */}
+      {/* Wheel Request History Modal - opened from the wheel's options menu, plain lines not a table */}
+      {showWheelHistoryModal && historyWheel && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowWheelHistoryModal(false); setHistoryWheel(null) }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="wheel-history-modal-title" style={{...styles.modal, maxWidth: '450px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="wheel-history-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              היסטוריית שאלות — גלגל #{historyWheel.wheel_number}
+            </h3>
+
+            {wheelHistoryCache[historyWheel.id] === undefined ? (
+              <div style={{color: '#64748b', fontSize: '0.85rem'}}>טוען היסטוריה...</div>
+            ) : wheelHistoryCache[historyWheel.id].length === 0 ? (
+              <div style={{color: '#64748b', fontSize: '0.85rem'}}>אין עדיין היסטוריית בקשות לגלגל זה</div>
+            ) : (
+              <div style={{maxHeight: '55vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                {wheelHistoryCache[historyWheel.id].map(entry => {
+                  const vehicleLabel = [entry.vehicle_model, entry.license_plate].filter(Boolean).join(' · ') || 'רכב לא ידוע'
+                  const dateLabel = new Date(entry.actual_return_date || entry.created_at || '').toLocaleDateString('he-IL')
+                  const { label: statusLabel, color: statusColor } =
+                    entry.status === 'pending' ? { label: 'ממתין לאישור', color: '#60a5fa' } :
+                    entry.status === 'rejected' ? { label: 'נדחה', color: '#94a3b8' } :
+                    entry.status === 'borrowed' ? { label: 'מושאל כרגע', color: '#60a5fa' } :
+                    entry.mount_result === 'success' ? { label: 'הצליח', color: '#10b981' } :
+                    entry.mount_result === 'failed' ? { label: 'נכשל', color: '#ef4444' } :
+                    { label: 'ללא משוב', color: '#94a3b8' }
+                  return (
+                    <div key={entry.id} style={{fontSize: '0.82rem', color: '#cbd5e1', lineHeight: 1.6, paddingBottom: '8px', borderBottom: '1px solid rgba(148,163,184,0.12)'}}>
+                      <span style={{color: '#94a3b8'}}>{dateLabel}</span>
+                      <span style={{margin: '0 6px', color: '#475569'}}>·</span>
+                      <span>{vehicleLabel}</span>
+                      <span style={{margin: '0 6px', color: '#475569'}}>·</span>
+                      <span style={{color: statusColor, fontWeight: 600}}>{statusLabel}</span>
+                      {entry.mount_feedback_note && (
+                        <span style={{color: '#94a3b8'}}> · {entry.mount_feedback_note}</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <div style={{display: 'flex', marginTop: '16px'}}>
+              <button
+                style={{flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#4b5563', color: '#fff', cursor: 'pointer', fontWeight: 'bold'}}
+                onClick={() => { setShowWheelHistoryModal(false); setHistoryWheel(null) }}
+              >
+                סגור
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Return Wheel Modal - collects mount success/failure feedback before closing the borrow */}
       {showReturnModal && returnTarget && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => !actionLoading && setShowReturnModal(false)}>
@@ -3746,7 +3815,6 @@ ${signFormUrl}
                 <textarea
                   value={returnForm.note}
                   onChange={e => setReturnForm({...returnForm, note: e.target.value.slice(0, 200)})}
-                  placeholder="למשל: הבלם נשייף בחישוק"
                   rows={3}
                   maxLength={200}
                   style={{...styles.input, resize: 'vertical'}}
@@ -4769,42 +4837,6 @@ ${signFormUrl}
                   style={styles.input}
                 />
               </div>
-            </div>
-
-            {/* History of past requests for this wheel - plain lines, not a table */}
-            <div style={{marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #334155'}}>
-              <label style={{...styles.label, display: 'block', marginBottom: '8px'}}>היסטוריית שאלות</label>
-              {wheelHistoryCache[selectedWheel.id] === undefined ? (
-                <div style={{color: '#64748b', fontSize: '0.82rem'}}>טוען היסטוריה...</div>
-              ) : wheelHistoryCache[selectedWheel.id].length === 0 ? (
-                <div style={{color: '#64748b', fontSize: '0.82rem'}}>אין עדיין היסטוריית בקשות לגלגל זה</div>
-              ) : (
-                <div style={{maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                  {wheelHistoryCache[selectedWheel.id].map(entry => {
-                    const vehicleLabel = [entry.vehicle_model, entry.license_plate].filter(Boolean).join(' · ') || 'רכב לא ידוע'
-                    const dateLabel = new Date(entry.actual_return_date || entry.created_at || '').toLocaleDateString('he-IL')
-                    const { label: statusLabel, color: statusColor } =
-                      entry.status === 'pending' ? { label: 'ממתין לאישור', color: '#60a5fa' } :
-                      entry.status === 'rejected' ? { label: 'נדחה', color: '#94a3b8' } :
-                      entry.status === 'borrowed' ? { label: 'מושאל כרגע', color: '#60a5fa' } :
-                      entry.mount_result === 'success' ? { label: 'הצליח', color: '#10b981' } :
-                      entry.mount_result === 'failed' ? { label: 'נכשל', color: '#ef4444' } :
-                      { label: 'ללא משוב', color: '#94a3b8' }
-                    return (
-                      <div key={entry.id} style={{fontSize: '0.8rem', color: '#cbd5e1', lineHeight: 1.5, paddingBottom: '6px', borderBottom: '1px solid rgba(148,163,184,0.12)'}}>
-                        <span style={{color: '#94a3b8'}}>{dateLabel}</span>
-                        <span style={{margin: '0 6px', color: '#475569'}}>·</span>
-                        <span>{vehicleLabel}</span>
-                        <span style={{margin: '0 6px', color: '#475569'}}>·</span>
-                        <span style={{color: statusColor, fontWeight: 600}}>{statusLabel}</span>
-                        {entry.mount_feedback_note && (
-                          <span style={{color: '#94a3b8'}}> · {entry.mount_feedback_note}</span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
             </div>
 
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
