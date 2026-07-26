@@ -109,7 +109,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
           <div className="mb-4 flex justify-center"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">הטופס פג תוקף</h1>
           <p className="text-gray-600 mb-6">
-            טפסים נשמרים במערכת למשך 30 יום בלבד.<br />
+            טפסים נשמרים במערכת למשך 90 יום בלבד.<br />
             הטופס הזה נמחק אוטומטית.
           </p>
           <Link

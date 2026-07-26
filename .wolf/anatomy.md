@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T19:27:24.289Z
-> Files: 41 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T20:50:06.665Z
+> Files: 48 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -21,6 +21,7 @@
 
 ## ../../../.claude/plans/
 
+- `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
@@ -72,7 +73,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~96916 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~100841 tok)
 
 ## src/app/accessibility/
 
@@ -253,9 +254,11 @@
 
 ## src/app/api/signed-forms/cleanup/
 
+- `route.ts` — Signed Forms Cleanup API (~848 tok)
 
 ## src/app/api/signed-forms/upload/
 
+- `route.ts` — Signed Forms Upload API (~2227 tok)
 
 ## src/app/api/super-manager/auth/
 
@@ -297,6 +300,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/borrows/
 
+- `route.ts` — Wheel Borrows History API (~1214 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/[borrowId]/
 
@@ -331,7 +335,11 @@
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/
 
-- `route.ts` — Wheel Borrow API (~2187 tok)
+- `route.ts` — Wheel Borrow API (~2463 tok)
+
+## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/history/
+
+- `route.ts` — Wheel Request History API (~377 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/restore/
 
@@ -371,6 +379,7 @@
 
 ## src/app/forms/[formId]/
 
+- `page.tsx` — FormViewerPage — renders form (~3036 tok)
 
 ## src/app/guide/
 
@@ -434,7 +443,7 @@
 ## src/lib/
 
 - `types.ts` — Shared TypeScript interfaces used across pages (~433 tok)
-- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3026 tok)
+- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3437 tok)
 
 ## src/stories/mocks/
 
@@ -475,3 +484,4 @@
 ## supabase/migrations/
 
 - `20260726_add_manager_whatsapp_template.sql` — Lets each station manager set their own WhatsApp message wording, (~81 tok)
+- `20260726_add_wheel_mount_feedback.sql` — Lets managers record, at return time, whether a wheel actually mounted on the (~159 tok)

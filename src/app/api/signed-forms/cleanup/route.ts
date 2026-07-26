@@ -1,6 +1,6 @@
 /**
  * Signed Forms Cleanup API
- * POST /api/signed-forms/cleanup - Delete expired forms (older than 30 days)
+ * POST /api/signed-forms/cleanup - Delete expired forms (older than 90 days)
  *
  * This endpoint should be called periodically (e.g., via cron job)
  * to clean up expired forms from storage and database.

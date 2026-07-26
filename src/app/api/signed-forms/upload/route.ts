@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to upload form' }, { status: 500 })
     }
 
-    // Calculate expiration date (30 days from now)
+    // Calculate expiration date (90 days from now)
     const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 30)
+    expiresAt.setDate(expiresAt.getDate() + 90)
 
     // Create metadata record
     const { data: formRecord, error: dbError } = await supabase
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
                 <div style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px; border: 1px solid #f59e0b;">
                   <strong style="color: #b45309;">שימו לב:</strong>
                   <p style="margin: 10px 0 0; color: #92400e;">
-                    הטופס יישמר במערכת עד <strong>${expiryDate}</strong> (30 יום).<br>
+                    הטופס יישמר במערכת עד <strong>${expiryDate}</strong> (90 יום).<br>
                     מומלץ להוריד ולשמור עותק אם נדרש תיעוד ארוך טווח.
                   </p>
                 </div>

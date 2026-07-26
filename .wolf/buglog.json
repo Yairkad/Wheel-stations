@@ -2094,7 +2094,9 @@
         "wheel-search",
         "missed-in-bug-122"
       ],
-      "related_bugs": ["bug-122"],
+      "related_bugs": [
+        "bug-122"
+      ],
       "occurrences": 1,
       "last_seen": "2026-07-26T00:00:00.000Z"
     },
@@ -2112,6 +2114,139 @@
         "unified-auth",
         "localStorage",
         "missed-code-path"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T00:00:00.000Z"
+    },
+    {
+      "id": "bug-131",
+      "timestamp": "2026-07-26T20:35:15.674Z",
+      "error_message": "Missing guard clause",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "No early return/throw for edge case: !candidate",
+      "fix": "Added guard clause: if (!candidate)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T20:35:15.674Z"
+    },
+    {
+      "id": "bug-132",
+      "timestamp": "2026-07-26T20:36:17.203Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Had '@/components/AppHeader'",
+      "fix": "Changed to '@/lib/vehicle-mappings'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T20:36:17.203Z"
+    },
+    {
+      "id": "bug-133",
+      "timestamp": "2026-07-26T20:36:47.592Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T20:36:47.592Z"
+    },
+    {
+      "id": "bug-134",
+      "timestamp": "2026-07-26T20:37:30.252Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "No early return/throw for edge case: !returnTarget",
+      "fix": "Added guard clause: if (!returnTarget)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-07-26T20:41:52.394Z"
+    },
+    {
+      "id": "bug-135",
+      "timestamp": "2026-07-26T20:38:17.459Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T20:38:17.459Z"
+    },
+    {
+      "id": "bug-136",
+      "timestamp": "2026-07-26T20:49:59.800Z",
+      "error_message": "Wrong condition in logic",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/route.ts",
+      "root_cause": "Condition was: if (borrow.license_plate)",
+      "fix": "Changed to: if (borrow.license_plate && mount_result === 'success')",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T20:49:59.800Z"
+    },
+    {
+      "id": "bug-137",
+      "timestamp": "2026-07-26T20:51:36.503Z",
+      "error_message": "Manual borrow (הזן השאלה ידנית) silently dropped vehicle_model/vehicle_plate",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/route.ts",
+      "root_cause": "POST handler destructured only borrower_name/borrower_phone/expected_return_date/deposit_type/deposit_details/notes/manager_phone/manager_password from the request body and inserted those into wheel_borrows — even though the client (manualBorrowForm in src/app/[stationId]/page.tsx) already sent vehicle_model and vehicle_plate. Every manually-entered borrow lost the vehicle info entirely, unlike the public sign-form flow (public-borrow/route.ts) which did store it.",
+      "fix": "Added vehicle_model and vehicle_plate (mapped to the license_plate column) to both the destructure and the wheel_borrows insert in the POST handler. Found while building the new per-wheel mount-feedback history feature (mount_result/mount_feedback_note columns + history endpoint) — manual borrows would otherwise show up in a wheel's history with a blank vehicle.",
+      "tags": [
+        "data-loss",
+        "manual-borrow",
+        "wheel_borrows",
+        "vehicle_model"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-26T20:51:36.504Z"
+    },
+    {
+      "id": "bug-137",
+      "timestamp": "2026-07-26T00:00:00.000Z",
+      "error_message": "המשתמש דיווח: אין קישור לצפייה בטופס השאלה אחרי ביטול בקשה או אחרי החזרת גלגל",
+      "file": "src/app/api/signed-forms/upload/route.ts (bucket, not code)",
+      "root_cause": "לא באג בקוד — ה-Storage bucket 'signed-forms' ב-Supabase לא היה קיים בכלל בפרויקט (אומת ישירות: GET /storage/v1/bucket החזיר מערך ריק, וטבלת signed_forms הייתה ריקה לגמרי). לכן כל ניסיון להעלות את תמונת הטופס המלאה (html2canvas) בזמן public-borrow נכשל בשקט ברקע (Storage upload error: Bucket not found) — ה-insert הפנימי ל-signed_forms אף פעם לא קרה, אז form_id תמיד היה null, בכל סטטוס (pending/borrowed/rejected/returned), לא רק אחרי ביטול/החזרה כפי שנראה למשתמש. פרטי השואל עצמם (שם/טלפון/ת.ז/כתובת/רכב/פיקדון/חתימה גולמית) לא נפגעו — הם נשמרים תמיד ישירות בטבלת wheel_borrows, בלתי תלויים ב-signed_forms/storage. המשתמש תיקן אותי: טפסים כן נשמרו ועבדו בעבר — ההסבר הסביר: ה-bucket נעלם במתישהו (איפוס/שינוי חיצוני בפרויקט, לא דרך קוד האפליקציה) לפני יותר מ-30 יום, וכל מה שנוצר לפניו כבר נמחק אוטומטית ע'י signed-forms/cleanup (cron יומי שמוחק קבצים+שורות בני יותר מ-X יום) — כך שאין עוד עדות בטבלה, אבל זה לא אומר שלא היה.",
+      "fix": "1) יצרתי מחדש את ה-bucket 'signed-forms' (private, לא ציבורי — הקוד משתמש ב-createSignedUrl) דרך Supabase Storage API ישירות עם ה-service role key. 2) אימתתי E2E על תחנת בדיקה אמיתית: הגשת בקשת השאלה עם תמונת טופס → הצליחה (form_url הוחזר) → דחיית הבקשה (ביטול) → GET על הטופס עדיין מחזיר 200 עם signed URL תקין. 3) בעקבות בקשת המשתמש להגדיל את משך השמירה (היה 30 יום, כדי לא להעמיס על האחסון): שיניתי ל-90 יום ב-3 מקומות: upload/route.ts (חישוב expires_at + טקסט המייל), forms/[formId]/page.tsx (טקסט 'פג תוקף'), ותיעוד ההערה ב-cleanup/route.ts. 4) אין קשר בין המחיקה של signed_forms (הטופס/תמונה) לבין wheel_borrows (מידע השואל) — ה-cleanup job נוגע רק בטבלת signed_forms ובאחסון, ו-foreign key לא יכול 'לטפטף' מחיקה אחורה מהילד (signed_forms) להורה (wheel_borrows) — כך שהמידע המהותי תמיד נשאר, רק תמונת הטופס המלאה נמחקת אחרי 90 יום.",
+      "tags": [
+        "signed-forms",
+        "storage-bucket",
+        "supabase-storage",
+        "infrastructure",
+        "missing-bucket",
+        "retention-period",
+        "form-view-link"
       ],
       "related_bugs": [],
       "occurrences": 1,
