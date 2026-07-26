@@ -22,7 +22,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { borrower_name, borrower_phone, expected_return_date, deposit_type, deposit_details, notes, manager_phone, manager_password } = body
+    const { borrower_name, borrower_phone, expected_return_date, deposit_type, deposit_details, notes, vehicle_model, vehicle_plate, manager_phone, manager_password } = body
 
     // Verify manager credentials
     if (!manager_phone || !manager_password) {
@@ -70,6 +70,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         deposit_type,
         deposit_details,
         notes,
+        vehicle_model,
+        license_plate: vehicle_plate,
         status: 'borrowed',
         created_by_manager_id: auth.managerId
       })
@@ -106,11 +108,23 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { manager_phone, manager_password } = body
+    const { manager_phone, manager_password, mount_result, mount_note } = body
 
     // Verify manager credentials
     if (!manager_phone || !manager_password) {
       return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
+    }
+
+    if (mount_result !== 'success' && mount_result !== 'failed') {
+      return NextResponse.json({ error: 'נא לציין האם ההרכבה הצליחה או נכשלה' }, { status: 400 })
+    }
+
+    const trimmedNote = typeof mount_note === 'string' ? mount_note.trim() : ''
+    if (mount_result === 'failed' && !trimmedNote) {
+      return NextResponse.json({ error: 'נא לציין סיבה לכישלון ההרכבה' }, { status: 400 })
+    }
+    if (trimmedNote.length > 200) {
+      return NextResponse.json({ error: 'ההערה ארוכה מדי (מקסימום 200 תווים)' }, { status: 400 })
     }
 
     const auth = await verifyStationManager(stationId, manager_phone, manager_password)
@@ -144,7 +158,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .update({
         status: 'returned',
         actual_return_date: new Date().toISOString(),
-        returned_by_manager_id: auth.managerId
+        returned_by_manager_id: auth.managerId,
+        mount_result,
+        mount_feedback_note: trimmedNote || null,
+        mount_feedback_at: new Date().toISOString(),
+        mount_feedback_by_manager_id: auth.managerId
       })
       .eq('id', borrow.id)
 
@@ -164,8 +182,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to update wheel status' }, { status: 500 })
     }
 
-    // If license plate was provided, create verified wheel match for the database
-    if (borrow.license_plate) {
+    // If license plate was provided AND the mount actually succeeded, cache it as a verified
+    // match — a failed mount must not be recorded as a confirmed-compatible pairing.
+    if (borrow.license_plate && mount_result === 'success') {
       try {
         // Get wheel details
         const { data: wheel } = await supabase

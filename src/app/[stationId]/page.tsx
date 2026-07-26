@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import { isPushSupported, requestNotificationPermission, registerServiceWorker, getPushNotSupportedReason } from '@/lib/push'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
+import { findSimilarFailedMount, WheelHistoryEntry } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 
 const DEFAULT_WHATSAPP_TEMPLATE = `שלום רב 👋
@@ -69,6 +70,8 @@ interface BorrowRecord {
   status: string
   is_signed: boolean
   signed_at?: string
+  mount_result?: string | null
+  mount_feedback_note?: string | null
   created_at: string
   form_id?: string
   referred_by?: string
@@ -325,6 +328,31 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     notes: ''
   })
   const [manualBorrowFormErrors, setManualBorrowFormErrors] = useState<string[]>([])
+
+  // Per-wheel request history — cached by wheel_id so the tracking tab, the manual-borrow
+  // modal, and the edit-wheel modal's history section can all reuse the same fetch.
+  const [wheelHistoryCache, setWheelHistoryCache] = useState<Record<string, WheelHistoryEntry[]>>({})
+
+  const ensureWheelHistoryLoaded = async (wheelId: string) => {
+    if (!wheelId || wheelHistoryCache[wheelId]) return
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheelId}/history`)
+      if (!response.ok) return
+      const data = await response.json()
+      setWheelHistoryCache(prev => ({ ...prev, [wheelId]: data.history || [] }))
+    } catch (err) {
+      console.error('Error fetching wheel history:', err)
+    }
+  }
+
+  // Return-wheel modal — collects the mount success/failure feedback before closing the borrow
+  const [showReturnModal, setShowReturnModal] = useState(false)
+  const [returnTarget, setReturnTarget] = useState<Wheel | null>(null)
+  const [returnForm, setReturnForm] = useState<{ mount_result: 'success' | 'failed' | null; note: string; showNoteField: boolean }>({
+    mount_result: null,
+    note: '',
+    showNoteField: false
+  })
 
   // Predefined categories
   const predefinedCategories = ['גרמניות', 'צרפתיות', 'יפניות וקוריאניות']
@@ -646,6 +674,13 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       fetchBorrows()
     }
   }, [activeTab, borrowFilter, isManager])
+
+  // Prefetch each pending request's wheel history, so a "this wheel failed on a similar
+  // vehicle before" warning can be shown next to it without an extra click.
+  useEffect(() => {
+    const pendingWheelIds = [...new Set(borrows.filter(b => b.status === 'pending').map(b => b.wheel_id))]
+    pendingWheelIds.forEach(id => ensureWheelHistoryLoaded(id))
+  }, [borrows])
 
   // Handle URL action parameter to open modals from header menu
   useEffect(() => {
@@ -1352,45 +1387,59 @@ ${signFormUrl}
   }
 
   // Return wheel
-  const handleReturn = async (wheel: Wheel) => {
-    const borrowInfo = wheel.current_borrow
-    const depositInfo = borrowInfo?.deposit_type && borrowInfo.deposit_type !== 'none'
-      ? `\n\nתזכורת: יש להחזיר פיקדון!\nסוג: ${borrowInfo.deposit_type === 'cash' ? 'מזומן' : borrowInfo.deposit_type === 'credit_card' ? 'כרטיס אשראי' : borrowInfo.deposit_type === 'id' ? 'תעודת זהות' : borrowInfo.deposit_type}${borrowInfo.deposit_details ? `\nפרטים: ${borrowInfo.deposit_details}` : ''}`
-      : ''
+  // Opens the return modal — mount success/failure feedback is collected there before
+  // the borrow actually closes (see submitReturn).
+  const handleReturn = (wheel: Wheel) => {
+    setReturnTarget(wheel)
+    setReturnForm({ mount_result: null, note: '', showNoteField: false })
+    setShowReturnModal(true)
+  }
 
-    showConfirm({
-      title: 'החזרת גלגל',
-      message: `להחזיר את גלגל #${wheel.wheel_number}?${depositInfo}`,
-      confirmText: 'החזר',
-      variant: 'info',
-      onConfirm: async () => {
-        closeConfirmDialog()
-        setActionLoading(true)
-        try {
-          const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheel.id}/borrow`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              manager_phone: currentManager?.phone,
-              manager_password: sessionPassword
-            })
-          })
-          if (!response.ok) {
-            const errData = await response.json().catch(parseErr => {
-              console.error('[StationPage] failed to parse error response:', parseErr)
-              return {}
-            })
-            throw new Error(errData.error || 'Failed to return')
-          }
-          await fetchStation()
-          toast.success('הגלגל הוחזר בהצלחה!')
-        } catch (err: any) {
-          toast.error(err.message || 'שגיאה בהחזרה')
-        } finally {
-          setActionLoading(false)
-        }
+  const submitReturn = async () => {
+    if (!returnTarget) return
+    if (!returnForm.mount_result) {
+      toast.error('נא לבחור האם ההרכבה הצליחה')
+      return
+    }
+    if (returnForm.mount_result === 'failed' && !returnForm.note.trim()) {
+      toast.error('נא לציין סיבה לכישלון ההרכבה')
+      return
+    }
+
+    setActionLoading(true)
+    try {
+      const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${returnTarget.id}/borrow`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manager_phone: currentManager?.phone,
+          manager_password: sessionPassword,
+          mount_result: returnForm.mount_result,
+          mount_note: returnForm.note.trim() || undefined
+        })
+      })
+      if (!response.ok) {
+        const errData = await response.json().catch(parseErr => {
+          console.error('[StationPage] failed to parse error response:', parseErr)
+          return {}
+        })
+        throw new Error(errData.error || 'Failed to return')
       }
-    })
+      // Drop the cached history for this wheel so it's refetched with the new feedback next time it's viewed.
+      setWheelHistoryCache(prev => {
+        const next = { ...prev }
+        delete next[returnTarget.id]
+        return next
+      })
+      await fetchStation()
+      setShowReturnModal(false)
+      setReturnTarget(null)
+      toast.success('הגלגל הוחזר בהצלחה!')
+    } catch (err: any) {
+      toast.error(err.message || 'שגיאה בהחזרה')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   // Manual borrow - submit form
@@ -2472,6 +2521,16 @@ ${signFormUrl}
                           {borrow.vehicle_model && (
                             <div style={styles.borrowerInfoCell}>{borrow.vehicle_model}</div>
                           )}
+                          {borrow.status === 'pending' && (() => {
+                            const similarFailure = findSimilarFailedMount(wheelHistoryCache[borrow.wheel_id] || [], borrow.vehicle_model)
+                            if (!similarFailure) return null
+                            return (
+                              <div style={{marginTop: '4px', fontSize: '0.72rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '3px'}}>
+                                <span>⚠</span>
+                                <span>נכשל בעבר על רכב דומה{similarFailure.mount_feedback_note ? ` — ${similarFailure.mount_feedback_note}` : ''}</span>
+                              </div>
+                            )
+                          })()}
                         </td>
                         <td style={styles.trackingTd}>
                           <span style={{
@@ -2669,6 +2728,16 @@ ${signFormUrl}
                                 <span>{borrow.vehicle_model}</span>
                               </div>
                             )}
+                            {borrow.status === 'pending' && (() => {
+                              const similarFailure = findSimilarFailedMount(wheelHistoryCache[borrow.wheel_id] || [], borrow.vehicle_model)
+                              if (!similarFailure) return null
+                              return (
+                                <div style={{fontSize: '0.75rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '3px', marginTop: '2px'}}>
+                                  <span>⚠</span>
+                                  <span>נכשל בעבר על רכב דומה{similarFailure.mount_feedback_note ? ` — ${similarFailure.mount_feedback_note}` : ''}</span>
+                                </div>
+                              )
+                            })()}
                             {borrow.referred_by_name && (
                               <div style={styles.mobileCardRow}>
                                 <span style={{color: '#9ca3af'}}>הופנה ע&quot;י:</span>
@@ -3361,6 +3430,7 @@ ${signFormUrl}
                                 setManualBorrowWheel(wheel)
                                 setShowManualBorrowModal(true)
                                 setOpenOptionsMenu(null)
+                                ensureWheelHistoryLoaded(wheel.id)
                               }}
                             >
                               <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>הזן השאלה ידנית</span>
@@ -3406,6 +3476,7 @@ ${signFormUrl}
                               })
                               setShowEditWheelModal(true)
                               setOpenOptionsMenu(null)
+                              ensureWheelHistoryLoaded(wheel.id)
                             }}
                           >
                             <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>ערוך גלגל {!wheel.is_available && !wheel.temporarily_unavailable && '(מושאל)'}</span>
@@ -3626,6 +3697,112 @@ ${signFormUrl}
       )}
 
       {/* Manual Borrow Modal */}
+      {/* Return Wheel Modal - collects mount success/failure feedback before closing the borrow */}
+      {showReturnModal && returnTarget && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => !actionLoading && setShowReturnModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="return-modal-title" style={{...styles.modal, maxWidth: '420px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="return-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px'}}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+              החזרת גלגל #{returnTarget.wheel_number}
+            </h3>
+
+            {returnTarget.current_borrow?.deposit_type && returnTarget.current_borrow.deposit_type !== 'none' && (
+              <div style={{background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: '10px', padding: '10px 12px', marginBottom: '14px', fontSize: '0.85rem', color: '#92400e'}}>
+                תזכורת: יש להחזיר פיקדון ({returnTarget.current_borrow.deposit_type === 'cash' ? 'מזומן' : returnTarget.current_borrow.deposit_type === 'credit_card' ? 'כרטיס אשראי' : returnTarget.current_borrow.deposit_type === 'id' ? 'תעודת זהות' : returnTarget.current_borrow.deposit_type})
+                {returnTarget.current_borrow.deposit_details && ` — ${returnTarget.current_borrow.deposit_details}`}
+              </div>
+            )}
+
+            <p style={{color: '#a0aec0', marginBottom: '10px', fontSize: '0.9rem'}}>האם הגלגל הצליח להתרכב על הרכב?</p>
+
+            <div style={{display: 'flex', gap: '10px', marginBottom: '14px'}}>
+              <button
+                type="button"
+                onClick={() => setReturnForm({ mount_result: 'success', note: returnForm.mount_result === 'success' ? returnForm.note : '', showNoteField: false })}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '10px', border: returnForm.mount_result === 'success' ? '2px solid #10b981' : '1px solid #334155',
+                  background: returnForm.mount_result === 'success' ? 'rgba(16,185,129,0.15)' : 'transparent', color: returnForm.mount_result === 'success' ? '#10b981' : '#cbd5e1',
+                  cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem'
+                }}
+              >
+                ✅ הצליח להרכיב
+              </button>
+              <button
+                type="button"
+                onClick={() => setReturnForm({ mount_result: 'failed', note: returnForm.mount_result === 'failed' ? returnForm.note : '', showNoteField: false })}
+                style={{
+                  flex: 1, padding: '12px', borderRadius: '10px', border: returnForm.mount_result === 'failed' ? '2px solid #ef4444' : '1px solid #334155',
+                  background: returnForm.mount_result === 'failed' ? 'rgba(239,68,68,0.15)' : 'transparent', color: returnForm.mount_result === 'failed' ? '#ef4444' : '#cbd5e1',
+                  cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem'
+                }}
+              >
+                ❌ לא הצליח להרכיב
+              </button>
+            </div>
+
+            {returnForm.mount_result === 'failed' && (
+              <div style={{marginBottom: '14px'}}>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>סיבה *</label>
+                <textarea
+                  value={returnForm.note}
+                  onChange={e => setReturnForm({...returnForm, note: e.target.value.slice(0, 200)})}
+                  placeholder="למשל: הבלם נשייף בחישוק"
+                  rows={3}
+                  maxLength={200}
+                  style={{...styles.input, resize: 'vertical'}}
+                  autoFocus
+                />
+                <div style={{textAlign: 'left', fontSize: '0.72rem', color: '#64748b', marginTop: '2px'}}>{returnForm.note.length}/200</div>
+              </div>
+            )}
+
+            {returnForm.mount_result === 'success' && (
+              <div style={{marginBottom: '14px'}}>
+                {!returnForm.showNoteField ? (
+                  <button
+                    type="button"
+                    onClick={() => setReturnForm({...returnForm, showNoteField: true})}
+                    style={{background:'none',border:'1px dashed #475569',borderRadius:'6px',padding:'6px 12px',cursor:'pointer',color:'#94a3b8',fontSize:'0.82rem'}}
+                  >
+                    + הוסף הערה
+                  </button>
+                ) : (
+                  <>
+                    <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>הערה</label>
+                    <textarea
+                      value={returnForm.note}
+                      onChange={e => setReturnForm({...returnForm, note: e.target.value.slice(0, 200)})}
+                      rows={2}
+                      maxLength={200}
+                      style={{...styles.input, resize: 'vertical'}}
+                      autoFocus
+                    />
+                    <div style={{textAlign: 'left', fontSize: '0.72rem', color: '#64748b', marginTop: '2px'}}>{returnForm.note.length}/200</div>
+                  </>
+                )}
+              </div>
+            )}
+
+            <div style={{display: 'flex', gap: '12px', marginTop: '8px'}}>
+              <button
+                style={{flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#4b5563', color: '#fff', cursor: 'pointer', fontWeight: 'bold'}}
+                onClick={() => setShowReturnModal(false)}
+                disabled={actionLoading}
+              >
+                ביטול
+              </button>
+              <button
+                style={{flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', cursor: 'pointer', fontWeight: 'bold', opacity: (!returnForm.mount_result || (returnForm.mount_result === 'failed' && !returnForm.note.trim())) ? 0.5 : 1}}
+                onClick={submitReturn}
+                disabled={actionLoading || !returnForm.mount_result || (returnForm.mount_result === 'failed' && !returnForm.note.trim())}
+              >
+                {actionLoading ? 'מחזיר...' : 'החזר גלגל'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showManualBorrowModal && manualBorrowWheel && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => !actionLoading && setShowManualBorrowModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="manual-borrow-modal-title" style={{...styles.modal, maxWidth: '450px', position: 'relative'}} onClick={e => e.stopPropagation()}>
@@ -3746,6 +3923,16 @@ ${signFormUrl}
                   style={styles.input}
                   disabled={actionLoading}
                 />
+                {(() => {
+                  const similarFailure = findSimilarFailedMount(wheelHistoryCache[manualBorrowWheel.id] || [], manualBorrowForm.vehicle_model)
+                  if (!similarFailure) return null
+                  return (
+                    <div style={{marginTop: '6px', fontSize: '0.78rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '4px'}}>
+                      <span>⚠</span>
+                      <span>גלגל זה נכשל בעבר על רכב דומה{similarFailure.mount_feedback_note ? ` — ${similarFailure.mount_feedback_note}` : ''}</span>
+                    </div>
+                  )
+                })()}
               </div>
 
               <div>
@@ -4583,6 +4770,43 @@ ${signFormUrl}
                 />
               </div>
             </div>
+
+            {/* History of past requests for this wheel - plain lines, not a table */}
+            <div style={{marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #334155'}}>
+              <label style={{...styles.label, display: 'block', marginBottom: '8px'}}>היסטוריית שאלות</label>
+              {wheelHistoryCache[selectedWheel.id] === undefined ? (
+                <div style={{color: '#64748b', fontSize: '0.82rem'}}>טוען היסטוריה...</div>
+              ) : wheelHistoryCache[selectedWheel.id].length === 0 ? (
+                <div style={{color: '#64748b', fontSize: '0.82rem'}}>אין עדיין היסטוריית בקשות לגלגל זה</div>
+              ) : (
+                <div style={{maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                  {wheelHistoryCache[selectedWheel.id].map(entry => {
+                    const vehicleLabel = [entry.vehicle_model, entry.license_plate].filter(Boolean).join(' · ') || 'רכב לא ידוע'
+                    const dateLabel = new Date(entry.actual_return_date || entry.created_at || '').toLocaleDateString('he-IL')
+                    const { label: statusLabel, color: statusColor } =
+                      entry.status === 'pending' ? { label: 'ממתין לאישור', color: '#60a5fa' } :
+                      entry.status === 'rejected' ? { label: 'נדחה', color: '#94a3b8' } :
+                      entry.status === 'borrowed' ? { label: 'מושאל כרגע', color: '#60a5fa' } :
+                      entry.mount_result === 'success' ? { label: 'הצליח', color: '#10b981' } :
+                      entry.mount_result === 'failed' ? { label: 'נכשל', color: '#ef4444' } :
+                      { label: 'ללא משוב', color: '#94a3b8' }
+                    return (
+                      <div key={entry.id} style={{fontSize: '0.8rem', color: '#cbd5e1', lineHeight: 1.5, paddingBottom: '6px', borderBottom: '1px solid rgba(148,163,184,0.12)'}}>
+                        <span style={{color: '#94a3b8'}}>{dateLabel}</span>
+                        <span style={{margin: '0 6px', color: '#475569'}}>·</span>
+                        <span>{vehicleLabel}</span>
+                        <span style={{margin: '0 6px', color: '#475569'}}>·</span>
+                        <span style={{color: statusColor, fontWeight: 600}}>{statusLabel}</span>
+                        {entry.mount_feedback_note && (
+                          <span style={{color: '#94a3b8'}}> · {entry.mount_feedback_note}</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => { setShowEditWheelModal(false); setSelectedWheel(null) }}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleEditWheel} disabled={actionLoading}>

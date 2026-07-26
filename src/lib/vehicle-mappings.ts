@@ -208,3 +208,38 @@ export function checkVehicleRimFit(
   const candidateDiameter = getTireDiameterMm(candidateTire, candidateRim)
   return compareRimAndDiameter(sourceRim, candidateRim, sourceDiameter, candidateDiameter, false)
 }
+
+// vehicle_model on wheel_borrows is free text (no separate make/model/year fields), so
+// "similar vehicle" matching is a normalized substring compare rather than a structured one.
+export function normalizeVehicleText(s: string | null | undefined): string {
+  return (s || '').trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+export interface WheelHistoryEntry {
+  id: string
+  vehicle_model?: string | null
+  license_plate?: string | null
+  status: string
+  mount_result?: string | null
+  mount_feedback_note?: string | null
+  actual_return_date?: string | null
+  created_at?: string
+}
+
+// Finds the most recent failed-mount record for this same wheel whose vehicle text
+// matches (or is contained in / contains) the vehicle being requested now, so a manager
+// can be warned before approving/lending the same wheel to a similar vehicle again.
+export function findSimilarFailedMount(
+  history: WheelHistoryEntry[],
+  candidateVehicleModel: string | null | undefined
+): WheelHistoryEntry | null {
+  const candidate = normalizeVehicleText(candidateVehicleModel)
+  if (!candidate) return null
+
+  const failed = history.filter(h => h.mount_result === 'failed' && normalizeVehicleText(h.vehicle_model))
+  const match = failed.find(h => {
+    const past = normalizeVehicleText(h.vehicle_model)
+    return past === candidate || past.includes(candidate) || candidate.includes(past)
+  })
+  return match || null
+}
