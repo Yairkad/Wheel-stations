@@ -27,7 +27,7 @@ interface Station {
   district: string | null
   totalWheels: number
   availableWheels: number
-  activeWheels: number
+  takenWheels: number
   inactiveWheels: number
   wheel_station_managers: { id: string; full_name: string; phone: string; is_primary: boolean }[]
 }
@@ -407,7 +407,7 @@ export default function SuperManagerPage() {
           'מחוז': districtNames[s.district || ''] || s.district || '',
           'סה"כ גלגלים': s.totalWheels,
           'זמינים': s.availableWheels,
-          'מושאלים': s.totalWheels - s.availableWheels,
+          'מושאלים': s.takenWheels,
           'מנהל ראשי': s.wheel_station_managers.find(m => m.is_primary)?.full_name || '',
           'טלפון מנהל': s.wheel_station_managers.find(m => m.is_primary)?.phone || '',
         }))
@@ -772,9 +772,10 @@ export default function SuperManagerPage() {
 
   // District-level computed data
   const emptyStations = filteredStations.filter(s => s.availableWheels === 0 && s.totalWheels > 0)
-  const heavyStations = filteredStations.filter(s => s.totalWheels > 0 && (s.totalWheels - s.availableWheels) / s.totalWheels >= 0.9)
+  const heavyStations = filteredStations.filter(s => s.totalWheels > 0 && s.takenWheels / s.totalWheels >= 0.9)
   const totalWheels = filteredStations.reduce((sum, s) => sum + s.totalWheels, 0)
   const totalAvailable = filteredStations.reduce((sum, s) => sum + s.availableWheels, 0)
+  const totalTaken = filteredStations.reduce((sum, s) => sum + s.takenWheels, 0)
 
   const TABS: { id: MainTab; label: string; icon: string }[] = [
     { id: 'inventory', label: 'מלאי', icon: 'M3 3h18v18H3zM3 9h18M3 15h18M9 3v18' },
@@ -989,7 +990,7 @@ export default function SuperManagerPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <span style={{ fontWeight: 700, color: '#1e293b' }}>{s.name}</span>
-                        <span style={{ fontSize: '0.8rem', color: '#f59e0b', marginRight: 8, fontWeight: 600 }}>עומס גבוה — {s.totalWheels - s.availableWheels}/{s.totalWheels} מושאלים</span>
+                        <span style={{ fontSize: '0.8rem', color: '#f59e0b', marginRight: 8, fontWeight: 600 }}>עומס גבוה — {s.takenWheels}/{s.totalWheels} מושאלים</span>
                       </div>
                       {canEdit && (
                         <button onClick={() => handleSelectStation(s)} style={{ padding: '4px 10px', background: '#fef3c7', color: '#92400e', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600 }}>ניהול</button>
@@ -1013,13 +1014,13 @@ export default function SuperManagerPage() {
                 <div style={{ color: '#94a3b8', textAlign: 'center', padding: '20px 0' }}>אין נתונים</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {filteredStations.filter(s => s.totalWheels > 0).sort((a, b) => (b.totalWheels - b.availableWheels) - (a.totalWheels - a.availableWheels)).map(s => {
-                    const pct = Math.round(((s.totalWheels - s.availableWheels) / s.totalWheels) * 100)
+                  {filteredStations.filter(s => s.totalWheels > 0).sort((a, b) => b.takenWheels - a.takenWheels).map(s => {
+                    const pct = Math.round((s.takenWheels / s.totalWheels) * 100)
                     return (
                       <div key={s.id}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: 3, color: '#475569' }}>
                           <span style={{ fontWeight: 600 }}>{s.name}</span>
-                          <span>{pct}% ({s.totalWheels - s.availableWheels}/{s.totalWheels})</span>
+                          <span>{pct}% ({s.takenWheels}/{s.totalWheels})</span>
                         </div>
                         <div style={{ height: 8, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
                           <div style={{
@@ -1042,9 +1043,9 @@ export default function SuperManagerPage() {
                   ['תחנות במחוז', filteredStations.length],
                   ['סה"כ גלגלים', totalWheels],
                   ['גלגלים זמינים', totalAvailable],
-                  ['גלגלים מושאלים', totalWheels - totalAvailable],
+                  ['גלגלים מושאלים', totalTaken],
                   ['תחנות ריקות', emptyStations.length],
-                  ['ניצולת ממוצעת', totalWheels > 0 ? `${Math.round(((totalWheels - totalAvailable) / totalWheels) * 100)}%` : '—'],
+                  ['ניצולת ממוצעת', totalWheels > 0 ? `${Math.round((totalTaken / totalWheels) * 100)}%` : '—'],
                 ].map(([label, val]) => (
                   <div key={String(label)} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
                     <span>{label}</span>

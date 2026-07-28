@@ -13,7 +13,7 @@ export interface Station {
   wheel_station_managers: Manager[]
   totalWheels: number
   availableWheels: number
-  activeWheels: number
+  takenWheels: number
   inactiveWheels: number
 }
 

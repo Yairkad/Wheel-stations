@@ -113,7 +113,7 @@ interface Station {
   wheel_station_managers: Manager[]
   totalWheels: number
   availableWheels: number
-  activeWheels: number
+  takenWheels: number
   inactiveWheels: number
   deposit_amount?: number
   payment_methods?: PaymentMethods
@@ -2230,12 +2230,17 @@ ${signFormUrl}
             gap: 10px !important;
           }
           .station-stats {
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 8px !important;
           }
           .station-stat {
-            min-width: 85px !important;
-            padding: 12px 15px !important;
+            min-width: 0 !important;
+            padding: 10px 8px !important;
+          }
+          .station-stat-value {
+            font-size: 1.4rem !important;
+          }
+          .station-stat-label {
+            font-size: 0.78rem !important;
           }
           .tracking-filter-tabs {
             flex-wrap: wrap !important;
@@ -2274,9 +2279,18 @@ ${signFormUrl}
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
             gap: 8px !important;
           }
+          .station-stats {
+            gap: 6px !important;
+          }
           .station-stat {
-            min-width: 70px !important;
-            padding: 10px 12px !important;
+            min-width: 0 !important;
+            padding: 8px 4px !important;
+          }
+          .station-stat-value {
+            font-size: 1.15rem !important;
+          }
+          .station-stat-label {
+            font-size: 0.68rem !important;
           }
           .station-contact-buttons {
             flex-direction: column;
@@ -2426,24 +2440,20 @@ ${signFormUrl}
       {activeTab === 'wheels' && (
         <div style={styles.stats} className="station-stats">
           <div style={styles.stat} className="station-stat">
-            <div style={styles.statValue}>{station.totalWheels}</div>
-            <div style={styles.statLabel}>סה"כ גלגלים</div>
+            <div style={styles.statValue} className="station-stat-value">{station.totalWheels}</div>
+            <div style={styles.statLabel} className="station-stat-label">סה"כ גלגלים</div>
           </div>
           <div style={{...styles.stat, ...styles.statAvailable}} className="station-stat">
-            <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
-            <div style={styles.statLabel}>זמינים</div>
+            <div style={{...styles.statValue, color: '#10b981'}} className="station-stat-value">{station.availableWheels}</div>
+            <div style={styles.statLabel} className="station-stat-label">זמינים</div>
           </div>
           <div style={{...styles.stat, ...styles.statTaken}} className="station-stat">
-            <div style={{...styles.statValue, color: '#ef4444'}}>{station.totalWheels - station.availableWheels}</div>
-            <div style={styles.statLabel}>מושאלים</div>
+            <div style={{...styles.statValue, color: '#ef4444'}} className="station-stat-value">{station.takenWheels}</div>
+            <div style={styles.statLabel} className="station-stat-label">מושאלים</div>
           </div>
           <div style={styles.stat} className="station-stat">
-            <div style={{...styles.statValue, color: '#22c55e'}}>{station.activeWheels}</div>
-            <div style={styles.statLabel}>פעילים</div>
-          </div>
-          <div style={styles.stat} className="station-stat">
-            <div style={{...styles.statValue, color: '#f59e0b'}}>{station.inactiveWheels}</div>
-            <div style={styles.statLabel}>לא פעילים</div>
+            <div style={{...styles.statValue, color: '#f59e0b'}} className="station-stat-value">{station.inactiveWheels}</div>
+            <div style={styles.statLabel} className="station-stat-label">לא פעילים</div>
           </div>
         </div>
       )}
@@ -6213,18 +6223,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'inline-block',
   },
   stats: {
-    display: 'flex',
-    gap: '20px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '12px',
     marginBottom: '20px',
-    flexWrap: 'wrap',
   },
   stat: {
     background: '#ffffff',
     border: '1px solid #e2e8f0',
-    padding: '15px 25px',
+    padding: '15px 10px',
     borderRadius: '12px',
     textAlign: 'center',
-    minWidth: '100px',
+    minWidth: 0,
+    overflow: 'hidden',
     boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
   },
   statAvailable: {},
