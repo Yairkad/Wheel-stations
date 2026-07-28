@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { verifyStationManager } from '@/lib/station-auth'
+import { computeWheelStats } from '@/lib/wheel-stats'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -117,8 +118,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       station: {
         ...station,
         wheels: wheelsWithBorrowInfo,
-        totalWheels: wheels?.length || 0,
-        availableWheels: wheels?.filter(w => w.is_available).length || 0
+        ...computeWheelStats(wheels || [])
       }
     })
   } catch (error) {
