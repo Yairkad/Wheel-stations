@@ -2283,6 +2283,40 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-26T21:34:10.480Z"
+    },
+    {
+      "id": "bug-141",
+      "timestamp": "2026-07-28T06:40:46.236Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 15→20 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-28T06:40:46.236Z"
+    },
+    {
+      "id": "bug-142",
+      "timestamp": "2026-07-27T00:00:00.000Z",
+      "error_message": "משתמש דיווח: אחרי ששינה נוסח וואטסאפ אישי, כשמוקדן (עמוד /operator) הוציא לו הודעה דרך בחירת שמו מרשימת אנשי הקשר בתחנה, הנוסח האישי לא השתקף — ההודעה תמיד יצאה בנוסח הקבוע",
+      "file": "src/app/operator/page.tsx, src/app/api/wheel-stations/managers/route.ts",
+      "root_cause": "עמוד המוקדנים מריץ זרימה נפרדת לגמרי משליחת הוואטסאפ בעמוד התחנה: getMessage() ב-operator/page.tsx בונה הודעת 'תפתח קריאה שינוע לפנצ'ריה...' עם הקישור לטופס בסוף, לגמרי hardcoded, בלי שום קשר ל-whatsapp_message_template של המנהל. בנוסף, ה-API שמזין את רשימת אנשי הקשר בעמוד המוקדנים (/api/wheel-stations/managers) בכלל לא שלף/החזיר את השדה whatsapp_message_template מהתחלה — כך שגם אם היה שינוי ב-getMessage, הנתון לא היה זמין ב-client.",
+      "fix": "הוספת whatsapp_message_template ל-select ולתשובת /api/wheel-stations/managers (route.ts), עדכון הטייפ StationManager ב-operator/page.tsx, ועדכון getMessage() לבנות את ההודעה מהנוסח האישי של איש הקשר הנבחר (contact.whatsapp_message_template) במקום הטקסט הקבוע — עם placeholder {link} ואותה לוגיקת fallback (הוספת הקישור בסוף אם המנהל שכח להוסיף {link}) כמו ב-buildWhatsAppMessage בעמוד התחנה. המשתמש אישר מפורשות שרוצה שכל ההודעה (לא רק שורת הקישור) תשקף את הנוסח האישי.",
+      "tags": [
+        "whatsapp-template",
+        "operator-page",
+        "call-center",
+        "managers-api",
+        "missed-code-path"
+      ],
+      "related_bugs": ["bug-130"],
+      "occurrences": 1,
+      "last_seen": "2026-07-27T00:00:00.000Z"
     }
   ]
 }

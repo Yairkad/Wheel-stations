@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const { data: roles, error } = await supabase
       .from('user_roles')
-      .select('station_id, users(id, full_name, phone)')
+      .select('station_id, users(id, full_name, phone, whatsapp_message_template)')
       .eq('role', 'station_manager')
       .eq('is_active', true)
       .in('station_id', stationIds)
@@ -39,13 +39,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Group by station_id
-    const managersMap: Record<string, { id: string; full_name: string; phone: string }[]> = {}
+    const managersMap: Record<string, { id: string; full_name: string; phone: string; whatsapp_message_template: string | null }[]> = {}
 
     for (const r of (roles || [])) {
       const sid = r.station_id as string
       if (!managersMap[sid]) managersMap[sid] = []
-      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string } | null
-      if (u) managersMap[sid].push({ id: u.id, full_name: u.full_name, phone: u.phone })
+      const u = Array.isArray(r.users) ? r.users[0] : r.users as { id: string; full_name: string; phone: string; whatsapp_message_template: string | null } | null
+      if (u) managersMap[sid].push({ id: u.id, full_name: u.full_name, phone: u.phone, whatsapp_message_template: u.whatsapp_message_template || null })
     }
 
     return NextResponse.json({ managers: managersMap })

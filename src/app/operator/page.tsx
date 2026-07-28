@@ -25,6 +25,7 @@ interface StationManager {
   id: string
   full_name: string
   phone: string
+  whatsapp_message_template?: string | null
 }
 
 interface Station {
@@ -803,14 +804,19 @@ export default function OperatorPage() {
     const contact = selectedWheel.station.managers?.find(m => m.id === selectedContact)
     const stationName = selectedWheel.station.name.replace('תחנת ', '')
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://wheel-stations.vercel.app'
+    const formUrl = `${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
 
-    return `תפתח קריאה שינוע לפנצ'ריה
+    const defaultTemplate = `תפתח קריאה שינוע לפנצ'ריה
 בפרטים: איסוף מתחנת השאלת צמיגים
 ${stationName}, ${selectedWheel.station.address}
 במידע פרטי: איש קשר בתחנה ${contact?.full_name || ''}
 ${contact?.phone || ''}
 ולשלוח לפונה שימלא
-${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
+{link}`
+
+    // Use the selected station contact's own personal wording when they've set one
+    const template = contact?.whatsapp_message_template?.trim() || defaultTemplate
+    return template.includes('{link}') ? template.replace('{link}', formUrl) : `${template}\n\n${formUrl}`
   }
 
   const copyMessage = () => {

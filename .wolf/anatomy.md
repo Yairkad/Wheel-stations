@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-26T21:34:31.202Z
-> Files: 49 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-28T06:40:46.206Z
+> Files: 50 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -362,6 +362,7 @@
 
 ## src/app/api/wheel-stations/managers/
 
+- `route.ts` — Station Managers API (~589 tok)
 
 ## src/app/api/wheel-stations/recovery/
 
@@ -397,7 +398,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~24952 tok)
+- `page.tsx` — OperatorPage (~25058 tok)
 
 ## src/app/privacy/
 
