@@ -11,18 +11,20 @@ export interface WheelStatsInput {
 export interface WheelStats {
   totalWheels: number
   availableWheels: number
-  activeWheels: number
+  takenWheels: number
   inactiveWheels: number
 }
 
 export function computeWheelStats(wheels: WheelStatsInput[]): WheelStats {
   const nonDeleted = wheels.filter(w => !w.deleted_at)
   const inactiveWheels = nonDeleted.filter(w => w.temporarily_unavailable).length
+  const availableWheels = nonDeleted.filter(w => w.is_available && !w.temporarily_unavailable).length
+  const takenWheels = nonDeleted.filter(w => !w.is_available && !w.temporarily_unavailable).length
 
   return {
     totalWheels: nonDeleted.length,
-    availableWheels: nonDeleted.filter(w => w.is_available).length,
-    activeWheels: nonDeleted.length - inactiveWheels,
+    availableWheels,
+    takenWheels,
     inactiveWheels,
   }
 }

@@ -27,7 +27,7 @@ export const mockStation = {
     max_managers: 3,
     totalWheels: 6,
     availableWheels: 4,
-    activeWheels: 6,
+    takenWheels: 2,
     inactiveWheels: 0,
     wheel_station_managers: [
       { id: 'mgr-1', full_name: 'יוסי כהן', phone: '0501234567', role: 'מנהל תחנה', is_primary: true },
@@ -60,9 +60,9 @@ export const mockBorrows = {
 
 export const mockStations = {
   stations: [
-    { id: STATION_ID, name: 'תחנת גלגלים תל אביב מרכז', address: 'רוטשילד 22, תל אביב', district: 'tel_aviv', availableWheels: 4, totalWheels: 6, activeWheels: 6, inactiveWheels: 0, wheel_station_managers: [{ full_name: 'יוסי כהן', phone: '0501234567', is_primary: true }] },
-    { id: 'demo-station-002', name: 'תחנת גלגלים רמת גן', address: 'ביאליק 5, רמת גן', district: 'tel_aviv', availableWheels: 2, totalWheels: 4, activeWheels: 3, inactiveWheels: 1, wheel_station_managers: [{ full_name: 'דנה מזרחי', phone: '0509876543', is_primary: true }] },
-    { id: 'demo-station-003', name: 'תחנת גלגלים ירושלים', address: 'יפו 10, ירושלים', district: 'jerusalem', availableWheels: 0, totalWheels: 3, activeWheels: 3, inactiveWheels: 0, wheel_station_managers: [{ full_name: 'אורן שמש', phone: '0508765432', is_primary: true }] },
+    { id: STATION_ID, name: 'תחנת גלגלים תל אביב מרכז', address: 'רוטשילד 22, תל אביב', district: 'tel_aviv', availableWheels: 4, totalWheels: 6, takenWheels: 2, inactiveWheels: 0, wheel_station_managers: [{ full_name: 'יוסי כהן', phone: '0501234567', is_primary: true }] },
+    { id: 'demo-station-002', name: 'תחנת גלגלים רמת גן', address: 'ביאליק 5, רמת גן', district: 'tel_aviv', availableWheels: 2, totalWheels: 4, takenWheels: 1, inactiveWheels: 1, wheel_station_managers: [{ full_name: 'דנה מזרחי', phone: '0509876543', is_primary: true }] },
+    { id: 'demo-station-003', name: 'תחנת גלגלים ירושלים', address: 'יפו 10, ירושלים', district: 'jerusalem', availableWheels: 0, totalWheels: 3, takenWheels: 3, inactiveWheels: 0, wheel_station_managers: [{ full_name: 'אורן שמש', phone: '0508765432', is_primary: true }] },
   ]
 }
 

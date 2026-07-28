@@ -27,7 +27,7 @@ interface Station {
   wheel_station_managers: Manager[]
   totalWheels: number
   availableWheels: number
-  activeWheels: number
+  takenWheels: number
   inactiveWheels: number
 }
 
@@ -953,7 +953,7 @@ function StationCard({
           <div style={styles.stationCompactAddress}>{station.address || 'כתובת לא הוגדרה'}</div>
           <div style={styles.stationCompactStats}>
             <span style={{...styles.compactStat, color: '#22c55e'}}>{station.availableWheels} זמינים</span>
-            <span style={{...styles.compactStat, color: '#f59e0b'}}>{station.totalWheels - station.availableWheels} מושאלים</span>
+            <span style={{...styles.compactStat, color: '#f59e0b'}}>{station.takenWheels} מושאלים</span>
             {station.inactiveWheels > 0 && (
               <span style={{...styles.compactStat, color: '#ef4444'}}>{station.inactiveWheels} לא פעילים</span>
             )}
