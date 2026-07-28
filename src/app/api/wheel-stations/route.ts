@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { computeWheelStats } from '@/lib/wheel-stats'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,6 +30,7 @@ export async function GET() {
         wheels (
           id,
           is_available,
+          temporarily_unavailable,
           deleted_at
         )
       `)
@@ -62,12 +64,11 @@ export async function GET() {
 
     // Calculate wheel stats for each station (exclude soft-deleted wheels)
     const stationsWithStats = stations?.map(station => {
-      const activeWheels = (station.wheels || []).filter((w: { deleted_at: string | null }) => !w.deleted_at)
+      const stats = computeWheelStats(station.wheels || [])
       return {
         ...station,
         wheel_station_managers: managersByStation[station.id] || [],
-        totalWheels: activeWheels.length,
-        availableWheels: activeWheels.filter((w: { is_available: boolean }) => w.is_available).length,
+        ...stats,
         wheels: undefined
       }
     })

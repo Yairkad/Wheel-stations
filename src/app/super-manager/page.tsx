@@ -27,6 +27,8 @@ interface Station {
   district: string | null
   totalWheels: number
   availableWheels: number
+  activeWheels: number
+  inactiveWheels: number
   wheel_station_managers: { id: string; full_name: string; phone: string; is_primary: boolean }[]
 }
 
@@ -856,6 +858,11 @@ export default function SuperManagerPage() {
                     }}>
                       {station.availableWheels}/{station.totalWheels}
                     </span>
+                    {station.inactiveWheels > 0 && (
+                      <span style={{ background: '#fee2e2', color: '#991b1b', padding: '3px 8px', borderRadius: 6, fontWeight: 700, fontSize: '0.8rem' }}>
+                        {station.inactiveWheels} לא פעילים
+                      </span>
+                    )}
                     <button
                       onClick={() => handleSelectStation(station)}
                       style={{ padding: '6px 12px', background: canEdit ? '#7c3aed' : '#e2e8f0', color: canEdit ? '#fff' : '#475569', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
@@ -875,7 +882,7 @@ export default function SuperManagerPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    {['תחנה', 'כתובת', 'מחוז', 'זמינים / סה"כ', ''].map(h => (
+                    {['תחנה', 'כתובת', 'מחוז', 'זמינים / סה"כ', 'לא פעילים', ''].map(h => (
                       <th key={h} style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: '0.8rem' }}>{h}</th>
                     ))}
                   </tr>
@@ -894,6 +901,9 @@ export default function SuperManagerPage() {
                         }}>
                           {station.availableWheels}/{station.totalWheels}
                         </span>
+                      </td>
+                      <td style={{ padding: '11px 14px', color: station.inactiveWheels > 0 ? '#991b1b' : '#94a3b8', fontWeight: station.inactiveWheels > 0 ? 700 : 400 }}>
+                        {station.inactiveWheels}
                       </td>
                       <td style={{ padding: '11px 14px' }}>
                         {canEdit ? (
@@ -915,7 +925,7 @@ export default function SuperManagerPage() {
                     </tr>
                   ))}
                   {filteredStations.length === 0 && (
-                    <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>אין תחנות</td></tr>
+                    <tr><td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>אין תחנות</td></tr>
                   )}
                 </tbody>
               </table>

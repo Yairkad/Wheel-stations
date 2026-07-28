@@ -1014,6 +1014,12 @@ export default function WheelStationsPage() {
                     <div style={{...styles.statValue, color: '#10b981'}}>{station.availableWheels}</div>
                     <div style={styles.statLabel}>זמינים</div>
                   </div>
+                  {station.inactiveWheels > 0 && (
+                    <div style={styles.stat}>
+                      <div style={{...styles.statValue, color: '#f59e0b'}}>{station.inactiveWheels}</div>
+                      <div style={styles.statLabel}>לא פעילים</div>
+                    </div>
+                  )}
                 </div>
                 {station.wheel_station_managers.length > 0 && (
                   <>

@@ -27,6 +27,8 @@ interface Station {
   wheel_station_managers: Manager[]
   totalWheels: number
   availableWheels: number
+  activeWheels: number
+  inactiveWheels: number
 }
 
 interface District {
@@ -952,6 +954,9 @@ function StationCard({
           <div style={styles.stationCompactStats}>
             <span style={{...styles.compactStat, color: '#22c55e'}}>{station.availableWheels} זמינים</span>
             <span style={{...styles.compactStat, color: '#f59e0b'}}>{station.totalWheels - station.availableWheels} מושאלים</span>
+            {station.inactiveWheels > 0 && (
+              <span style={{...styles.compactStat, color: '#ef4444'}}>{station.inactiveWheels} לא פעילים</span>
+            )}
           </div>
         </div>
         <span style={{...styles.stationExpandIcon, transform: isExpanded ? 'rotate(180deg)' : 'none'}}>▼</span>

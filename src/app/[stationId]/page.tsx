@@ -113,6 +113,8 @@ interface Station {
   wheel_station_managers: Manager[]
   totalWheels: number
   availableWheels: number
+  activeWheels: number
+  inactiveWheels: number
   deposit_amount?: number
   payment_methods?: PaymentMethods
   notification_emails?: string[]
@@ -2103,7 +2105,10 @@ ${signFormUrl}
     if (centerBoreFilter.length && !centerBoreFilter.includes(wheel.center_bore?.toString() ?? '')) return false
     if (categoryFilter.length && !categoryFilter.includes(wheel.category ?? '')) return false
     if (typeFilter.length && !typeFilter.includes(wheel.is_donut ? 'donut' : 'full')) return false
-    if (availabilityFilter.length && !availabilityFilter.includes(wheel.is_available ? 'available' : 'taken')) return false
+    if (availabilityFilter.length) {
+      const wheelAvailabilityState = wheel.temporarily_unavailable ? 'unavailable' : wheel.is_available ? 'available' : 'taken'
+      if (!availabilityFilter.includes(wheelAvailabilityState)) return false
+    }
     // Tire size search - only for non-donut wheels
     if ((tireSizeWidth || tireSizeRatio) && !wheel.is_donut) {
       const searchText = `${wheel.wheel_number} ${wheel.notes || ''}`.toLowerCase()
@@ -2431,6 +2436,14 @@ ${signFormUrl}
           <div style={{...styles.stat, ...styles.statTaken}} className="station-stat">
             <div style={{...styles.statValue, color: '#ef4444'}}>{station.totalWheels - station.availableWheels}</div>
             <div style={styles.statLabel}>מושאלים</div>
+          </div>
+          <div style={styles.stat} className="station-stat">
+            <div style={{...styles.statValue, color: '#22c55e'}}>{station.activeWheels}</div>
+            <div style={styles.statLabel}>פעילים</div>
+          </div>
+          <div style={styles.stat} className="station-stat">
+            <div style={{...styles.statValue, color: '#f59e0b'}}>{station.inactiveWheels}</div>
+            <div style={styles.statLabel}>לא פעילים</div>
           </div>
         </div>
       )}
@@ -3213,6 +3226,12 @@ ${signFormUrl}
                   {availabilityFilter.includes('taken') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                 </span>
                 מושאל
+              </button>
+              <button type="button" style={{...styles.cbox, ...(availabilityFilter.includes('unavailable') ? styles.cboxOn : {})}} onClick={() => toggleFilterValue(setAvailabilityFilter, 'unavailable')}>
+                <span style={{...styles.cboxMark, ...(availabilityFilter.includes('unavailable') ? styles.cboxMarkOn : {})}}>
+                  {availabilityFilter.includes('unavailable') && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </span>
+                לא זמין
               </button>
             </div>
           </div>
