@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-28T06:40:46.206Z
-> Files: 50 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-08T20:38:52.988Z
+> Files: 53 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -23,11 +23,13 @@
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
+- `virtual-wiggling-stardust.md` — תיקון: קישור "אמת מידות" נעלם עבור חלק מהרכבים (למשל הונדה ג'אז) (~1490 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
+- `feedback_git_sync_trigger_phrase.md` (~411 tok)
 - `feedback_user_is_male.md` (~219 tok)
-- `MEMORY.md` — Memory Index (~343 tok)
+- `MEMORY.md` — Memory Index (~389 tok)
 - `project_et_offset_misunderstanding.md` (~575 tok)
 - `project_rim_sizes_allowed_removed.md` — Declares of (~641 tok)
 
@@ -283,7 +285,7 @@
 
 ## src/app/api/vehicle/lookup/
 
-- `route.ts` — Vehicle Lookup API (~6800 tok)
+- `route.ts` — Vehicle Lookup API (~6988 tok)
 
 ## src/app/api/vehicle/ocr/
 
@@ -446,6 +448,7 @@
 
 - `types.ts` — Shared TypeScript interfaces used across pages (~433 tok)
 - `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3437 tok)
+- `wheel-stats.ts` — computeWheelStats: shared available/taken/inactive wheel counts used by all wheel-stations API routes (~200 tok)
 
 ## src/stories/mocks/
 

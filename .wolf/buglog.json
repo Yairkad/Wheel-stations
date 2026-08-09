@@ -2314,9 +2314,47 @@
         "managers-api",
         "missed-code-path"
       ],
-      "related_bugs": ["bug-130"],
+      "related_bugs": [
+        "bug-130"
+      ],
       "occurrences": 1,
       "last_seen": "2026-07-27T00:00:00.000Z"
+    },
+    {
+      "id": "bug-143",
+      "timestamp": "2026-08-08T20:38:53.022Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-08T20:38:53.022Z"
+    },
+    {
+      "id": "bug-144",
+      "timestamp": "2026-08-08T22:01:17.819Z",
+      "error_message": "קישור \"אמת מידות באתר המקור\" נעלם אחרי חיפוש רכב (למשל הונדה ג'אז), למרות שהתאמת PCD/בורג נמצאה",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "findPcdData->searchDb() בחרה שורה מ-vehicle_models ללא tie-break: כששתי שורות מתאימות באותה ספציפיות טקסט (למשל שתיהן model=\"jazz\"), או כששלב נפרד לפי degem_nm החזיר מיד את התוצאה הראשונה (.limit(1)) בלי לבדוק source_url, שורת \"import\" ישנה עם year_to:null ו-source_url:null יכלה לנצח שורה מאומתת (wheelfitment.eu) וספציפית-לשנה לאותו רכב, בסדר שרירותי של ה-DB. אושר ב-354 שורות בטבלה עם אותה תבנית (source=import, source_url null, variants לא ריק).",
+      "fix": "מוזג שלב ההתאמה לפי degem_nm (היה .limit(1) נפרד עם החזרה מיידית) לתוך אותה לולאת מועמדים וניקוד-ספציפיות של ההתאמה לפי model/variants מסחריים, והוסף כלל הכרעת תיקו: מעדיף שורה עם source_url קיים (מאומתת), ואז שורה עם year_to מוגדר (לא null) על פני שורה פתוחה. אומת חי מול data.gov.il לרכבי הונדה ג'אז (2012, 2018) וטויוטה קאמרי (2001) — כולם מחזירים כעת source_url נכון וספציפי לדור.",
+      "tags": [
+        "vehicle-lookup",
+        "pcd-matching",
+        "source-url",
+        "tie-break",
+        "vehicle_models"
+      ],
+      "related_bugs": [
+        "bug-120"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-08T22:01:17.831Z"
     }
   ]
 }

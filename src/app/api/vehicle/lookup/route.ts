@@ -335,29 +335,19 @@ async function findPcdData(
 
   // Helper to find in DB
   async function searchDb(): Promise<any> {
-    // First try: search by technical model name (degem_nm) in variants
-    if (technicalModelLower) {
-      const result1 = await supabase
-        .from('vehicle_models')
-        .select('*')
-        .or(makeCondition)
-        .ilike('variants', `%${technicalModelLower}%`)
-        .lte('year_from', year)
-        .or(`year_to.gte.${year},year_to.is.null`)
-        .limit(1)
-
-      if (!result1.error && result1.data && result1.data.length > 0) {
-        return result1.data[0]
-      }
-    }
-
-    // Second try: match by commercial model name or variants, requiring the DB
-    // row's model/variant text to be fully contained WITHIN the query — not the
-    // other way around. A query-contained-in-DB-text match (the old behavior)
-    // let a generic query like "impreza" match a more specific trim row like
-    // "impreza wrx sti" (different bolt pattern) whenever no row existed for the
-    // base model in that exact year range. Among all rows the query covers,
-    // keep the most specific (longest) one — it's the closest real match.
+    // Match by technical model name (degem_nm), commercial model name, or
+    // variants, requiring the DB row's text to be fully contained WITHIN the
+    // query — not the other way around. A query-contained-in-DB-text match
+    // (the old behavior) let a generic query like "impreza" match a more
+    // specific trim row like "impreza wrx sti" (different bolt pattern)
+    // whenever no row existed for the base model in that exact year range.
+    // Among all rows the query covers, keep the most specific (longest) one.
+    // Ties are broken in favor of a row that's already verified (has a
+    // source_url) and has a precise, non-open-ended year range — otherwise a
+    // legacy bulk-imported row with a bare-name `variants` value and an
+    // unbounded year range (year_to: null) can tie an equally-specific but
+    // verified, year-scoped row and win on arbitrary DB order, silently
+    // losing the "verify at source" link (observed for Honda Jazz).
     const modelNoSpaces = modelLower.replace(/\s+/g, '')
     const { data: candidates, error } = await supabase
       .from('vehicle_models')
@@ -369,7 +359,7 @@ async function findPcdData(
 
     if (!error && candidates && candidates.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let best: { row: any; specificity: number } | null = null
+      let best: { row: any; specificity: number; verified: boolean; bounded: boolean } | null = null
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       for (const row of candidates as any[]) {
@@ -382,11 +372,26 @@ async function findPcdData(
         const matchedVariant = dbVariants.find((v: string) =>
           modelLower.includes(v) || modelNoSpaces.includes(v.replace(/\s+/g, ''))
         )
+        const matchedTechnicalVariant = technicalModelLower
+          ? dbVariants.find((v: string) => technicalModelLower.includes(v) || v.includes(technicalModelLower))
+          : undefined
 
-        if (modelMatches || matchedVariant) {
-          const specificity = Math.max(dbModel.length, matchedVariant ? matchedVariant.length : 0)
-          if (!best || specificity > best.specificity) {
-            best = { row, specificity }
+        if (modelMatches || matchedVariant || matchedTechnicalVariant) {
+          const specificity = Math.max(
+            dbModel.length,
+            matchedVariant ? matchedVariant.length : 0,
+            matchedTechnicalVariant ? matchedTechnicalVariant.length : 0
+          )
+          const verified = !!row.source_url
+          const bounded = row.year_to !== null && row.year_to !== undefined
+
+          if (
+            !best ||
+            specificity > best.specificity ||
+            (specificity === best.specificity && verified && !best.verified) ||
+            (specificity === best.specificity && verified === best.verified && bounded && !best.bounded)
+          ) {
+            best = { row, specificity, verified, bounded }
           }
         }
       }
