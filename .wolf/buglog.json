@@ -2355,6 +2355,109 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-08T22:01:17.831Z"
+    },
+    {
+      "id": "bug-145",
+      "timestamp": "2026-08-18T17:26:04.384Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 11→21 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-18T17:26:04.384Z"
+    },
+    {
+      "id": "bug-146",
+      "timestamp": "2026-08-18T23:00:38.309Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/webauthn_biometric_login_paused.md",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 3→9 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-18T23:00:38.309Z"
+    },
+    {
+      "id": "bug-147",
+      "timestamp": "2026-08-18T23:34:02.418Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "9 lines replaced/restructured",
+      "fix": "Rewrote 16→20 lines (9 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-18T23:34:02.418Z"
+    },
+    {
+      "id": "bug-148",
+      "timestamp": "2026-08-18T23:34:42.361Z",
+      "error_message": "GET /api/vehicle/lookup?plate=5138775 -> 404 \"הרכב לא נמצא במאגרים\" even though the vehicle exists on find-car.co.il",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "scrapeFromFindCar() regexes required the Hebrew label text to sit directly against </span> (e.g. /שם תוצר</span>s*<strong>/) and the year regex required d{4} directly against <strong>/</strong>. find-car.co.il now renders each label/value on its own indented line (\"<span>\n  שם תוצר\n</span>\n<strong>\n  ערך\n</strong>\"), so all four regexes (make, model, year, tire) silently failed to match on every plate, not just this one -- scrapeFromFindCar() always returned null, so any plate missing from both data.gov.il datasets (regular + personal import) fell straight through to the final 404, even when find-car.co.il had the vehicle.",
+      "fix": "Added s* before </span> in all four label regexes, and s* around the captured value in the year regex (d{4}) and non-greedy capture + s* trim inside <strong> for make/model/tire. Verified against a saved copy of the real find-car.co.il page for plate 5138775 (Ford Focus 2012, tire 205/55R16) -- all four fields now extract correctly.",
+      "tags": [
+        "vehicle-lookup",
+        "find-car-scrape",
+        "regex",
+        "scraper-breakage",
+        "404"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-18T23:34:42.361Z"
+    },
+    {
+      "id": "bug-149",
+      "timestamp": "2026-08-18T23:49:26.138Z",
+      "error_message": "Type error",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-18T23:49:26.138Z"
+    },
+    {
+      "id": "bug-150",
+      "timestamp": "2026-08-18T23:50:40.086Z",
+      "error_message": "GET /api/vehicle/lookup?plate=5138775 -> 404, but user confirmed this IS their real, currently-registered vehicle",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "bug-148 (logged minutes earlier in this same session) incorrectly concluded both data.gov.il datasets genuinely had 0 records for this plate -- that check reused the same q= full-text-search approach the app itself uses, which is unreliable. Direct verification with filters={\"mispar_rechev\":5138775} (exact field match) against the SAME regular-vehicles resource (053cea08-09bc-40ec-8f7a-156f0677aff3) returns total:1 with a full real record (_id 517906, Ford Focus/פורד גרמניה DYB TREND 2012, plate owner baalut: פרטי) -- while q=5138775 on the identical resource returns total:0. So data.gov.il/CKAN's q full-text search index can be stale or out of sync with the underlying datastore table for at least some rows, even though the row unquestionably exists and is queryable by exact filters. The app was using q= for both the regular and personal-import lookups, meaning ANY plate whose row happens to be missing from that full-text index -- not just ones genuinely absent from the government data -- would incorrectly 404.",
+      "fix": "Changed both datastore_search calls (regular + personal-import resources) in src/app/api/vehicle/lookup/route.ts from q=<plate> to filters={\"mispar_rechev\":\"<plate>\"} (exact field match, more correct semantically for a plate lookup anyway). Verified against data.gov.il directly: filters with a string value still matches the numeric mispar_rechev column (CKAN coerces types), and correctly returns the real record for plate 5138775 that q= was missing.",
+      "tags": [
+        "vehicle-lookup",
+        "data-gov-il",
+        "ckan",
+        "full-text-search-unreliable",
+        "404",
+        "false-negative"
+      ],
+      "related_bugs": [
+        "bug-148"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-18T23:50:40.086Z"
     }
   ]
 }

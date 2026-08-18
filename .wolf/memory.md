@@ -1014,3 +1014,87 @@
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+| 21:05 | Created ../../../.claude/plans/ui-ux-parsed-hartmanis.md | — | ~1346 |
+| 21:16 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f2855ed1-2611-4f5d-8860-bdc62b26ff12/scratchpad/ux-audit-wheels-app.html | — | ~11880 |
+
+## Session: 2026-08-18
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 21:00 | UI/UX audit for all 8 user personas, code-based only (no screenshots per user choice) | published as Artifact, no code changed | comprehensive report delivered: per-persona good/issues/recommendations + 6 proposed features | ~15000 tok |
+| 21:18 | Session end: 2 writes across 2 files (ui-ux-parsed-hartmanis.md, ux-audit-wheels-app.html) | 31 reads | ~183106 tok |
+| 21:20 | Session end: 2 writes across 2 files (ui-ux-parsed-hartmanis.md, ux-audit-wheels-app.html) | 31 reads | ~183106 tok |
+| 21:55 | Session end: 2 writes across 2 files (ui-ux-parsed-hartmanis.md, ux-audit-wheels-app.html) | 31 reads | ~183106 tok |
+| 21:58 | Session end: 2 writes across 2 files (ui-ux-parsed-hartmanis.md, ux-audit-wheels-app.html) | 31 reads | ~183106 tok |
+| 22:07 | Session end: 2 writes across 2 files (ui-ux-parsed-hartmanis.md, ux-audit-wheels-app.html) | 31 reads | ~183106 tok |
+| 22:08 | Session end: 2 writes across 2 files (ui-ux-parsed-hartmanis.md, ux-audit-wheels-app.html) | 31 reads | ~183106 tok |
+| 22:10 | Session end: 2 writes across 2 files (ui-ux-parsed-hartmanis.md, ux-audit-wheels-app.html) | 31 reads | ~183106 tok |
+
+## Session: 2026-08-18 01:13
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-18 01:13
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-18 01:55
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 01:57 | Created ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/webauthn_biometric_login_paused.md | — | ~665 |
+| 01:57 | Created ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/MEMORY.md | — | ~40 |
+| 01:57 | Investigated WebAuthn biometric login status (backend built, frontend never wired) per user request; saved findings to memory | .wolf/cerebrum.md, cross-session memory | done | ~3k |
+| 01:57 | Session end: 2 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 2 reads | ~755 tok |
+| 01:57 | Session end: 2 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 2 reads | ~755 tok |
+| 01:59 | Session end: 2 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 3 reads | ~755 tok |
+| 02:00 | Edited ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/webauthn_biometric_login_paused.md | expanded (+6 lines) | ~595 |
+| 02:00 | Session end: 3 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 5 reads | ~1392 tok |
+| 02:01 | Confirmed WebAuthn root cause: residentKey:'required' forces OS Passkey UI instead of direct biometric login; updated memory | .wolf/cerebrum.md, register/begin route, cross-session memory | done | ~4k |
+| 02:01 | Session end: 3 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 6 reads | ~1392 tok |
+| 02:01 | Session end: 3 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 6 reads | ~1392 tok |
+| 02:01 | Edited ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/webauthn_biometric_login_paused.md | modified user() | ~308 |
+| 02:02 | User confirmed WebAuthn trade-off: one device per user, so non-resident credential (residentKey:'discouraged') is fine | .wolf/cerebrum.md, cross-session memory | done | ~1k |
+| 02:02 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 6 reads | ~1722 tok |
+| 02:04 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 6 reads | ~1722 tok |
+| 02:04 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 6 reads | ~1722 tok |
+| 02:05 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 6 reads | ~1722 tok |
+| 02:07 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:08 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:08 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:08 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:09 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:10 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:14 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:15 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:16 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 7 reads | ~1722 tok |
+| 02:17 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 8 reads | ~39435 tok |
+| 02:19 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 8 reads | ~39435 tok |
+| 02:21 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 8 reads | ~39435 tok |
+| 02:21 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 8 reads | ~39435 tok |
+| 02:22 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 8 reads | ~39435 tok |
+| 02:24 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 8 reads | ~39435 tok |
+| 02:26 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 9 reads | ~39435 tok |
+| 02:27 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 9 reads | ~39435 tok |
+| 02:28 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 9 reads | ~39435 tok |
+| 02:28 | Session end: 4 writes across 2 files (webauthn_biometric_login_paused.md, MEMORY.md) | 9 reads | ~39435 tok |
+| 02:31 | Created UX_AUDIT_TODO.md | — | ~1572 |
+
+## Session: 2026-08-18 02:31
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:30 | walked through all UX audit recommendations one-by-one with user, decided/rejected/refined each, found+fixed 3 report errors and 1 real code bug (year filter) | UX_AUDIT_TODO.md (new), .wolf/cerebrum.md (5 corrections/conventions logged) | consolidated TODO written, nothing implemented yet per user request | ~25000 tok |
+| 02:34 | Edited src/app/api/vehicle/lookup/route.ts | 16→20 lines | ~369 |
+| 23:35 | fixed find-car.co.il scraper regexes (whitespace/newlines around label+value broke all 4 field extractions, silent 404 fallback failure) | src/app/api/vehicle/lookup/route.ts | fixed, verified against real page (plate 5138775) | ~9000 |
+| 02:36 | Session end: 1 writes across 1 files (route.ts) | 2 reads | ~7357 tok |
+| 02:49 | Edited src/app/api/vehicle/lookup/route.ts | 5→9 lines | ~188 |
+| 02:49 | Edited src/app/api/vehicle/lookup/route.ts | 5→6 lines | ~132 |
+| 23:51 | fixed root cause: data.gov.il q= full-text search unreliable (missed a real, existing row), switched to exact filters= match | src/app/api/vehicle/lookup/route.ts | fixed+verified, corrected earlier wrong diagnosis (bug-148) after user pushback | ~7000 |
+| 02:51 | Session end: 3 writes across 1 files (route.ts) | 2 reads | ~7888 tok |
+| 02:52 | Session end: 3 writes across 1 files (route.ts) | 2 reads | ~7888 tok |
+| 02:54 | Session end: 3 writes across 1 files (route.ts) | 2 reads | ~7888 tok |

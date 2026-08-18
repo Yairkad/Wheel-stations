@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-08T20:38:52.988Z
-> Files: 53 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-18T23:49:26.004Z
+> Files: 62 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -14,6 +14,11 @@
 - `append_bug2.py` (~650 tok)
 - `verify-calc.mjs` — Declares shotDir (~400 tok)
 
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f2855ed1-2611-4f5d-8860-bdc62b26ff12/scratchpad/
+
+- `ux-audit-wheels-app.html` — ביקורת UX — גלגלים ידידים (~11880 tok)
+- `ux-audit-wheels-app.html` — דוח ביקורת UI/UX (Artifact) — 8 personas: עובד טוב/בעיות/המלצות + פיצ'רים מוצעים (~9000 tok)
+
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/
 
 - `wheel-form-layout.html` — 5 פריסות טופס גלגל — לפי רוחב תוכן (~5010 tok)
@@ -22,8 +27,16 @@
 ## ../../../.claude/plans/
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
+- `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
+- `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
+- `ui-ux-parsed-hartmanis.md` — תוכנית ביקורת UI/UX מקיפה לפי סוג משתמש (8 personas), ללא צילומי מסך (~1900 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
 - `virtual-wiggling-stardust.md` — תיקון: קישור "אמת מידות" נעלם עבור חלק מהרכבים (למשל הונדה ג'אז) (~1490 tok)
+
+## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
+
+- `MEMORY.md` (~38 tok)
+- `webauthn_biometric_login_paused.md` (~947 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
@@ -40,6 +53,8 @@
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~1474 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
 
@@ -285,7 +300,7 @@
 
 ## src/app/api/vehicle/lookup/
 
-- `route.ts` — Vehicle Lookup API (~6988 tok)
+- `route.ts` — Vehicle Lookup API (~7232 tok)
 
 ## src/app/api/vehicle/ocr/
 
@@ -400,7 +415,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~25058 tok)
+- `page.tsx` — OperatorPage (~25172 tok)
 
 ## src/app/privacy/
 

@@ -125,21 +125,25 @@ async function scrapeFromFindCar(plate: string): Promise<FindCarScrapedData | nu
     // <strong>סובארו</strong>
 
     // Extract manufacturer (שם תוצר)
-    const makeMatch = html.match(/שם תוצר<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
-                      html.match(/יצרן<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
-                      html.match(/מותג<\/span>\s*<strong>([^<]+)<\/strong>/i)
+    // Note: find-car.co.il's markup puts label text and values on their own
+    // indented lines (e.g. "<span>\n  שם תוצר\n</span>"), so \s* is required
+    // both before </span> and around the <strong> value, not just between
+    // </span> and <strong> — a tighter pattern silently matches nothing.
+    const makeMatch = html.match(/שם תוצר\s*<\/span>\s*<strong>\s*([^<]+?)\s*<\/strong>/i) ||
+                      html.match(/יצרן\s*<\/span>\s*<strong>\s*([^<]+?)\s*<\/strong>/i) ||
+                      html.match(/מותג\s*<\/span>\s*<strong>\s*([^<]+?)\s*<\/strong>/i)
 
     // Extract model (כינוי מסחרי)
-    const modelMatch = html.match(/כינוי מסחרי<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
-                       html.match(/דגם<\/span>\s*<strong>([^<]+)<\/strong>/i)
+    const modelMatch = html.match(/כינוי מסחרי\s*<\/span>\s*<strong>\s*([^<]+?)\s*<\/strong>/i) ||
+                       html.match(/דגם\s*<\/span>\s*<strong>\s*([^<]+?)\s*<\/strong>/i)
 
     // Extract year (שנת יצור)
-    const yearMatch = html.match(/שנת יצור<\/span>\s*<strong>(\d{4})<\/strong>/i) ||
-                      html.match(/שנת ייצור<\/span>\s*<strong>(\d{4})<\/strong>/i)
+    const yearMatch = html.match(/שנת יצור\s*<\/span>\s*<strong>\s*(\d{4})\s*<\/strong>/i) ||
+                      html.match(/שנת ייצור\s*<\/span>\s*<strong>\s*(\d{4})\s*<\/strong>/i)
 
     // Extract tire size (צמיג קדמי)
-    const tireMatch = html.match(/צמיג קדמי<\/span>\s*<strong>([^<]+)<\/strong>/i) ||
-                      html.match(/צמיג<\/span>\s*<strong>([^<]*\d+\/\d+[^<]*)<\/strong>/i)
+    const tireMatch = html.match(/צמיג קדמי\s*<\/span>\s*<strong>\s*([^<]+?)\s*<\/strong>/i) ||
+                      html.match(/צמיג\s*<\/span>\s*<strong>\s*([^<]*\d+\/\d+[^<]*?)\s*<\/strong>/i)
 
     if (!makeMatch || !modelMatch || !yearMatch) {
       console.log('find-car.co.il: Could not extract required fields. Make:', !!makeMatch, 'Model:', !!modelMatch, 'Year:', !!yearMatch)
@@ -481,9 +485,13 @@ export async function GET(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
     // Step 1: Try regular vehicles database first
+    // Use an exact `filters` match on mispar_rechev, not `q` (full-text search).
+    // data.gov.il's `q` full-text index can be stale/out of sync with the
+    // underlying table — confirmed a real row (plate 5138775, _id 517906)
+    // that `q` returns 0 results for while `filters` finds it instantly.
     const regularApiUrl = new URL('https://data.gov.il/api/3/action/datastore_search')
     regularApiUrl.searchParams.set('resource_id', RESOURCE_ID_REGULAR)
-    regularApiUrl.searchParams.set('q', cleanPlate)
+    regularApiUrl.searchParams.set('filters', JSON.stringify({ mispar_rechev: cleanPlate }))
     regularApiUrl.searchParams.set('limit', '1')
 
     const regularResponse = await fetch(regularApiUrl.toString(), {
@@ -539,9 +547,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Step 2: Vehicle not found in regular database, try personal import database
+    // Same `filters` exact-match approach as Step 1 — see comment there.
     const importApiUrl = new URL('https://data.gov.il/api/3/action/datastore_search')
     importApiUrl.searchParams.set('resource_id', RESOURCE_ID_PERSONAL_IMPORT)
-    importApiUrl.searchParams.set('q', cleanPlate)
+    importApiUrl.searchParams.set('filters', JSON.stringify({ mispar_rechev: cleanPlate }))
     importApiUrl.searchParams.set('limit', '1')
 
     const importResponse = await fetch(importApiUrl.toString(), {
