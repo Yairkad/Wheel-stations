@@ -807,15 +807,25 @@ export default function OperatorPage() {
     const formUrl = `${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
 
     const defaultTemplate = `תפתח קריאה שינוע לפנצ'ריה
-בפרטים: איסוף מתחנת השאלת צמיגים
+בפרטים: איסוף מתחנת גלגלים
 ${stationName}, ${selectedWheel.station.address}
+מספר גלגל: ${selectedWheel.wheelNumber}
 במידע פרטי: איש קשר בתחנה ${contact?.full_name || ''}
 ${contact?.phone || ''}
 ולשלוח לפונה שימלא
 {link}`
 
-    // Use the selected station contact's own personal wording when they've set one
-    const template = contact?.whatsapp_message_template?.trim() || defaultTemplate
+    // Use the selected station contact's own personal wording when they've set one,
+    // but always guarantee the wheel number reaches the driver even for custom templates
+    const rawTemplate = contact?.whatsapp_message_template?.trim()
+    let template = rawTemplate || defaultTemplate
+
+    if (rawTemplate) {
+      template = template.includes('{wheelNumber}')
+        ? template.replace('{wheelNumber}', String(selectedWheel.wheelNumber))
+        : `${template}\n\nמספר גלגל: ${selectedWheel.wheelNumber}`
+    }
+
     return template.includes('{link}') ? template.replace('{link}', formUrl) : `${template}\n\n${formUrl}`
   }
 
