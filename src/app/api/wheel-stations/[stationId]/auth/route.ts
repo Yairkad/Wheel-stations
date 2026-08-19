@@ -1,6 +1,5 @@
 /**
  * Station Manager Authentication API
- * GET /api/wheel-stations/[stationId]/auth - Verify session token
  * POST /api/wheel-stations/[stationId]/auth - Login with phone + personal password
  * PUT /api/wheel-stations/[stationId]/auth - Change own password (requires current login)
  */
@@ -16,9 +15,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Session expiry time: 7 days in milliseconds
-const SESSION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000
-
 const TOKEN_SECRET = process.env.TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || 'fallback-secret'
 
 function signToken(payload: string): string {
@@ -31,21 +27,6 @@ function createToken(stationId: string, managerId: string): string {
   const payload = `${stationId}:${managerId}:${Date.now()}`
   const sig = signToken(payload)
   return Buffer.from(`${payload}:${sig}`).toString('base64')
-}
-
-function verifyToken(token: string): { stationId: string; managerId: string; timestamp: string } | null {
-  try {
-    const decoded = Buffer.from(token, 'base64').toString('utf-8')
-    const parts = decoded.split(':')
-    if (parts.length !== 4) return null
-    const [stationId, managerId, timestamp, sig] = parts
-    const payload = `${stationId}:${managerId}:${timestamp}`
-    const expected = signToken(payload)
-    if (sig !== expected) return null
-    return { stationId, managerId, timestamp }
-  } catch {
-    return null
-  }
 }
 
 // Rate limiting configuration
@@ -128,84 +109,6 @@ interface RouteParams {
   params: Promise<{ stationId: string }>
 }
 
-// GET - Verify session token is still valid
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  try {
-    const { stationId } = await params
-    const token = request.nextUrl.searchParams.get('token')
-    const phone = request.nextUrl.searchParams.get('phone')
-
-    if (!token || !phone) {
-      return NextResponse.json({ valid: false, error: 'Missing token or phone' }, { status: 400 })
-    }
-
-    // Decode and validate token
-    try {
-      const parsed = verifyToken(token)
-
-      if (!parsed) {
-        return NextResponse.json({ valid: false, error: 'Invalid token' }, { status: 401 })
-      }
-
-      const { stationId: tokenStationId, managerId, timestamp } = parsed
-
-      // Check station ID matches
-      if (tokenStationId !== stationId) {
-        return NextResponse.json({ valid: false, error: 'Invalid token' }, { status: 401 })
-      }
-
-      // Check if token has expired
-      const tokenTime = parseInt(timestamp, 10)
-      if (Date.now() - tokenTime > SESSION_EXPIRY_MS) {
-        return NextResponse.json({ valid: false, error: 'Session expired', expired: true }, { status: 401 })
-      }
-
-      // Verify manager still exists, phone matches, and has role for this station
-      const cleanPhone = phone.replace(/\D/g, '')
-
-      const { data: user } = await supabase
-        .from('users')
-        .select('id, full_name, phone, is_active, whatsapp_message_template')
-        .eq('id', managerId)
-        .eq('phone', cleanPhone)
-        .single()
-
-      if (!user || !user.is_active) {
-        return NextResponse.json({ valid: false, error: 'Manager not found or phone mismatch' }, { status: 401 })
-      }
-
-      const { data: roleRow } = await supabase
-        .from('user_roles')
-        .select('id, is_primary, title')
-        .eq('user_id', user.id)
-        .eq('role', 'station_manager')
-        .eq('station_id', stationId)
-        .eq('is_active', true)
-        .single()
-
-      if (!roleRow) {
-        return NextResponse.json({ valid: false, error: 'Manager not found or phone mismatch' }, { status: 401 })
-      }
-
-      return NextResponse.json({
-        valid: true,
-        manager: {
-          id: user.id,
-          full_name: user.full_name,
-          phone: user.phone,
-          role: roleRow.title || 'מנהל תחנה',
-          is_primary: roleRow.is_primary || false,
-          whatsapp_message_template: user.whatsapp_message_template || null
-        }
-      })
-    } catch {
-      return NextResponse.json({ valid: false, error: 'Invalid token format' }, { status: 401 })
-    }
-  } catch (error) {
-    console.error('Error in GET /api/wheel-stations/[stationId]/auth:', error)
-    return NextResponse.json({ valid: false, error: 'Internal server error' }, { status: 500 })
-  }
-}
 
 // POST - Login (verify phone is manager + password matches)
 export async function POST(request: NextRequest, { params }: RouteParams) {

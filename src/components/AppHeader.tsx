@@ -82,7 +82,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     const forceLogout = (reason: string) => {
       console.log(`Force logout: ${reason}`)
       Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('station_session_') || key.startsWith('wheel_manager_') || key === 'operator_session') {
+        if (key.startsWith('station_session_') || key === 'operator_session') {
           localStorage.removeItem(key)
         }
       })
@@ -230,7 +230,6 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     Object.keys(localStorage).forEach(key => {
       if (
         key.startsWith('station_session_') ||
-        key.startsWith('wheel_manager_') ||
         key === 'operator_session' ||
         key === 'super_manager_session' ||
         key === 'puncture_manager_auth' ||

@@ -7,7 +7,7 @@ const SESSION_KEYS = ['operator_session', 'super_manager_session', 'vehicle_db_m
 
 function clearAllSessions() {
   Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('station_session_') || key.startsWith('wheel_manager_') || SESSION_KEYS.includes(key)) {
+    if (key.startsWith('station_session_') || SESSION_KEYS.includes(key)) {
       localStorage.removeItem(key)
     }
   })

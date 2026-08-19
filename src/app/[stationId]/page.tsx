@@ -9,6 +9,7 @@ import { isPushSupported, requestNotificationPermission, registerServiceWorker, 
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import { findSimilarFailedMount, WheelHistoryEntry } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
+import { SESSION_VERSION } from '@/lib/version'
 
 const DEFAULT_WHATSAPP_TEMPLATE = `שלום רב 👋
 מצורף כאן קישור לחתימה על טופס השאלת גלגל.
@@ -403,7 +404,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
 
       // Check session for THIS specific station first
       const newSession = localStorage.getItem(`station_session_${stationId}`)
-      const oldSession = localStorage.getItem(`wheel_manager_${stationId}`)
 
       // New session format from /login page - trust it directly
       if (newSession) {
@@ -430,34 +430,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         }
       }
 
-      // Old session format - validate with server
-      if (oldSession) {
-        try {
-          const session = JSON.parse(oldSession)
-          const manager = session.manager
-          const phone = manager?.phone || ''
-          const token = session.token || ''
-
-          if (token) {
-            const response = await fetch(
-              `/api/wheel-stations/${stationId}/auth?token=${encodeURIComponent(token)}&phone=${encodeURIComponent(phone)}`
-            )
-            const data = await response.json()
-
-            if (data.valid) {
-              setIsManager(true)
-              setCurrentManager(data.manager)
-              setSessionPassword(session.password || token)
-              return
-            }
-          }
-          localStorage.removeItem(`wheel_manager_${stationId}`)
-        } catch (e) {
-          console.warn('Old session data corrupted, clearing:', e)
-          localStorage.removeItem(`wheel_manager_${stationId}`)
-        }
-      }
-
       // Not manager of THIS station - check if logged in elsewhere (allow viewing as guest)
       const hasAnyStationSession = Object.keys(localStorage).some(key => {
         if (key.startsWith('station_session_')) {
@@ -469,7 +441,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         return false
       })
       const hasOperatorSession = localStorage.getItem('operator_session')
-      const hasOldStationSession = Object.keys(localStorage).some(key => key.startsWith('wheel_manager_'))
       const hasSuperManagerSession = localStorage.getItem('super_manager_session')
 
       const hasAdminSession = (() => {
@@ -481,7 +452,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         } catch { return false }
       })()
 
-      if (hasAnyStationSession || hasOperatorSession || hasOldStationSession || hasSuperManagerSession || hasAdminSession) {
+      if (hasAnyStationSession || hasOperatorSession || hasSuperManagerSession || hasAdminSession) {
         // User is logged in elsewhere - allow viewing this station as guest (not manager)
         return
       }
@@ -886,7 +857,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         // If password is wrong, force re-login
         if (data.error === 'סיסמא שגויה') {
           toast.error('הסיסמה שגויה. נא להתנתק ולהתחבר מחדש')
-          localStorage.removeItem(`wheel_manager_${stationId}`)
+          localStorage.removeItem(`station_session_${stationId}`)
           setIsManager(false)
           setCurrentManager(null)
           setSessionPassword('')
@@ -1058,10 +1029,12 @@ ${signFormUrl}
       setIsManager(true)
       setCurrentManager(data.manager)
       setSessionPassword(loginPassword)
-      localStorage.setItem(`wheel_manager_${stationId}`, JSON.stringify({
+      localStorage.setItem(`station_session_${stationId}`, JSON.stringify({
         manager: data.manager,
+        stationId,
         password: loginPassword,
-        token: data.token
+        timestamp: Date.now(),
+        version: SESSION_VERSION
       }))
       setShowLoginModal(false)
       setLoginError('')
@@ -1078,7 +1051,6 @@ ${signFormUrl}
     setIsManager(false)
     setCurrentManager(null)
     setSessionPassword('')
-    localStorage.removeItem(`wheel_manager_${stationId}`)
     localStorage.removeItem(`station_session_${stationId}`)
     window.location.href = '/login'
   }
@@ -1116,11 +1088,11 @@ ${signFormUrl}
       toast.success('הסיסמא שונתה בהצלחה!')
       // Update session password and localStorage with new password
       setSessionPassword(passwordForm.new)
-      const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
+      const savedSession = localStorage.getItem(`station_session_${stationId}`)
       if (savedSession) {
         const session = JSON.parse(savedSession)
         session.password = passwordForm.new
-        localStorage.setItem(`wheel_manager_${stationId}`, JSON.stringify(session))
+        localStorage.setItem(`station_session_${stationId}`, JSON.stringify(session))
       }
       setShowChangePasswordModal(false)
       setPasswordForm({ current: '', new: '', confirm: '' })
@@ -1152,13 +1124,6 @@ ${signFormUrl}
       }
       const updatedManager = { ...currentManager, whatsapp_message_template: data.whatsapp_message_template }
       setCurrentManager(updatedManager)
-      // Old session format (wheel_manager_*)
-      const savedSession = localStorage.getItem(`wheel_manager_${stationId}`)
-      if (savedSession) {
-        const session = JSON.parse(savedSession)
-        session.manager = updatedManager
-        localStorage.setItem(`wheel_manager_${stationId}`, JSON.stringify(session))
-      }
       // New session format (station_session_*, written by /login)
       const newSession = localStorage.getItem(`station_session_${stationId}`)
       if (newSession) {

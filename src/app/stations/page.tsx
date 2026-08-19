@@ -125,16 +125,15 @@ export default function WheelStationsPage() {
     // Check if user is authenticated (station manager or operator)
     const hasStationSession = Object.keys(localStorage).some(key => key.startsWith('station_session_'))
     const hasOperatorSession = localStorage.getItem('operator_session')
-    const hasOldSession = Object.keys(localStorage).some(key => key.startsWith('wheel_manager_'))
 
-    if (!hasStationSession && !hasOperatorSession && !hasOldSession) {
+    if (!hasStationSession && !hasOperatorSession) {
       // Not logged in - redirect to login
       window.location.href = '/login'
       return
     }
 
     // If only operator session exists (no station session), redirect to operator page
-    if (hasOperatorSession && !hasStationSession && !hasOldSession) {
+    if (hasOperatorSession && !hasStationSession) {
       window.location.href = '/operator'
       return
     }
