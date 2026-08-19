@@ -200,13 +200,14 @@ export default function FeedbackPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> שליחת פידבק</h1>
               <p className="text-sm sm:text-base text-gray-600">דווח על באג או שלח הצעה לשיפור מערכת הגלגלים</p>
             </div>
-            <Link
-              href="/"
+            <button
+              type="button"
+              onClick={() => router.back()}
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium text-sm sm:text-base"
             >
               <span>סגור</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </Link>
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

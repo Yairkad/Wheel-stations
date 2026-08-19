@@ -884,13 +884,6 @@ ${contact?.phone || ''}
 
         /* Tablet breakpoint (768px) */
         @media (max-width: 768px) {
-          .operator-search-tabs {
-            flex-wrap: wrap !important;
-          }
-          .operator-search-tab {
-            flex: 1 1 45% !important;
-            min-width: 100px !important;
-          }
           .operator-filter-grid-row {
             grid-template-columns: 1fr !important;
           }
@@ -910,11 +903,6 @@ ${contact?.phone || ''}
 
         /* Mobile breakpoint (640px) */
         @media (max-width: 640px) {
-          .operator-search-tab {
-            flex: 1 1 100% !important;
-            padding: 8px !important;
-            font-size: 0.8rem !important;
-          }
           .operator-section {
             padding: 15px !important;
           }
@@ -998,48 +986,53 @@ ${contact?.phone || ''}
         <div style={styles.section} className="operator-section">
           <h3 style={styles.sectionTitle} className="operator-section-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חיפוש גלגל לרכב</span></h3>
 
-          {/* Search Tabs - 3 options */}
-          <div style={styles.searchTabs} className="operator-search-tabs">
+          {/* Plate search is the default, immediate action — no tab click needed.
+              Model/spec are demoted to small fallback buttons below the plate
+              field, or a back-button once one of them is open. */}
+          {searchTab === 'plate' ? (
+            <>
+              <div style={styles.searchRow}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="12-345-67"
+                  value={plateNumber}
+                  onChange={e => setPlateNumber(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                  style={{...styles.formInput, flex: 1, textAlign: 'center', letterSpacing: '2px', fontSize: '1.1rem'}}
+                  dir="ltr"
+                  autoFocus
+                />
+                <button style={styles.searchBtn} onClick={handleSearch} disabled={searchLoading}>
+                  {searchLoading ? <span style={styles.spinner}></span> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
+                </button>
+              </div>
+              <div style={{textAlign: 'center', marginTop: '12px'}}>
+                <div style={{fontSize: '0.78rem', color: '#9ca3af', marginBottom: '6px'}}>לא נמצא?</div>
+                <div style={{display: 'flex', gap: '8px', justifyContent: 'center'}}>
+                  <button
+                    onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
+                    style={styles.searchFallbackBtn}
+                  >
+                    לפי יצרן ודגם
+                  </button>
+                  <button
+                    onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
+                    style={styles.searchFallbackBtn}
+                  >
+                    לפי מפרט
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
             <button
-              style={{...styles.searchTab, ...(searchTab === 'plate' ? styles.searchTabActive : {})}}
-              className="operator-search-tab"
               onClick={() => { setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
+              style={{...styles.searchFallbackBtn, marginBottom: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px'}}
             >
-              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="7" y1="2" x2="7" y2="6"/><line x1="17" y1="2" x2="17" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> מספר רכב</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" transform="rotate(180 12 12)"/></svg>
+              חזרה לחיפוש לפי מספר רכב
             </button>
-            <button
-              style={{...styles.searchTab, ...(searchTab === 'model' ? styles.searchTabActive : {})}}
-              className="operator-search-tab"
-              onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
-            >
-              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg> יצרן ודגם</span>
-            </button>
-            <button
-              style={{...styles.searchTab, ...(searchTab === 'spec' ? styles.searchTabActive : {})}}
-              className="operator-search-tab"
-              onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
-            >
-              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> לפי מפרט</span>
-            </button>
-          </div>
-
-          {/* Search by Plate */}
-          {searchTab === 'plate' && (
-            <div style={styles.searchRow}>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="12-345-67"
-                value={plateNumber}
-                onChange={e => setPlateNumber(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                style={{...styles.formInput, flex: 1, textAlign: 'center', letterSpacing: '2px', fontSize: '1.1rem'}}
-                dir="ltr"
-              />
-              <button style={styles.searchBtn} onClick={handleSearch} disabled={searchLoading}>
-                {searchLoading ? <span style={styles.spinner}></span> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
-              </button>
-            </div>
           )}
 
           {/* Search by Make/Model with Autocomplete */}
@@ -1746,27 +1739,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     margin: '0 0 15px 0',
   },
-  searchTabs: {
-    display: 'flex',
-    gap: '10px',
-    marginBottom: '15px',
-  },
-  searchTab: {
-    flex: 1,
-    padding: '10px',
-    background: '#f8fafc',
-    border: '1px solid #e2e8f0',
-    borderRadius: '8px',
-    color: '#64748b',
-    cursor: 'pointer',
-    fontSize: '0.9rem',
-  },
-  searchTabActive: {
-    background: '#f0fdf4',
-    borderColor: '#bbf7d0',
-    color: '#16a34a',
-    fontWeight: 600,
-  },
   searchRow: {
     display: 'flex',
     gap: '10px',
@@ -1862,6 +1834,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     cursor: 'pointer',
     fontWeight: 600,
+    whiteSpace: 'nowrap',
+  },
+  searchFallbackBtn: {
+    padding: '6px 12px',
+    background: '#f8fafc',
+    border: '1px solid #e2e8f0',
+    borderRadius: '999px',
+    color: '#64748b',
+    cursor: 'pointer',
+    fontSize: '0.78rem',
+    fontWeight: 500,
     whiteSpace: 'nowrap',
   },
   clearBtn: {

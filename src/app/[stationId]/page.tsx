@@ -2265,13 +2265,6 @@ ${signFormUrl}
             width: 100% !important;
             justify-content: center !important;
           }
-          /* Responsive table - convert to cards on mobile */
-          .tracking-table-container table {
-            display: none !important;
-          }
-          .tracking-table-container .mobile-cards {
-            display: flex !important;
-          }
           .tracking-filter-btn {
             padding: 8px 12px !important;
             font-size: 0.8rem !important;
@@ -2289,12 +2282,6 @@ ${signFormUrl}
             width: 50px !important;
             height: 50px !important;
             font-size: 20px !important;
-          }
-        }
-
-        @media (min-width: 481px) {
-          .tracking-table-container .mobile-cards {
-            display: none !important;
           }
         }
 
@@ -2474,328 +2461,179 @@ ${signFormUrl}
             </button>
           </div>
 
-          {/* Borrows Table */}
+          {/* Borrows — one responsive card grid (replaces the old separate desktop-table / mobile-cards pair) */}
           {borrowsLoading ? (
             <div style={styles.loading}>טוען...</div>
           ) : (
-            <div style={styles.trackingTableWrapper} className="tracking-table-container">
-              {/* Desktop Table */}
-              <table style={styles.trackingTable}>
-                <thead>
-                  <tr>
-                    <th style={{...styles.trackingTh, width: '25%'}}>פונה</th>
-                    <th style={{...styles.trackingTh, width: '20%'}}>גלגל</th>
-                    <th style={{...styles.trackingTh, width: '15%'}}>פיקדון</th>
-                    <th style={{...styles.trackingTh, width: '20%'}}>סטטוס</th>
-                    <th style={{...styles.trackingTh, width: '20%'}}>פעולות</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {borrows.map(borrow => {
-                    const isOverdue = borrow.status === 'borrowed' && !borrow.is_signed &&
-                      borrow.created_at && (Date.now() - new Date(borrow.created_at).getTime() > 24 * 60 * 60 * 1000)
-                    return (
-                      <tr key={borrow.id}>
-                        <td style={styles.trackingTd}>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '14px'}} className="tracking-cards-grid">
+              {borrows.length === 0 ? (
+                <div style={{...styles.emptyState, gridColumn: '1 / -1'}}>
+                  <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
+                  <div style={styles.emptyTitle}>אין רשומות להצגה</div>
+                  <div style={styles.emptyText}>כשתהיינה השאלות או החזרות, הן יופיעו כאן</div>
+                </div>
+              ) : borrows.map(borrow => {
+                const isOverdue = borrow.status === 'borrowed' && !borrow.is_signed &&
+                  borrow.created_at && (Date.now() - new Date(borrow.created_at).getTime() > 24 * 60 * 60 * 1000)
+                const isExpanded = expandedCards.has(borrow.id)
+                const toggleCard = () => {
+                  setExpandedCards(prev => {
+                    const next = new Set(prev)
+                    if (next.has(borrow.id)) {
+                      next.delete(borrow.id)
+                    } else {
+                      next.add(borrow.id)
+                    }
+                    return next
+                  })
+                }
+                return (
+                  <div key={borrow.id} style={styles.mobileCard}>
+                    <div
+                      style={{...styles.mobileCardHeader, cursor: 'pointer'}}
+                      onClick={toggleCard}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', color: '#6b7280' }}>{isExpanded ? '▼' : '◀'}</span>
+                        <div>
                           <div style={styles.borrowerNameCell}>{borrow.borrower_name}</div>
-                          <div style={styles.borrowerInfoCell}>{borrow.borrower_phone}</div>
-                          <div style={styles.borrowerInfoCell}>
-                            {new Date(borrow.borrow_date || borrow.created_at).toLocaleDateString('he-IL')}
+                          {isExpanded && <div style={styles.borrowerInfoCell}>{borrow.borrower_phone}</div>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {!isExpanded && <span style={{color: '#9ca3af', fontSize: '12px'}}>{borrow.wheels?.wheel_number || '-'}</span>}
+                        {borrow.status === 'pending' ? (
+                          <span style={{...styles.statusPending,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>ממתין</span>
+                        ) : borrow.status === 'returned' ? (
+                          <span style={{...styles.statusReturned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>הוחזר</span>
+                        ) : borrow.status === 'rejected' ? (
+                          <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>נדחה</span>
+                        ) : borrow.is_signed ? (
+                          <span style={{...styles.statusSigned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>חתום</span>
+                        ) : isOverdue ? (
+                          <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא חתום</span>
+                        ) : (
+                          <span style={{...styles.statusWaiting,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>מושאל</span>
+                        )}
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <>
+                        <div style={styles.mobileCardBody}>
+                          <div style={styles.mobileCardRow}>
+                            <span style={{color: '#9ca3af'}}>גלגל:</span>
+                            <span>{borrow.wheels?.wheel_number || '-'}</span>
                           </div>
-                          {borrow.referred_by_name && (
-                            <div style={{...styles.borrowerInfoCell, color: '#a855f7', fontSize: '0.7rem', display:'inline-flex',alignItems:'center',gap:'3px'}}>
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.72 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.63 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.91 5.91l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>הופנה ע&quot;י: {borrow.referred_by_name}
-                            </div>
-                          )}
-                        </td>
-                        <td style={styles.trackingTd}>
-                          <div>{borrow.wheels?.wheel_number || '-'}</div>
+                          <div style={styles.mobileCardRow}>
+                            <span style={{color: '#9ca3af'}}>תאריך:</span>
+                            <span>{new Date(borrow.borrow_date || borrow.created_at).toLocaleDateString('he-IL')}</span>
+                          </div>
+                          <div style={styles.mobileCardRow}>
+                            <span style={{color: '#9ca3af'}}>פיקדון:</span>
+                            <span style={{
+                              ...styles.depositBadge,
+                              ...(borrow.deposit_type === 'cash' || borrow.deposit_type === 'bit' ? styles.depositBadgeMoney :
+                                  borrow.deposit_type === 'id' || borrow.deposit_type === 'license' ? styles.depositBadgeDoc : {})
+                            }}>
+                              {(() => {
+                                const depositAmount = borrow.wheels?.custom_deposit || station.deposit_amount || 200
+                                return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
+                                       borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
+                                       borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
+                                       borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
+                                       borrow.deposit_type === 'id' ? 'ת.ז.' :
+                                       borrow.deposit_type === 'license' ? 'רישיון' : '-'
+                              })()}
+                            </span>
+                          </div>
                           {borrow.vehicle_model && (
-                            <div style={styles.borrowerInfoCell}>{borrow.vehicle_model}</div>
+                            <div style={styles.mobileCardRow}>
+                              <span style={{color: '#9ca3af'}}>רכב:</span>
+                              <span>{borrow.vehicle_model}</span>
+                            </div>
                           )}
                           {borrow.status === 'pending' && (() => {
                             const similarFailure = findSimilarFailedMount(wheelHistoryCache[borrow.wheel_id] || [], borrow.vehicle_model)
                             if (!similarFailure) return null
                             return (
-                              <div style={{marginTop: '4px', fontSize: '0.72rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '3px'}}>
+                              <div style={{fontSize: '0.75rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '3px', marginTop: '2px'}}>
                                 <span>⚠</span>
                                 <span>נכשל בעבר על רכב דומה{similarFailure.mount_feedback_note ? ` — ${similarFailure.mount_feedback_note}` : ''}</span>
                               </div>
                             )
                           })()}
-                        </td>
-                        <td style={styles.trackingTd}>
-                          <span style={{
-                            ...styles.depositBadge,
-                            ...(borrow.deposit_type === 'cash' || borrow.deposit_type === 'bit' ? styles.depositBadgeMoney :
-                                borrow.deposit_type === 'id' || borrow.deposit_type === 'license' ? styles.depositBadgeDoc : {})
-                          }}>
-                            {(() => {
-                              const depositAmount = borrow.wheels?.custom_deposit || station.deposit_amount || 200
-                              return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
-                                     borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
-                                     borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
-                                     borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
-                                     borrow.deposit_type === 'id' ? 'ת.ז.' :
-                                     borrow.deposit_type === 'license' ? 'רישיון' : '-'
-                            })()}
-                          </span>
-                        </td>
-                        <td style={styles.trackingTd}>
-                          {borrow.status === 'pending' ? (
-                            <span style={{...styles.statusPending,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>ממתין לאישור</span>
-                          ) : borrow.status === 'returned' ? (
-                            <span style={{...styles.statusReturned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>הוחזר</span>
-                          ) : borrow.status === 'rejected' ? (
-                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>נדחה</span>
-                          ) : borrow.is_signed ? (
-                            <span style={{...styles.statusSigned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>מושאל (חתום)</span>
-                          ) : isOverdue ? (
-                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>מושאל (לא חתום)</span>
-                          ) : (
-                            <span style={{...styles.statusWaiting,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>מושאל</span>
+                          {borrow.referred_by_name && (
+                            <div style={styles.mobileCardRow}>
+                              <span style={{color: '#9ca3af'}}>הופנה ע&quot;י:</span>
+                              <span style={{color: '#a855f7'}}>{borrow.referred_by_name}</span>
+                            </div>
                           )}
-                        </td>
-                        <td style={styles.trackingTd}>
-                          <div style={styles.actionButtons}>
-                            {borrow.status === 'pending' && (
-                              <>
-                                <button
-                                  style={styles.previewBtn}
-                                  onClick={() => openBorrowPreview(borrow)}
-                                >
-                                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>בדוק</span>
-                                </button>
-                                <button
-                                  style={styles.approveBtn}
-                                  onClick={() => handleBorrowAction(borrow.id, 'approve')}
-                                  disabled={approvalLoading === borrow.id}
-                                >
-                                  {approvalLoading === borrow.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>אשר</span>}
-                                </button>
-                                <button
-                                  style={styles.rejectBtn}
-                                  onClick={() => handleBorrowAction(borrow.id, 'reject')}
-                                  disabled={approvalLoading === borrow.id}
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                </button>
-                              </>
-                            )}
-                            {borrow.status === 'borrowed' && !borrow.is_signed && (
-                              <a
-                                href={generateWhatsAppLink(borrow.borrower_name, borrow.borrower_phone)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={styles.whatsappBtn}
-                              >
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>שלח טופס</span>
-                              </a>
-                            )}
-                            {borrow.status === 'borrowed' && (
-                              <button
-                                style={styles.returnBtnSmall}
-                                onClick={() => {
-                                  const wheel = station?.wheels.find(w => w.id === borrow.wheel_id)
-                                  if (wheel) handleReturn(wheel)
-                                }}
-                              >
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>החזר</span>
-                              </button>
-                            )}
-                            {borrow.form_id && (
-                              <a
-                                href={`/forms/${borrow.form_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={styles.viewFormBtn}
-                              >
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>צפה בטופס</span>
-                              </a>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                  {borrows.length === 0 && (
-                    <tr>
-                      <td colSpan={5} style={{padding: '40px'}}>
-                        <div style={styles.emptyState}>
-                          <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
-                          <div style={styles.emptyTitle}>אין רשומות להצגה</div>
-                          <div style={styles.emptyText}>כשתהיינה השאלות או החזרות, הן יופיעו כאן</div>
                         </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-
-              {/* Mobile Cards */}
-              <div className="mobile-cards" style={{display: 'none', flexDirection: 'column', gap: '12px'}}>
-                {borrows.length === 0 ? (
-                  <div style={styles.emptyState}>
-                    <div style={styles.emptyIcon}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
-                    <div style={styles.emptyTitle}>אין רשומות להצגה</div>
-                    <div style={styles.emptyText}>כשתהיינה השאלות או החזרות, הן יופיעו כאן</div>
+                        <div style={styles.mobileCardActions}>
+                          {borrow.status === 'pending' && (
+                            <>
+                              <button
+                                style={{...styles.previewBtn, flex: 1}}
+                                onClick={(e) => { e.stopPropagation(); openBorrowPreview(borrow) }}
+                              >
+                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>בדוק</span>
+                              </button>
+                              <button
+                                style={{...styles.approveBtn, flex: 1}}
+                                onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'approve') }}
+                                disabled={approvalLoading === borrow.id}
+                              >
+                                {approvalLoading === borrow.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>אשר</span>}
+                              </button>
+                              <button
+                                style={styles.rejectBtn}
+                                onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'reject') }}
+                                disabled={approvalLoading === borrow.id}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                              </button>
+                            </>
+                          )}
+                          {borrow.status === 'borrowed' && !borrow.is_signed && (
+                            <a
+                              href={generateWhatsAppLink(borrow.borrower_name, borrow.borrower_phone)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{...styles.whatsappBtn, flex: 1, textAlign: 'center'}}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>שלח טופס</span>
+                            </a>
+                          )}
+                          {borrow.status === 'borrowed' && (
+                            <button
+                              style={{...styles.returnBtnSmall, flex: 1}}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const wheel = station?.wheels.find(w => w.id === borrow.wheel_id)
+                                if (wheel) handleReturn(wheel)
+                              }}
+                            >
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>החזר</span>
+                            </button>
+                          )}
+                          {borrow.form_id && (
+                            <a
+                              href={`/forms/${borrow.form_id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{...styles.viewFormBtn, flex: 1, textAlign: 'center'}}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>צפה בטופס</span>
+                            </a>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
-                ) : borrows.map(borrow => {
-                  const isOverdue = borrow.status === 'borrowed' && !borrow.is_signed &&
-                    borrow.created_at && (Date.now() - new Date(borrow.created_at).getTime() > 24 * 60 * 60 * 1000)
-                  const isExpanded = expandedCards.has(borrow.id)
-                  const toggleCard = () => {
-                    setExpandedCards(prev => {
-                      const next = new Set(prev)
-                      if (next.has(borrow.id)) {
-                        next.delete(borrow.id)
-                      } else {
-                        next.add(borrow.id)
-                      }
-                      return next
-                    })
-                  }
-                  return (
-                    <div key={borrow.id} style={styles.mobileCard}>
-                      <div
-                        style={{...styles.mobileCardHeader, cursor: 'pointer'}}
-                        onClick={toggleCard}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '12px', color: '#6b7280' }}>{isExpanded ? '▼' : '◀'}</span>
-                          <div>
-                            <div style={styles.borrowerNameCell}>{borrow.borrower_name}</div>
-                            {isExpanded && <div style={styles.borrowerInfoCell}>{borrow.borrower_phone}</div>}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {!isExpanded && <span style={{color: '#9ca3af', fontSize: '12px'}}>{borrow.wheels?.wheel_number || '-'}</span>}
-                          {borrow.status === 'pending' ? (
-                            <span style={{...styles.statusPending,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>ממתין</span>
-                          ) : borrow.status === 'returned' ? (
-                            <span style={{...styles.statusReturned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>הוחזר</span>
-                          ) : borrow.status === 'rejected' ? (
-                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>נדחה</span>
-                          ) : borrow.is_signed ? (
-                            <span style={{...styles.statusSigned,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>חתום</span>
-                          ) : isOverdue ? (
-                            <span style={{...styles.statusOverdue,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>לא חתום</span>
-                          ) : (
-                            <span style={{...styles.statusWaiting,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>מושאל</span>
-                          )}
-                        </div>
-                      </div>
-                      {isExpanded && (
-                        <>
-                          <div style={styles.mobileCardBody}>
-                            <div style={styles.mobileCardRow}>
-                              <span style={{color: '#9ca3af'}}>גלגל:</span>
-                              <span>{borrow.wheels?.wheel_number || '-'}</span>
-                            </div>
-                            <div style={styles.mobileCardRow}>
-                              <span style={{color: '#9ca3af'}}>תאריך:</span>
-                              <span>{new Date(borrow.borrow_date || borrow.created_at).toLocaleDateString('he-IL')}</span>
-                            </div>
-                            <div style={styles.mobileCardRow}>
-                              <span style={{color: '#9ca3af'}}>פיקדון:</span>
-                              <span style={{
-                                ...styles.depositBadge,
-                                ...(borrow.deposit_type === 'cash' || borrow.deposit_type === 'bit' ? styles.depositBadgeMoney :
-                                    borrow.deposit_type === 'id' || borrow.deposit_type === 'license' ? styles.depositBadgeDoc : {})
-                              }}>
-                                {(() => {
-                                  const depositAmount = borrow.wheels?.custom_deposit || station.deposit_amount || 200
-                                  return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
-                                         borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
-                                         borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
-                                         borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
-                                         borrow.deposit_type === 'id' ? 'ת.ז.' :
-                                         borrow.deposit_type === 'license' ? 'רישיון' : '-'
-                                })()}
-                              </span>
-                            </div>
-                            {borrow.vehicle_model && (
-                              <div style={styles.mobileCardRow}>
-                                <span style={{color: '#9ca3af'}}>רכב:</span>
-                                <span>{borrow.vehicle_model}</span>
-                              </div>
-                            )}
-                            {borrow.status === 'pending' && (() => {
-                              const similarFailure = findSimilarFailedMount(wheelHistoryCache[borrow.wheel_id] || [], borrow.vehicle_model)
-                              if (!similarFailure) return null
-                              return (
-                                <div style={{fontSize: '0.75rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '3px', marginTop: '2px'}}>
-                                  <span>⚠</span>
-                                  <span>נכשל בעבר על רכב דומה{similarFailure.mount_feedback_note ? ` — ${similarFailure.mount_feedback_note}` : ''}</span>
-                                </div>
-                              )
-                            })()}
-                            {borrow.referred_by_name && (
-                              <div style={styles.mobileCardRow}>
-                                <span style={{color: '#9ca3af'}}>הופנה ע&quot;י:</span>
-                                <span style={{color: '#a855f7'}}>{borrow.referred_by_name}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div style={styles.mobileCardActions}>
-                            {borrow.status === 'pending' && (
-                              <>
-                                <button
-                                  style={{...styles.previewBtn, flex: 1}}
-                                  onClick={(e) => { e.stopPropagation(); openBorrowPreview(borrow) }}
-                                >
-                                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>בדוק ואשר</span>
-                                </button>
-                                <button
-                                  style={styles.rejectBtn}
-                                  onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'reject') }}
-                                  disabled={approvalLoading === borrow.id}
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                </button>
-                              </>
-                            )}
-                            {borrow.status === 'borrowed' && !borrow.is_signed && (
-                              <a
-                                href={generateWhatsAppLink(borrow.borrower_name, borrow.borrower_phone)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{...styles.whatsappBtn, flex: 1, textAlign: 'center'}}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>שלח טופס</span>
-                              </a>
-                            )}
-                            {borrow.status === 'borrowed' && (
-                              <button
-                                style={{...styles.returnBtnSmall, flex: 1}}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  const wheel = station?.wheels.find(w => w.id === borrow.wheel_id)
-                                  if (wheel) handleReturn(wheel)
-                                }}
-                              >
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>החזר</span>
-                              </button>
-                            )}
-                            {borrow.form_id && (
-                              <a
-                                href={`/forms/${borrow.form_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{...styles.viewFormBtn, flex: 1, textAlign: 'center'}}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>צפה בטופס</span>
-                              </a>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                )
+              })}
             </div>
           )}
 
@@ -7268,31 +7106,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'white',
     border: '1px solid #ec4899',
   },
-  trackingTableWrapper: {
-    overflowX: 'auto',
-    marginBottom: '20px',
-  },
-  trackingTable: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    minWidth: '500px',
-    tableLayout: 'fixed' as const,
-  },
-  trackingTh: {
-    background: '#f8fafc',
-    color: '#475569',
-    padding: '12px 8px',
-    textAlign: 'right',
-    fontSize: '0.85rem',
-    borderBottom: '1px solid #e2e8f0',
-    fontWeight: 600,
-  },
-  trackingTd: {
-    padding: '12px 8px',
-    borderBottom: '1px solid #f1f5f9',
-    color: '#1e293b',
-    fontSize: '0.9rem',
-  },
   borrowerNameCell: {
     fontWeight: 'bold',
     color: '#1e293b',
@@ -7442,11 +7255,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontWeight: '500',
     fontSize: '0.85rem',
-  },
-  actionButtons: {
-    display: 'flex',
-    gap: '6px',
-    flexWrap: 'wrap' as const,
   },
   previewBtn: {
     padding: '6px 12px',

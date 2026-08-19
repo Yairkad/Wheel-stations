@@ -1671,55 +1671,19 @@ function SearchPageContent() {
               <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>פיצ&apos;ר בפיתוח - יתכנו טעויות בזיהוי מידות הגלגל</span>
             </div>
 
-            {/* Tabs */}
-            <div style={{
-              display: 'flex',
-              gap: '0',
-              marginBottom: '16px',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: '1px solid #4b5563'
-            }}>
+            {/* Plate search is the default, immediate action — no tab click needed.
+                Make/model is demoted to a small fallback button below the plate
+                field, or a back-button once it's open. */}
+            {vehicleSearchTab === 'model' && (
               <button
                 role="tab"
-                aria-selected={vehicleSearchTab === 'plate'}
-                aria-controls="plate-search-panel"
                 onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setManualRimSize(null); }}
-                style={{
-                  flex: 1,
-                  padding: '10px 16px',
-                  border: 'none',
-                  background: vehicleSearchTab === 'plate' ? '#3b82f6' : 'transparent',
-                  color: vehicleSearchTab === 'plate' ? '#fff' : '#9ca3af',
-                  cursor: 'pointer',
-                  fontWeight: vehicleSearchTab === 'plate' ? 'bold' : 'normal',
-                  fontSize: '0.9rem',
-                  transition: 'all 0.2s'
-                }}
+                style={{...styles.searchFallbackBtn, marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px'}}
               >
-                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>מספר רכב</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" transform="rotate(180 12 12)"/></svg>
+                חזרה לחיפוש לפי מספר רכב
               </button>
-              <button
-                role="tab"
-                aria-selected={vehicleSearchTab === 'model'}
-                aria-controls="model-search-panel"
-                onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setManualRimSize(null); }}
-                style={{
-                  flex: 1,
-                  padding: '10px 16px',
-                  border: 'none',
-                  borderRight: '1px solid #4b5563',
-                  background: vehicleSearchTab === 'model' ? '#3b82f6' : 'transparent',
-                  color: vehicleSearchTab === 'model' ? '#fff' : '#9ca3af',
-                  cursor: 'pointer',
-                  fontWeight: vehicleSearchTab === 'model' ? 'bold' : 'normal',
-                  fontSize: '0.9rem',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>יצרן ודגם</span>
-              </button>
-            </div>
+            )}
 
             {/* Tab Content: Plate Search */}
             {vehicleSearchTab === 'plate' && (
@@ -1744,6 +1708,17 @@ function SearchPageContent() {
                     {vehicleLoading ? (
                       <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                     ) : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
+                  </button>
+                </div>
+                <div style={{textAlign: 'center', marginTop: '12px'}}>
+                  <div style={{fontSize: '0.78rem', color: '#9ca3af', marginBottom: '6px'}}>לא נמצא?</div>
+                  <button
+                    role="tab"
+                    aria-controls="model-search-panel"
+                    onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setManualRimSize(null); }}
+                    style={styles.searchFallbackBtn}
+                  >
+                    לפי יצרן ודגם
                   </button>
                 </div>
               </div>
@@ -3483,6 +3458,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontWeight: 'bold',
     fontSize: '1.2rem',
+  },
+  searchFallbackBtn: {
+    padding: '6px 12px',
+    background: 'transparent',
+    border: '1px solid #4b5563',
+    borderRadius: '999px',
+    color: '#9ca3af',
+    cursor: 'pointer',
+    fontSize: '0.78rem',
+    fontWeight: 500,
+    whiteSpace: 'nowrap',
   },
   vehicleError: {
     background: '#fef2f2',
