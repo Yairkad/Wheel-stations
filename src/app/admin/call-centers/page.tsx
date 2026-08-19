@@ -227,6 +227,12 @@ export default function CallCentersAdminPage() {
       `}</style>
 
 
+      {/* Page identity — distinguishes this from a call-center manager's own /call-center screen */}
+      <div style={{ padding: '4px 0 2px' }}>
+        <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>ניהול כל המוקדים במערכת</h1>
+        <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '2px 0 0' }}>מסך אדמין גלובלי — יצירה, עריכה והשבתה של מוקדים בכל המערכת</p>
+      </div>
+
       {/* Stats Row */}
       <div style={styles.statsRow} className="stats-row-responsive">
         <div style={styles.statCard}>

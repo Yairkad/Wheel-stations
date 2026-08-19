@@ -648,6 +648,13 @@ export default function CallCenterPage() {
       </div>
       <div className="cc-glass-spacer" style={styles.glassSpacer}/>
 
+      {/* Page identity — distinguishes this from the admin's global call-centers screen */}
+      <div style={styles.container}>
+        <div style={{ padding: '4px 0 2px' }}>
+          <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>ניהול {manager.call_center_name}</h1>
+        </div>
+      </div>
+
       {/* Stats */}
       <div style={styles.statsRow} className="cc-stats-row">
         <div style={styles.statCard} className="cc-stat-card">

@@ -12,6 +12,7 @@ import AppHeader from '@/components/AppHeader'
 
 export default function WheelStationsPage() {
   const [stations, setStations] = useState<Station[]>([])
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [districts, setDistricts] = useState<District[]>([])
@@ -139,6 +140,7 @@ export default function WheelStationsPage() {
     }
 
     // User is logged in as station manager - load stations
+    setIsAuthenticated(true)
     fetchStations()
     fetchDistrictsData()
     // Check if manager is logged in from localStorage
@@ -735,6 +737,17 @@ export default function WheelStationsPage() {
     } finally {
       setAddModelLoading(false)
     }
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#f8fafc', direction: 'rtl', textAlign: 'center', padding: '20px',
+      }}>
+        <p style={{ color: '#64748b', fontSize: '0.95rem' }}>צריך להתחבר כדי לגשת לכאן — מעביר אותך למסך התחברות...</p>
+      </div>
+    )
   }
 
   if (loading) {

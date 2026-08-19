@@ -1067,7 +1067,14 @@ function SearchPageContent() {
 
   // Block rendering until auth check completes (prevents bfcache bypass)
   if (!isAuthenticated) {
-    return null
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#f8fafc', direction: 'rtl', textAlign: 'center', padding: '20px',
+      }}>
+        <p style={{ color: '#64748b', fontSize: '0.95rem' }}>צריך להתחבר כדי לגשת לכאן — מעביר אותך למסך התחברות...</p>
+      </div>
+    )
   }
 
   if (error) {
