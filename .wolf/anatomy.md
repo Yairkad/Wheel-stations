@@ -1,7 +1,11 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-18T23:49:26.004Z
-> Files: 62 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-20T07:21:32.606Z
+> Files: 77 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/
+
+- `test-wizard.js` — Declares STATION_ID (~1563 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -28,6 +32,7 @@
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
+- `splendid-dreaming-ullman.md` — סעיף פיקדון: איחוד ת.ז./רישיון, ברירת מחדל כבויה, ואימות ת.ז. (~1253 tok)
 - `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
 - `ui-ux-parsed-hartmanis.md` — תוכנית ביקורת UI/UX מקיפה לפי סוג משתמש (8 personas), ללא צילומי מסך (~1900 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
@@ -35,7 +40,8 @@
 
 ## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
 
-- `MEMORY.md` (~38 tok)
+- `MEMORY.md` (~80 tok)
+- `project_forgot_password_whatsapp_idea.md` (~492 tok)
 - `webauthn_biometric_login_paused.md` (~947 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
@@ -48,12 +54,18 @@
 
 ## ./
 
+- `DEV_NOTES.md` — הערות למפתחים (~194 tok)
+- `test-deposit.tmp.js` — Declares STATION_ID (~963 tok)
+- `test-diag.tmp.js` — Declares STATION_ID (~298 tok)
+- `test-icons.tmp.js` — Declares STATION_ID (~1239 tok)
+- `test-submit.tmp.js` — Declares fs (~1348 tok)
+- `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
 - `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~1474 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~2289 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -91,7 +103,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~101452 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~97536 tok)
 
 ## src/app/accessibility/
 
@@ -104,6 +116,7 @@
 
 ## src/app/admin/call-centers/
 
+- `page.tsx` — CallCentersAdminPage (~9385 tok)
 
 ## src/app/admin/login-report/
 
@@ -119,6 +132,7 @@
 
 ## src/app/admin/users/
 
+- `page.tsx` — ROLE_LABELS (~14324 tok)
 
 ## src/app/admin/vehicles/
 
@@ -314,7 +328,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/auth/
 
-- `route.ts` — Station Manager Authentication API (~4023 tok)
+- `route.ts` — Station Manager Authentication API (~3038 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/
 
@@ -392,9 +406,11 @@
 
 ## src/app/call-center/
 
+- `page.tsx` — CallCenterPage (~17384 tok)
 
 ## src/app/feedback/
 
+- `page.tsx` — FeedbackPage — renders form (~5953 tok)
 
 ## src/app/forms/[formId]/
 
@@ -408,14 +424,14 @@
 
 ## src/app/lookup/
 
-- `page.tsx` — extractRimSize (~3893 tok)
+- `page.tsx` — VehicleLookupPage (~241 tok)
 
 ## src/app/ocr-test/
 
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~25172 tok)
+- `page.tsx` — OperatorPage (~24853 tok)
 
 ## src/app/privacy/
 
@@ -429,15 +445,15 @@
 
 ## src/app/search/
 
-- `page.tsx` — VEHICLE_HISTORY_KEY (~47639 tok)
+- `page.tsx` — VEHICLE_HISTORY_KEY (~47411 tok)
 
 ## src/app/sign/[stationId]/
 
-- `page.tsx` — SignFormContent (~14128 tok)
+- `page.tsx` — STEP_LABELS (~18025 tok)
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~37713 tok)
+- `page.tsx` — WheelStationsPage (~37910 tok)
 
 ## src/app/super-manager/
 
@@ -448,6 +464,7 @@
 
 ## src/components/
 
+- `AppHeader.tsx` — AppHeader (~13057 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
 ## src/components/admin/
@@ -467,6 +484,7 @@
 
 ## src/stories/mocks/
 
+- `utils.tsx` — SESSION_KEYS (~527 tok)
 
 ## src/stories/pages/
 

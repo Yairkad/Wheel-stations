@@ -513,8 +513,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [editDepositAmount, setEditDepositAmount] = useState('')
   const [editPaymentMethods, setEditPaymentMethods] = useState<PaymentMethods>({
     cash: true,
-    id_deposit: true,
-    license_deposit: true
+    id_deposit: false,
+    license_deposit: false
   })
 
   // Email notification settings
@@ -686,7 +686,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         case 'settings':
           setEditAddress(station?.address || '')
           setEditDepositAmount(String(station?.deposit_amount || 200))
-          setEditPaymentMethods(station?.payment_methods || { cash: true, id_deposit: true, license_deposit: true })
+          setEditPaymentMethods(station?.payment_methods || { cash: true, id_deposit: false, license_deposit: false })
           setNotificationEmails(station?.notification_emails?.length ? station.notification_emails : [''])
           setShowEditDetailsModal(true)
           break

@@ -1489,7 +1489,7 @@ function SearchPageContent() {
                               <div style={styles.resultWheelSpecs}>
                                 <span>{wheel.rim_size}"</span>
                                 <span>{wheel.bolt_count}×{wheel.bolt_spacing}</span>
-                                {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
+                                {wheel.center_bore && <span>CB {wheel.center_bore} (קוטר מרכז)</span>}
                                 {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                               </div>
                               <div style={{
@@ -2285,7 +2285,7 @@ function SearchPageContent() {
                                       <div style={styles.resultWheelNumber}>#{wheel.wheel_number}</div>
                                       <div style={styles.resultWheelSpecs}>
                                         <span>{wheel.rim_size}"</span>
-                                        {wheel.center_bore && <span>CB {wheel.center_bore}</span>}
+                                        {wheel.center_bore && <span>CB {wheel.center_bore} (קוטר מרכז)</span>}
                                         {wheel.is_donut && <span style={styles.resultDonutBadge}>דונאט</span>}
                                       </div>
                                       {rimMismatch && (
@@ -3385,7 +3385,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   resultWheelSpecs: {
     display: 'flex',
     gap: '6px',
-    fontSize: '0.8rem',
+    flexWrap: 'wrap',
+    fontSize: '0.85rem',
     color: '#64748b',
   },
   resultDonutBadge: {

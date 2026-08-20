@@ -36,6 +36,24 @@ interface Station {
   payment_methods?: PaymentMethods
 }
 
+type WizardStep = 1 | 2 | 3
+const STEP_LABELS = ['זהות', 'רכב ופיקדון', 'תנאים וחתימה']
+
+// Official Israeli teudat zehut check-digit algorithm — rejects strings that can't
+// possibly be a real ID number (e.g. random digits), not a real-identity check
+function isValidIsraeliId(id: string): boolean {
+  const clean = id.trim()
+  if (!/^\d{5,9}$/.test(clean)) return false
+  const padded = clean.padStart(9, '0')
+  let sum = 0
+  for (let i = 0; i < 9; i++) {
+    let d = Number(padded[i]) * ((i % 2) + 1)
+    if (d > 9) d -= 9
+    sum += d
+  }
+  return sum % 10 === 0
+}
+
 function SignFormContent({ stationId }: { stationId: string }) {
   const searchParams = useSearchParams()
   const [station, setStation] = useState<Station | null>(null)
@@ -44,6 +62,9 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  // Wizard step
+  const [currentStep, setCurrentStep] = useState<WizardStep>(1)
 
   // Pre-filled data from URL params
   const prefilledWheelNumber = searchParams.get('wheel')
@@ -76,17 +97,41 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const termsRef = useRef<HTMLDivElement>(null)
   const [canAgreeTerms, setCanAgreeTerms] = useState(false)
 
-  // Form container ref for capturing
-  const formRef = useRef<HTMLDivElement>(null)
+  // Hidden node captured as the legal/audit record image at submit time — independent of
+  // which wizard step is currently visible (see captureFormAsImage)
+  const captureRef = useRef<HTMLDivElement>(null)
 
   // Signature canvas
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [hasSigned, setHasSigned] = useState(false)
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null)
 
   // Custom wheel dropdown
   const [isWheelDropdownOpen, setIsWheelDropdownOpen] = useState(false)
   const wheelDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Terms text — shared between the visible (scrollable) terms box on step 3
+  // and the unclipped copy in the hidden capture summary
+  const termsItems: React.ReactNode[] = [
+    <>הפונה מתחייב להחזיר את הגלגל בתוך <strong>72 שעות</strong>, ולהשאיר כפקדון {effectiveDeposit} ש&quot;ח באמצעי התשלום הזמין.</>,
+    <>הפונה יקבל חזרה את הפקדון בעת החזרת הגלגל. במידה והגלגל לא יוחזר בתוך 72 שעות, סכום הכסף יועבר כתרומה לידידים.</>,
+    <><strong>הפונה מבין שזהו תיקון חירום בלבד!</strong> והגלגל עשוי להיות במידה מעט שונה/לפגוע ביציבות הרכב ולכן מתחייב לא לנהוג במהירות מעל 80 קמ&quot;ש וכן שלא תהיה לו שום תלונה על הסיוע שקיבל.</>,
+    <>במקרים חריגים ניתן להאריך את זמן ההשאלה עד 5 ימים, באישור מנהל התחנה או סג&quot;מ התחנה.</>,
+    <>במקרים חריגים (באישור מנהל/סג&quot;מ התחנה) ניתן להפקיד כערבון תעודה מזהה במקום פקדון כספי.</>,
+  ]
+
+  const getDepositLabel = (): string => {
+    switch (depositType) {
+      case 'cash': return `מזומן (₪${effectiveDeposit})`
+      case 'bit': return `ביט למספר ${station?.payment_methods?.bit?.phone || ''} (₪${effectiveDeposit})`
+      case 'paybox': return `פייבוקס למספר ${station?.payment_methods?.paybox?.phone || ''} (₪${effectiveDeposit})`
+      case 'bank_transfer': return `העברה בנקאית — ${station?.payment_methods?.bank_transfer?.details || ''}`
+      case 'id': return 'פיקדון תעודת זהות (באישור מנהל)'
+      case 'license': return 'פיקדון רישיון נהיגה (באישור מנהל)'
+      default: return '-'
+    }
+  }
 
   useEffect(() => {
     // Set today's date as default
@@ -105,7 +150,8 @@ function SignFormContent({ stationId }: { stationId: string }) {
     }
   }, [wheels, prefilledWheelNumber, selectedWheelId])
 
-  // Setup canvas
+  // Setup canvas — also re-runs when the step-3 container (display:none on other
+  // steps) becomes visible, since getBoundingClientRect() is zero-size while hidden
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -114,21 +160,34 @@ function SignFormContent({ stationId }: { stationId: string }) {
       const container = canvas.parentElement
       if (!container) return
       const rect = container.getBoundingClientRect()
-      canvas.width = rect.width
-      canvas.height = 150
+      if (rect.width === 0) return
+      // Setting canvas.width/height always clears its bitmap — only do it when the
+      // size actually changed (e.g. first load, real window resize), not every time
+      // this effect re-runs because the step became visible again. Otherwise a
+      // signature already drawn gets wiped just by navigating back to this step.
+      const sizeChanged = canvas.width !== rect.width || canvas.height !== 150
+      if (sizeChanged) {
+        canvas.width = rect.width
+        canvas.height = 150
+      }
       const ctx = canvas.getContext('2d')
       if (ctx) {
         ctx.strokeStyle = '#3b82f6'
         ctx.lineWidth = 3
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
+        if (sizeChanged && signatureDataUrl) {
+          const img = new Image()
+          img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          img.src = signatureDataUrl
+        }
       }
     }
 
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
     return () => window.removeEventListener('resize', resizeCanvas)
-  }, [loading])
+  }, [loading, currentStep])
 
   // Close wheel dropdown when clicking outside
   useEffect(() => {
@@ -210,6 +269,10 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
   const stopDrawing = () => {
     setIsDrawing(false)
+    const canvas = canvasRef.current
+    if (canvas && hasSigned) {
+      setSignatureDataUrl(canvas.toDataURL('image/png'))
+    }
   }
 
   const clearSignature = () => {
@@ -218,20 +281,21 @@ function SignFormContent({ stationId }: { stationId: string }) {
     if (!canvas || !ctx) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     setHasSigned(false)
+    setSignatureDataUrl(null)
   }
 
   const getSignatureData = (): string | null => {
-    const canvas = canvasRef.current
-    if (!canvas || !hasSigned) return null
-    return canvas.toDataURL('image/png')
+    return hasSigned ? signatureDataUrl : null
   }
 
   const captureFormAsImage = async (): Promise<string | null> => {
-    if (!formRef.current) return null
+    if (!captureRef.current) return null
 
     try {
-      // Use html2canvas to capture the entire form
-      const canvas = await html2canvas(formRef.current, {
+      // Captures the hidden, always-mounted summary node (not the currently-visible
+      // wizard step) so the saved image reflects all 3 steps regardless of which one
+      // the user happened to be on at submit time
+      const canvas = await html2canvas(captureRef.current, {
         scale: 2, // Higher resolution
         useCORS: true,
         backgroundColor: '#ffffff',
@@ -244,25 +308,63 @@ function SignFormContent({ stationId }: { stationId: string }) {
     }
   }
 
-  const handleSubmit = async () => {
-    // Validation - collect all errors
+  const validateStep = (step: WizardStep): string[] => {
     const errors: string[] = []
+    if (step === 1) {
+      if (!firstName.trim()) errors.push('firstName')
+      if (!lastName.trim()) errors.push('lastName')
+      if (!isValidIsraeliId(idNumber)) errors.push('idNumber')
+      if (!phone.trim()) errors.push('phone')
+      if (!address.trim()) errors.push('address')
+    } else if (step === 2) {
+      if (!selectedWheelId) errors.push('wheelId')
+      if (!vehicleModel.trim()) errors.push('vehicleModel')
+      if (!licensePlate.trim()) errors.push('licensePlate')
+      if (!depositType) errors.push('depositType')
+    } else {
+      if (!hasSigned) errors.push('signature')
+      if (!agreedTerms) errors.push('terms')
+    }
+    return errors
+  }
 
-    if (!firstName.trim()) errors.push('firstName')
-    if (!lastName.trim()) errors.push('lastName')
-    if (!idNumber.trim() || idNumber.length < 9) errors.push('idNumber')
-    if (!phone.trim()) errors.push('phone')
-    if (!address.trim()) errors.push('address')
-    if (!selectedWheelId) errors.push('wheelId')
-    if (!vehicleModel.trim()) errors.push('vehicleModel')
-    if (!licensePlate.trim()) errors.push('licensePlate')
-    if (!depositType) errors.push('depositType')
-    if (!hasSigned) errors.push('signature')
-    if (!agreedTerms) errors.push('terms')
+  const goToStep = (step: WizardStep) => {
+    setFieldErrors([])
+    setCurrentStep(step)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
+  const handleNext = () => {
+    const errors = validateStep(currentStep)
     setFieldErrors(errors)
-
     if (errors.length > 0) {
+      toast.error('נא למלא את כל השדות המסומנים', { id: 'validation-error' })
+      return
+    }
+    goToStep((currentStep + 1) as WizardStep)
+  }
+
+  const handleBack = () => {
+    goToStep((currentStep - 1) as WizardStep)
+  }
+
+  const handleSubmit = async () => {
+    // Validation - collect all errors, but only across steps that actually have any,
+    // so a stray error never leaves the user stuck on a step where they can't see it
+    const step1Errors = validateStep(1)
+    const step2Errors = validateStep(2)
+    const step3Errors = validateStep(3)
+    const allErrors = [...step1Errors, ...step2Errors, ...step3Errors]
+
+    if (allErrors.length > 0) {
+      setFieldErrors(allErrors)
+      if (step1Errors.length > 0) {
+        setCurrentStep(1)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else if (step2Errors.length > 0) {
+        setCurrentStep(2)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
       toast.error('נא למלא את כל השדות המסומנים', { id: 'validation-error' })
       return
     }
@@ -275,7 +377,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
     setSubmitting(true)
     try {
-      // Capture the entire form as an image
+      // Capture the hidden full-form summary as an image
       const formImageData = await captureFormAsImage()
       if (!formImageData) {
         throw new Error('שגיאה בצילום הטופס')
@@ -419,7 +521,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
           </div>
         </div>
       )}
-      <div ref={formRef} style={{...styles.card, ...(submitting ? styles.cardDisabled : {})}}>
+      <div style={{...styles.card, ...(submitting ? styles.cardDisabled : {})}}>
         {/* Yedidim Logo */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           <img
@@ -431,486 +533,559 @@ function SignFormContent({ stationId }: { stationId: string }) {
         <h1 style={{...styles.title, textAlign: 'center'}}>השאלת גלגל - {station.name}</h1>
         <p style={{...styles.subtitle, textAlign: 'center'}}>טופס להשאלת גלגל מתחנת השאלת גלגלים</p>
 
-        {/* Intro text */}
-        <div style={styles.infoBox}>
-          <p>עמותת ידידים סיוע בדרכים סניף {station.name} מאפשרת לשאול גלגלים לפרק זמן מוגבל על מנת לעזור במקרים בהם אין פנצ'ריות פתוחות, ולא ניתן לבצע תיקון זמני.</p>
-          <p style={{ marginTop: '10px' }}>אנו מבקשים להחזיר את הגלגל בהקדם האפשרי ועד 72 שעות ממועד ההשאלה, על מנת שנוכל להמשיך ולסייע לאנשים נוספים.</p>
-          <p style={{ marginTop: '10px' }}>ארגון ידידים פועל בהתנדבות מלאה, ותרומות עוזרות לארגון ברכישת ציוד - <a href="https://yedidim-il.org/%d7%aa%d7%a8%d7%95%d7%9e%d7%95%d7%aa/" target="_blank" rel="noopener noreferrer" style={styles.link}>ניתן לתרום כאן</a></p>
-          <p style={{ marginTop: '10px' }}>להצטרפות למעצמה - פנו להנהלת הסניף או <a href="https://yedidim-il.org/%D7%94%D7%A6%D7%98%D7%A8%D7%A4%D7%95-%D7%90%D7%9C%D7%99%D7%A0%D7%95/" target="_blank" rel="noopener noreferrer" style={styles.link}>בקישור זה</a></p>
+        {/* Step indicator */}
+        <div style={styles.stepIndicatorWrap}>
+          <div style={styles.stepProgressBar}>
+            {[1, 2, 3].map(s => (
+              <div key={s} style={{
+                ...styles.stepProgressSegment,
+                background: s < currentStep ? '#10b981' : s === currentStep ? '#3b82f6' : '#e5e7eb'
+              }} />
+            ))}
+          </div>
+          <div style={styles.stepIndicatorText}>שלב {currentStep} מתוך 3 — {STEP_LABELS[currentStep - 1]}</div>
         </div>
 
-        {/* Personal Details Section */}
-        <div style={styles.sectionTitle}>פרטים אישיים</div>
+        {/* ===== Step 1: זהות ===== */}
+        <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
+          {/* Intro text */}
+          <div style={styles.infoBox}>
+            <p>עמותת ידידים סיוע בדרכים סניף {station.name} מאפשרת לשאול גלגלים לפרק זמן מוגבל על מנת לעזור במקרים בהם אין פנצ&apos;ריות פתוחות, ולא ניתן לבצע תיקון זמני.</p>
+            <p style={{ marginTop: '10px' }}>אנו מבקשים להחזיר את הגלגל בהקדם האפשרי ועד 72 שעות ממועד ההשאלה, על מנת שנוכל להמשיך ולסייע לאנשים נוספים.</p>
+            <p style={{ marginTop: '10px' }}>ארגון ידידים פועל בהתנדבות מלאה, ותרומות עוזרות לארגון ברכישת ציוד - <a href="https://yedidim-il.org/%d7%aa%d7%a8%d7%95%d7%9e%d7%95%d7%aa/" target="_blank" rel="noopener noreferrer" style={styles.link}>ניתן לתרום כאן</a></p>
+            <p style={{ marginTop: '10px' }}>להצטרפות למעצמה - פנו להנהלת הסניף או <a href="https://yedidim-il.org/%D7%94%D7%A6%D7%98%D7%A8%D7%A4%D7%95-%D7%90%D7%9C%D7%99%D7%A0%D7%95/" target="_blank" rel="noopener noreferrer" style={styles.link}>בקישור זה</a></p>
+          </div>
 
-        <div style={styles.formRow}>
+          {/* Personal Details Section */}
+          <div style={styles.sectionTitle}>פרטים אישיים</div>
+
+          <div style={styles.formRow}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>שם פרטי <span style={styles.required}>*</span></label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={e => { setFirstName(e.target.value); setFieldErrors(f => f.filter(x => x !== 'firstName')) }}
+                placeholder="ישראל"
+                style={getInputStyle('firstName')}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>שם משפחה <span style={styles.required}>*</span></label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={e => { setLastName(e.target.value); setFieldErrors(f => f.filter(x => x !== 'lastName')) }}
+                placeholder="ישראלי"
+                style={getInputStyle('lastName')}
+              />
+            </div>
+          </div>
+
           <div style={styles.formGroup}>
-            <label style={styles.label}>שם פרטי <span style={styles.required}>*</span></label>
+            <label style={styles.label}>תעודת זהות <span style={styles.required}>*</span></label>
             <input
               type="text"
-              value={firstName}
-              onChange={e => { setFirstName(e.target.value); setFieldErrors(f => f.filter(x => x !== 'firstName')) }}
-              placeholder="ישראל"
-              style={getInputStyle('firstName')}
+              inputMode="numeric"
+              value={idNumber}
+              onChange={e => { setIdNumber(e.target.value.replace(/[^0-9]/g, '')); setFieldErrors(f => f.filter(x => x !== 'idNumber')) }}
+              placeholder="123456789"
+              maxLength={9}
+              style={getInputStyle('idNumber')}
             />
           </div>
+
           <div style={styles.formGroup}>
-            <label style={styles.label}>שם משפחה <span style={styles.required}>*</span></label>
+            <label style={styles.label}>טלפון <span style={styles.required}>*</span></label>
             <input
-              type="text"
-              value={lastName}
-              onChange={e => { setLastName(e.target.value); setFieldErrors(f => f.filter(x => x !== 'lastName')) }}
-              placeholder="ישראלי"
-              style={getInputStyle('lastName')}
-            />
-          </div>
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>תעודת זהות <span style={styles.required}>*</span></label>
-          <input
-            type="text"
-            value={idNumber}
-            onChange={e => { setIdNumber(e.target.value); setFieldErrors(f => f.filter(x => x !== 'idNumber')) }}
-            placeholder="123456789"
-            maxLength={9}
-            style={getInputStyle('idNumber')}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>טלפון <span style={styles.required}>*</span></label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={e => { setPhone(e.target.value); setFieldErrors(f => f.filter(x => x !== 'phone')) }}
-            placeholder="050-1234567"
-            style={{
-              ...getInputStyle('phone'),
-              ...(isPrefilledMode ? { background: '#e2e8f0', cursor: 'not-allowed' } : {})
-            }}
-            disabled={isPrefilledMode}
-          />
-          {isPrefilledMode && (
-            <span style={{...styles.helpText,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>מספר הטלפון הוגדר מראש על ידי מנהל התחנה</span>
-          )}
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>כתובת מגורים <span style={styles.required}>*</span></label>
-          <input
-            type="text"
-            value={address}
-            onChange={e => { setAddress(e.target.value); setFieldErrors(f => f.filter(x => x !== 'address')) }}
-            placeholder="רחוב הרצל 1, ירושלים"
-            style={getInputStyle('address')}
-          />
-        </div>
-
-        {/* Loan Details Section */}
-        <div style={styles.sectionTitle}>פרטי ההשאלה</div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>תאריך השאלה <span style={styles.required}>*</span></label>
-          <input
-            type="date"
-            value={borrowDate}
-            onChange={e => setBorrowDate(e.target.value)}
-            style={styles.input}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>בחר גלגל <span style={styles.required}>*</span></label>
-          {/* Custom Wheel Dropdown */}
-          <div ref={wheelDropdownRef} style={{ position: 'relative' }}>
-            <div
-              onClick={() => {
-                if (!((isPrefilledMode || !!referredBy) && !!selectedWheelId)) {
-                  setIsWheelDropdownOpen(!isWheelDropdownOpen)
-                }
-              }}
+              type="tel"
+              value={phone}
+              onChange={e => { setPhone(e.target.value); setFieldErrors(f => f.filter(x => x !== 'phone')) }}
+              placeholder="050-1234567"
               style={{
-                ...styles.input,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: (isPrefilledMode || !!referredBy) && !!selectedWheelId ? 'not-allowed' : 'pointer',
-                background: (isPrefilledMode || !!referredBy) && !!selectedWheelId ? '#e2e8f0' : '#fff',
-                ...(fieldErrors.includes('wheelId') ? styles.inputError : {}),
+                ...getInputStyle('phone'),
+                ...(isPrefilledMode ? { background: '#e2e8f0', cursor: 'not-allowed' } : {})
+              }}
+              disabled={isPrefilledMode}
+            />
+            {isPrefilledMode && (
+              <span style={{...styles.helpText,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>מספר הטלפון הוגדר מראש על ידי מנהל התחנה</span>
+            )}
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>כתובת מגורים <span style={styles.required}>*</span></label>
+            <input
+              type="text"
+              value={address}
+              onChange={e => { setAddress(e.target.value); setFieldErrors(f => f.filter(x => x !== 'address')) }}
+              placeholder="רחוב הרצל 1, ירושלים"
+              style={getInputStyle('address')}
+            />
+          </div>
+        </div>
+
+        {/* ===== Step 2: רכב/ערבון ===== */}
+        <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
+          {/* Loan Details Section */}
+          <div style={styles.sectionTitle}>פרטי ההשאלה</div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>תאריך השאלה <span style={styles.required}>*</span></label>
+            <input
+              type="date"
+              value={borrowDate}
+              onChange={e => setBorrowDate(e.target.value)}
+              style={styles.input}
+            />
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>בחר גלגל <span style={styles.required}>*</span></label>
+            {/* Custom Wheel Dropdown */}
+            <div ref={wheelDropdownRef} style={{ position: 'relative' }}>
+              <div
+                onClick={() => {
+                  if (!((isPrefilledMode || !!referredBy) && !!selectedWheelId)) {
+                    setIsWheelDropdownOpen(!isWheelDropdownOpen)
+                  }
+                }}
+                style={{
+                  ...styles.input,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: (isPrefilledMode || !!referredBy) && !!selectedWheelId ? 'not-allowed' : 'pointer',
+                  background: (isPrefilledMode || !!referredBy) && !!selectedWheelId ? '#e2e8f0' : '#fff',
+                  ...(fieldErrors.includes('wheelId') ? styles.inputError : {}),
+                }}
+              >
+                {selectedWheelId ? (() => {
+                  const wheel = wheels.find(w => w.id === selectedWheelId)
+                  if (!wheel) return <span style={{ color: '#9ca3af' }}>-- בחר גלגל --</span>
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{
+                        background: '#3b82f6',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem',
+                      }}>גלגל {wheel.wheel_number}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                        {wheel.rim_size}&quot; | {wheel.bolt_count}×{wheel.bolt_spacing}
+                      </span>
+                      {wheel.is_donut && (
+                        <span style={{
+                          background: '#fef3c7',
+                          color: '#92400e',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.8rem',
+                        }}>דונאט</span>
+                      )}
+                    </div>
+                  )
+                })() : (
+                  <span style={{ color: '#9ca3af' }}>-- בחר גלגל --</span>
+                )}
+                <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>▼</span>
+              </div>
+
+              {/* Dropdown Options */}
+              {isWheelDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  left: 0,
+                  background: '#fff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  marginTop: '4px',
+                  zIndex: 100,
+                  maxHeight: '280px',
+                  overflowY: 'auto',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                }}>
+                  {wheels.map(wheel => (
+                    <div
+                      key={wheel.id}
+                      onClick={() => {
+                        setSelectedWheelId(wheel.id)
+                        setFieldErrors(f => f.filter(x => x !== 'wheelId'))
+                        setIsWheelDropdownOpen(false)
+                      }}
+                      style={{
+                        padding: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        borderBottom: '1px solid #f3f4f6',
+                        background: selectedWheelId === wheel.id ? '#f0f9ff' : 'transparent',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f9fafb')}
+                      onMouseLeave={e => (e.currentTarget.style.background = selectedWheelId === wheel.id ? '#f0f9ff' : 'transparent')}
+                    >
+                      <span style={{
+                        background: '#3b82f6',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem',
+                      }}>גלגל {wheel.wheel_number}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                        {wheel.rim_size}&quot; | {wheel.bolt_count}×{wheel.bolt_spacing}
+                      </span>
+                      {wheel.is_donut && (
+                        <span style={{
+                          background: '#fef3c7',
+                          color: '#92400e',
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.8rem',
+                        }}>דונאט</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {(isPrefilledMode || referredBy) && selectedWheelId && (
+              <span style={{...styles.helpText,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>הגלגל נבחר מראש{referredBy && !isPrefilledMode ? ' על ידי המוקד' : ' על ידי מנהל התחנה'}</span>
+            )}
+            {wheels.length === 0 && (
+              <p style={{ ...styles.helpText, color: '#ef4444' }}>אין גלגלים זמינים כרגע בתחנה זו</p>
+            )}
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>דגם הרכב <span style={styles.required}>*</span></label>
+            <input
+              type="text"
+              value={vehicleModel}
+              onChange={e => { setVehicleModel(e.target.value); setFieldErrors(f => f.filter(x => x !== 'vehicleModel')) }}
+              placeholder="יונדאי i25"
+              style={getInputStyle('vehicleModel')}
+            />
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>מספר רכב <span style={styles.required}>*</span></label>
+            <input
+              type="text"
+              value={licensePlate}
+              onChange={e => setLicensePlate(e.target.value.replace(/[^0-9-]/g, ''))}
+              placeholder="12-345-67"
+              style={getInputStyle('licensePlate')}
+              maxLength={10}
+              inputMode="numeric"
+            />
+          </div>
+
+          {/* Deposit Section */}
+          <div style={styles.sectionTitle}>פיקדון</div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>אופן תשלום הפיקדון <span style={styles.required}>*</span></label>
+            <div style={{
+              ...styles.radioGroup,
+              ...(fieldErrors.includes('depositType') ? styles.radioGroupError : {})
+            }}>
+              {/* Cash */}
+              {(station.payment_methods?.cash !== false) && (
+                <label style={styles.radioOption}>
+                  <input
+                    type="radio"
+                    name="deposit"
+                    value="cash"
+                    checked={depositType === 'cash'}
+                    onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                  />
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>₪{effectiveDeposit} מזומן</span>
+                </label>
+              )}
+
+              {/* Bit */}
+              {station.payment_methods?.bit?.enabled && station.payment_methods.bit.phone && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={styles.radioOption}>
+                    <input
+                      type="radio"
+                      name="deposit"
+                      value="bit"
+                      checked={depositType === 'bit'}
+                      onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                    />
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>₪{effectiveDeposit} בביט ל-{station.payment_methods.bit.phone}</span>
+                  </label>
+                  {depositType === 'bit' && (
+                    <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={styles.paymentInfo}>
+                        <strong>מספר לתשלום:</strong> {station.payment_methods.bit.phone}<br/>
+                        <strong>סכום:</strong> ₪{effectiveDeposit}
+                      </div>
+                      <a
+                        href={`bit://pay?phone=${station.payment_methods.bit.phone.replace(/\D/g, '')}`}
+                        style={styles.paymentLink}
+                      >
+                        פתח אפליקציית ביט ←
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const phoneNumber = station.payment_methods?.bit?.phone?.replace(/\D/g, '') || ''
+                          navigator.clipboard.writeText(phoneNumber)
+                          toast.success('מספר הטלפון הועתק!')
+                        }}
+                        style={styles.copyBtn}
+                      >
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>העתק מספר טלפון</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Paybox */}
+              {station.payment_methods?.paybox?.enabled && station.payment_methods.paybox.phone && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={styles.radioOption}>
+                    <input
+                      type="radio"
+                      name="deposit"
+                      value="paybox"
+                      checked={depositType === 'paybox'}
+                      onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                    />
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>₪{effectiveDeposit} בפייבוקס ל-{station.payment_methods.paybox.phone}</span>
+                  </label>
+                  {depositType === 'paybox' && (
+                    <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={styles.paymentInfo}>
+                        <strong>מספר לתשלום:</strong> {station.payment_methods.paybox.phone}<br/>
+                        <strong>סכום:</strong> ₪{effectiveDeposit}<br/>
+                        <span style={{ color: '#f59e0b', fontSize: '14px', marginTop: '4px', display: 'block' }}>
+                          <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>אפליקציית PayBox לא תומכת בפתיחה אוטומטית מטעמי אבטחה. יש לפתוח את האפליקציה באופן ידני.</span>
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const phoneNumber = station.payment_methods?.paybox?.phone?.replace(/\D/g, '') || ''
+                          navigator.clipboard.writeText(phoneNumber)
+                          toast.success('מספר הטלפון הועתק!')
+                        }}
+                        style={styles.copyBtn}
+                      >
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>העתק מספר טלפון</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Bank Transfer */}
+              {station.payment_methods?.bank_transfer?.enabled && station.payment_methods.bank_transfer.details && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={styles.radioOption}>
+                    <input
+                      type="radio"
+                      name="deposit"
+                      value="bank_transfer"
+                      checked={depositType === 'bank_transfer'}
+                      onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                    />
+                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>₪{effectiveDeposit} העברה בנקאית</span>
+                  </label>
+                  {depositType === 'bank_transfer' && (
+                    <div style={styles.bankDetails}>
+                      <strong>פרטי חשבון:</strong><br />
+                      {station.payment_methods.bank_transfer.details}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ID / License document deposit — shown only if a manager enabled at
+                  least one in station settings (default is off). Merged into one row
+                  with two sub-choices when both are enabled, kept as a single normal
+                  row when only one is. depositType still resolves to 'id' or 'license'
+                  distinctly either way, so the station manager still knows exactly
+                  which physical document was left. */}
+              {(() => {
+                const idEnabled = station.payment_methods?.id_deposit === true
+                const licenseEnabled = station.payment_methods?.license_deposit === true
+                if (idEnabled && licenseEnabled) {
+                  return (
+                    <div style={styles.depositDocGroup}>
+                      <div style={{display:'inline-flex',alignItems:'center',gap:'4px',marginBottom:'8px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>מסמך מזהה כפיקדון (באישור מנהל)</div>
+                      <div style={{display: 'flex', gap: '10px'}}>
+                        <label style={styles.depositDocChoice}>
+                          <input
+                            type="radio"
+                            name="deposit"
+                            value="id"
+                            checked={depositType === 'id'}
+                            onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                          />
+                          ת.ז.
+                        </label>
+                        <label style={styles.depositDocChoice}>
+                          <input
+                            type="radio"
+                            name="deposit"
+                            value="license"
+                            checked={depositType === 'license'}
+                            onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                          />
+                          רישיון נהיגה
+                        </label>
+                      </div>
+                    </div>
+                  )
+                }
+                if (idEnabled) {
+                  return (
+                    <label style={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="deposit"
+                        value="id"
+                        checked={depositType === 'id'}
+                        onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                      />
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>פיקדון תעודת זהות (באישור מנהל)</span>
+                    </label>
+                  )
+                }
+                if (licenseEnabled) {
+                  return (
+                    <label style={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="deposit"
+                        value="license"
+                        checked={depositType === 'license'}
+                        onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
+                      />
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>פיקדון רישיון נהיגה (באישור מנהל)</span>
+                    </label>
+                  )
+                }
+                return null
+              })()}
+            </div>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>הערות נוספות (אופציונלי)</label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="פרטים נוספים..."
+              rows={2}
+              style={styles.textarea}
+            />
+          </div>
+        </div>
+
+        {/* ===== Step 3: תקנון + חתימה ===== */}
+        <div style={{ display: currentStep === 3 ? 'block' : 'none' }}>
+          {/* Terms Section */}
+          <div style={styles.sectionTitle}>תנאי השאלה והתחייבות</div>
+
+          <div
+            ref={termsRef}
+            style={{
+              ...styles.terms,
+              ...(fieldErrors.includes('terms') ? styles.termsError : {})
+            }}
+            onScroll={handleTermsScroll}
+          >
+            <p><strong>תקנון השאלת גלגל:</strong></p>
+            <ul style={styles.termsList}>
+              {termsItems.map((item, i) => <li key={i}>{item}</li>)}
+            </ul>
+            {!canAgreeTerms && (
+              <p style={{...styles.scrollHint,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>גלול למטה כדי להמשיך</p>
+            )}
+          </div>
+
+          <label style={{
+            ...styles.checkboxRow,
+            ...(fieldErrors.includes('terms') ? styles.checkboxRowError : {}),
+            ...(!canAgreeTerms ? styles.checkboxDisabled : {})
+          }}>
+            <input
+              type="checkbox"
+              checked={agreedTerms}
+              disabled={!canAgreeTerms}
+              onChange={e => { setAgreedTerms(e.target.checked); setFieldErrors(f => f.filter(x => x !== 'terms')) }}
+            />
+            <span>קראתי את התנאים ואני מסכים/ה להם <span style={styles.required}>*</span></span>
+          </label>
+
+          {/* Signature */}
+          <div style={styles.formGroup}>
+            <label style={styles.label}>חתימה <span style={styles.required}>*</span></label>
+            <div style={{
+              ...styles.signatureContainer,
+              ...(hasSigned ? styles.signatureSigned : {}),
+              ...(fieldErrors.includes('signature') ? styles.signatureError : {})
+            }}>
+              {!hasSigned && (
+                <span style={styles.signaturePlaceholder}>חתמו כאן עם האצבע</span>
+              )}
+              <canvas
+                ref={canvasRef}
+                style={styles.canvas}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startDrawing(e) }}
+                onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); draw(e) }}
+                onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); stopDrawing() }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={clearSignature}
+              style={styles.clearBtn}
+            >
+              <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>נקה חתימה</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Wizard navigation footer */}
+        <div style={styles.wizardFooter}>
+          {currentStep === 3 ? (
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              style={{
+                ...styles.submitBtn,
+                ...(submitting ? styles.submitBtnDisabled : {})
               }}
             >
-              {selectedWheelId ? (() => {
-                const wheel = wheels.find(w => w.id === selectedWheelId)
-                if (!wheel) return <span style={{ color: '#9ca3af' }}>-- בחר גלגל --</span>
-                return (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    <span style={{
-                      background: '#3b82f6',
-                      color: 'white',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      fontWeight: 'bold',
-                      fontSize: '0.85rem',
-                    }}>גלגל {wheel.wheel_number}</span>
-                    <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                      {wheel.rim_size}" | {wheel.bolt_count}×{wheel.bolt_spacing}
-                    </span>
-                    {wheel.is_donut && (
-                      <span style={{
-                        background: '#fef3c7',
-                        color: '#92400e',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        fontSize: '0.8rem',
-                      }}>דונאט</span>
-                    )}
-                  </div>
-                )
-              })() : (
-                <span style={{ color: '#9ca3af' }}>-- בחר גלגל --</span>
-              )}
-              <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>▼</span>
-            </div>
-
-            {/* Dropdown Options */}
-            {isWheelDropdownOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                left: 0,
-                background: '#fff',
-                border: '1px solid #d1d5db',
-                borderRadius: '8px',
-                marginTop: '4px',
-                zIndex: 100,
-                maxHeight: '280px',
-                overflowY: 'auto',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              }}>
-                {wheels.map(wheel => (
-                  <div
-                    key={wheel.id}
-                    onClick={() => {
-                      setSelectedWheelId(wheel.id)
-                      setFieldErrors(f => f.filter(x => x !== 'wheelId'))
-                      setIsWheelDropdownOpen(false)
-                    }}
-                    style={{
-                      padding: '12px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      borderBottom: '1px solid #f3f4f6',
-                      background: selectedWheelId === wheel.id ? '#f0f9ff' : 'transparent',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f9fafb')}
-                    onMouseLeave={e => (e.currentTarget.style.background = selectedWheelId === wheel.id ? '#f0f9ff' : 'transparent')}
-                  >
-                    <span style={{
-                      background: '#3b82f6',
-                      color: 'white',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      fontWeight: 'bold',
-                      fontSize: '0.85rem',
-                    }}>גלגל {wheel.wheel_number}</span>
-                    <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                      {wheel.rim_size}" | {wheel.bolt_count}×{wheel.bolt_spacing}
-                    </span>
-                    {wheel.is_donut && (
-                      <span style={{
-                        background: '#fef3c7',
-                        color: '#92400e',
-                        padding: '2px 8px',
-                        borderRadius: '12px',
-                        fontSize: '0.8rem',
-                      }}>דונאט</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {(isPrefilledMode || referredBy) && selectedWheelId && (
-            <span style={{...styles.helpText,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>הגלגל נבחר מראש{referredBy && !isPrefilledMode ? ' על ידי המוקד' : ' על ידי מנהל התחנה'}</span>
+              {submitting ? 'שולח...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>שליחת הטופס</span>}
+            </button>
+          ) : (
+            <button onClick={handleNext} style={styles.nextBtn}>
+              הבא
+            </button>
           )}
-          {wheels.length === 0 && (
-            <p style={{ ...styles.helpText, color: '#ef4444' }}>אין גלגלים זמינים כרגע בתחנה זו</p>
+          {currentStep > 1 && (
+            <button onClick={handleBack} style={styles.stepBackBtn}>
+              חזרה
+            </button>
           )}
         </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>דגם הרכב <span style={styles.required}>*</span></label>
-          <input
-            type="text"
-            value={vehicleModel}
-            onChange={e => { setVehicleModel(e.target.value); setFieldErrors(f => f.filter(x => x !== 'vehicleModel')) }}
-            placeholder="יונדאי i25"
-            style={getInputStyle('vehicleModel')}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>מספר רכב <span style={styles.required}>*</span></label>
-          <input
-            type="text"
-            value={licensePlate}
-            onChange={e => setLicensePlate(e.target.value.replace(/[^0-9-]/g, ''))}
-            placeholder="12-345-67"
-            style={getInputStyle('licensePlate')}
-            maxLength={10}
-            inputMode="numeric"
-          />
-        </div>
-
-        {/* Deposit Section */}
-        <div style={styles.sectionTitle}>פיקדון</div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>אופן תשלום הפיקדון <span style={styles.required}>*</span></label>
-          <div style={{
-            ...styles.radioGroup,
-            ...(fieldErrors.includes('depositType') ? styles.radioGroupError : {})
-          }}>
-            {/* Cash */}
-            {(station.payment_methods?.cash !== false) && (
-              <label style={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="deposit"
-                  value="cash"
-                  checked={depositType === 'cash'}
-                  onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
-                />
-                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>₪{effectiveDeposit} מזומן</span>
-              </label>
-            )}
-
-            {/* Bit */}
-            {station.payment_methods?.bit?.enabled && station.payment_methods.bit.phone && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.radioOption}>
-                  <input
-                    type="radio"
-                    name="deposit"
-                    value="bit"
-                    checked={depositType === 'bit'}
-                    onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
-                  />
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>₪{effectiveDeposit} בביט ל-{station.payment_methods.bit.phone}</span>
-                </label>
-                {depositType === 'bit' && (
-                  <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={styles.paymentInfo}>
-                      <strong>מספר לתשלום:</strong> {station.payment_methods.bit.phone}<br/>
-                      <strong>סכום:</strong> ₪{effectiveDeposit}
-                    </div>
-                    <a
-                      href={`bit://pay?phone=${station.payment_methods.bit.phone.replace(/\D/g, '')}`}
-                      style={styles.paymentLink}
-                    >
-                      פתח אפליקציית ביט ←
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const phoneNumber = station.payment_methods?.bit?.phone?.replace(/\D/g, '') || ''
-                        navigator.clipboard.writeText(phoneNumber)
-                        toast.success('מספר הטלפון הועתק!')
-                      }}
-                      style={styles.copyBtn}
-                    >
-                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>העתק מספר טלפון</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Paybox */}
-            {station.payment_methods?.paybox?.enabled && station.payment_methods.paybox.phone && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.radioOption}>
-                  <input
-                    type="radio"
-                    name="deposit"
-                    value="paybox"
-                    checked={depositType === 'paybox'}
-                    onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
-                  />
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>₪{effectiveDeposit} בפייבוקס ל-{station.payment_methods.paybox.phone}</span>
-                </label>
-                {depositType === 'paybox' && (
-                  <div style={{ marginRight: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={styles.paymentInfo}>
-                      <strong>מספר לתשלום:</strong> {station.payment_methods.paybox.phone}<br/>
-                      <strong>סכום:</strong> ₪{effectiveDeposit}<br/>
-                      <span style={{ color: '#f59e0b', fontSize: '14px', marginTop: '4px', display: 'block' }}>
-                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>אפליקציית PayBox לא תומכת בפתיחה אוטומטית מטעמי אבטחה. יש לפתוח את האפליקציה באופן ידני.</span>
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const phoneNumber = station.payment_methods?.paybox?.phone?.replace(/\D/g, '') || ''
-                        navigator.clipboard.writeText(phoneNumber)
-                        toast.success('מספר הטלפון הועתק!')
-                      }}
-                      style={styles.copyBtn}
-                    >
-                      <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>העתק מספר טלפון</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Bank Transfer */}
-            {station.payment_methods?.bank_transfer?.enabled && station.payment_methods.bank_transfer.details && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.radioOption}>
-                  <input
-                    type="radio"
-                    name="deposit"
-                    value="bank_transfer"
-                    checked={depositType === 'bank_transfer'}
-                    onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
-                  />
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>₪{effectiveDeposit} העברה בנקאית</span>
-                </label>
-                {depositType === 'bank_transfer' && (
-                  <div style={styles.bankDetails}>
-                    <strong>פרטי חשבון:</strong><br />
-                    {station.payment_methods.bank_transfer.details}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ID Deposit */}
-            {(station.payment_methods?.id_deposit !== false) && (
-              <label style={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="deposit"
-                  value="id"
-                  checked={depositType === 'id'}
-                  onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
-                />
-                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>פיקדון תעודת זהות (באישור מנהל)</span>
-              </label>
-            )}
-
-            {/* License Deposit */}
-            {(station.payment_methods?.license_deposit !== false) && (
-              <label style={styles.radioOption}>
-                <input
-                  type="radio"
-                  name="deposit"
-                  value="license"
-                  checked={depositType === 'license'}
-                  onChange={e => { setDepositType(e.target.value); setFieldErrors(f => f.filter(x => x !== 'depositType')) }}
-                />
-                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>פיקדון רישיון נהיגה (באישור מנהל)</span>
-              </label>
-            )}
-          </div>
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>הערות נוספות (אופציונלי)</label>
-          <textarea
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder="פרטים נוספים..."
-            rows={2}
-            style={styles.textarea}
-          />
-        </div>
-
-        {/* Terms Section */}
-        <div style={styles.sectionTitle}>תנאי השאלה והתחייבות</div>
-
-        <div
-          ref={termsRef}
-          style={{
-            ...styles.terms,
-            ...(fieldErrors.includes('terms') ? styles.termsError : {})
-          }}
-          onScroll={handleTermsScroll}
-        >
-          <p><strong>תקנון השאלת גלגל:</strong></p>
-          <ul style={styles.termsList}>
-            <li>הפונה מתחייב להחזיר את הגלגל בתוך <strong>72 שעות</strong>, ולהשאיר כפקדון {effectiveDeposit} ש"ח באמצעי התשלום הזמין.</li>
-            <li>הפונה יקבל חזרה את הפקדון בעת החזרת הגלגל. במידה והגלגל לא יוחזר בתוך 72 שעות, סכום הכסף יועבר כתרומה לידידים.</li>
-            <li><strong>הפונה מבין שזהו תיקון חירום בלבד!</strong> והגלגל עשוי להיות במידה מעט שונה/לפגוע ביציבות הרכב ולכן מתחייב לא לנהוג במהירות מעל 80 קמ"ש וכן שלא תהיה לו שום תלונה על הסיוע שקיבל.</li>
-            <li>במקרים חריגים ניתן להאריך את זמן ההשאלה עד 5 ימים, באישור מנהל התחנה או סג"מ התחנה.</li>
-            <li>במקרים חריגים (באישור מנהל/סג"מ התחנה) ניתן להפקיד כערבון תעודה מזהה במקום פקדון כספי.</li>
-          </ul>
-          {!canAgreeTerms && (
-            <p style={{...styles.scrollHint,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>גלול למטה כדי להמשיך</p>
-          )}
-        </div>
-
-        <label style={{
-          ...styles.checkboxRow,
-          ...(fieldErrors.includes('terms') ? styles.checkboxRowError : {}),
-          ...(!canAgreeTerms ? styles.checkboxDisabled : {})
-        }}>
-          <input
-            type="checkbox"
-            checked={agreedTerms}
-            disabled={!canAgreeTerms}
-            onChange={e => { setAgreedTerms(e.target.checked); setFieldErrors(f => f.filter(x => x !== 'terms')) }}
-          />
-          <span>קראתי את התנאים ואני מסכים/ה להם <span style={styles.required}>*</span></span>
-        </label>
-
-        {/* Signature */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>חתימה <span style={styles.required}>*</span></label>
-          <div style={{
-            ...styles.signatureContainer,
-            ...(hasSigned ? styles.signatureSigned : {}),
-            ...(fieldErrors.includes('signature') ? styles.signatureError : {})
-          }}>
-            {!hasSigned && (
-              <span style={styles.signaturePlaceholder}>חתמו כאן עם האצבע</span>
-            )}
-            <canvas
-              ref={canvasRef}
-              style={styles.canvas}
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-              onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); startDrawing(e) }}
-              onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); draw(e) }}
-              onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); stopDrawing() }}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={clearSignature}
-            style={styles.clearBtn}
-          >
-            <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>נקה חתימה</span>
-          </button>
-        </div>
-
-        {/* Submit */}
-        <button
-          onClick={handleSubmit}
-          disabled={submitting}
-          style={{
-            ...styles.submitBtn,
-            ...(submitting ? styles.submitBtnDisabled : {})
-          }}
-        >
-          {submitting ? 'שולח...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>שליחת הטופס</span>}
-        </button>
 
         {/* Guide link */}
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
@@ -924,6 +1099,65 @@ function SignFormContent({ stationId }: { stationId: string }) {
           >
             <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>צריכים עזרה? לחצו כאן למדריך למשתמש</span>
           </a>
+        </div>
+      </div>
+
+      {/* Hidden full-form summary — captured as the legal/audit record image at submit
+          time, independent of which wizard step is on screen. Positioned off-screen
+          (not display:none, which html2canvas would skip entirely) at a fixed width so
+          the saved image is always complete and consistently sized. */}
+      <div ref={captureRef} style={styles.captureSummary}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+          <img
+            src="/yedidim-logo.png"
+            alt="ידידים סיוע בדרכים"
+            style={{ height: '50px', width: 'auto' }}
+          />
+        </div>
+        <h2 style={{ textAlign: 'center', color: '#1f2937', fontSize: '1.3rem', marginBottom: '4px' }}>השאלת גלגל - {station.name}</h2>
+        <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.85rem', marginBottom: '16px' }}>טופס התחייבות חתום</p>
+
+        <div style={styles.captureSection}>
+          <div style={styles.captureSectionTitle}>פרטים אישיים</div>
+          <div>שם: {firstName} {lastName}</div>
+          <div>תעודת זהות: {idNumber}</div>
+          <div>טלפון: {phone}</div>
+          <div>כתובת: {address}</div>
+        </div>
+
+        <div style={styles.captureSection}>
+          <div style={styles.captureSectionTitle}>פרטי ההשאלה</div>
+          <div>תאריך השאלה: {borrowDate}</div>
+          <div>גלגל: {selectedWheel ? `#${selectedWheel.wheel_number} — ${selectedWheel.rim_size}" | ${selectedWheel.bolt_count}×${selectedWheel.bolt_spacing}${selectedWheel.is_donut ? ' (דונאט)' : ''}` : '-'}</div>
+          <div>דגם רכב: {vehicleModel}</div>
+          <div>מספר רכב: {licensePlate || '-'}</div>
+        </div>
+
+        <div style={styles.captureSection}>
+          <div style={styles.captureSectionTitle}>פיקדון</div>
+          <div>{getDepositLabel()}</div>
+        </div>
+
+        {notes && (
+          <div style={styles.captureSection}>
+            <div style={styles.captureSectionTitle}>הערות</div>
+            <div>{notes}</div>
+          </div>
+        )}
+
+        <div style={styles.captureSection}>
+          <div style={styles.captureSectionTitle}>תקנון השאלת גלגל</div>
+          <ul style={styles.termsList}>
+            {termsItems.map((item, i) => <li key={i}>{item}</li>)}
+          </ul>
+          <div style={{ marginTop: '10px', fontWeight: 600 }}>✓ קראתי את התנאים ואני מסכים/ה להם</div>
+        </div>
+
+        <div style={styles.captureSection}>
+          <div style={styles.captureSectionTitle}>חתימה</div>
+          {signatureDataUrl && (
+            <img src={signatureDataUrl} alt="חתימה" style={{ maxWidth: '300px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
+          )}
         </div>
       </div>
     </div>
@@ -1013,6 +1247,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#6b7280',
     fontSize: '0.9rem',
     marginBottom: '20px',
+  },
+  stepIndicatorWrap: {
+    marginBottom: '20px',
+  },
+  stepProgressBar: {
+    display: 'flex',
+    gap: '4px',
+    marginBottom: '8px',
+  },
+  stepProgressSegment: {
+    flex: 1,
+    height: '6px',
+    borderRadius: '3px',
+    transition: 'background 0.2s',
+  },
+  stepIndicatorText: {
+    textAlign: 'center',
+    fontSize: '0.85rem',
+    fontWeight: 600,
+    color: '#374151',
   },
   infoBox: {
     background: '#eff6ff',
@@ -1104,6 +1358,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#1f2937',
     border: '1px solid #e5e7eb',
   },
+  depositDocGroup: {
+    padding: '12px 15px',
+    background: '#f9fafb',
+    borderRadius: '8px',
+    color: '#1f2937',
+    border: '1px solid #e5e7eb',
+  },
+  depositDocChoice: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '8px 12px',
+    background: '#fff',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    color: '#1f2937',
+    border: '1px solid #e5e7eb',
+    fontSize: '0.9rem',
+  },
   terms: {
     background: '#f9fafb',
     borderRadius: '8px',
@@ -1188,6 +1461,34 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '0.9rem',
   },
+  wizardFooter: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    marginTop: '10px',
+  },
+  nextBtn: {
+    width: '100%',
+    padding: '16px',
+    background: '#3b82f6',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+  },
+  stepBackBtn: {
+    width: '100%',
+    padding: '12px',
+    background: '#f3f4f6',
+    color: '#374151',
+    border: '1px solid #d1d5db',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '0.95rem',
+    fontWeight: 500,
+  },
   submitBtn: {
     width: '100%',
     padding: '16px',
@@ -1198,11 +1499,35 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '1.1rem',
     fontWeight: 'bold',
-    marginTop: '10px',
   },
   submitBtnDisabled: {
     opacity: 0.6,
     cursor: 'not-allowed',
+  },
+  // Hidden capture summary (legal/audit record image source)
+  captureSummary: {
+    position: 'absolute',
+    top: 0,
+    left: '-10000px',
+    width: '640px',
+    background: '#fff',
+    padding: '24px',
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    direction: 'rtl' as const,
+    color: '#1f2937',
+    fontSize: '0.95rem',
+    lineHeight: 1.6,
+  },
+  captureSection: {
+    marginBottom: '16px',
+    paddingBottom: '12px',
+    borderBottom: '1px solid #e5e7eb',
+  },
+  captureSectionTitle: {
+    fontWeight: 700,
+    fontSize: '1rem',
+    marginBottom: '6px',
+    color: '#111827',
   },
   // Success screen
   successScreen: {
@@ -1323,6 +1648,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
   },
   submittingSpinner: {
+    display: 'flex',
+    justifyContent: 'center',
     marginBottom: '20px',
   },
   submittingText: {
@@ -1340,6 +1667,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     pointerEvents: 'none' as const,
   },
   successIconAnimated: {
+    display: 'flex',
+    justifyContent: 'center',
     marginBottom: '20px',
   },
 }
