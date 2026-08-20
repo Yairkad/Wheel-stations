@@ -55,6 +55,12 @@ export interface FilterOptions {
   center_bores?: number[]
 }
 
+export interface RoleResult {
+  role: 'station_manager' | 'operator' | 'district_manager' | 'editor' | 'admin'
+  label: 'מנהל תחנה' | 'מוקדן' | 'מנהל מוקד' | 'מנהל מחוז' | 'עורך' | 'ניהול מערכת'
+  data: Record<string, unknown>
+}
+
 export interface VehicleModelRecord {
   id: string
   make: string

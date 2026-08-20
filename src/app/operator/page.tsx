@@ -6,12 +6,8 @@ import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import { VehicleModelRecord } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
-
-interface RoleResult {
-  role: string
-  label: string
-  data: Record<string, unknown>
-}
+import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import { useClickOutside } from '@/hooks/useClickOutside'
 
 interface Operator {
   id: string
@@ -70,8 +66,7 @@ export default function OperatorPage() {
   // Header menus
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
-  const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
-  const [activeRole, setActiveRole] = useState<string | null>(null)
+  const { authRoles, activeRole, currentRoleLabel, switchToRole } = useRoleSwitch()
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
   const [phone, setPhone] = useState('')
@@ -338,89 +333,14 @@ export default function OperatorPage() {
     }
   }
 
-  // Load auth_roles for role switching
-  useEffect(() => {
-    try {
-      const storedRoles = localStorage.getItem('auth_roles')
-      const storedActiveRole = localStorage.getItem('active_role')
-      if (storedRoles) {
-        setAuthRoles(JSON.parse(storedRoles))
-        setActiveRole(storedActiveRole || 'operator')
-      }
-    } catch { /* ignore */ }
-  }, [])
-
   // Close menus on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (showProfileMenu && profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) setShowProfileMenu(false)
-      if (showRoleMenu && roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) setShowRoleMenu(false)
-    }
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [showProfileMenu, showRoleMenu])
+  useClickOutside(profileMenuRef, () => setShowProfileMenu(false), showProfileMenu)
+  useClickOutside(roleMenuRef, () => setShowRoleMenu(false), showRoleMenu)
 
   const getInitials = (name: string) => {
     const parts = name.trim().split(' ').filter(p => p.length > 0)
     return parts.length >= 2 ? parts[0][0] + parts[1][0] : name.substring(0, 2)
   }
-
-  const navigateToRole = (r: RoleResult) => {
-    localStorage.setItem('active_role', r.role)
-    if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
-    else localStorage.removeItem('active_sub_role')
-    setActiveRole(r.role)
-    setShowRoleMenu(false)
-    const d = r.data
-    const pwd = localStorage.getItem('auth_password') || ''
-    switch (r.role) {
-      case 'station_manager': {
-        localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
-          manager: { id: d.id, full_name: d.full_name, phone: d.phone, role: d.role || 'מנהל תחנה', is_primary: d.is_primary || false },
-          stationId: d.station_id, stationName: d.station_name,
-          password: pwd, timestamp: Date.now(), version: SESSION_VERSION,
-        }))
-        window.location.href = `/${d.station_id as string}`
-        break
-      }
-      case 'operator': {
-        localStorage.setItem('operator_session', JSON.stringify({
-          user: { id: d.id, full_name: d.full_name, phone: d.phone, title: d.title, is_primary: d.is_primary },
-          role: (d as {sub_role?: string}).sub_role === 'manager' ? 'manager' : 'operator',
-          callCenterId: d.call_center_id, callCenterName: d.call_center_name,
-          password: pwd, timestamp: Date.now(), version: SESSION_VERSION,
-        }))
-        window.location.href = (d as {sub_role?: string}).sub_role === 'manager' ? '/call-center' : '/operator'
-        break
-      }
-      case 'district_manager': {
-        localStorage.setItem('super_manager_session', JSON.stringify({
-          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
-          password: pwd, timestamp: Date.now(), version: SESSION_VERSION,
-        }))
-        window.location.href = '/super-manager'
-        break
-      }
-      case 'editor': {
-        localStorage.setItem('puncture_manager_auth', JSON.stringify({ expiry: Date.now() + 30 * 24 * 60 * 60 * 1000, phone: d.phone, password: pwd }))
-        window.location.href = '/admin/punctures'
-        break
-      }
-      case 'admin': {
-        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
-        localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd }))
-        window.location.href = '/admin'
-        break
-      }
-    }
-  }
-
-  const activeSubRole = typeof window !== 'undefined' ? localStorage.getItem('active_sub_role') : null
-  const currentRoleLabel = (authRoles.find(r => {
-    if (r.role !== activeRole) return false
-    if (activeSubRole && r.data?.sub_role) return r.data.sub_role === activeSubRole
-    return !activeSubRole
-  }) ?? authRoles.find(r => r.role === activeRole) ?? authRoles[0])?.label
 
   const handleLogout = () => {
     localStorage.removeItem('operator_session')
@@ -966,7 +886,7 @@ ${contact?.phone || ''}
                   {showRoleMenu && (
                     <div style={styles.roleDropdown} role="menu">
                       {authRoles.map((r) => (
-                        <button key={r.role} role="menuitem" style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {})}} onClick={() => navigateToRole(r)}>
+                        <button key={r.role} role="menuitem" style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {})}} onClick={() => { switchToRole(r); setShowRoleMenu(false) }}>
                           {r.label}
                         </button>
                       ))}

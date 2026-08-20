@@ -4,15 +4,11 @@ import { checkRateLimit, getClientIp, checkAccountLockout, recordFailedAttempt, 
 import { verifyPassword } from '@/lib/password'
 import { createSessionToken, ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE } from '@/lib/admin-session'
 import { logLogin } from '@/lib/login-log'
+import type { RoleResult } from '@/lib/types'
+export type { RoleResult }
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-export interface RoleResult {
-  role: 'station_manager' | 'operator' | 'district_manager' | 'editor' | 'admin'
-  label: 'מנהל תחנה' | 'מוקדן' | 'מנהל מוקד' | 'מנהל מחוז' | 'עורך' | 'ניהול מערכת'
-  data: Record<string, unknown>
-}
 
 type UnifiedRole = 'super_manager' | 'station_manager' | 'call_center_manager' | 'operator' | 'puncture_manager' | 'admin'
 interface UnifiedRoleRow {

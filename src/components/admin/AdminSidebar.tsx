@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
-import { SESSION_VERSION } from '@/lib/version'
-import type { RoleResult } from '@/app/api/auth/login/route'
+import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import type { RoleResult } from '@/lib/types'
 
 const icons = {
   stations: (
@@ -77,73 +77,15 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pathname       = usePathname()
-  const router         = useRouter()
   const pendingReports = useAdminPendingReports()
   const [mobileOpen,   setMobileOpen]   = useState(false)
-  const [otherRoles,   setOtherRoles]   = useState<RoleResult[]>([])
   const [showRolePick, setShowRolePick] = useState(false)
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('auth_roles')
-      if (stored) {
-        const all: RoleResult[] = JSON.parse(stored)
-        setOtherRoles(all.filter(r => r.role !== 'admin'))
-      }
-    } catch { /* ignore */ }
-  }, [])
+  const { authRoles, switchToRole } = useRoleSwitch()
+  const otherRoles = authRoles.filter(r => r.role !== 'admin')
 
   function navigateToRole(r: RoleResult) {
-    localStorage.setItem('active_role', r.role)
+    switchToRole(r)
     setShowRolePick(false)
-    const d = r.data
-    const pwd = localStorage.getItem('auth_password') || ''
-    switch (r.role) {
-      case 'station_manager': {
-        localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
-          manager: { id: d.id, full_name: d.full_name, phone: d.phone, role: d.role || 'מנהל תחנה', is_primary: d.is_primary || false },
-          stationId: d.station_id,
-          stationName: d.station_name,
-          password: pwd,
-          timestamp: Date.now(),
-          version: SESSION_VERSION,
-        }))
-        router.push(`/${d.station_id as string}`)
-        break
-      }
-      case 'operator': {
-        localStorage.setItem('operator_session', JSON.stringify({
-          user: { id: d.id, full_name: d.full_name, phone: d.phone, title: d.title, is_primary: d.is_primary },
-          role: d.sub_role === 'manager' ? 'manager' : 'operator',
-          callCenterId: d.call_center_id,
-          callCenterName: d.call_center_name,
-          password: pwd,
-          timestamp: Date.now(),
-          version: SESSION_VERSION,
-        }))
-        router.push(d.sub_role === 'manager' ? '/call-center' : '/operator')
-        break
-      }
-      case 'district_manager': {
-        localStorage.setItem('super_manager_session', JSON.stringify({
-          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
-          password: pwd,
-          timestamp: Date.now(),
-          version: SESSION_VERSION,
-        }))
-        router.push('/super-manager')
-        break
-      }
-      case 'editor': {
-        localStorage.setItem('puncture_manager_auth', JSON.stringify({
-          expiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
-          phone: d.phone,
-          password: pwd,
-        }))
-        router.push('/admin/punctures')
-        break
-      }
-    }
   }
 
   const isActive = (href: string) =>

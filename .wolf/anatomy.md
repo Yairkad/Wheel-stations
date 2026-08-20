@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-20T07:21:32.606Z
-> Files: 77 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-20T14:33:52.389Z
+> Files: 83 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/
 
@@ -32,7 +32,7 @@
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
-- `splendid-dreaming-ullman.md` — סעיף פיקדון: איחוד ת.ז./רישיון, ברירת מחדל כבויה, ואימות ת.ז. (~1253 tok)
+- `splendid-dreaming-ullman.md` — Hook משותף להחלפת תפקיד — `useRoleSwitch` (~1546 tok)
 - `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
 - `ui-ux-parsed-hartmanis.md` — תוכנית ביקורת UI/UX מקיפה לפי סוג משתמש (8 personas), ללא צילומי מסך (~1900 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
@@ -40,7 +40,8 @@
 
 ## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
 
-- `MEMORY.md` (~80 tok)
+- `feedback_hebrew_only.md` (~347 tok)
+- `MEMORY.md` (~112 tok)
 - `project_forgot_password_whatsapp_idea.md` (~492 tok)
 - `webauthn_biometric_login_paused.md` (~947 tok)
 
@@ -58,6 +59,7 @@
 - `test-deposit.tmp.js` — Declares STATION_ID (~963 tok)
 - `test-diag.tmp.js` — Declares STATION_ID (~298 tok)
 - `test-icons.tmp.js` — Declares STATION_ID (~1239 tok)
+- `test-role-switch.tmp.js` — Declares PHONE (~1826 tok)
 - `test-submit.tmp.js` — Declares fs (~1348 tok)
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
@@ -65,7 +67,7 @@
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~2289 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~2708 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -201,7 +203,7 @@
 
 ## src/app/api/auth/login/
 
-- `route.ts` — Next.js API route: POST (~2060 tok)
+- `route.ts` — Next.js API route: POST (~2015 tok)
 
 ## src/app/api/auth/webauthn/authenticate/begin/
 
@@ -406,7 +408,7 @@
 
 ## src/app/call-center/
 
-- `page.tsx` — CallCenterPage (~17384 tok)
+- `page.tsx` — CallCenterPage (~16408 tok)
 
 ## src/app/feedback/
 
@@ -421,6 +423,7 @@
 
 ## src/app/login/
 
+- `page.tsx` — LoginPage (~7444 tok)
 
 ## src/app/lookup/
 
@@ -431,7 +434,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~24853 tok)
+- `page.tsx` — OperatorPage (~23848 tok)
 
 ## src/app/privacy/
 
@@ -464,21 +467,24 @@
 
 ## src/components/
 
-- `AppHeader.tsx` — AppHeader (~13057 tok)
+- `AppHeader.tsx` — AppHeader (~12425 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
 ## src/components/admin/
 
+- `AdminSidebar.tsx` — icons (~3707 tok)
 
 ## src/components/punctures/
 
 
 ## src/hooks/
 
+- `useClickOutside.ts` — Exports useClickOutside (~204 tok)
+- `useRoleSwitch.ts` — Exports useRoleSwitch (~1296 tok)
 
 ## src/lib/
 
-- `types.ts` — Shared TypeScript interfaces used across pages (~433 tok)
+- `types.ts` — Shared TypeScript interfaces used across pages (~514 tok)
 - `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3437 tok)
 - `wheel-stats.ts` — computeWheelStats: shared available/taken/inactive wheel counts used by all wheel-stations API routes (~200 tok)
 

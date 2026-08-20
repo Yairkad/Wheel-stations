@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
-import { SESSION_VERSION, VERSION } from '@/lib/version'
-import type { RoleResult } from '@/app/api/auth/login/route'
+import { VERSION } from '@/lib/version'
+import type { RoleResult } from '@/lib/types'
+import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 
 export default function LoginPage() {
-  const router = useRouter()
+  const { switchToRole } = useRoleSwitch()
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -100,82 +100,19 @@ export default function LoginPage() {
     }
   }
 
-  // Save session to localStorage and redirect for a given role
-  const applyRole = (role: RoleResult) => {
-    const d = role.data
-    switch (role.role) {
-      case 'station_manager': {
-        const session = {
-          manager: { ...d, type: 'wheel_station' },
-          stationId: d.station_id,
-          stationName: d.station_name,
-          password,
-          timestamp: Date.now(),
-          version: SESSION_VERSION
-        }
-        localStorage.setItem(`station_session_${d.station_id}`, JSON.stringify(session))
-        router.push(`/${d.station_id}`)
-        break
-      }
-      case 'operator': {
-        const session = {
-          user: { id: d.id, full_name: d.full_name, phone: d.phone, title: d.title, is_primary: d.is_primary },
-          role: d.sub_role === 'manager' ? 'manager' : 'operator',
-          callCenterId: d.call_center_id,
-          callCenterName: d.call_center_name,
-          password,
-          timestamp: Date.now(),
-          version: SESSION_VERSION
-        }
-        localStorage.setItem('operator_session', JSON.stringify(session))
-        router.push(d.sub_role === 'manager' ? '/call-center' : '/operator')
-        break
-      }
-      case 'district_manager': {
-        const session = {
-          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts, can_edit: d.can_edit ?? false },
-          password,
-          timestamp: Date.now(),
-          version: SESSION_VERSION
-        }
-        localStorage.setItem('super_manager_session', JSON.stringify(session))
-        router.push('/super-manager')
-        break
-      }
-      case 'editor': {
-        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
-        localStorage.setItem('puncture_manager_auth', JSON.stringify({ expiry, phone: d.phone, password }))
-        router.push('/admin/punctures')
-        break
-      }
-      case 'admin': {
-        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
-        localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd: password }))
-        router.push('/admin')
-        break
-      }
-    }
-  }
-
-  const saveActiveRole = (r: RoleResult) => {
-    localStorage.setItem('active_role', r.role)
-    if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
-    else localStorage.removeItem('active_sub_role')
-  }
-
+  // Persists the chosen role's session (via the shared useRoleSwitch hook, which
+  // reads the just-saved auth_password from localStorage) and navigates there.
   const proceedWithRoles = (foundRoles: RoleResult[]) => {
     if (foundRoles.length === 1) {
-      saveActiveRole(foundRoles[0])
       toast.success(`שלום ${foundRoles[0].data.full_name as string}`)
-      applyRole(foundRoles[0])
+      switchToRole(foundRoles[0])
       return
     }
     const saved = localStorage.getItem('preferred_role')
     const auto = foundRoles.find(r => r.role === saved)
     if (auto) {
-      saveActiveRole(auto)
       toast.success(`שלום ${auto.data.full_name as string}`)
-      applyRole(auto)
+      switchToRole(auto)
       return
     }
     setRoles(foundRoles)
@@ -292,10 +229,9 @@ export default function LoginPage() {
                   key={r.role}
                   className="role-card"
                   onClick={() => {
-                    saveActiveRole(r)
                     if (rememberRole) localStorage.setItem('preferred_role', r.role)
                     toast.success(`שלום ${r.data.full_name as string}`)
-                    applyRole(r)
+                    switchToRole(r)
                   }}
                   style={{
                     display: 'flex',

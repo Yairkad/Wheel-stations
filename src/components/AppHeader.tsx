@@ -5,7 +5,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
-import type { RoleResult } from '@/app/api/auth/login/route'
+import type { RoleResult } from '@/lib/types'
+import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 
 interface UserSession {
   manager: {
@@ -32,6 +33,7 @@ interface AppHeaderProps {
 export default function AppHeader({ currentStationId, notificationCount, pushEnabled, onDistrictExport }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const { switchToRole } = useRoleSwitch()
   const [userSession, setUserSession] = useState<UserSession | null>(null)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showFormSubmenu, setShowFormSubmenu] = useState(false)
@@ -293,65 +295,9 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   }
 
   const navigateToRole = (r: RoleResult) => {
-    localStorage.setItem('active_role', r.role)
-    if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
-    else localStorage.removeItem('active_sub_role')
+    switchToRole(r)
     setActiveRole(r.role)
     setShowRoleMenu(false)
-    const d = r.data
-    const pwd = localStorage.getItem('auth_password') || ''
-    switch (r.role) {
-      case 'station_manager': {
-        localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
-          manager: { id: d.id, full_name: d.full_name, phone: d.phone, role: d.role || 'מנהל תחנה', is_primary: d.is_primary || false },
-          stationId: d.station_id,
-          stationName: d.station_name,
-          password: pwd,
-          timestamp: Date.now(),
-          version: SESSION_VERSION,
-        }))
-        router.push(`/${d.station_id as string}`)
-        break
-      }
-      case 'operator': {
-        localStorage.setItem('operator_session', JSON.stringify({
-          user: { id: d.id, full_name: d.full_name, phone: d.phone, title: d.title, is_primary: d.is_primary },
-          role: d.sub_role === 'manager' ? 'manager' : 'operator',
-          callCenterId: d.call_center_id,
-          callCenterName: d.call_center_name,
-          password: pwd,
-          timestamp: Date.now(),
-          version: SESSION_VERSION,
-        }))
-        router.push(d.sub_role === 'manager' ? '/call-center' : '/operator')
-        break
-      }
-      case 'district_manager': {
-        localStorage.setItem('super_manager_session', JSON.stringify({
-          superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts },
-          password: pwd,
-          timestamp: Date.now(),
-          version: SESSION_VERSION,
-        }))
-        router.push('/super-manager')
-        break
-      }
-      case 'editor': {
-        localStorage.setItem('puncture_manager_auth', JSON.stringify({
-          expiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
-          phone: d.phone,
-          password: pwd,
-        }))
-        router.push('/admin/punctures')
-        break
-      }
-      case 'admin': {
-        const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000
-        localStorage.setItem('wheels_admin_auth', JSON.stringify({ expiry, pwd }))
-        router.push('/admin')
-        break
-      }
-    }
   }
 
   const activeSubRole = typeof window !== 'undefined' ? localStorage.getItem('active_sub_role') : null

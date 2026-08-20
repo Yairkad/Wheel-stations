@@ -2834,6 +2834,314 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-20T07:22:07.602Z"
+    },
+    {
+      "id": "bug-174",
+      "timestamp": "2026-08-20T13:45:48.100Z",
+      "error_message": "Type error",
+      "file": "src/lib/types.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T13:45:48.100Z"
+    },
+    {
+      "id": "bug-175",
+      "timestamp": "2026-08-20T13:46:03.000Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/auth/login/route.ts",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 10→6 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T13:46:03.000Z"
+    },
+    {
+      "id": "bug-176",
+      "timestamp": "2026-08-20T13:51:08.040Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "65 lines replaced/restructured",
+      "fix": "Rewrote 85→10 lines (65 removed) | Also: // Load auth_roles for role switching; useEffect(() => {",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-20T13:53:20.551Z"
+    },
+    {
+      "id": "bug-177",
+      "timestamp": "2026-08-20T13:55:33.342Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "Had '@/lib/version'",
+      "fix": "Changed to '@/lib/types'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-20T13:55:53.007Z"
+    },
+    {
+      "id": "bug-178",
+      "timestamp": "2026-08-20T13:56:40.697Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "51 lines replaced/restructured",
+      "fix": "Rewrote 62→6 lines (51 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T13:56:40.697Z"
+    },
+    {
+      "id": "bug-179",
+      "timestamp": "2026-08-20T13:57:29.403Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/components/admin/AdminSidebar.tsx",
+      "root_cause": "Had '@/lib/version'",
+      "fix": "Changed to '@/hooks/useRoleSwitch'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T13:57:29.403Z"
+    },
+    {
+      "id": "bug-180",
+      "timestamp": "2026-08-20T13:57:47.480Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/components/admin/AdminSidebar.tsx",
+      "root_cause": "54 lines replaced/restructured",
+      "fix": "Rewrote 72→14 lines (54 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T13:57:47.480Z"
+    },
+    {
+      "id": "bug-181",
+      "timestamp": "2026-08-20T13:59:32.010Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "Had '@/app/api/auth/login/route'",
+      "fix": "Changed to '@/lib/types'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T13:59:32.010Z"
+    },
+    {
+      "id": "bug-182",
+      "timestamp": "2026-08-20T14:00:12.425Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "54 lines replaced/restructured",
+      "fix": "Rewrote 81→18 lines (54 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:00:12.425Z"
+    },
+    {
+      "id": "bug-183",
+      "timestamp": "2026-08-20T14:11:51.699Z",
+      "error_message": "Null/undefined access in ",
+      "file": "test-role-switch.tmp.js",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:11:51.699Z"
+    },
+    {
+      "id": "bug-184",
+      "timestamp": "2026-08-20T14:12:07.551Z",
+      "error_message": "Incorrect value in code",
+      "file": "test-role-switch.tmp.js",
+      "root_cause": "Had ');\n  await page.waitForTimeout(2000);\n  console.l",
+      "fix": "Changed to ');\n  await page.waitForTimeout(4000);\n  console.l",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:12:07.551Z"
+    },
+    {
+      "id": "bug-185",
+      "timestamp": "2026-08-20T14:13:52.291Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "test-role-switch.tmp.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:13:52.291Z"
+    },
+    {
+      "id": "bug-186",
+      "timestamp": "2026-08-20T14:21:24.583Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "test-role-switch.tmp.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:21:24.583Z"
+    },
+    {
+      "id": "bug-187",
+      "timestamp": "2026-08-20T14:29:42.785Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "test-role-switch.tmp.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: // Now from /call-center, verify the page rendered correctly; await page.waitForFunction(() => document.body.innerText.inc",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-20T14:30:36.921Z"
+    },
+    {
+      "id": "bug-188",
+      "timestamp": "2026-08-20T14:33:10.620Z",
+      "error_message": "Wrong reference: Hook should be Pagination",
+      "file": "UX_AUDIT_TODO.md",
+      "root_cause": "Used \"Hook\" instead of \"Pagination\"",
+      "fix": "Changed Hook → Pagination",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:33:10.620Z"
+    },
+    {
+      "id": "bug-189",
+      "timestamp": "2026-08-20T14:35:18.619Z",
+      "error_message": "לא דווח ע\"י משתמש — התגלה בקריאת קוד תוך כדי איחוד לוגיקת \"החלף תפקיד\": AppHeader.tsx ניווט למוקד עם נתיב שגוי",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "router.push(d.sub_role === \"manager\" ? 'call-center' : '/operator') — המחרוזת 'call-center' משתמשת ב-backslash ולא ב-forward-slash. c אינו escape-sequence תקין ב-JS, אז המחרוזת בפועל בזמן ריצה היא \"call-center\" (בלי / בהתחלה) — ניווט יחסי שגוי במקום מוחלט ל-/call-center.",
+      "fix": "תוקן כחלק ממעבר לוגיקת ה-switch-statement כולה ל-hook משותף חדש (useRoleSwitch), שכתוב מחדש עם הנתיב הנכון /call-center. אומת חי בדפדפן (Playwright): החלפה ל-\"מנהל מוקד\" מ-AppHeader מנווטת נכון ל-/call-center.",
+      "tags": [
+        "typo",
+        "navigation",
+        "role-switch",
+        "AppHeader"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:35:18.619Z"
+    },
+    {
+      "id": "bug-190",
+      "timestamp": "2026-08-20T14:35:18.619Z",
+      "error_message": "לא דווח ע\"י משתמש — התגלה בקריאת קוד: AdminSidebar לא שומר active_sub_role בהחלפת תפקיד",
+      "file": "src/components/admin/AdminSidebar.tsx",
+      "root_cause": "navigateToRole ב-AdminSidebar כתב רק localStorage.setItem(\"active_role\", r.role), בלי הלוגיקה שקיימת בשלושת שאר ההעתקים (AppHeader, operator, call-center) שכותבת/מוחקת גם active_sub_role לפי r.data.sub_role. מנהל שהוא גם מוקדן/מנהל-מוקד שעובר דרך האדמין וחוזר עלול לאבד את ההבחנה בין השניים.",
+      "fix": "תוקן ע\"י מעבר לקריאה ל-hook משותף (useRoleSwitch/switchToRole) שכולל את הכתיבה הנכונה של active_sub_role, זהה לשלושת המקומות האחרים.",
+      "tags": [
+        "data-loss",
+        "role-switch",
+        "AdminSidebar",
+        "sub-role"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:35:18.619Z"
+    },
+    {
+      "id": "bug-191",
+      "timestamp": "2026-08-20T14:35:18.619Z",
+      "error_message": "לא דווח ע\"י משתמש — התגלה בקריאת קוד: session שנכתב בהחלפת תפקיד מכיל רק תת-קבוצה של השדות, לעומת התחברות ראשונית",
+      "file": "src/components/AppHeader.tsx, src/app/operator/page.tsx, src/app/call-center/page.tsx, src/components/admin/AdminSidebar.tsx",
+      "root_cause": "ב-4 העתקי ה-navigateToRole, station_manager נשמר כ-{id, full_name, phone, role, is_primary} (תת-קבוצה ידנית), בעוד ש-login/page.tsx בהתחברות ראשונית שמר {...d, type: \"wheel_station\"} — כל השדות. שדה עתידי שיתווסף ל-data (מה-API) היה נעלם בכל מעבר-תפקיד מאוחר, אבל נשמר תקין בהתחברות ראשונית בלבד — חוסר עקביות שקל לפספס כי שני הנתיבים עובדים \"בסדר\" בבדיקה שטחית.",
+      "fix": "ה-hook המשותף (useRoleSwitch) מאמץ את הגרסה המלאה (עם כל שדות d) לכל role case, ומשמש כעת גם את login/page.tsx עצמו — מקור אמת יחיד. אומת: station_session שנכתב בהחלפת תפקיד עכשיו מכיל את כל 9 השדות (כולל type, whatsapp_message_template) במקום 5 בלבד.",
+      "tags": [
+        "data-loss",
+        "field-drift",
+        "role-switch",
+        "session-shape"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:35:18.619Z"
+    },
+    {
+      "id": "bug-192",
+      "timestamp": "2026-08-20T14:35:18.619Z",
+      "error_message": "לא דווח ע\"י משתמש — התגלה בקריאת קוד: district_manager מאבד את can_edit בהחלפת תפקיד",
+      "file": "src/components/AppHeader.tsx, src/app/operator/page.tsx, src/app/call-center/page.tsx, src/components/admin/AdminSidebar.tsx",
+      "root_cause": "אותה תבנית כמו bug-176 — superManager נשמר כ-{id, full_name, phone, allowed_districts} בלי can_edit, בעוד login/page.tsx כלל can_edit: d.can_edit ?? false. מנהל-מחוז עם הרשאת עריכה שמחליף תפקיד ואז חוזר עלול לאבד את ההרשאה בפועל (עד התחברות מחדש).",
+      "fix": "נכלל ב-useRoleSwitch יחד עם bug-176 — אותו תיקון (שמירת השדה המלא כולל can_edit ?? false).",
+      "tags": [
+        "data-loss",
+        "field-drift",
+        "role-switch",
+        "permissions"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-20T14:35:18.619Z"
     }
   ]
 }
