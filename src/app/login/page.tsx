@@ -26,12 +26,37 @@ export default function LoginPage() {
 
   // Forgot password state
   const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [forgotMethod, setForgotMethod] = useState<'qr' | 'whatsapp'>('qr')
   const [forgotPhone, setForgotPhone] = useState('')
+  const [forgotFullName, setForgotFullName] = useState('')
   const [forgotNewPassword, setForgotNewPassword] = useState('')
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('')
   const [forgotError, setForgotError] = useState('')
   const [forgotSuccess, setForgotSuccess] = useState(false)
   const [forgotLoading, setForgotLoading] = useState(false)
+
+  // App owner's WhatsApp number — receives manual password-reset requests when a
+  // station manager has no recovery certificate to scan
+  const OWNER_WHATSAPP_PHONE = '0548461289'
+
+  const handleForgotWhatsApp = () => {
+    if (!forgotFullName.trim()) { setForgotError('נא להזין שם מלא'); return }
+    if (!forgotPhone.trim()) { setForgotError('נא להזין מספר טלפון'); return }
+    setForgotError('')
+
+    const lines = [
+      'בקשה לאיפוס סיסמה - מערכת גלגלים',
+      `שם: ${forgotFullName.trim()}`,
+      `טלפון: ${forgotPhone.trim()}`,
+    ]
+    if (forgotNewPassword.trim()) lines.push(`סיסמה מבוקשת: ${forgotNewPassword.trim()}`)
+    const message = lines.join('\n')
+
+    const cleanOwnerPhone = OWNER_WHATSAPP_PHONE.replace(/\D/g, '')
+    const internationalPhone = cleanOwnerPhone.startsWith('0') ? '972' + cleanOwnerPhone.slice(1) : cleanOwnerPhone
+    window.open(`https://wa.me/${internationalPhone}?text=${encodeURIComponent(message)}`, '_blank')
+    setShowForgotPassword(false)
+  }
 
   // Biometric (WebAuthn) login state
   const [webauthnSupported, setWebauthnSupported] = useState(false)
@@ -490,7 +515,9 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
+              setForgotMethod('qr')
               setForgotPhone(phone)
+              setForgotFullName('')
               setForgotNewPassword('')
               setForgotConfirmPassword('')
               setForgotError('')
@@ -530,25 +557,71 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px', textAlign: 'center' }}>העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא</p>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>מספר טלפון</label>
-                  <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                <div style={{ display: 'flex', gap: '6px', background: '#f1f5f9', borderRadius: '10px', padding: '4px', marginBottom: '16px' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotMethod('qr'); setForgotError('') }}
+                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'inherit', background: forgotMethod === 'qr' ? '#fff' : 'transparent', color: forgotMethod === 'qr' ? '#2563eb' : '#64748b', boxShadow: forgotMethod === 'qr' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}
+                  >
+                    תעודת שחזור
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotMethod('whatsapp'); setForgotError('') }}
+                    style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'inherit', background: forgotMethod === 'whatsapp' ? '#fff' : 'transparent', color: forgotMethod === 'whatsapp' ? '#16a34a' : '#64748b', boxShadow: forgotMethod === 'whatsapp' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}
+                  >
+                    פנייה בוואטסאפ
+                  </button>
                 </div>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>סיסמא חדשה</label>
-                    <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>אימות סיסמא</label>
-                    <input type="password" value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
-                  </div>
-                </div>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '10px', border: '2px dashed #e2e8f0', background: '#f8fafc', color: '#2563eb', cursor: 'pointer', fontSize: '0.95rem', marginTop: '8px' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> העלה תמונת תעודת שחזור
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleForgotUpload} disabled={forgotLoading} />
-                </label>
+
+                {forgotMethod === 'qr' ? (
+                  <>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px', textAlign: 'center' }}>העלה את תמונת תעודת השחזור שלך כדי לאפס את הסיסמא</p>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>מספר טלפון</label>
+                      <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>סיסמא חדשה</label>
+                        <input type="password" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>אימות סיסמא</label>
+                        <input type="password" value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                      </div>
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '10px', border: '2px dashed #e2e8f0', background: '#f8fafc', color: '#2563eb', cursor: 'pointer', fontSize: '0.95rem', marginTop: '8px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> העלה תמונת תעודת שחזור
+                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleForgotUpload} disabled={forgotLoading} />
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '16px', textAlign: 'center' }}>אין לך תעודת שחזור? שלח פרטים בוואטסאפ למנהל המערכת ותקבל עזרה באיפוס הסיסמה</p>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>שם מלא</label>
+                      <input type="text" placeholder="הזן שם מלא" value={forgotFullName} onChange={e => setForgotFullName(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>מספר טלפון</label>
+                      <input type="text" placeholder="הזן מספר טלפון" value={forgotPhone} onChange={e => setForgotPhone(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ marginBottom: '4px' }}>
+                      <label style={{ display: 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>סיסמא מבוקשת (אופציונלי)</label>
+                      <input type="text" placeholder="אם יש לך העדפה" value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)} dir="ltr" style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontSize: '0.95rem', boxSizing: 'border-box' }} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleForgotWhatsApp}
+                      style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: '#16a34a', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem', marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit' }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      שלח בוואטסאפ
+                    </button>
+                  </>
+                )}
+
                 {forgotLoading && (
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.9)', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
                     <div style={{ width: '50px', height: '50px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />

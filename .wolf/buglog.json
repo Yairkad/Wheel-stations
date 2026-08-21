@@ -3225,6 +3225,22 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-21T07:04:57.176Z"
+    },
+    {
+      "id": "bug-198",
+      "timestamp": "2026-08-21T07:43:08.388Z",
+      "error_message": "CSS fix: display, marginBottom",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "display: 'none' → 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px'; marginBottom: '12px' → '4px'",
+      "fix": "Changed display: 'none' → 'block', color: '#475569', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px'; marginBottom: '12px' → '4px'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-21T07:43:08.388Z"
     }
   ]
 }

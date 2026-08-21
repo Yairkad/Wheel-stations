@@ -71,8 +71,8 @@
       "first_read": "2026-08-20T14:32:21.941Z"
     },
     "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/UX_AUDIT_TODO.md": {
-      "count": 6,
-      "tokens": 3151,
+      "count": 8,
+      "tokens": 3375,
       "first_read": "2026-08-20T14:32:59.821Z"
     },
     "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/supabase/migrations/20260212_add_audit_log_and_district_permissions.sql": {
@@ -186,8 +186,8 @@
       "first_read": "2026-08-20T23:26:59.954Z"
     },
     "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/login/page.tsx": {
-      "count": 3,
-      "tokens": 9175,
+      "count": 5,
+      "tokens": 9520,
       "first_read": "2026-08-20T23:27:06.435Z"
     },
     "c:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/station-auth.ts": {
@@ -227,6 +227,6 @@
     }
   },
   "anatomy_hits": 11,
-  "repeated_reads_warned": 36,
+  "repeated_reads_warned": 40,
   "anatomy_misses": 29
 }

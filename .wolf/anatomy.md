@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-21T07:33:46.231Z
-> Files: 87 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-21T07:48:05.153Z
+> Files: 88 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -67,13 +67,14 @@
 - `test-role-switch.tmp.js` — Declares PHONE (~1826 tok)
 - `test-submit.tmp.js` — Declares fs (~1348 tok)
 - `test-webauthn.tmp.js` — Declares PHONE (~915 tok)
+- `test-whatsapp-forgot.tmp.js` — API routes: GET (1 endpoints) (~872 tok)
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
 - `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~3233 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~3335 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -430,7 +431,7 @@
 
 ## src/app/login/
 
-- `page.tsx` — LoginPage (~9175 tok)
+- `page.tsx` — LoginPage (~10752 tok)
 
 ## src/app/lookup/
 
