@@ -37,11 +37,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'משתמש לא נמצא' }, { status: 401 })
     }
 
-    if (password && user.password) {
-      const pwCheck = await verifyPassword(password, user.password)
-      if (!pwCheck.valid) {
-        return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
-      }
+    // Password verification is mandatory, not conditional — otherwise anyone who
+    // knows only a phone number (no password) could register their own passkey
+    // on someone else's account by calling this endpoint directly without a
+    // password field, since the check would simply be skipped.
+    if (!password) {
+      return NextResponse.json({ error: 'נדרשת סיסמה' }, { status: 401 })
+    }
+    if (!user.password) {
+      return NextResponse.json({ error: 'לא ניתן להפעיל כניסה ביומטרית — יש להגדיר סיסמה קודם' }, { status: 401 })
+    }
+    const pwCheck = await verifyPassword(password, user.password)
+    if (!pwCheck.valid) {
+      return NextResponse.json({ error: 'טלפון או סיסמה שגויים' }, { status: 401 })
     }
 
     const existingCredentials = await getUserCredentials(user.id)

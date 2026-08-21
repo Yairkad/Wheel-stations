@@ -1,7 +1,11 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-21T06:41:52.172Z
-> Files: 86 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-21T07:33:46.231Z
+> Files: 87 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
+
+- `whats-new.html` — מה חדש בדרך (~3031 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/
 
@@ -31,7 +35,7 @@
 ## ../../../.claude/plans/
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
-- `giggly-wondering-stroustrup.md` — טיוטת תוכנית — משוב משתמשים (~2091 tok)
+- `giggly-wondering-stroustrup.md` — טיוטת תוכנית — משוב משתמשים (~2868 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
 - `splendid-dreaming-ullman.md` — כניסה ביומטרית (WebAuthn) — חיבור ה-frontend (~1192 tok)
 - `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
@@ -69,7 +73,7 @@
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~3151 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~3233 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -221,7 +225,7 @@
 
 ## src/app/api/auth/webauthn/register/begin/
 
-- `route.ts` — Next.js API route: POST (~793 tok)
+- `route.ts` — Next.js API route: POST (~936 tok)
 
 ## src/app/api/auth/webauthn/register/complete/
 

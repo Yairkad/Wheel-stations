@@ -3198,16 +3198,33 @@
       "error_message": "לא דווח ע\"י משתמש — התגלה תוך כדי חיבור ה-frontend ל-WebAuthn: אימות סיסמה אופציונלי בפועל בהרשמת passkey",
       "file": "src/app/api/auth/webauthn/register/begin/route.ts",
       "root_cause": "if (password && user.password) { verifyPassword... } — אם password לא נשלח בבקשה, או שלמשתמש אין סיסמה שמורה (user.password ריק/null), הבדיקה כולה מדולגת בשקט וההרשמה ממשיכה כרגיל. כלומר אפשר לרשום passkey חדש למספר טלפון קיים בלי שום הוכחת זהות אמיתית — רק ידיעת מספר הטלפון.",
-      "fix": "לא תוקן — מחוץ להיקף שאושר (המשתמש ביקש רק לחבר frontend + לתקן residentKey). דווח למשתמש במפורש ב-UX_AUDIT_TODO.md ו-cerebrum.md. דורש החלטה נפרדת: לחייב password תמיד, או להשתמש במנגנון הוכחה אחר (למשל session קיים/cookie).",
+      "fix": "תוקן (2026-08-21, לבקשת המשתמש אחרי שהוסבר לו): בדיקת הסיסמה הפכה לחובה תמיד — אם password חסר בבקשה, או שלמשתמש אין סיסמה שמורה בכלל, השרת מחזיר 401 במקום לדלג על הבדיקה. אומת: בקשה בלי password נחסמת (\"נדרשת סיסמה\"), סיסמה שגויה נחסמת, סיסמה נכונה עדיין עובדת ומחזירה אפשרויות רישום תקינות.",
       "tags": [
         "webauthn",
         "security",
         "auth-bypass",
-        "not-fixed"
+        "not-fixed",
+        "fixed"
       ],
       "related_bugs": [],
       "occurrences": 1,
-      "last_seen": "2026-08-21T06:42:39.513Z"
+      "last_seen": "2026-08-21T07:33:16.438Z"
+    },
+    {
+      "id": "bug-197",
+      "timestamp": "2026-08-21T07:04:57.176Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/plans/giggly-wondering-stroustrup.md",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 9→12 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-21T07:04:57.176Z"
     }
   ]
 }
