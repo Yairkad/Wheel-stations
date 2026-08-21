@@ -3142,6 +3142,72 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-20T14:35:18.619Z"
+    },
+    {
+      "id": "bug-193",
+      "timestamp": "2026-08-21T05:45:55.854Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-21T05:45:55.854Z"
+    },
+    {
+      "id": "bug-194",
+      "timestamp": "2026-08-21T05:46:23.275Z",
+      "error_message": "CSS fix: background",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '12px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' → 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '4px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit'",
+      "fix": "Changed background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '12px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' → 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '4px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-21T05:46:23.275Z"
+    },
+    {
+      "id": "bug-195",
+      "timestamp": "2026-08-21T06:42:39.513Z",
+      "error_message": "משתמש דיווח בעבר (2026-08-19): כניסה ביומטרית \"לא עבדה טוב\" בניסיון קודם",
+      "file": "src/app/api/auth/webauthn/register/begin/route.ts",
+      "root_cause": "authenticatorSelection.residentKey היה \"required\" — זה מכריח credential מסונכרן (Passkey אמיתי), שגורם לדפדפן להציג את ה-picker הכללי של מנהל הסיסמאות של המערכת (iCloud Keychain/Google Password Manager) במקום בקשת טביעת-אצבע/Face ID ישירה של האפליקציה עצמה. שורש הבעיה כבר אותר בזיכרון חוצה-סשנים בסשן קודם, לא בסשן הזה.",
+      "fix": "שונה ל-residentKey: \"discouraged\" (credential לא-מסונכרן, קשור למכשיר בלבד). חובר ה-frontend החסר (login/page.tsx: הרשמה + כניסה) שלא היה קיים כלל קודם. אומת חי עם virtual authenticator אמיתי דרך Chrome DevTools Protocol — הרשמה+כניסה עובדות מקצה לקצה.",
+      "tags": [
+        "webauthn",
+        "passkey",
+        "biometric-login",
+        "login-page"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-21T06:42:39.513Z"
+    },
+    {
+      "id": "bug-196",
+      "timestamp": "2026-08-21T06:42:39.513Z",
+      "error_message": "לא דווח ע\"י משתמש — התגלה תוך כדי חיבור ה-frontend ל-WebAuthn: אימות סיסמה אופציונלי בפועל בהרשמת passkey",
+      "file": "src/app/api/auth/webauthn/register/begin/route.ts",
+      "root_cause": "if (password && user.password) { verifyPassword... } — אם password לא נשלח בבקשה, או שלמשתמש אין סיסמה שמורה (user.password ריק/null), הבדיקה כולה מדולגת בשקט וההרשמה ממשיכה כרגיל. כלומר אפשר לרשום passkey חדש למספר טלפון קיים בלי שום הוכחת זהות אמיתית — רק ידיעת מספר הטלפון.",
+      "fix": "לא תוקן — מחוץ להיקף שאושר (המשתמש ביקש רק לחבר frontend + לתקן residentKey). דווח למשתמש במפורש ב-UX_AUDIT_TODO.md ו-cerebrum.md. דורש החלטה נפרדת: לחייב password תמיד, או להשתמש במנגנון הוכחה אחר (למשל session קיים/cookie).",
+      "tags": [
+        "webauthn",
+        "security",
+        "auth-bypass",
+        "not-fixed"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-21T06:42:39.513Z"
     }
   ]
 }

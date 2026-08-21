@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-20T14:33:52.389Z
-> Files: 83 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-21T06:41:52.172Z
+> Files: 86 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/
 
@@ -31,8 +31,9 @@
 ## ../../../.claude/plans/
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
+- `giggly-wondering-stroustrup.md` — טיוטת תוכנית — משוב משתמשים (~2091 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
-- `splendid-dreaming-ullman.md` — Hook משותף להחלפת תפקיד — `useRoleSwitch` (~1546 tok)
+- `splendid-dreaming-ullman.md` — כניסה ביומטרית (WebAuthn) — חיבור ה-frontend (~1192 tok)
 - `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
 - `ui-ux-parsed-hartmanis.md` — תוכנית ביקורת UI/UX מקיפה לפי סוג משתמש (8 personas), ללא צילומי מסך (~1900 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
@@ -61,13 +62,14 @@
 - `test-icons.tmp.js` — Declares STATION_ID (~1239 tok)
 - `test-role-switch.tmp.js` — Declares PHONE (~1826 tok)
 - `test-submit.tmp.js` — Declares fs (~1348 tok)
+- `test-webauthn.tmp.js` — Declares PHONE (~915 tok)
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
 - `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~2708 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~3151 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -219,6 +221,7 @@
 
 ## src/app/api/auth/webauthn/register/begin/
 
+- `route.ts` — Next.js API route: POST (~793 tok)
 
 ## src/app/api/auth/webauthn/register/complete/
 
@@ -423,7 +426,7 @@
 
 ## src/app/login/
 
-- `page.tsx` — LoginPage (~7444 tok)
+- `page.tsx` — LoginPage (~9175 tok)
 
 ## src/app/lookup/
 

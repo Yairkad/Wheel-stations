@@ -33,6 +33,114 @@ export default function LoginPage() {
   const [forgotSuccess, setForgotSuccess] = useState(false)
   const [forgotLoading, setForgotLoading] = useState(false)
 
+  // Biometric (WebAuthn) login state
+  const [webauthnSupported, setWebauthnSupported] = useState(false)
+  const [hasPasskey, setHasPasskey] = useState(false)
+  const [biometricLoading, setBiometricLoading] = useState(false)
+  const [enrollLoading, setEnrollLoading] = useState(false)
+
+  useEffect(() => {
+    import('@simplewebauthn/browser').then(({ browserSupportsWebAuthn }) => {
+      setWebauthnSupported(browserSupportsWebAuthn())
+    })
+  }, [])
+
+  // Debounced check of whether this phone already has a registered passkey
+  useEffect(() => {
+    if (!webauthnSupported) return
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 9) { setHasPasskey(false); return }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/auth/webauthn/status?phone=${encodeURIComponent(cleanPhone)}`)
+        const data = await res.json()
+        setHasPasskey(!!data.hasPasskey)
+      } catch {
+        setHasPasskey(false)
+      }
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [phone, webauthnSupported])
+
+  // A WebAuthn prompt the user dismissed (Escape/cancel) isn't a real error
+  const isWebauthnCancellation = (err: unknown): boolean => {
+    if (!(err instanceof Error)) return false
+    const causeName = (err as { cause?: { name?: string } }).cause?.name
+    return err.name === 'NotAllowedError' || err.name === 'AbortError' || causeName === 'NotAllowedError'
+  }
+
+  const handleBiometricLogin = async () => {
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 9) { setError('נא להזין מספר טלפון'); return }
+    setBiometricLoading(true)
+    setError('')
+    try {
+      const { startAuthentication } = await import('@simplewebauthn/browser')
+      const beginRes = await fetch('/api/auth/webauthn/authenticate/begin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      })
+      const optionsJSON = await beginRes.json()
+      if (!beginRes.ok) { setError(optionsJSON.error || 'שגיאה בכניסה ביומטרית'); return }
+
+      const authResponse = await startAuthentication({ optionsJSON })
+
+      const completeRes = await fetch('/api/auth/webauthn/authenticate/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authResponse)
+      })
+      const data = await completeRes.json()
+      if (!completeRes.ok) { setError(data.error || 'שגיאה בכניסה ביומטרית'); return }
+
+      const foundRoles: RoleResult[] = data.roles
+      localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
+      localStorage.setItem('auth_password', '')
+      localStorage.setItem('saved_phone', phone)
+      proceedWithRoles(foundRoles)
+    } catch (err) {
+      if (!isWebauthnCancellation(err)) setError('כניסה ביומטרית נכשלה')
+    } finally {
+      setBiometricLoading(false)
+    }
+  }
+
+  const handleEnrollBiometric = async () => {
+    if (!phone || !password) { setError('נא למלא טלפון וסיסמה כדי להפעיל כניסה ביומטרית'); return }
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 9) { setError('מספר טלפון לא תקין'); return }
+    setEnrollLoading(true)
+    setError('')
+    try {
+      const { startRegistration } = await import('@simplewebauthn/browser')
+      const beginRes = await fetch('/api/auth/webauthn/register/begin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, password })
+      })
+      const optionsJSON = await beginRes.json()
+      if (!beginRes.ok) { setError(optionsJSON.error || 'שגיאה בהפעלת כניסה ביומטרית'); return }
+
+      const regResponse = await startRegistration({ optionsJSON })
+
+      const completeRes = await fetch('/api/auth/webauthn/register/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(regResponse)
+      })
+      const data = await completeRes.json()
+      if (!completeRes.ok) { setError(data.error || 'שגיאה בהפעלת כניסה ביומטרית'); return }
+
+      toast.success('כניסה ביומטרית הופעלה במכשיר זה!')
+      setHasPasskey(true)
+    } catch (err) {
+      if (!isWebauthnCancellation(err)) setError('הפעלת כניסה ביומטרית נכשלה')
+    } finally {
+      setEnrollLoading(false)
+    }
+  }
+
   const handleForgotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -356,6 +464,29 @@ export default function LoginPage() {
             {loading ? 'מתחבר...' : 'כניסה'}
           </button>
 
+          {hasPasskey && (
+            <button
+              type="button"
+              onClick={handleBiometricLogin}
+              disabled={biometricLoading}
+              style={{ ...styles.formSubmit, background: '#fff', color: '#2563eb', border: '1px solid #bfdbfe', boxShadow: 'none' }}
+            >
+              {biometricLoading ? 'מאמת...' : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 11c0 3.5-1.5 6.5-3 8.5"/>
+                    <path d="M8.5 20a17.2 17.2 0 0 0 2.5-8.5c0-1.1.9-2 2-2s2 .9 2 2"/>
+                    <path d="M17 20.5a20.9 20.9 0 0 0 1.5-9.5"/>
+                    <path d="M4.5 11a7.5 7.5 0 0 1 15 0"/>
+                    <path d="M2.5 11a9.5 9.5 0 0 1 4-7.7"/>
+                    <path d="M20 6.5A9.5 9.5 0 0 1 21.5 11"/>
+                  </svg>
+                  כניסה עם טביעת אצבע / פנים
+                </span>
+              )}
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
@@ -370,6 +501,17 @@ export default function LoginPage() {
           >
             שכחתי סיסמא (למנהלי תחנה)
           </button>
+
+          {webauthnSupported && !hasPasskey && (
+            <button
+              type="button"
+              onClick={handleEnrollBiometric}
+              disabled={enrollLoading}
+              style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '4px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' }}
+            >
+              {enrollLoading ? 'מפעיל...' : 'הפעל כניסה עם טביעת אצבע'}
+            </button>
+          )}
         </form>
       </div>
 
