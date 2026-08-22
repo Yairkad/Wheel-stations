@@ -55,7 +55,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       signature_data,
       form_image_data, // Full form image captured with html2canvas
       terms_accepted,
-      referred_by // Track who referred this form (e.g., operator_123)
+      referred_by, // Track who referred this form (e.g., operator_123)
+      operator_send_request_id // Links back to the specific operator link-send that produced this request, if any
     } = body
 
     // Validate required fields
@@ -138,7 +139,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         signature_data,
         signed_at: new Date().toISOString(),
         terms_accepted: true,
-        status: 'pending' // Requires manager approval
+        status: 'pending', // Requires manager approval
+        operator_send_request_id: operator_send_request_id || null
       })
       .select()
       .single()

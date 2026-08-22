@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-21T07:48:05.153Z
-> Files: 88 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-22T18:56:50.766Z
+> Files: 92 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -35,9 +35,9 @@
 ## ../../../.claude/plans/
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
-- `giggly-wondering-stroustrup.md` — טיוטת תוכנית — משוב משתמשים (~2868 tok)
+- `giggly-wondering-stroustrup.md` — טיוטת תוכנית — משוב משתמשים (~4477 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
-- `splendid-dreaming-ullman.md` — כניסה ביומטרית (WebAuthn) — חיבור ה-frontend (~1192 tok)
+- `splendid-dreaming-ullman.md` — "בדוק סטטוס בקשה" למוקדן (~1199 tok)
 - `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
 - `ui-ux-parsed-hartmanis.md` — תוכנית ביקורת UI/UX מקיפה לפי סוג משתמש (8 personas), ללא צילומי מסך (~1900 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
@@ -64,6 +64,7 @@
 - `test-deposit.tmp.js` — Declares STATION_ID (~963 tok)
 - `test-diag.tmp.js` — Declares STATION_ID (~298 tok)
 - `test-icons.tmp.js` — Declares STATION_ID (~1239 tok)
+- `test-operator-status.tmp.js` — Declares PHONE (~1011 tok)
 - `test-role-switch.tmp.js` — Declares PHONE (~1826 tok)
 - `test-submit.tmp.js` — Declares fs (~1348 tok)
 - `test-webauthn.tmp.js` — Declares PHONE (~915 tok)
@@ -74,7 +75,7 @@
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~3335 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~4373 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -279,6 +280,14 @@
 ## src/app/api/ocr/
 
 
+## src/app/api/operator/sent-requests/
+
+- `route.ts` — Next.js API route: POST, GET (~763 tok)
+
+## src/app/api/operator/sent-requests/[id]/status/
+
+- `route.ts` — Next.js API route: GET (~323 tok)
+
 ## src/app/api/puncture-suggestions/
 
 
@@ -358,7 +367,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/public-borrow/
 
-- `route.ts` — Public Wheel Borrow API (~3088 tok)
+- `route.ts` — Public Wheel Borrow API (~3141 tok)
 
 ## src/app/api/wheel-stations/[stationId]/push/send/
 
@@ -442,7 +451,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~23848 tok)
+- `page.tsx` — OperatorPage (~25802 tok)
 
 ## src/app/privacy/
 
@@ -460,7 +469,7 @@
 
 ## src/app/sign/[stationId]/
 
-- `page.tsx` — STEP_LABELS (~18025 tok)
+- `page.tsx` — STEP_LABELS (~18082 tok)
 
 ## src/app/stations/
 
@@ -537,3 +546,4 @@
 
 - `20260726_add_manager_whatsapp_template.sql` — Lets each station manager set their own WhatsApp message wording, (~81 tok)
 - `20260726_add_wheel_mount_feedback.sql` — Lets managers record, at return time, whether a wheel actually mounted on the (~159 tok)
+- `20260821_add_operator_sent_requests.sql` — Tracks each time an operator sends a borrow-request link to a driver/tow-shop, (~370 tok)

@@ -70,6 +70,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const prefilledWheelNumber = searchParams.get('wheel')
   const prefilledPhone = searchParams.get('phone')
   const referredBy = searchParams.get('ref') // Referral tracking (e.g., operator_123)
+  const operatorSendRequestId = searchParams.get('sr') // Links this submission back to a specific operator link-send, for "check status"
   const isPrefilledMode = !!(prefilledWheelNumber && prefilledPhone)
 
   // Form state
@@ -400,7 +401,8 @@ function SignFormContent({ stationId }: { stationId: string }) {
           signature_data: signatureData,
           form_image_data: formImageData, // Full form image
           terms_accepted: true,
-          referred_by: referredBy // Track who referred this form (e.g., operator_123)
+          referred_by: referredBy, // Track who referred this form (e.g., operator_123)
+          operator_send_request_id: operatorSendRequestId
         })
       })
 

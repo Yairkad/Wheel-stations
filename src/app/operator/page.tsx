@@ -115,6 +115,13 @@ export default function OperatorPage() {
   } | null>(null)
   const [selectedContact, setSelectedContact] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [sendRequestId, setSendRequestId] = useState<string | null>(null)
+
+  // "בקשות שנשלחו לאחרונה" — recent sent-link log + on-demand status checks
+  const [sentRequests, setSentRequests] = useState<{ id: string; wheel_number: string; created_at: string; station_name: string }[]>([])
+  const [sentRequestsLoading, setSentRequestsLoading] = useState(false)
+  const [statusChecking, setStatusChecking] = useState<Record<string, boolean>>({})
+  const [statusResults, setStatusResults] = useState<Record<string, { status: string; borrower_name?: string }>>({})
 
   // Check for saved session and fetch filter options
   useEffect(() => {
@@ -188,6 +195,12 @@ export default function OperatorPage() {
     window.addEventListener('pageshow', handlePageShow)
     return () => window.removeEventListener('pageshow', handlePageShow)
   }, [])
+
+  // Load the operator's recent sent-link log once their identity is known
+  useEffect(() => {
+    if (operator?.id) fetchSentRequests()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [operator?.id])
 
   // Fetch autocomplete suggestions for make (supports Hebrew and English)
   const fetchMakeSuggestions = async (value: string) => {
@@ -711,20 +724,94 @@ export default function OperatorPage() {
     setSelectedWheel({ station, wheelNumber, pcd })
     setSelectedContact(station.managers?.[0]?.id || null)
     setCopied(false)
+    setSendRequestId(null)
   }
 
   const closeModal = () => {
     setSelectedWheel(null)
     setSelectedContact(null)
+    setSendRequestId(null)
   }
 
-  const getMessage = () => {
+  const fetchSentRequests = async () => {
+    if (!operator) return
+    setSentRequestsLoading(true)
+    try {
+      const res = await fetch(`/api/operator/sent-requests?operator_id=${operator.id}`)
+      const data = await res.json()
+      if (res.ok) setSentRequests(data.sentRequests || [])
+    } catch (err) {
+      console.error('Failed to fetch sent requests:', err)
+    } finally {
+      setSentRequestsLoading(false)
+    }
+  }
+
+  // Logs a "link prepared for sending" event exactly once per modal session (first
+  // time the operator actually copies/sends, not when the modal merely opens) and
+  // returns the row id to embed in the link (?sr=...) for a later status check.
+  const ensureSendRequestId = async (): Promise<string | null> => {
+    if (sendRequestId) return sendRequestId
+    if (!selectedWheel || !operator) return null
+    try {
+      const res = await fetch('/api/operator/sent-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operator_id: operator.id,
+          call_center_id: operator.call_center_id,
+          station_id: selectedWheel.station.id,
+          wheel_number: selectedWheel.wheelNumber,
+        })
+      })
+      const data = await res.json()
+      if (res.ok && data.id) {
+        setSendRequestId(data.id)
+        fetchSentRequests()
+        return data.id as string
+      }
+    } catch (err) {
+      console.error('Failed to log sent request:', err)
+    }
+    return null
+  }
+
+  const checkSentRequestStatus = async (id: string) => {
+    setStatusChecking(prev => ({ ...prev, [id]: true }))
+    try {
+      const res = await fetch(`/api/operator/sent-requests/${id}/status`)
+      const data = await res.json()
+      if (res.ok) {
+        setStatusResults(prev => ({ ...prev, [id]: { status: data.status, borrower_name: data.borrower_name } }))
+      } else {
+        toast.error('שגיאה בבדיקת הסטטוס')
+      }
+    } catch {
+      toast.error('שגיאה בבדיקת הסטטוס')
+    } finally {
+      setStatusChecking(prev => ({ ...prev, [id]: false }))
+    }
+  }
+
+  const sentRequestStatusLabel = (status: string): { text: string; color: string } => {
+    switch (status) {
+      case 'not_submitted': return { text: 'עדיין לא מולא', color: '#94a3b8' }
+      case 'pending': return { text: 'ממתין לאישור', color: '#f59e0b' }
+      case 'borrowed': return { text: 'אושר', color: '#10b981' }
+      case 'rejected': return { text: 'נדחה', color: '#ef4444' }
+      case 'returned': return { text: 'הוחזר', color: '#6366f1' }
+      default: return { text: status, color: '#64748b' }
+    }
+  }
+
+  const getMessage = (srOverride?: string | null) => {
     if (!selectedWheel || !operator) return ''
 
     const contact = selectedWheel.station.managers?.find(m => m.id === selectedContact)
     const stationName = selectedWheel.station.name.replace('תחנת ', '')
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://wheel-stations.vercel.app'
-    const formUrl = `${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
+    const sr = srOverride !== undefined ? srOverride : sendRequestId
+    const formUrl = `${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}${sr ? `&sr=${sr}` : ''}`
 
     const defaultTemplate = `תפתח קריאה שינוע לפנצ'ריה
 בפרטים: איסוף מתחנת גלגלים
@@ -749,24 +836,27 @@ ${contact?.phone || ''}
     return template.includes('{link}') ? template.replace('{link}', formUrl) : `${template}\n\n${formUrl}`
   }
 
-  const copyMessage = () => {
-    navigator.clipboard.writeText(getMessage())
+  const copyMessage = async () => {
+    const sr = await ensureSendRequestId()
+    navigator.clipboard.writeText(getMessage(sr))
     setCopied(true)
     toast.success('ההודעה הועתקה!')
     setTimeout(() => setCopied(false), 2000)
   }
 
   // Get just the link for driver
-  const getFormLink = () => {
+  const getFormLink = (srOverride?: string | null) => {
     if (!selectedWheel || !operator) return ''
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://wheel-stations.vercel.app'
-    return `${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}`
+    const sr = srOverride !== undefined ? srOverride : sendRequestId
+    return `${baseUrl}/sign/${selectedWheel.station.id}?wheel=${selectedWheel.wheelNumber}&ref=operator_${operator.id}${sr ? `&sr=${sr}` : ''}`
   }
 
   const [copiedLink, setCopiedLink] = useState(false)
 
-  const copyLinkForDriver = () => {
-    navigator.clipboard.writeText(getFormLink())
+  const copyLinkForDriver = async () => {
+    const sr = await ensureSendRequestId()
+    navigator.clipboard.writeText(getFormLink(sr))
     setCopiedLink(true)
     toast.success('הלינק הועתק - שלח לכונן!')
     setTimeout(() => setCopiedLink(false), 2000)
@@ -1186,6 +1276,49 @@ ${contact?.phone || ''}
             </div>
           )}
         </div>
+
+        {/* Recently sent requests */}
+        {sentRequests.length > 0 && (
+          <div style={styles.section} className="operator-section">
+            <h3 style={styles.sectionTitle} className="operator-section-title">
+              <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                בקשות שנשלחו לאחרונה
+              </span>
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {sentRequests.map(sr => {
+                const result = statusResults[sr.id]
+                const checking = statusChecking[sr.id]
+                const label = result ? sentRequestStatusLabel(result.status) : null
+                return (
+                  <div key={sr.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: '160px' }}>
+                      <span style={{ fontSize: '0.9rem', color: '#1e293b' }}>גלגל #{sr.wheel_number} — {sr.station_name}</span>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{new Date(sr.created_at).toLocaleString('he-IL')}</span>
+                    </div>
+                    {label ? (
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: label.color, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        {label.text}{result?.borrower_name ? ` — ${result.borrower_name}` : ''}
+                        <button onClick={() => checkSentRequestStatus(sr.id)} disabled={checking} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline', fontFamily: 'inherit' }}>
+                          רענן
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => checkSentRequestStatus(sr.id)}
+                        disabled={checking}
+                        style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: checking ? 'default' : 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', opacity: checking ? 0.6 : 1 }}
+                      >
+                        {checking ? 'בודק...' : 'בדוק סטטוס'}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Results */}
         {results.length > 0 && (
