@@ -35,7 +35,7 @@ interface Station {
 
 interface WheelResult {
   station: Station
-  wheels: { wheel_number: number; rim_size: string; pcd: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
+  wheels: { wheel_number: number; rim_size: string; pcd: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
   availableCount: number
   totalCount: number
 }
@@ -122,6 +122,16 @@ export default function OperatorPage() {
   const [sentRequestsLoading, setSentRequestsLoading] = useState(false)
   const [statusChecking, setStatusChecking] = useState<Record<string, boolean>>({})
   const [statusResults, setStatusResults] = useState<Record<string, { status: string; borrower_name?: string }>>({})
+
+  // "תחנות ואנשי קשר" — global station directory, independent of any vehicle search
+  const [showStationsContactsModal, setShowStationsContactsModal] = useState(false)
+  const [allStations, setAllStations] = useState<{ id: string; name: string; address?: string; district?: string | null; wheel_station_managers: StationManager[] }[]>([])
+  const [allStationsLoading, setAllStationsLoading] = useState(false)
+
+  // Simplified יש/בספק/אין matching for operators — "fast path" spec set confirmed
+  // trustworthy via verified_wheel_matches / trusted_vehicle_wheel_matches
+  const [trustedSpecs, setTrustedSpecs] = useState<Set<string>>(new Set())
+  const [consultWheel, setConsultWheel] = useState<{ station: Station; wheel: WheelResult['wheels'][number] } | null>(null)
 
   // Check for saved session and fetch filter options
   useEffect(() => {
@@ -588,6 +598,8 @@ export default function OperatorPage() {
         wheels: result.wheels.map(w => ({
           ...w,
           pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`,
+          bolt_count: pcdInfo.bolt_count,
+          bolt_spacing: pcdInfo.bolt_spacing,
           center_bore: (w as any).center_bore,
           is_donut: w.is_donut
         })),
@@ -733,6 +745,22 @@ export default function OperatorPage() {
     setSendRequestId(null)
   }
 
+  // Opens the global stations-and-contacts directory, fetching the list only once
+  const openStationsContactsModal = async () => {
+    setShowStationsContactsModal(true)
+    if (allStations.length > 0) return
+    setAllStationsLoading(true)
+    try {
+      const res = await fetch('/api/wheel-stations')
+      const data = await res.json()
+      if (res.ok) setAllStations(data.stations || [])
+    } catch (err) {
+      console.error('Failed to fetch stations:', err)
+    } finally {
+      setAllStationsLoading(false)
+    }
+  }
+
   const fetchSentRequests = async () => {
     if (!operator) return
     setSentRequestsLoading(true)
@@ -843,6 +871,125 @@ ${contact?.phone || ''}
     toast.success('ההודעה הועתקה!')
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const sendWhatsAppMessage = async () => {
+    const contact = selectedWheel?.station.managers?.find(m => m.id === selectedContact)
+    if (!contact?.phone) {
+      toast.error('נא לבחור איש קשר עם מספר טלפון')
+      return
+    }
+    // Open the tab synchronously (still inside the click's user-gesture window) and
+    // navigate it once the message is ready — awaiting ensureSendRequestId() first would
+    // make window.open() fire outside the gesture, which browsers silently popup-block.
+    const win = window.open('', '_blank')
+    const sr = await ensureSendRequestId()
+    const message = getMessage(sr)
+    const cleanPhone = contact.phone.replace(/\D/g, '')
+    const internationalPhone = cleanPhone.startsWith('0') ? '972' + cleanPhone.slice(1) : cleanPhone
+    const url = `https://wa.me/${internationalPhone}?text=${encodeURIComponent(message)}`
+    if (win) win.location.href = url
+    else window.open(url, '_blank')
+  }
+
+  const waLink = (phone: string) => {
+    const cleanPhone = phone.replace(/\D/g, '')
+    const internationalPhone = cleanPhone.startsWith('0') ? '972' + cleanPhone.slice(1) : cleanPhone
+    return `https://wa.me/${internationalPhone}`
+  }
+
+  // Simplified יש/בספק/אין matching — only meaningful when there's a vehicle to compare
+  // against (plate/model tabs). The spec tab has no vehicle, so it keeps showing raw specs.
+  type WheelTier = 'yes' | 'maybe' | 'no'
+
+  const specKeyOf = (w: { rim_size: string; bolt_count: number; bolt_spacing: number }) =>
+    `${w.rim_size}|${w.bolt_count}|${w.bolt_spacing}`
+
+  const getRawWheelTier = (wheel: WheelResult['wheels'][number]): WheelTier => {
+    const wheelSize = parseInt(wheel.rim_size)
+    const vehicleRimSize = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
+    let sizeMatch: 'exact' | 'smaller' | null = null
+    if (vehicleRimSize && wheelSize) {
+      if (wheelSize === vehicleRimSize) sizeMatch = 'exact'
+      else if (wheelSize < vehicleRimSize) sizeMatch = 'smaller'
+    }
+    const vCB = vehicleInfo?.center_bore
+    const wCB = wheel.center_bore
+    const cbRed = !!(vCB && wCB && wCB < vCB)
+    const cbOrange = !!(vCB && wCB && (wCB - vCB) >= 2)
+    if (cbRed) return 'no'
+    if (sizeMatch === 'smaller' || cbOrange) return 'maybe'
+    return 'yes'
+  }
+
+  // Fast path: 2+ verified field returns, or a manual admin whitelist entry, upgrades
+  // a "maybe" straight to "yes" — the operator never sees which mechanism did it.
+  const getEffectiveTier = (wheel: WheelResult['wheels'][number]): WheelTier => {
+    const raw = getRawWheelTier(wheel)
+    if (raw === 'maybe' && trustedSpecs.has(specKeyOf(wheel))) return 'yes'
+    return raw
+  }
+
+  // A wheel counts as an available match only if it's available, not oversized, and
+  // (when there's a vehicle to compare against) not a definite physical mismatch.
+  const isAvailableMatch = (w: WheelResult['wheels'][number]) => {
+    if (!w.is_available || w.temporarily_unavailable) return false
+    const ws = parseInt(w.rim_size)
+    const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
+    if (vrs && ws > vrs) return false
+    if (vehicleInfo && getEffectiveTier(w) === 'no') return false
+    return true
+  }
+
+  const buildConsultMessage = (station: Station, wheel: WheelResult['wheels'][number]) => {
+    const vehicleLine = vehicleInfo ? `${vehicleInfo.manufacturer} ${vehicleInfo.model} ${vehicleInfo.year}` : ''
+    const plateSuffix = plateNumber.trim() ? ` (${plateNumber.trim()})` : ''
+    return `היי, יש לי רכב ${vehicleLine}${plateSuffix} ומתלבט לגבי גלגל #${wheel.wheel_number} בתחנת ${station.name.replace('תחנת ', '')} (${wheel.pcd}, ${wheel.rim_size}"${wheel.center_bore ? `, CB ${wheel.center_bore}` : ''}) — אפשר לדעת אם זה יתאים?`
+  }
+
+  // After the raw tiers are known, ask once (batched across all stations/wheels) whether
+  // any "maybe" spec should be fast-tracked to "yes" for this vehicle.
+  useEffect(() => {
+    if (!vehicleInfo || results.length === 0) {
+      setTrustedSpecs(new Set())
+      return
+    }
+    const specsMap = new Map<string, { rim_size: string; bolt_count: number; bolt_spacing: number }>()
+    for (const r of results) {
+      for (const w of r.wheels) {
+        if (!w.is_available || w.temporarily_unavailable) continue
+        if (getRawWheelTier(w) === 'maybe') {
+          specsMap.set(specKeyOf(w), { rim_size: w.rim_size, bolt_count: w.bolt_count, bolt_spacing: w.bolt_spacing })
+        }
+      }
+    }
+    if (specsMap.size === 0) {
+      setTrustedSpecs(new Set())
+      return
+    }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/wheel-stations/verified-matches', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vehicle_make: vehicleInfo.manufacturer,
+            vehicle_model: vehicleInfo.model,
+            vehicle_year: vehicleInfo.year,
+            specs: Array.from(specsMap.values())
+          })
+        })
+        const data = await res.json()
+        if (cancelled) return
+        setTrustedSpecs(new Set((data.trusted || []).map(specKeyOf)))
+      } catch (err) {
+        console.error('Failed to check verified matches:', err)
+        if (!cancelled) setTrustedSpecs(new Set())
+      }
+    })()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results, vehicleInfo])
 
   // Get just the link for driver
   const getFormLink = (srOverride?: string | null) => {
@@ -961,6 +1108,22 @@ ${contact?.phone || ''}
           </div>
 
           <div style={{flex:1}}/>
+
+          {/* Stations & contacts directory */}
+          <button
+            style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              background: 'rgba(59,130,246,0.09)', color: '#2563eb',
+              fontSize: '12px', fontWeight: 600, padding: '5px 10px',
+              borderRadius: '20px', cursor: 'pointer',
+              border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap',
+              marginLeft: '8px',
+            }}
+            onClick={openStationsContactsModal}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span className="op-profile-name">תחנות ואנשי קשר</span>
+          </button>
 
           {/* Role chip */}
           {authRoles.length > 0 && currentRoleLabel && (
@@ -1326,11 +1489,7 @@ ${contact?.phone || ''}
             <div style={styles.resultsHeader}>
               <h3 style={styles.sectionTitle}>תוצאות חיפוש</h3>
               <span style={styles.resultsCount}>
-                נמצאו {results.reduce((sum, r) => sum + r.wheels.filter(w => {
-                  const ws = parseInt(w.rim_size)
-                  const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                  return w.is_available && !w.temporarily_unavailable && !(vrs && ws > vrs)
-                }).length, 0)} גלגלים זמינים ב-{results.length} תחנות
+                נמצאו {results.reduce((sum, r) => sum + r.wheels.filter(isAvailableMatch).length, 0)} גלגלים זמינים ב-{results.length} תחנות
               </span>
             </div>
 
@@ -1342,11 +1501,7 @@ ${contact?.phone || ''}
                     <div style={styles.stationAddress}>{result.station.address || 'כתובת לא הוגדרה'}</div>
                   </div>
                   <span style={styles.wheelCount}>
-                    {result.wheels.filter(w => {
-                      const ws = parseInt(w.rim_size)
-                      const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                      return w.is_available && !w.temporarily_unavailable && !(vrs && ws > vrs)
-                    }).length} זמינים
+                    {result.wheels.filter(isAvailableMatch).length} זמינים
                     {result.wheels.filter(w => !w.is_available || w.temporarily_unavailable).length > 0 && (
                       <span style={{color: '#94a3b8', fontSize: '0.8em', marginRight: '4px'}}>
                         ({result.wheels.filter(w => !w.is_available || w.temporarily_unavailable).length} בהשאלה)
@@ -1355,84 +1510,96 @@ ${contact?.phone || ''}
                   </span>
                 </div>
                 <div style={styles.wheelsGrid} className="operator-wheels-grid">
-                  {result.wheels
-                    .filter(wheel => {
-                      // Filter out wheels larger than vehicle rim size
+                  {(() => {
+                    const visibleWheels = result.wheels.filter(wheel => {
+                      if (!wheel.is_available || wheel.temporarily_unavailable) return true
                       const wheelSize = parseInt(wheel.rim_size)
                       const vehicleRimSize = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
                       if (vehicleRimSize && wheelSize > vehicleRimSize) return false
+                      // A definite physical mismatch (CB too small) isn't shown at all —
+                      // not even as a "no" option, per the מוקדן-facing simplified tiering.
+                      if (vehicleInfo && getEffectiveTier(wheel) === 'no') return false
                       return true
                     })
-                    .map(wheel => {
-                    const wheelSize = parseInt(wheel.rim_size)
-                    const vehicleRimSize = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                    let sizeMatch: 'exact' | 'smaller' | null = null
-                    if (vehicleRimSize && wheelSize) {
-                      if (wheelSize === vehicleRimSize) sizeMatch = 'exact'
-                      else if (wheelSize < vehicleRimSize) sizeMatch = 'smaller'
+
+                    if (visibleWheels.length === 0) {
+                      return <div style={{color: '#94a3b8', fontSize: '0.85rem', padding: '10px 4px'}}>אין גלגל תואם בתחנה זו</div>
                     }
-                    if (!wheel.is_available || wheel.temporarily_unavailable) {
+
+                    return visibleWheels.map(wheel => {
+                      if (!wheel.is_available || wheel.temporarily_unavailable) {
+                        return (
+                          <div
+                            key={wheel.wheel_number}
+                            style={{
+                              ...styles.wheelItem,
+                              background: 'rgba(148, 163, 184, 0.1)',
+                              border: '1px solid rgba(148, 163, 184, 0.3)',
+                              cursor: 'default',
+                              opacity: 0.7,
+                            }}
+                          >
+                            <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
+                            <div style={styles.wheelSpecs}>{wheel.rim_size}&quot;</div>
+                            <div style={{fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600, display:'flex', alignItems:'center', gap:'2px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {wheel.temporarily_unavailable ? 'לא זמין' : 'בהשאלה'}</div>
+                          </div>
+                        )
+                      }
+
+                      // Spec tab — no vehicle to compare against, keep the original
+                      // technical display exactly as before.
+                      if (!vehicleInfo) {
+                        const wheelSize = parseInt(wheel.rim_size)
+                        return (
+                          <div
+                            key={wheel.wheel_number}
+                            style={{...styles.wheelItem, ...(wheel.is_donut ? styles.wheelItemDonut : {})}}
+                            onClick={() => openModal(result.station, wheel.wheel_number, wheel.pcd)}
+                          >
+                            <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
+                            <div style={styles.wheelSpecs}>{wheel.pcd} | {wheelSize}&quot;{wheel.center_bore ? ` | CB ${wheel.center_bore}` : ''}</div>
+                            {wheel.is_donut && (
+                              <div style={{...styles.donutBadge, display:'flex', alignItems:'center', gap:'3px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> דונאט</div>
+                            )}
+                          </div>
+                        )
+                      }
+
+                      // Plate/model tabs — simplified יש/בספק tier, no technical numbers shown
+                      const tier = getEffectiveTier(wheel)
                       return (
                         <div
                           key={wheel.wheel_number}
                           style={{
                             ...styles.wheelItem,
-                            background: 'rgba(148, 163, 184, 0.1)',
-                            border: '1px solid rgba(148, 163, 184, 0.3)',
-                            cursor: 'default',
-                            opacity: 0.7,
+                            ...(tier === 'yes' ? styles.wheelItemExact : {}),
+                            ...(wheel.is_donut ? styles.wheelItemDonut : {})
                           }}
+                          onClick={() => openModal(result.station, wheel.wheel_number, wheel.pcd)}
                         >
                           <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
-                          <div style={styles.wheelSpecs}>{wheel.rim_size}&quot;</div>
-                          <div style={{fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', fontWeight: 600, display:'flex', alignItems:'center', gap:'2px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> {wheel.temporarily_unavailable ? 'לא זמין' : 'בהשאלה'}</div>
+                          {wheel.is_donut && (
+                            <div style={{...styles.donutBadge, display:'flex', alignItems:'center', gap:'3px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> דונאט</div>
+                          )}
+                          {tier === 'yes' ? (
+                            <div style={{fontSize: '0.75rem', marginTop: '4px', color: '#10b981', display: 'flex', alignItems: 'center', gap: '3px', fontWeight: 600}}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> יש
+                            </div>
+                          ) : (
+                            <>
+                              <div style={{fontSize: '0.75rem', marginTop: '4px', color: '#b45309', fontWeight: 600}}>? יתכן שיתאים</div>
+                              <button
+                                onClick={e => { e.stopPropagation(); setConsultWheel({ station: result.station, wheel }) }}
+                                style={{marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(37,99,235,0.1)', color: '#2563eb', border: 'none', borderRadius: '20px', padding: '4px 10px', fontSize: '0.7rem', cursor: 'pointer', fontWeight: 600}}
+                              >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> להתייעץ
+                              </button>
+                            </>
+                          )}
                         </div>
                       )
-                    }
-                    return (
-                      <div
-                        key={wheel.wheel_number}
-                        style={{
-                          ...styles.wheelItem,
-                          ...(sizeMatch === 'exact' ? styles.wheelItemExact : {}),
-                          ...(sizeMatch === 'smaller' ? styles.wheelItemSmaller : {}),
-                          ...(wheel.is_donut ? styles.wheelItemDonut : {})
-                        }}
-                        onClick={() => openModal(result.station, wheel.wheel_number, wheel.pcd)}
-                      >
-                        <div style={styles.wheelNumber}>#{wheel.wheel_number}</div>
-                        <div style={styles.wheelSpecs}>{wheel.pcd} | {wheel.rim_size}&quot;{wheel.center_bore ? ` | CB ${wheel.center_bore}` : ''}</div>
-                        {wheel.is_donut && (
-                          <div style={{...styles.donutBadge, display:'flex', alignItems:'center', gap:'3px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg> דונאט</div>
-                        )}
-                        {sizeMatch && (
-                          <div style={{
-                            fontSize: '0.7rem',
-                            marginTop: '4px',
-                            color: sizeMatch === 'exact' ? '#10b981' : '#f59e0b'
-                          }}>
-                            {sizeMatch === 'exact' ? <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>מתאים</span> : '↓ קטן יותר'}
-                          </div>
-                        )}
-                        {(() => {
-                          const vCB = vehicleInfo?.center_bore
-                          const wCB = wheel.center_bore
-                          if (!vCB || !wCB) return null
-                          if (wCB < vCB) return (
-                            <div style={{fontSize: '0.7rem', marginTop: '4px', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '2px'}}>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> CB גלגל ({wCB}) קטן מהרכב ({vCB})
-                            </div>
-                          )
-                          if ((wCB - vCB) >= 2) return (
-                            <div style={{fontSize: '0.7rem', marginTop: '4px', color: '#b45309', display: 'flex', alignItems: 'center', gap: '2px'}}>
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> יתכן ונדרש טבעת מירכוז
-                            </div>
-                          )
-                          return null
-                        })()}
-                      </div>
-                    )
-                  })}
+                    })
+                  })()}
                 </div>
               </div>
             ))}
@@ -1580,7 +1747,117 @@ ${contact?.phone || ''}
               >
                 {copiedLink ? <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> הלינק הועתק!</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/></svg> העתק לינק לכונן (ללא ווצאפ)</span>}
               </button>
+
+              <button
+                style={{
+                  ...styles.copyBtn,
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                }}
+                onClick={sendWhatsAppMessage}
+              >
+                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> שלח בוואטסאפ</span>
+              </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stations & Contacts Modal */}
+      {showStationsContactsModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowStationsContactsModal(false)}>
+          <div style={{...styles.modal, maxWidth: '480px'}} className="operator-modal" onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>תחנות ואנשי קשר</h3>
+              <button style={styles.closeBtn} onClick={() => setShowStationsContactsModal(false)}>×</button>
+            </div>
+
+            {allStationsLoading ? (
+              <div style={{display: 'flex', justifyContent: 'center', padding: '30px'}}>
+                <div style={styles.loadingSpinner}></div>
+              </div>
+            ) : allStations.length === 0 ? (
+              <div style={{textAlign: 'center', padding: '20px', color: '#64748b'}}>לא נמצאו תחנות</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {allStations.map(station => (
+                  <div key={station.id} style={{border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px'}}>
+                    <div style={{fontWeight: 600, color: '#1e293b', fontSize: '0.95rem'}}>{station.name}</div>
+                    {station.address && (
+                      <div style={{color: '#64748b', fontSize: '0.8rem', marginTop: '2px'}}>{station.address}</div>
+                    )}
+                    {station.wheel_station_managers && station.wheel_station_managers.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                        {station.wheel_station_managers.map(manager => (
+                          <div key={manager.id} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px'}}>
+                            <div>
+                              <div style={{color: '#334155', fontSize: '0.85rem', fontWeight: 500}}>{manager.full_name}</div>
+                              <div style={{color: '#94a3b8', fontSize: '0.75rem'}} dir="ltr">{manager.phone}</div>
+                            </div>
+                            <div style={{display: 'flex', gap: '6px', flexShrink: 0}}>
+                              <a
+                                href={`tel:${manager.phone}`}
+                                title="התקשר"
+                                style={{width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(59,130,246,0.1)', color: '#2563eb'}}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.58 2.72h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.56 6.56l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                              </a>
+                              <a
+                                href={waLink(manager.phone)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="וואטסאפ"
+                                style={{width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'rgba(34,197,94,0.1)', color: '#16a34a'}}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{color: '#94a3b8', fontSize: '0.8rem', marginTop: '6px'}}>אין אנשי קשר זמינים לתחנה זו</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Consult Modal — "בספק" wheel, internal question to the station's contacts */}
+      {consultWheel && (
+        <div style={styles.modalOverlay} onClick={() => setConsultWheel(null)}>
+          <div style={{...styles.modal, maxWidth: '420px'}} className="operator-modal" onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>התייעצות על גלגל #{consultWheel.wheel.wheel_number}</h3>
+              <button style={styles.closeBtn} onClick={() => setConsultWheel(null)}>×</button>
+            </div>
+            <p style={{color: '#64748b', marginBottom: '16px', fontSize: '0.85rem'}}>
+              הגלגל בספק התאמה לרכב. אפשר לשלוח שאלה מהירה לאחד מאנשי הקשר בתחנה:
+            </p>
+            {consultWheel.station.managers && consultWheel.station.managers.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {consultWheel.station.managers.map(manager => (
+                  <a
+                    key={manager.id}
+                    href={`${waLink(manager.phone)}?text=${encodeURIComponent(buildConsultMessage(consultWheel.station, consultWheel.wheel))}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setConsultWheel(null)}
+                    style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', color: '#1e293b', textDecoration: 'none'}}
+                  >
+                    <div>
+                      <div style={{fontSize: '0.85rem', fontWeight: 600}}>{manager.full_name}</div>
+                      <div style={{fontSize: '0.75rem', color: '#94a3b8'}} dir="ltr">{manager.phone}</div>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{color: '#94a3b8', textAlign: 'center', padding: '10px'}}>אין אנשי קשר זמינים לתחנה זו</div>
+            )}
           </div>
         </div>
       )}

@@ -555,7 +555,7 @@ const s: Record<string, React.CSSProperties> = {
     padding: '9px 14px', color: '#1e293b', borderBottom: '1px solid #f1f5f9', verticalAlign: 'middle',
   },
   tdNum: {
-    padding: '9px 14px', fontWeight: 700, textAlign: 'center',
+    padding: '9px 14px', fontWeight: 700, textAlign: 'right',
     borderBottom: '1px solid #f1f5f9', verticalAlign: 'middle',
   },
 

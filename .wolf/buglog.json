@@ -3418,6 +3418,606 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-22T19:05:34.764Z"
+    },
+    {
+      "id": "bug-210",
+      "timestamp": "2026-08-22T22:04:12.743Z",
+      "error_message": "Incorrect value in code",
+      "file": "test-status-e2e.tmp.js",
+      "root_cause": "Had '=== Shows wheel #2 in the list?'",
+      "fix": "Changed to '=== Shows wheel #04 in the list?'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-22T22:04:29.907Z"
+    },
+    {
+      "id": "bug-211",
+      "timestamp": "2026-08-22T22:09:05.624Z",
+      "error_message": "Incorrect value in code",
+      "file": "UX_AUDIT_TODO.md",
+      "root_cause": "Had \"מחכה להחלטה/קלט שלך\"",
+      "fix": "Changed to \"במקרים חריגים (למשל השאלה למרחק נסיעה גדול), אחד ",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-22T22:09:05.624Z"
+    },
+    {
+      "id": "bug-212",
+      "timestamp": "2026-08-22T22:20:01.716Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f2855ed1-2611-4f5d-8860-bdc62b26ff12/scratchpad/deploy-checklist.html",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 15→36 lines (3 removed) | Also: { id: 'a1', text: 'התחברות מנהל תחנה (טלפון+סיסמה); { id: 'a2', text: 'שחזור סיסמה למנהל תחנה ממסך הכנ | Also: { id: 'b_1', text: 'כניסה ל-/lookup מפנה מיידית ל-; { id: 'b_2', text: 'מבקר לא-מחובר ב-/search רואה ה | Also: { id: 'c1', text: 'טאב \"מעקב\" אצל מנהל תחנה: הכרטי; { id: 'c2', text: 'בקשה בסטטוס \"ממתין\" מציגה 3 כפת | Also: { id: 'd1', text: 'החלפת תפקיד דרך הצ׳יפ ב-AppHead; { id: 'd2', text: 'מעבר מוקדן ↔ מנהל-מוקד דרך Admi | Also: { id: 'e1', text: 'הרשמה לטביעת אצבע ממסך הכניסה, ; { id: 'e2', text: 'אחרי הרשמה מוצלחת, בכניסה הבאה  | Also: { id: 'f1', text: 'מודל \"איפוס סיסמא\" מציג 2 טאבים; { id: 'f2', text: 'טאב תעודת שחזור הקיים עדיין עוב | Also: { id: 'g1', text: 'לפני הרצת המיגרציה (ראה פריט קר; { id: 'g2', text: 'אחרי הרצת המיגרציה: שליחת בקשה  | Also: { id: 'h1', text: 'כניסה כמנהל תחנה — מסך תחנה נטע; { id: 'h2', text: 'כניסה כמוקדן — מסך /operator נט",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 9,
+      "last_seen": "2026-08-22T22:23:17.809Z"
+    },
+    {
+      "id": "bug-213",
+      "timestamp": "2026-08-23T18:12:46.024Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: פיקדון חריג (ריק = ברירת מחדל ₪{manualBorrowWheel?.custom_de; <input | Also: const depositAmount = borrow.deposit_amount_override ?? borr | Also: const amt = previewBorrow.deposit_amount_override ?? preview",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 5,
+      "last_seen": "2026-08-23T18:14:41.241Z"
+    },
+    {
+      "id": "bug-214",
+      "timestamp": "2026-08-23T18:15:37.271Z",
+      "error_message": "Type error",
+      "file": "src/app/sign/[stationId]/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: const effectiveDeposit = (depositOverride && depositOverride",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-23T18:15:43.550Z"
+    },
+    {
+      "id": "bug-215",
+      "timestamp": "2026-08-23T18:15:50.497Z",
+      "error_message": "CSS fix: operator_send_request_id",
+      "file": "src/app/sign/[stationId]/page.tsx",
+      "root_cause": "operator_send_request_id: operatorSendRequestId → operatorSendRequestId,",
+      "fix": "Changed operator_send_request_id: operatorSendRequestId → operatorSendRequestId,",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T18:15:50.497Z"
+    },
+    {
+      "id": "bug-216",
+      "timestamp": "2026-08-23T19:12:31.535Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f2855ed1-2611-4f5d-8860-bdc62b26ff12/scratchpad/deploy-checklist.html",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 6→7 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T19:12:31.535Z"
+    },
+    {
+      "id": "bug-217",
+      "timestamp": "2026-08-23T20:06:15.462Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T20:06:15.462Z"
+    },
+    {
+      "id": "bug-218",
+      "timestamp": "2026-08-23T20:07:05.499Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T20:07:05.499Z"
+    },
+    {
+      "id": "bug-219",
+      "timestamp": "2026-08-23T20:07:56.624Z",
+      "error_message": "Type error",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T20:07:56.624Z"
+    },
+    {
+      "id": "bug-220",
+      "timestamp": "2026-08-23T20:37:30.928Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/test-operator-contact.mjs",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 6→11 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T20:37:30.928Z"
+    },
+    {
+      "id": "bug-221",
+      "timestamp": "2026-08-23T22:13:46.719Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/test-operator-contact.mjs",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T22:13:46.719Z"
+    },
+    {
+      "id": "bug-222",
+      "timestamp": "2026-08-23T22:15:56.220Z",
+      "error_message": "שלח בוואטסאפ (operator/page.tsx) פותח טאב ריק/נחסם ע\"י הדפדפן, לא נכנס ל-wa.me",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "sendWhatsAppMessage() קרא await ensureSendRequestId() (fetch רשתי) ורק אז window.open(waUrl, \"_blank\") - ברגע שיש await לפני window.open, הקריאה כבר לא נחשבת סינכרונית ל-user gesture של הקליק, והדפדפן חוסם אותה כפופ-אפ בשקט (אומת חי ב-Playwright: הפופ-אפ נפתח כ-about:blank ולא ניווט לשום מקום). נמצא תוך כדי בדיקה חיה של פיצ'ר חדש, לא דווח ע\"י המשתמש.",
+      "fix": "שינוי הסדר: window.open(\"\", \"_blank\") נקרא סינכרונית ראשון (בתוך חלון ה-gesture), ורק אחרי ה-await מנווטים אותו בפועל עם win.location.href = waUrl. פולבק ל-window.open(waUrl, \"_blank\") הרגיל אם החלון הסינכרוני לא נפתח (למשל דפדפן שחוסם window.open(\"\") ריק). אומת חי: הפופ-אפ מנווט נכון ל-api.whatsapp.com עם המספר/הודעה הנכונים.",
+      "tags": [
+        "popup-blocked",
+        "window-open",
+        "async-gesture",
+        "whatsapp",
+        "operator"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T22:15:56.227Z"
+    },
+    {
+      "id": "bug-223",
+      "timestamp": "2026-08-23T22:17:41.434Z",
+      "error_message": "Null/undefined access in ",
+      "file": "UX_AUDIT_TODO.md",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-23T22:17:41.434Z"
+    },
+    {
+      "id": "bug-224",
+      "timestamp": "2026-08-24T05:37:03.209Z",
+      "error_message": "CSS fix: href",
+      "file": "src/components/admin/AdminSidebar.tsx",
+      "root_cause": "href: '/admin/vehicles',     label: 'מאגר רכבים',   icon: icons.vehicles → '/admin/trusted-matches', label: 'התאמות מהימנות', icon: icons.trustedMatches",
+      "fix": "Changed href: '/admin/vehicles',     label: 'מאגר רכבים',   icon: icons.vehicles → '/admin/trusted-matches', label: 'התאמות מהימנות', icon: icons.trustedMatches",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T05:37:03.209Z"
+    },
+    {
+      "id": "bug-225",
+      "timestamp": "2026-08-24T05:42:01.584Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T05:42:01.584Z"
+    },
+    {
+      "id": "bug-226",
+      "timestamp": "2026-08-24T05:42:59.010Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 7→3 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T05:42:59.011Z"
+    },
+    {
+      "id": "bug-227",
+      "timestamp": "2026-08-24T05:43:09.902Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T05:43:09.902Z"
+    },
+    {
+      "id": "bug-228",
+      "timestamp": "2026-08-24T05:44:25.220Z",
+      "error_message": "Type error",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T05:44:25.220Z"
+    },
+    {
+      "id": "bug-229",
+      "timestamp": "2026-08-24T06:44:57.297Z",
+      "error_message": "Significant refactor of ",
+      "file": "UX_AUDIT_TODO.md",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 4→3 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T06:44:57.297Z"
+    },
+    {
+      "id": "bug-230",
+      "timestamp": "2026-08-24T10:26:44.859Z",
+      "error_message": "CSS fix: padding",
+      "file": "src/app/admin/analytics/page.tsx",
+      "root_cause": "padding: '9px 14px', fontWeight: 700, textAlign: 'center', → '9px 14px', fontWeight: 700, textAlign: 'right',",
+      "fix": "Changed padding: '9px 14px', fontWeight: 700, textAlign: 'center', → '9px 14px', fontWeight: 700, textAlign: 'right',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-24T10:26:52.621Z"
+    },
+    {
+      "id": "bug-231",
+      "timestamp": "2026-08-24T10:27:07.975Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Was returning: `היי, יש לי רכב ${vehicleLine} ומתלבט לגבי גלגל #$",
+      "fix": "Now returns: `היי, יש לי רכב ${vehicleLine}${plateSuffix} ומתלב",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T10:27:07.975Z"
+    },
+    {
+      "id": "bug-232",
+      "timestamp": "2026-08-24T10:39:58.846Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/shot-station.mjs",
+      "root_cause": "Had '00000000-0000-0000-0000-000000000009'",
+      "fix": "Changed to '6089570e-c8f0-4d5e-8089-95687e18a970'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T10:39:58.846Z"
+    },
+    {
+      "id": "bug-233",
+      "timestamp": "2026-08-24T10:43:25.001Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Had '#fff'",
+      "fix": "Changed to '#1e293b'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T10:43:25.001Z"
+    },
+    {
+      "id": "bug-234",
+      "timestamp": "2026-08-24T10:51:17.484Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/shot-admin2.mjs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7→9 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T10:51:17.484Z"
+    },
+    {
+      "id": "bug-235",
+      "timestamp": "2026-08-24T10:53:56.571Z",
+      "error_message": "הוספת תפקיד \"מנהל מחוז\" לא מאפשרת לבחור מחוז ספציפי - נותנת גישה לכל המחוזות תמיד",
+      "file": "src/app/admin/users/page.tsx",
+      "root_cause": "שני הטפסים ליצירת תפקיד super_manager (הוספת משתמש חדש והוספת תפקיד למשתמש קיים) שלחו רק can_edit ב-body, בלי allowed_districts בכלל - למרות שה-DB (allowed_districts: string[] | null) וה-API (api/admin/users/route.ts, api/admin/users/[userId]/roles/route.ts) כבר תומכים בזה במלואו, ולמרות ש-super-manager/page.tsx כבר מסנן לפי זה. התוצאה: allowed_districts תמיד null => גישה לכל המחוזות (blanket), בלי דרך UI לצמצם.",
+      "fix": "נוסף fetch ל-/api/districts הקיים (מחזיר districts שכבר בשימוש ב-admin/page.tsx), state חדש addDistricts/addRoleDistricts, ותצוגת checkbox-ים למחוזות (ריק = כל המחוזות, במפורש) בשני המודלים. allowed_districts נכלל עכשיו ב-body של שתי הקריאות. אומת חי: בחירת תפקיד \"מנהל מחוז\" מציגה עכשיו checkbox-ים לצפון/מרכז/ירושלים/דרום.",
+      "tags": [
+        "district-manager",
+        "super_manager",
+        "allowed_districts",
+        "admin-users",
+        "missing-ui"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T10:53:56.571Z"
+    },
+    {
+      "id": "bug-236",
+      "timestamp": "2026-08-24T10:53:56.571Z",
+      "error_message": "בהגדרות תחנה (עריכת פרטי תחנה), תוויות אמצעי התשלום (מזומן/ביט/פייבוקס/העברה בנקאית/פיקדון ת.ז./פיקדון רישיון) לא נראות - טקסט לבן על רקע בהיר",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "שש תוויות <span> קיבלו color: \"#fff\" בטעות (כנראה שארית מקוד שהועתק ממודל בעל רקע כהה) בתוך מודל שהרקע שלו הוא styles.modal (#ffffff) בתוך סקשן עם background: #f8fafc - כלומר טקסט לבן על רקע כמעט-לבן, בלתי קריא כמעט לחלוטין.",
+      "fix": "שינוי כל 6 המופעים מ-color: \"#fff\" ל-color: \"#1e293b\" (אותו צבע כמו modalTitle ושאר הטקסט הכהה במודלים בקובץ הזה).",
+      "tags": [
+        "contrast",
+        "accessibility",
+        "station-settings",
+        "white-on-white",
+        "stationId-page"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T10:53:56.571Z"
+    },
+    {
+      "id": "bug-237",
+      "timestamp": "2026-08-24T11:04:30.701Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/plans/splendid-dreaming-ullman.md",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 7→10 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T11:04:30.701Z"
+    },
+    {
+      "id": "bug-238",
+      "timestamp": "2026-08-24T11:08:21.687Z",
+      "error_message": "CSS fix: width, background",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "width: 6, height: 6, borderRadius: '50%', → '100%', background: 'none', border: 'none', cursor: 'pointer'; background: '#22c55e', → '#f1f5f9'",
+      "fix": "Changed width: 6, height: 6, borderRadius: '50%', → '100%', background: 'none', border: 'none', cursor: 'pointer'; background: '#22c55e', → '#f1f5f9'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T11:08:21.687Z"
+    },
+    {
+      "id": "bug-239",
+      "timestamp": "2026-08-24T11:27:31.429Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/shot-header.mjs",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: await page.waitForSelector('text=מלאי גלגלים', { timeout: 20; await page.waitForTimeout(1500)",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-24T11:32:19.646Z"
+    },
+    {
+      "id": "bug-240",
+      "timestamp": "2026-08-24T11:28:02.101Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/shot-header.mjs",
+      "root_cause": "Had `station_session_${sid}`",
+      "fix": "Changed to `tour_v1_${sid}`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T11:28:02.101Z"
+    },
+    {
+      "id": "bug-241",
+      "timestamp": "2026-08-24T11:28:13.589Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/shot-header.mjs",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 7→4 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T11:28:13.589Z"
+    },
+    {
+      "id": "bug-242",
+      "timestamp": "2026-08-24T11:34:23.447Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/shot-header.mjs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 5→4 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T11:34:23.447Z"
+    },
+    {
+      "id": "bug-243",
+      "timestamp": "2026-08-24T11:50:20.995Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/test-webauthn-fix.mjs",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T11:50:20.995Z"
+    },
+    {
+      "id": "bug-244",
+      "timestamp": "2026-08-24T11:56:36.745Z",
+      "error_message": "Wrong reference: 4000 should be 10000",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/test-webauthn-fix.mjs",
+      "root_cause": "Used \"4000\" instead of \"10000\"",
+      "fix": "Changed 4000 → 10000",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T11:56:36.745Z"
+    },
+    {
+      "id": "bug-245",
+      "timestamp": "2026-08-24T12:03:34.834Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/test-webauthn-login.mjs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→8 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T12:03:34.834Z"
+    },
+    {
+      "id": "bug-237",
+      "timestamp": "2026-08-24T12:06:53.632Z",
+      "error_message": "הפעלת כניסה ביומטרית (טביעת אצבע) עדיין מציעה לשמור \"מפתח גישה\" (Passkey) במקום פרומפט טביעת-אצבע פנימי ישיר, למרות ש-residentKey כבר הוגדר ל-discouraged בסבב קודם",
+      "file": "src/app/api/auth/webauthn/register/begin/route.ts",
+      "root_cause": "authenticatorSelection לא כלל authenticatorAttachment בכלל. residentKey:\"discouraged\" שולט רק בשאלה האם המפתח יהיה discoverable, אבל לא בשאלה אילו סוגי authenticator-ים הדפדפן מציע לבחור מהם - בלי authenticatorAttachment:\"platform\" הדפדפן עדיין מציג את הבורר המלא (כולל שמירה ל-Passkey Manager/מפתח אבטחה חיצוני), לא רק את הקורא הפנימי של המכשיר.",
+      "fix": "נוסף authenticatorAttachment: \"platform\" לאובייקט authenticatorSelection. אומת חי (Chrome DevTools Protocol virtual authenticator, protocol:ctap2 transport:internal isUserVerified:true) שההרשמה עדיין מסתיימת בהצלחה ויוצרת רשומת webauthn_credentials אמיתית עם transports:[\"internal\"], וכפתור הכניסה הביומטרית מופיע מיד אחרי. אימות ה-UX האמיתי (שהבורר של המערכת ההפעלה נעלם) חייב מכשיר אמיתי - סימולציית CDP לא משחזרת את הבורר עצמו.",
+      "tags": [
+        "webauthn",
+        "passkey",
+        "authenticatorAttachment",
+        "biometric-login",
+        "register-begin"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T12:06:53.632Z"
     }
   ]
 }

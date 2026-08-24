@@ -39,6 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         actual_return_date,
         deposit_type,
         deposit_details,
+        deposit_amount_override,
         notes,
         status,
         signature_data,

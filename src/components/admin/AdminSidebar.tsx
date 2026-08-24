@@ -48,6 +48,11 @@ const icons = {
       <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
     </svg>
   ),
+  trustedMatches: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  ),
   logout: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
@@ -63,6 +68,7 @@ const icons = {
 const NAV: ({ href: string; label: string; icon: React.ReactNode; badge?: boolean; divider?: boolean } | { divider: true; href?: undefined })[] = [
   { href: '/admin',              label: 'תחנות',        icon: icons.stations    },
   { href: '/admin/vehicles',     label: 'מאגר רכבים',   icon: icons.vehicles    },
+  { href: '/admin/trusted-matches', label: 'התאמות מהימנות', icon: icons.trustedMatches },
   { href: '/admin/reports',      label: 'דיווחי שגיאות', icon: icons.reports, badge: true },
   { href: '/admin/call-centers', label: 'מוקדים',       icon: icons.callCenters },
   { href: '/admin/punctures',    label: 'פנצ׳ריות',     icon: icons.punctures   },

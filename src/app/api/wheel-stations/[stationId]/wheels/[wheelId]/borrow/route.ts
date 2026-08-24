@@ -22,7 +22,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { borrower_name, borrower_phone, expected_return_date, deposit_type, deposit_details, notes, vehicle_model, vehicle_plate, manager_phone, manager_password } = body
+    const { borrower_name, borrower_phone, expected_return_date, deposit_type, deposit_details, deposit_amount_override, notes, vehicle_model, vehicle_plate, manager_phone, manager_password } = body
 
     // Verify manager credentials
     if (!manager_phone || !manager_password) {
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         expected_return_date,
         deposit_type,
         deposit_details,
+        deposit_amount_override: (typeof deposit_amount_override === 'number' && deposit_amount_override > 0) ? deposit_amount_override : null,
         notes,
         vehicle_model,
         license_plate: vehicle_plate,

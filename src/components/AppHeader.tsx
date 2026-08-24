@@ -37,6 +37,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   const [userSession, setUserSession] = useState<UserSession | null>(null)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showFormSubmenu, setShowFormSubmenu] = useState(false)
+  const [expandedGroup, setExpandedGroup] = useState<'station' | 'account' | 'help' | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
   const [activeRole, setActiveRole] = useState<string | null>(null)
@@ -332,112 +333,140 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
 
           {(isOwnStation || isOnStationsPage || isOnSearchPage) && (
             <>
-              <Link href={`/search?from=${userSession.stationId}`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <span>חיפוש רכב</span>
-              </Link>
-              <Link href="/stations" style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-                </svg>
-                <span>כל התחנות</span>
-              </Link>
-              <Link href={`/${userSession.stationId}?action=add`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-                </svg>
-                <span>הוסף גלגל</span>
-              </Link>
-              <Link href={`/${userSession.stationId}?action=excel`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/>
-                </svg>
-                <span>יבוא/יצוא Excel</span>
-              </Link>
-              <Link href={`/${userSession.stationId}?action=settings`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-                </svg>
-                <span>הגדרות תחנה</span>
-              </Link>
-              <Link href={`/${userSession.stationId}?action=notifications`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
-                  </svg>
-                  {pushEnabled && (
-                    <span style={{
-                      position: 'absolute', top: -2, right: -2,
-                      width: 6, height: 6, borderRadius: '50%',
-                      background: '#22c55e',
-                      border: '1px solid #fff',
-                    }} />
-                  )}
-                </div>
-                <span>הפעל התראות</span>
-              </Link>
-
+              {/* Group: ניהול התחנה */}
               <div style={styles.submenuContainer}>
                 <button
                   style={{ ...styles.dropdownItem, ...styles.submenuTrigger }}
-                  onClick={(e) => { e.stopPropagation(); setShowFormSubmenu(!showFormSubmenu) }}
+                  onClick={(e) => { e.stopPropagation(); setExpandedGroup(g => g === 'station' ? null : 'station') }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
                   </svg>
-                  <span>קישור לטופס השאלה</span>
+                  <span>ניהול התחנה</span>
                   <span style={styles.submenuArrow}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      {showFormSubmenu ? <polyline points="18 15 12 9 6 15"/> : <polyline points="6 9 12 15 18 9"/>}
+                      {expandedGroup === 'station' ? <polyline points="18 15 12 9 6 15"/> : <polyline points="6 9 12 15 18 9"/>}
                     </svg>
                   </span>
                 </button>
-                {showFormSubmenu && (
+                {expandedGroup === 'station' && (
                   <div style={styles.submenu}>
-                    <Link href={`/sign/${userSession.stationId}`} style={styles.submenuItem} onClick={() => { setShowProfileMenu(false); setShowFormSubmenu(false) }}>
+                    <Link href={`/${userSession.stationId}?action=add`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
                       </svg>
-                      <span>פתח טופס</span>
+                      <span>הוסף גלגל</span>
                     </Link>
-                    <button style={styles.submenuItem} onClick={handleCopyFormLink}>
+                    <Link href={`/${userSession.stationId}?action=excel`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                        <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/>
                       </svg>
-                      <span>העתק קישור</span>
-                    </button>
-                    <button style={styles.submenuItem} onClick={handleWhatsAppForm}>
+                      <span>יבוא/יצוא Excel</span>
+                    </Link>
+                    <Link href={`/${userSession.stationId}?action=settings`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
                       </svg>
-                      <span>שלח בוואטסאפ</span>
-                    </button>
+                      <span>הגדרות תחנה</span>
+                    </Link>
+                    <Link href={`/${userSession.stationId}?action=notifications`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
+                      <div style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                        </svg>
+                        {pushEnabled && (
+                          <span style={{
+                            position: 'absolute', top: -2, right: -2,
+                            width: 6, height: 6, borderRadius: '50%',
+                            background: '#22c55e',
+                            border: '1px solid #fff',
+                          }} />
+                        )}
+                      </div>
+                      <span>הפעל התראות</span>
+                    </Link>
+
+                    <div style={styles.submenuContainer}>
+                      <button
+                        style={{ ...styles.submenuItem, ...styles.submenuTrigger, width: '100%', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); setShowFormSubmenu(!showFormSubmenu) }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                          <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                        </svg>
+                        <span>קישור לטופס השאלה</span>
+                        <span style={styles.submenuArrow}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            {showFormSubmenu ? <polyline points="18 15 12 9 6 15"/> : <polyline points="6 9 12 15 18 9"/>}
+                          </svg>
+                        </span>
+                      </button>
+                      {showFormSubmenu && (
+                        <div style={{ ...styles.submenu, background: '#f1f5f9' }}>
+                          <Link href={`/sign/${userSession.stationId}`} style={{ ...styles.submenuItem, padding: '10px 16px 10px 44px' }} onClick={() => { setShowProfileMenu(false); setShowFormSubmenu(false) }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                            <span>פתח טופס</span>
+                          </Link>
+                          <button style={{ ...styles.submenuItem, padding: '10px 16px 10px 44px' }} onClick={handleCopyFormLink}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                              <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                            <span>העתק קישור</span>
+                          </button>
+                          <button style={{ ...styles.submenuItem, padding: '10px 16px 10px 44px' }} onClick={handleWhatsAppForm}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                            </svg>
+                            <span>שלח בוואטסאפ</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
 
-              <div style={styles.dropdownDivider} />
-
-              <Link href={`/${userSession.stationId}?action=password`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-                </svg>
-                <span>שינוי סיסמא</span>
-              </Link>
-              <Link href={`/${userSession.stationId}?action=whatsappTemplate`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-                <span>נוסח הודעת הוואטסאפ שלי</span>
-              </Link>
-              <Link href={`/${userSession.stationId}?action=recovery`} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                </svg>
-                <span>תעודת שחזור</span>
-              </Link>
+              {/* Group: החשבון שלי */}
+              <div style={styles.submenuContainer}>
+                <button
+                  style={{ ...styles.dropdownItem, ...styles.submenuTrigger }}
+                  onClick={(e) => { e.stopPropagation(); setExpandedGroup(g => g === 'account' ? null : 'account') }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                  <span>החשבון שלי</span>
+                  <span style={styles.submenuArrow}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      {expandedGroup === 'account' ? <polyline points="18 15 12 9 6 15"/> : <polyline points="6 9 12 15 18 9"/>}
+                    </svg>
+                  </span>
+                </button>
+                {expandedGroup === 'account' && (
+                  <div style={styles.submenu}>
+                    <Link href={`/${userSession.stationId}?action=password`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                      <span>שינוי סיסמא</span>
+                    </Link>
+                    <Link href={`/${userSession.stationId}?action=whatsappTemplate`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      <span>נוסח הודעת הוואטסאפ שלי</span>
+                    </Link>
+                    <Link href={`/${userSession.stationId}?action=recovery`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                      </svg>
+                      <span>תעודת שחזור</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </>
@@ -459,12 +488,32 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
           guideLabel = 'מדריך למוקדנים'
         }
         return (
-          <Link href={guideHref} style={styles.dropdownItem} onClick={() => setShowProfileMenu(false)}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            <span>{guideLabel}</span>
-          </Link>
+          <div style={styles.submenuContainer}>
+            <button
+              style={{ ...styles.dropdownItem, ...styles.submenuTrigger }}
+              onClick={(e) => { e.stopPropagation(); setExpandedGroup(g => g === 'help' ? null : 'help') }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>עזרה</span>
+              <span style={styles.submenuArrow}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  {expandedGroup === 'help' ? <polyline points="18 15 12 9 6 15"/> : <polyline points="6 9 12 15 18 9"/>}
+                </svg>
+              </span>
+            </button>
+            {expandedGroup === 'help' && (
+              <div style={styles.submenu}>
+                <Link href={guideHref} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <span>{guideLabel}</span>
+                </Link>
+              </div>
+            )}
+          </div>
         )
       })()}
 
@@ -540,7 +589,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
           <div className="profile-dropdown" style={styles.profileDropdown}>
             <button
               style={styles.profileBtn}
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              onClick={() => { setShowProfileMenu(!showProfileMenu); setExpandedGroup(null) }}
               aria-haspopup="menu"
               aria-expanded={showProfileMenu}
               aria-label={`תפריט פרופיל - ${userSession.manager.full_name}`}

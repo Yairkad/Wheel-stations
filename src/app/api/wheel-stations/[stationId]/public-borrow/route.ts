@@ -56,7 +56,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       form_image_data, // Full form image captured with html2canvas
       terms_accepted,
       referred_by, // Track who referred this form (e.g., operator_123)
-      operator_send_request_id // Links back to the specific operator link-send that produced this request, if any
+      operator_send_request_id, // Links back to the specific operator link-send that produced this request, if any
+      deposit_amount_override // Higher deposit set by the manager when preparing this borrower's link, if any
     } = body
 
     // Validate required fields
@@ -140,7 +141,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         signed_at: new Date().toISOString(),
         terms_accepted: true,
         status: 'pending', // Requires manager approval
-        operator_send_request_id: operator_send_request_id || null
+        operator_send_request_id: operator_send_request_id || null,
+        deposit_amount_override: (typeof deposit_amount_override === 'number' && deposit_amount_override > 0) ? deposit_amount_override : null
       })
       .select()
       .single()

@@ -67,6 +67,7 @@ interface BorrowRecord {
   actual_return_date?: string
   deposit_type?: string
   deposit_details?: string
+  deposit_amount_override?: number | null
   notes?: string
   status: string
   is_signed: boolean
@@ -304,6 +305,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
   const [whatsAppPhone, setWhatsAppPhone] = useState('')
   const [whatsAppWheel, setWhatsAppWheel] = useState<Wheel | null>(null)
+  const [whatsAppDepositOverride, setWhatsAppDepositOverride] = useState('')
 
   // Personal WhatsApp message wording modal
   const [showWhatsAppTemplateModal, setShowWhatsAppTemplateModal] = useState(false)
@@ -328,6 +330,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     vehicle_model: '',
     vehicle_plate: '',
     deposit_type: 'cash',
+    deposit_amount_override: '',
     notes: ''
   })
   const [manualBorrowFormErrors, setManualBorrowFormErrors] = useState<string[]>([])
@@ -1442,6 +1445,7 @@ ${signFormUrl}
           vehicle_model: manualBorrowForm.vehicle_model || undefined,
           vehicle_plate: manualBorrowForm.vehicle_plate || undefined,
           deposit_type: manualBorrowForm.deposit_type,
+          deposit_amount_override: manualBorrowForm.deposit_amount_override ? parseInt(manualBorrowForm.deposit_amount_override) : undefined,
           notes: manualBorrowForm.notes || undefined,
           manager_phone: currentManager?.phone,
           manager_password: sessionPassword
@@ -1464,6 +1468,7 @@ ${signFormUrl}
         vehicle_model: '',
         vehicle_plate: '',
         deposit_type: 'cash',
+        deposit_amount_override: '',
         notes: ''
       })
       setManualBorrowFormErrors([])
@@ -1641,6 +1646,7 @@ ${signFormUrl}
   const openWhatsAppModal = (wheel: Wheel) => {
     setWhatsAppWheel(wheel)
     setWhatsAppPhone('')
+    setWhatsAppDepositOverride('')
     setShowWhatsAppModal(true)
   }
 
@@ -1662,7 +1668,11 @@ ${signFormUrl}
     const internationalPhone = cleanPhone.startsWith('0') ? '972' + cleanPhone.slice(1) : cleanPhone
 
     // Build the form URL with pre-filled wheel and phone
-    const formUrl = `${window.location.origin}/sign/${stationId}?wheel=${whatsAppWheel.wheel_number}&phone=${encodeURIComponent(whatsAppPhone)}`
+    let formUrl = `${window.location.origin}/sign/${stationId}?wheel=${whatsAppWheel.wheel_number}&phone=${encodeURIComponent(whatsAppPhone)}`
+    const depositOverride = parseInt(whatsAppDepositOverride)
+    if (whatsAppDepositOverride.trim() && depositOverride > 0) {
+      formUrl += `&deposit=${depositOverride}`
+    }
 
     const message = buildWhatsAppMessage(formUrl)
 
@@ -1680,7 +1690,11 @@ ${signFormUrl}
       return
     }
 
-    const formUrl = `${window.location.origin}/sign/${stationId}?wheel=${whatsAppWheel.wheel_number}&phone=${encodeURIComponent(whatsAppPhone)}`
+    let formUrl = `${window.location.origin}/sign/${stationId}?wheel=${whatsAppWheel.wheel_number}&phone=${encodeURIComponent(whatsAppPhone)}`
+    const depositOverride = parseInt(whatsAppDepositOverride)
+    if (whatsAppDepositOverride.trim() && depositOverride > 0) {
+      formUrl += `&deposit=${depositOverride}`
+    }
 
     const message = buildWhatsAppMessage(formUrl)
 
@@ -1992,7 +2006,7 @@ ${signFormUrl}
           'תאריך השאלה': borrow.borrow_date ? new Date(borrow.borrow_date).toLocaleDateString('he-IL') : '',
           'תאריך החזרה': borrow.actual_return_date ? new Date(borrow.actual_return_date).toLocaleDateString('he-IL') : '',
           'סוג פיקדון': (() => {
-            const depositAmount = borrow.wheels?.custom_deposit || station?.deposit_amount || 200
+            const depositAmount = borrow.deposit_amount_override ?? borrow.wheels?.custom_deposit ?? station?.deposit_amount ?? 200
             return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
                    borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
                    borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
@@ -2536,7 +2550,7 @@ ${signFormUrl}
                                   borrow.deposit_type === 'id' || borrow.deposit_type === 'license' ? styles.depositBadgeDoc : {})
                             }}>
                               {(() => {
-                                const depositAmount = borrow.wheels?.custom_deposit || station.deposit_amount || 200
+                                const depositAmount = borrow.deposit_amount_override ?? borrow.wheels?.custom_deposit ?? station.deposit_amount ?? 200
                                 return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
                                        borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
                                        borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
@@ -3872,6 +3886,20 @@ ${signFormUrl}
 
               <div>
                 <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
+                  פיקדון חריג (ריק = ברירת מחדל ₪{manualBorrowWheel?.custom_deposit || station?.deposit_amount || 200})
+                </label>
+                <input
+                  type="number"
+                  value={manualBorrowForm.deposit_amount_override}
+                  onChange={e => setManualBorrowForm({...manualBorrowForm, deposit_amount_override: e.target.value})}
+                  placeholder={`ברירת מחדל: ₪${manualBorrowWheel?.custom_deposit || station?.deposit_amount || 200}`}
+                  style={styles.input}
+                  disabled={actionLoading}
+                />
+              </div>
+
+              <div>
+                <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
                   הערות
                 </label>
                 <textarea
@@ -3975,6 +4003,29 @@ ${signFormUrl}
                 }}
                 dir="ltr"
                 autoFocus
+              />
+            </div>
+
+            <div style={{marginBottom: '16px'}}>
+              <label style={{color: '#475569', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '8px'}}>
+                פיקדון חריג לבקשה זו (₪) — אופציונלי
+              </label>
+              <input
+                type="number"
+                value={whatsAppDepositOverride}
+                onChange={e => setWhatsAppDepositOverride(e.target.value)}
+                placeholder={`ברירת מחדל: ₪${whatsAppWheel.custom_deposit || station?.deposit_amount || 200}`}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  color: '#1e293b',
+                  fontSize: '1.1rem',
+                  textAlign: 'center',
+                }}
+                dir="ltr"
               />
             </div>
 
@@ -4757,7 +4808,7 @@ ${signFormUrl}
                     checked={editPaymentMethods.cash || false}
                     onChange={e => setEditPaymentMethods({...editPaymentMethods, cash: e.target.checked})}
                   />
-                  <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>מזומן</span>
+                  <span style={{color: '#1e293b', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>מזומן</span>
                 </label>
 
                 {/* Bit */}
@@ -4771,7 +4822,7 @@ ${signFormUrl}
                         bit: { enabled: e.target.checked, phone: editPaymentMethods.bit?.phone || '' }
                       })}
                     />
-                    <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>ביט</span>
+                    <span style={{color: '#1e293b', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>ביט</span>
                   </label>
                   {editPaymentMethods.bit?.enabled && (
                     <input
@@ -4798,7 +4849,7 @@ ${signFormUrl}
                         paybox: { enabled: e.target.checked, phone: editPaymentMethods.paybox?.phone || '' }
                       })}
                     />
-                    <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>פייבוקס</span>
+                    <span style={{color: '#1e293b', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>פייבוקס</span>
                   </label>
                   {editPaymentMethods.paybox?.enabled && (
                     <input
@@ -4825,7 +4876,7 @@ ${signFormUrl}
                         bank_transfer: { enabled: e.target.checked, details: editPaymentMethods.bank_transfer?.details || '' }
                       })}
                     />
-                    <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>העברה בנקאית</span>
+                    <span style={{color: '#1e293b', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>העברה בנקאית</span>
                   </label>
                   {editPaymentMethods.bank_transfer?.enabled && (
                     <textarea
@@ -4847,7 +4898,7 @@ ${signFormUrl}
                     checked={editPaymentMethods.id_deposit || false}
                     onChange={e => setEditPaymentMethods({...editPaymentMethods, id_deposit: e.target.checked})}
                   />
-                  <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>פיקדון ת.ז. (באישור מנהל)</span>
+                  <span style={{color: '#1e293b', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>פיקדון ת.ז. (באישור מנהל)</span>
                 </label>
 
                 {/* License Deposit */}
@@ -4857,7 +4908,7 @@ ${signFormUrl}
                     checked={editPaymentMethods.license_deposit || false}
                     onChange={e => setEditPaymentMethods({...editPaymentMethods, license_deposit: e.target.checked})}
                   />
-                  <span style={{color: '#fff', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>פיקדון רישיון נהיגה (באישור מנהל)</span>
+                  <span style={{color: '#1e293b', display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>פיקדון רישיון נהיגה (באישור מנהל)</span>
                 </label>
               </div>
 
@@ -5688,7 +5739,7 @@ ${signFormUrl}
                   <span style={styles.previewLabel}>פיקדון:</span>
                   <span style={styles.previewValue}>
                     {(() => {
-                      const amt = previewBorrow.wheels?.custom_deposit || station?.deposit_amount || 200
+                      const amt = previewBorrow.deposit_amount_override ?? previewBorrow.wheels?.custom_deposit ?? station?.deposit_amount ?? 200
                       return previewBorrow.deposit_type === 'cash' ? `₪${amt} מזומן` :
                              previewBorrow.deposit_type === 'bit' ? `₪${amt} ביט` :
                              previewBorrow.deposit_type === 'paybox' ? `₪${amt} פייבוקס` :

@@ -43,6 +43,12 @@ interface CallCenter {
   name: string
 }
 
+interface District {
+  id:   string
+  code: string
+  name: string
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const ROLE_LABELS: Record<UserRole['role'], string> = {
@@ -192,6 +198,7 @@ function UsersPageInner() {
   const [addOpCode,     setAddOpCode]     = useState('')
   const [addTitle,      setAddTitle]      = useState('')
   const [addCanEdit,    setAddCanEdit]    = useState(false)
+  const [addDistricts,  setAddDistricts]  = useState<string[]>([])
 
   // Add role modal
   const [addRoleUser,    setAddRoleUser]    = useState<User | null>(null)
@@ -201,6 +208,7 @@ function UsersPageInner() {
   const [addRoleOpCode,  setAddRoleOpCode]  = useState('')
   const [addRoleTitle,   setAddRoleTitle]   = useState('')
   const [addRoleCanEdit, setAddRoleCanEdit] = useState(false)
+  const [addRoleDistricts, setAddRoleDistricts] = useState<string[]>([])
 
   // Inline-create modes (add-user modal)
   const [addCcMode,        setAddCcMode]        = useState<'select' | 'new'>('select')
@@ -217,6 +225,7 @@ function UsersPageInner() {
   // Reference data for add-user dropdowns
   const [stations,     setStations]     = useState<Station[]>([])
   const [callCenters,  setCallCenters]  = useState<CallCenter[]>([])
+  const [districts,    setDistricts]    = useState<District[]>([])
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -225,12 +234,14 @@ function UsersPageInner() {
   }, [isAuthenticated])
 
   async function fetchRefData() {
-    const [stRes, ccRes] = await Promise.all([
+    const [stRes, ccRes, distRes] = await Promise.all([
       fetch('/api/wheel-stations'),
       fetch('/api/admin/call-centers'),
+      fetch('/api/districts'),
     ])
     if (stRes.ok) { const d = await stRes.json(); setStations(d.stations || []) }
     if (ccRes.ok) { const d = await ccRes.json(); setCallCenters(d.callCenters || []) }
+    if (distRes.ok) { const d = await distRes.json(); setDistricts(d.districts || []) }
   }
 
   async function fetchUsers() {
@@ -355,7 +366,7 @@ function UsersPageInner() {
   function resetAddRoleForm() {
     setAddRoleType('station_manager'); setAddRoleStation(''); setAddRoleCc(''); setAddRoleOpCode(''); setAddRoleTitle('')
     setAddRoleCcMode('select'); setAddRoleCcNewName(''); setAddRoleStMode('select'); setAddRoleStNewName('')
-    setAddRoleCanEdit(false)
+    setAddRoleCanEdit(false); setAddRoleDistricts([])
   }
 
   async function handleAddRole() {
@@ -383,7 +394,10 @@ function UsersPageInner() {
       if (resolvedCc)      body.call_center_id = resolvedCc
       if (addRoleOpCode)   body.operator_code  = addRoleOpCode
       if (addRoleTitle)    body.title          = addRoleTitle
-      if (addRoleType === 'super_manager') body.can_edit = addRoleCanEdit
+      if (addRoleType === 'super_manager') {
+        body.can_edit = addRoleCanEdit
+        body.allowed_districts = addRoleDistricts
+      }
       const res  = await fetch(`/api/admin/users/${addRoleUser.id}/roles`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -400,7 +414,7 @@ function UsersPageInner() {
     setAddName(''); setAddPhone(''); setAddPass(''); setAddRole('station_manager')
     setAddStationId(''); setAddCcId(''); setAddOpCode(''); setAddTitle('')
     setAddCcMode('select'); setAddCcNewName(''); setAddStMode('select'); setAddStNewName('')
-    setAddCanEdit(false)
+    setAddCanEdit(false); setAddDistricts([])
   }
 
   async function handleAddUser() {
@@ -435,7 +449,10 @@ function UsersPageInner() {
       if (resolvedCc)      body.call_center_id = resolvedCc
       if (addOpCode)       body.operator_code  = addOpCode
       if (addTitle)        body.title          = addTitle
-      if (addRole === 'super_manager') body.can_edit = addCanEdit
+      if (addRole === 'super_manager') {
+        body.can_edit = addCanEdit
+        body.allowed_districts = addDistricts
+      }
       const res  = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
@@ -758,10 +775,28 @@ function UsersPageInner() {
             )}
 
             {addRoleType === 'super_manager' && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
-                <input type="checkbox" checked={addRoleCanEdit} onChange={e => setAddRoleCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
-                הרשאת עריכה — יכול להוסיף/לערוך/למחוק גלגלים
-              </label>
+              <>
+                <div>
+                  <label style={labelStyle}>מחוזות <span style={{ color: '#94a3b8', fontWeight: 400 }}>(ריק = כל המחוזות)</span></label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                    {districts.map(d => (
+                      <label key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', color: '#1e293b', border: '1px solid #e2e8f0', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={addRoleDistricts.includes(d.code)}
+                          onChange={e => setAddRoleDistricts(e.target.checked ? [...addRoleDistricts, d.code] : addRoleDistricts.filter(c => c !== d.code))}
+                          style={{ width: 14, height: 14, accentColor: '#7c3aed' }}
+                        />
+                        {d.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
+                  <input type="checkbox" checked={addRoleCanEdit} onChange={e => setAddRoleCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
+                  הרשאת עריכה — יכול להוסיף/לערוך/למחוק גלגלים
+                </label>
+              </>
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
@@ -881,12 +916,30 @@ function UsersPageInner() {
               </>
             )}
 
-            {/* can_edit for district manager */}
+            {/* districts + can_edit for district manager */}
             {addRole === 'super_manager' && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
-                <input type="checkbox" checked={addCanEdit} onChange={e => setAddCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
-                הרשאת עריכה — יכול להוסיף/לערוך/למחוק גלגלים
-              </label>
+              <>
+                <div>
+                  <label style={labelStyle}>מחוזות <span style={{ color: '#94a3b8', fontWeight: 400 }}>(ריק = כל המחוזות)</span></label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                    {districts.map(d => (
+                      <label key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', color: '#1e293b', border: '1px solid #e2e8f0', borderRadius: 6, padding: '4px 8px', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={addDistricts.includes(d.code)}
+                          onChange={e => setAddDistricts(e.target.checked ? [...addDistricts, d.code] : addDistricts.filter(c => c !== d.code))}
+                          style={{ width: 14, height: 14, accentColor: '#7c3aed' }}
+                        />
+                        {d.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem', color: '#1e293b' }}>
+                  <input type="checkbox" checked={addCanEdit} onChange={e => setAddCanEdit(e.target.checked)} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
+                  הרשאת עריכה — יכול להוסיף/לערוך/למחוק גלגלים
+                </label>
+              </>
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>

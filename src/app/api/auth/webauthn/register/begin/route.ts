@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         transports: c.transports ?? undefined,
       })),
       authenticatorSelection: {
+        authenticatorAttachment: 'platform',
         residentKey: 'discouraged',
         userVerification: 'required',
       },

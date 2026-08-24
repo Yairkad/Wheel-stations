@@ -71,6 +71,8 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const prefilledPhone = searchParams.get('phone')
   const referredBy = searchParams.get('ref') // Referral tracking (e.g., operator_123)
   const operatorSendRequestId = searchParams.get('sr') // Links this submission back to a specific operator link-send, for "check status"
+  const depositOverrideParam = searchParams.get('deposit') // Exceptional deposit set by the manager when preparing this borrower's link
+  const depositOverride = depositOverrideParam ? parseInt(depositOverrideParam) : null
   const isPrefilledMode = !!(prefilledWheelNumber && prefilledPhone)
 
   // Form state
@@ -89,7 +91,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
   // Calculate effective deposit (custom wheel deposit or station default)
   const selectedWheel = wheels.find(w => w.id === selectedWheelId)
-  const effectiveDeposit = selectedWheel?.custom_deposit || station?.deposit_amount || 200
+  const effectiveDeposit = (depositOverride && depositOverride > 0) ? depositOverride : (selectedWheel?.custom_deposit || station?.deposit_amount || 200)
 
   // Validation errors
   const [fieldErrors, setFieldErrors] = useState<string[]>([])
@@ -116,10 +118,11 @@ function SignFormContent({ stationId }: { stationId: string }) {
   // and the unclipped copy in the hidden capture summary
   const termsItems: React.ReactNode[] = [
     <>הפונה מתחייב להחזיר את הגלגל בתוך <strong>72 שעות</strong>, ולהשאיר כפקדון {effectiveDeposit} ש&quot;ח באמצעי התשלום הזמין.</>,
-    <>הפונה יקבל חזרה את הפקדון בעת החזרת הגלגל. במידה והגלגל לא יוחזר בתוך 72 שעות, סכום הכסף יועבר כתרומה לידידים.</>,
-    <><strong>הפונה מבין שזהו תיקון חירום בלבד!</strong> והגלגל עשוי להיות במידה מעט שונה/לפגוע ביציבות הרכב ולכן מתחייב לא לנהוג במהירות מעל 80 קמ&quot;ש וכן שלא תהיה לו שום תלונה על הסיוע שקיבל.</>,
-    <>במקרים חריגים ניתן להאריך את זמן ההשאלה עד 5 ימים, באישור מנהל התחנה או סג&quot;מ התחנה.</>,
-    <>במקרים חריגים (באישור מנהל/סג&quot;מ התחנה) ניתן להפקיד כערבון תעודה מזהה במקום פקדון כספי.</>,
+    <>במקרים חריגים או/ו על פי שיקול דעתו של מנהל התחנה ידרש פקדון בסכום גבוה מן הרגיל.</>,
+    <>הפונה יקבל חזרה את הפקדון בעת החזרת הגלגל. במידה והגלגל לא יוחזר בתוך 72 שעות, סכום הכסף יועבר כתרומה לידידים, וזאת מבלי לפגוע בחובת ההחזרה של הגלגל לתחנת ההשאלה.</>,
+    <><strong>הפונה מבין שזהו פתרון חירום בלבד!</strong> והגלגל עשוי להיות במידה מעט שונה או/ו לפגוע ביציבות הרכב ולכן מתחייב לא לנהוג במהירות מעל 80 קמ&quot;ש וכן שלא תהיה לו שום תלונה או/ו תביעה כלל כלפי הארגון או/ו מנהל התחנה, על הסיוע שקיבל.</>,
+    <>במקרים חריגים ניתן להאריך את זמן ההשאלה, באישור מפורש ממנהל התחנה בלבד.</>,
+    <>במקרים חריגים בלבד (באישור אחד ממנהלי התחנה) יהיה ניתן להפקיד כערבון תעודה מזהה במקום פקדון כספי.</>,
   ]
 
   const getDepositLabel = (): string => {
@@ -402,7 +405,8 @@ function SignFormContent({ stationId }: { stationId: string }) {
           form_image_data: formImageData, // Full form image
           terms_accepted: true,
           referred_by: referredBy, // Track who referred this form (e.g., operator_123)
-          operator_send_request_id: operatorSendRequestId
+          operator_send_request_id: operatorSendRequestId,
+          deposit_amount_override: (depositOverride && depositOverride > 0) ? depositOverride : null
         })
       })
 

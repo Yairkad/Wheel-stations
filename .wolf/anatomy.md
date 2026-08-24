@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-22T18:56:50.766Z
-> Files: 92 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-24T12:07:53.713Z
+> Files: 110 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -9,6 +9,14 @@
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/
 
+- `shot-admin.mjs` — Declares BASE (~277 tok)
+- `shot-admin2.mjs` — Declares BASE (~342 tok)
+- `shot-header.mjs` — Declares BASE (~533 tok)
+- `shot-station.mjs` — Declares BASE (~256 tok)
+- `test-operator-contact.mjs` — Declares BASE (~1092 tok)
+- `test-tiers.mjs` — Declares BASE (~776 tok)
+- `test-webauthn-fix.mjs` — Declares BASE (~663 tok)
+- `test-webauthn-login.mjs` — Declares BASE (~474 tok)
 - `test-wizard.js` — Declares STATION_ID (~1563 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
@@ -24,6 +32,7 @@
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f2855ed1-2611-4f5d-8860-bdc62b26ff12/scratchpad/
 
+- `deploy-checklist.html` — צ'קליסט פריסה — גלגלים ידידים (~11278 tok)
 - `ux-audit-wheels-app.html` — ביקורת UX — גלגלים ידידים (~11880 tok)
 - `ux-audit-wheels-app.html` — דוח ביקורת UI/UX (Artifact) — 8 personas: עובד טוב/בעיות/המלצות + פיצ'רים מוצעים (~9000 tok)
 
@@ -35,9 +44,10 @@
 ## ../../../.claude/plans/
 
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
-- `giggly-wondering-stroustrup.md` — טיוטת תוכנית — משוב משתמשים (~4477 tok)
+- `giggly-wondering-stroustrup.md` — תיקון נפרד וקטן: נוסח התקנון (`sign/[stationId]/page.tsx`) (~5076 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
-- `splendid-dreaming-ullman.md` — "בדוק סטטוס בקשה" למוקדן (~1199 tok)
+- `splendid-dreaming-ullman.md` — צמצום תפריט האוואטר (AppHeader.tsx) (~689 tok)
+- `station-page-refactor.md` — פירוק `[stationId]/page.tsx` לרכיבי-משנה (~1777 tok)
 - `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
 - `ui-ux-parsed-hartmanis.md` — תוכנית ביקורת UI/UX מקיפה לפי סוג משתמש (8 personas), ללא צילומי מסך (~1900 tok)
 - `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
@@ -66,6 +76,7 @@
 - `test-icons.tmp.js` — Declares STATION_ID (~1239 tok)
 - `test-operator-status.tmp.js` — Declares PHONE (~1011 tok)
 - `test-role-switch.tmp.js` — Declares PHONE (~1826 tok)
+- `test-status-e2e.tmp.js` — Declares PHONE (~2226 tok)
 - `test-submit.tmp.js` — Declares fs (~1348 tok)
 - `test-webauthn.tmp.js` — Declares PHONE (~915 tok)
 - `test-whatsapp-forgot.tmp.js` — API routes: GET (1 endpoints) (~872 tok)
@@ -75,7 +86,7 @@
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~4373 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5679 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -113,7 +124,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~97536 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98282 tok)
 
 ## src/app/accessibility/
 
@@ -123,6 +134,7 @@
 
 ## src/app/admin/analytics/
 
+- `page.tsx` — AUDIT_COLORS (~7712 tok)
 
 ## src/app/admin/call-centers/
 
@@ -140,9 +152,13 @@
 ## src/app/admin/reports/
 
 
+## src/app/admin/trusted-matches/
+
+- `page.tsx` — emptyForm (~2081 tok)
+
 ## src/app/admin/users/
 
-- `page.tsx` — ROLE_LABELS (~14324 tok)
+- `page.tsx` — ROLE_LABELS (~15136 tok)
 
 ## src/app/admin/vehicles/
 
@@ -194,6 +210,14 @@
 ## src/app/api/admin/super-managers/
 
 
+## src/app/api/admin/trusted-matches/
+
+- `route.ts` — Next.js API route: GET, POST (~808 tok)
+
+## src/app/api/admin/trusted-matches/[id]/
+
+- `route.ts` — Next.js API route: DELETE (~330 tok)
+
 ## src/app/api/admin/users/
 
 
@@ -227,7 +251,7 @@
 
 ## src/app/api/auth/webauthn/register/begin/
 
-- `route.ts` — Next.js API route: POST (~936 tok)
+- `route.ts` — Next.js API route: POST (~948 tok)
 
 ## src/app/api/auth/webauthn/register/complete/
 
@@ -351,7 +375,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/borrows/
 
-- `route.ts` — Wheel Borrows History API (~1214 tok)
+- `route.ts` — Wheel Borrows History API (~1223 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/[borrowId]/
 
@@ -367,7 +391,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/public-borrow/
 
-- `route.ts` — Public Wheel Borrow API (~3141 tok)
+- `route.ts` — Public Wheel Borrow API (~3215 tok)
 
 ## src/app/api/wheel-stations/[stationId]/push/send/
 
@@ -386,7 +410,7 @@
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/
 
-- `route.ts` — Wheel Borrow API (~2463 tok)
+- `route.ts` — Wheel Borrow API (~2511 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/history/
 
@@ -420,6 +444,10 @@
 ## src/app/api/wheel-stations/search/
 
 
+## src/app/api/wheel-stations/verified-matches/
+
+- `route.ts` — Verified Wheel Matches API (~945 tok)
+
 ## src/app/api/wheels/[wheelId]/unavailable/
 
 
@@ -451,7 +479,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~25802 tok)
+- `page.tsx` — OperatorPage (~30227 tok)
 
 ## src/app/privacy/
 
@@ -469,7 +497,7 @@
 
 ## src/app/sign/[stationId]/
 
-- `page.tsx` — STEP_LABELS (~18082 tok)
+- `page.tsx` — STEP_LABELS (~18245 tok)
 
 ## src/app/stations/
 
@@ -484,12 +512,12 @@
 
 ## src/components/
 
-- `AppHeader.tsx` — AppHeader (~12425 tok)
+- `AppHeader.tsx` — AppHeader (~13546 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
 ## src/components/admin/
 
-- `AdminSidebar.tsx` — icons (~3707 tok)
+- `AdminSidebar.tsx` — icons (~3813 tok)
 
 ## src/components/punctures/
 
@@ -547,3 +575,5 @@
 - `20260726_add_manager_whatsapp_template.sql` — Lets each station manager set their own WhatsApp message wording, (~81 tok)
 - `20260726_add_wheel_mount_feedback.sql` — Lets managers record, at return time, whether a wheel actually mounted on the (~159 tok)
 - `20260821_add_operator_sent_requests.sql` — Tracks each time an operator sends a borrow-request link to a driver/tow-shop, (~370 tok)
+- `20260823_add_deposit_amount_override.sql` — Adds `wheel_borrows.deposit_amount_override`, an optional per-request deposit set by (~19 tok)
+- `20260824_add_trusted_vehicle_wheel_matches.sql` — SQL: tables: trusted_vehicle_wheel_matches (~184 tok)
