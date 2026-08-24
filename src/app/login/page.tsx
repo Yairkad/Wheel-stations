@@ -9,7 +9,7 @@ import type { RoleResult } from '@/lib/types'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 
 export default function LoginPage() {
-  const { switchToRole } = useRoleSwitch()
+  const { switchToRole, switchingRole } = useRoleSwitch()
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -361,6 +361,7 @@ export default function LoginPage() {
                 <button
                   key={r.role}
                   className="role-card"
+                  disabled={switchingRole}
                   onClick={() => {
                     if (rememberRole) localStorage.setItem('preferred_role', r.role)
                     toast.success(`שלום ${r.data.full_name as string}`)
@@ -374,6 +375,7 @@ export default function LoginPage() {
                     background: cfg.bg,
                     border: `1px solid ${cfg.border}`,
                     borderRadius: '12px',
+                    opacity: switchingRole ? 0.6 : 1,
                     color: cfg.color,
                     fontSize: '14px',
                     fontWeight: 700,
@@ -387,9 +389,13 @@ export default function LoginPage() {
                 >
                   <span style={{ flexShrink: 0, color: cfg.color }}>{cfg.icon}</span>
                   <span style={{ flex: 1 }}>{r.label}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ opacity: 0.4 }}>
-                    <polyline points="15 18 9 12 15 6"/>
-                  </svg>
+                  {switchingRole ? (
+                    <svg className="spinning-wheel" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ opacity: 0.4 }}>
+                      <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                  )}
                 </button>
               )
             })}

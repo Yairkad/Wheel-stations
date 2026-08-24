@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-24T18:36:36.647Z
-> Files: 119 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-24T19:44:38.621Z
+> Files: 121 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -85,6 +85,7 @@
 - `test-webauthn.tmp.js` — Declares PHONE (~915 tok)
 - `test-whatsapp-forgot.tmp.js` — API routes: GET (1 endpoints) (~872 tok)
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
+- `tmp-check-scale.mjs` — Declares envText (~241 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
 - `tmp-verify-a11y.mjs` — Declares BASE (~791 tok)
 - `tmp-verify-a11y2.mjs` — Declares BASE (~423 tok)
@@ -93,7 +94,8 @@
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
 - `tmp-verify-icon.mjs` — Declares BASE (~468 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5699 tok)
+- `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5858 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -463,7 +465,7 @@
 
 ## src/app/call-center/
 
-- `page.tsx` — CallCenterPage (~16408 tok)
+- `page.tsx` — CallCenterPage (~16528 tok)
 
 ## src/app/feedback/
 
@@ -478,7 +480,7 @@
 
 ## src/app/login/
 
-- `page.tsx` — LoginPage (~10752 tok)
+- `page.tsx` — LoginPage (~10874 tok)
 
 ## src/app/lookup/
 
@@ -489,7 +491,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~30260 tok)
+- `page.tsx` — OperatorPage (~30379 tok)
 
 ## src/app/privacy/
 
@@ -523,12 +525,12 @@
 ## src/components/
 
 - `AccessibilityWidget.tsx` — DEFAULT_PREFS (~2293 tok)
-- `AppHeader.tsx` — AppHeader (~13546 tok)
+- `AppHeader.tsx` — AppHeader (~13687 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
 ## src/components/admin/
 
-- `AdminSidebar.tsx` — icons (~3813 tok)
+- `AdminSidebar.tsx` — icons (~3946 tok)
 
 ## src/components/punctures/
 
@@ -536,7 +538,7 @@
 ## src/hooks/
 
 - `useClickOutside.ts` — Exports useClickOutside (~204 tok)
-- `useRoleSwitch.ts` — Exports useRoleSwitch (~1296 tok)
+- `useRoleSwitch.ts` — Exports useRoleSwitch (~1333 tok)
 
 ## src/lib/
 

@@ -12,6 +12,7 @@ interface UseRoleSwitchResult {
   activeRoleEntry: RoleResult | undefined
   currentRoleLabel: string | undefined
   switchToRole: (role: RoleResult) => void
+  switchingRole: boolean
 }
 
 function getRoleDisplay(role: string, label?: string): string {
@@ -35,6 +36,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
   const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
   const [activeRole, setActiveRole] = useState('')
   const [activeSubRole, setActiveSubRole] = useState<string | null>(null)
+  const [switchingRole, setSwitchingRole] = useState(false)
 
   useEffect(() => {
     try {
@@ -46,6 +48,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
   }, [])
 
   const switchToRole = useCallback((r: RoleResult) => {
+    setSwitchingRole(true)
     localStorage.setItem('active_role', r.role)
     if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
     else localStorage.removeItem('active_sub_role')
@@ -118,5 +121,5 @@ export function useRoleSwitch(): UseRoleSwitchResult {
 
   const currentRoleLabel = activeRoleEntry ? getRoleDisplay(activeRoleEntry.role, activeRoleEntry.label) : undefined
 
-  return { authRoles, activeRole, activeSubRole, activeRoleEntry, currentRoleLabel, switchToRole }
+  return { authRoles, activeRole, activeSubRole, activeRoleEntry, currentRoleLabel, switchToRole, switchingRole }
 }

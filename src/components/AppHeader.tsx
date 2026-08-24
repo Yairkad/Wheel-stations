@@ -33,7 +33,7 @@ interface AppHeaderProps {
 export default function AppHeader({ currentStationId, notificationCount, pushEnabled, onDistrictExport }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { switchToRole } = useRoleSwitch()
+  const { switchToRole, switchingRole } = useRoleSwitch()
   const [userSession, setUserSession] = useState<UserSession | null>(null)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showFormSubmenu, setShowFormSubmenu] = useState(false)
@@ -676,13 +676,18 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
                           <button
                             key={r.role}
                             role="menuitem"
-                            style={{ ...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}) }}
+                            disabled={switchingRole}
+                            style={{ ...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}), ...(switchingRole ? { opacity: 0.6, cursor: 'default' } : {}) }}
                             onClick={() => navigateToRole(r)}
                           >
-                            {r.role === activeRole && (
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <polyline points="20 6 9 17 4 12"/>
-                              </svg>
+                            {switchingRole ? (
+                              <svg className="spinning-wheel" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            ) : (
+                              r.role === activeRole && (
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                  <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                              )
                             )}
                             {r.label}
                           </button>

@@ -1624,3 +1624,34 @@
 | 21:47 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 19 reads | ~44395 tok |
 | 21:47 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 19 reads | ~44395 tok |
 | 21:48 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 19 reads | ~44395 tok |
+| 21:49 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 19 reads | ~44395 tok |
+| 21:53 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 19 reads | ~44395 tok |
+| 21:55 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 20 reads | ~50094 tok |
+| 21:55 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 20 reads | ~50094 tok |
+| 22:09 | Session end: 21 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 20 reads | ~50094 tok |
+| 22:12 | Edited UX_AUDIT_TODO.md | 1→5 lines | ~188 |
+| 22:12 | Session end: 22 writes across 11 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 23 reads | ~96595 tok |
+| 22:13 | Created tmp-check-scale.mjs | — | ~241 |
+| 22:16 | Session end: 23 writes across 12 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 23 reads | ~96853 tok |
+| 22:20 | Session end: 23 writes across 12 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 23 reads | ~96853 tok |
+| 22:26 | Edited src/components/admin/AdminSidebar.tsx | 11→11 lines | ~246 |
+| 22:27 | Session end: 24 writes across 13 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 24 reads | ~100912 tok |
+| 22:36 | Edited src/hooks/useRoleSwitch.ts | 4→5 lines | ~43 |
+| 22:36 | Edited src/hooks/useRoleSwitch.ts | 1→2 lines | ~38 |
+| 22:36 | Edited src/hooks/useRoleSwitch.ts | 2→3 lines | ~38 |
+| 22:37 | Edited src/hooks/useRoleSwitch.ts | inline fix | ~33 |
+| 22:37 | Edited src/components/AppHeader.tsx | inline fix | ~17 |
+| 22:37 | Edited src/components/AppHeader.tsx | CSS: opacity, cursor | ~365 |
+| 22:37 | Edited src/components/admin/AdminSidebar.tsx | inline fix | ~20 |
+| 22:37 | Edited src/components/admin/AdminSidebar.tsx | 16→21 lines | ~347 |
+| 22:37 | Edited src/app/operator/page.tsx | inline fix | ~28 |
+| 22:37 | Edited src/app/operator/page.tsx | CSS: opacity, cursor | ~216 |
+| 22:37 | Edited src/app/call-center/page.tsx | inline fix | ~28 |
+| 22:38 | Edited src/app/call-center/page.tsx | CSS: opacity, cursor | ~220 |
+| 22:38 | Edited src/app/login/page.tsx | inline fix | ~17 |
+| 22:38 | Edited src/app/login/page.tsx | CSS: opacity, 6 | ~228 |
+| 22:38 | Edited src/app/login/page.tsx | 6→10 lines | ~211 |
+| 22:43 | Created tmp-verify-roleswitch.mjs | — | ~735 |
+| 22:44 | Edited tmp-verify-roleswitch.mjs | inline fix | ~19 |
+| 22:47 | Reordered admin sidebar nav (users/stations/call-centers/punctures/analytics, then vehicles-db/reports/matches) + added shared loading-state (disabled + spinning-wheel spinner, blocks re-click) to all 5 role-switch UIs via useRoleSwitch's new switchingRole flag | src/components/admin/AdminSidebar.tsx, src/hooks/useRoleSwitch.ts, src/components/AppHeader.tsx, src/app/operator/page.tsx, src/app/call-center/page.tsx, src/app/login/page.tsx | verified via Playwright (mocked 2-role login response — card shows disabled+spinner immediately on click); tsc clean; first step of a larger "loading state on every button" request, intentionally scoped to role-switching only for now | ~900 |
+| 22:47 | Session end: 41 writes across 16 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 32 reads | ~146240 tok |

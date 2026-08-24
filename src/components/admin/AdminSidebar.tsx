@@ -66,15 +66,15 @@ const icons = {
 }
 
 const NAV: ({ href: string; label: string; icon: React.ReactNode; badge?: boolean; divider?: boolean } | { divider: true; href?: undefined })[] = [
+  { href: '/admin/users',         label: 'משתמשים',       icon: icons.users        },
   { href: '/admin',              label: 'תחנות',        icon: icons.stations    },
-  { href: '/admin/vehicles',     label: 'מאגר רכבים',   icon: icons.vehicles    },
-  { href: '/admin/trusted-matches', label: 'התאמות מהימנות', icon: icons.trustedMatches },
-  { href: '/admin/reports',      label: 'דיווחי שגיאות', icon: icons.reports, badge: true },
   { href: '/admin/call-centers', label: 'מוקדים',       icon: icons.callCenters },
   { href: '/admin/punctures',    label: 'פנצ׳ריות',     icon: icons.punctures   },
-  { divider: true },
-  { href: '/admin/users',         label: 'משתמשים',       icon: icons.users        },
   { href: '/admin/analytics',     label: 'סטטיסטיקות',    icon: icons.analytics    },
+  { divider: true },
+  { href: '/admin/vehicles',     label: 'מאגר רכבים',   icon: icons.vehicles    },
+  { href: '/admin/reports',      label: 'דיווחי שגיאות', icon: icons.reports, badge: true },
+  { href: '/admin/trusted-matches', label: 'התאמות מהימנות', icon: icons.trustedMatches },
 ]
 
 interface AdminSidebarProps {
@@ -86,7 +86,7 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pendingReports = useAdminPendingReports()
   const [mobileOpen,   setMobileOpen]   = useState(false)
   const [showRolePick, setShowRolePick] = useState(false)
-  const { authRoles, switchToRole } = useRoleSwitch()
+  const { authRoles, switchToRole, switchingRole } = useRoleSwitch()
   const otherRoles = authRoles.filter(r => r.role !== 'admin')
 
   function navigateToRole(r: RoleResult) {
@@ -203,15 +203,20 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
                   <button
                     key={r.role}
                     onClick={() => navigateToRole(r)}
+                    disabled={switchingRole}
                     style={{
-                      display: 'block', width: '100%', textAlign: 'right',
+                      display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'right',
                       padding: '10px 14px', background: 'none', border: 'none',
-                      color: '#e2e8f0', fontSize: '0.85rem', cursor: 'pointer',
+                      color: '#e2e8f0', fontSize: '0.85rem', cursor: switchingRole ? 'default' : 'pointer',
+                      opacity: switchingRole ? 0.6 : 1,
                       transition: 'background 0.15s',
                     }}
                     onMouseEnter={e => (e.currentTarget.style.background = '#334155')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'none')}
                   >
+                    {switchingRole && (
+                      <svg className="spinning-wheel" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    )}
                     {r.label}
                   </button>
                 ))}
