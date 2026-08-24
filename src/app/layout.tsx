@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/ToastProvider";
+import AccessibilityWidget from "@/components/AccessibilityWidget";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const rubik = Rubik({
@@ -61,6 +62,7 @@ export default function RootLayout({
         <ToastProvider />
         <SpeedInsights />
         {children}
+        <AccessibilityWidget />
       </body>
     </html>
   );

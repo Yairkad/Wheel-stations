@@ -267,3 +267,60 @@ button.btn-sm,
 .pr-safe {
   padding-right: env(safe-area-inset-right, 1rem);
 }
+
+/* ============================================
+   Accessibility widget — src/components/AccessibilityWidget.tsx
+   Driven by data-a11y-* attributes on <html>, set by the widget.
+   ============================================ */
+
+html[data-a11y-fontsize="1"] { font-size: 112.5%; }
+html[data-a11y-fontsize="2"] { font-size: 125%; }
+html[data-a11y-fontsize="3"] { font-size: 137.5%; }
+
+html[data-a11y-contrast="high"] { --a11y-contrast: 1.35; }
+html[data-a11y-contrast="invert"] { --a11y-invert: 1; --a11y-hue: 180deg; }
+html[data-a11y-grayscale="true"] { --a11y-grayscale: 1; }
+
+html {
+  filter:
+    grayscale(var(--a11y-grayscale, 0))
+    contrast(var(--a11y-contrast, 1))
+    invert(var(--a11y-invert, 0))
+    hue-rotate(var(--a11y-hue, 0deg));
+}
+
+/* Cancel the page-wide invert on media so images/video read correctly */
+html[data-a11y-contrast="invert"] img,
+html[data-a11y-contrast="invert"] video,
+html[data-a11y-contrast="invert"] svg,
+html[data-a11y-contrast="invert"] iframe {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-a11y-links="true"] a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  font-weight: 700 !important;
+}
+
+html[data-a11y-readable="true"] body {
+  line-height: 1.7 !important;
+}
+
+html[data-a11y-readable="true"] p,
+html[data-a11y-readable="true"] li,
+html[data-a11y-readable="true"] label,
+html[data-a11y-readable="true"] button,
+html[data-a11y-readable="true"] a,
+html[data-a11y-readable="true"] span {
+  letter-spacing: 0.02em;
+  word-spacing: 0.04em;
+}
+
+html[data-a11y-motion="stop"] *,
+html[data-a11y-motion="stop"] *::before,
+html[data-a11y-motion="stop"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

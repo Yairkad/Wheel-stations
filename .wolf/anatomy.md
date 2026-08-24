@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-24T12:07:53.713Z
-> Files: 110 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-24T18:36:36.647Z
+> Files: 119 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -18,6 +18,10 @@
 - `test-webauthn-fix.mjs` — Declares BASE (~663 tok)
 - `test-webauthn-login.mjs` — Declares BASE (~474 tok)
 - `test-wizard.js` — Declares STATION_ID (~1563 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/
+
+- `verify-a11y-widget.mjs` — Declares BASE (~828 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -82,11 +86,14 @@
 - `test-whatsapp-forgot.tmp.js` — API routes: GET (1 endpoints) (~872 tok)
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
+- `tmp-verify-a11y.mjs` — Declares BASE (~791 tok)
+- `tmp-verify-a11y2.mjs` — Declares BASE (~423 tok)
 - `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5679 tok)
+- `tmp-verify-icon.mjs` — Declares BASE (~468 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5699 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -121,6 +128,8 @@
 
 ## src/app/
 
+- `globals.css` — global styles; includes data-a11y-* driven rules for the accessibility widget (font-size/contrast/grayscale/invert via composable CSS vars, link-highlight, readable-font, stop-motion) (~2042 tok)
+- `layout.tsx` — RootLayout: font, metadata, mounts ToastProvider + AccessibilityWidget globally (~470 tok)
 
 ## src/app/[stationId]/
 
@@ -128,6 +137,7 @@
 
 ## src/app/accessibility/
 
+- `page.tsx` — הצהרת נגישות; מתארת גם את פקדי וידג'ט הנגישות הגלובלי (~1449 tok)
 
 ## src/app/admin/
 
@@ -154,7 +164,7 @@
 
 ## src/app/admin/trusted-matches/
 
-- `page.tsx` — emptyForm (~2081 tok)
+- `page.tsx` — emptyForm (~2247 tok)
 
 ## src/app/admin/users/
 
@@ -212,7 +222,7 @@
 
 ## src/app/api/admin/trusted-matches/
 
-- `route.ts` — Next.js API route: GET, POST (~808 tok)
+- `route.ts` — Next.js API route: GET, POST (~839 tok)
 
 ## src/app/api/admin/trusted-matches/[id]/
 
@@ -446,7 +456,7 @@
 
 ## src/app/api/wheel-stations/verified-matches/
 
-- `route.ts` — Verified Wheel Matches API (~945 tok)
+- `route.ts` — Verified Wheel Matches API (~1245 tok)
 
 ## src/app/api/wheels/[wheelId]/unavailable/
 
@@ -479,7 +489,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~30227 tok)
+- `page.tsx` — OperatorPage (~30260 tok)
 
 ## src/app/privacy/
 
@@ -512,6 +522,7 @@
 
 ## src/components/
 
+- `AccessibilityWidget.tsx` — DEFAULT_PREFS (~2293 tok)
 - `AppHeader.tsx` — AppHeader (~13546 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
@@ -576,4 +587,5 @@
 - `20260726_add_wheel_mount_feedback.sql` — Lets managers record, at return time, whether a wheel actually mounted on the (~159 tok)
 - `20260821_add_operator_sent_requests.sql` — Tracks each time an operator sends a borrow-request link to a driver/tow-shop, (~370 tok)
 - `20260823_add_deposit_amount_override.sql` — Adds `wheel_borrows.deposit_amount_override`, an optional per-request deposit set by (~19 tok)
+- `20260824_add_trusted_matches_center_bore.sql` — Both the automatic matching (verified_wheel_matches) and the operator-facing (~170 tok)
 - `20260824_add_trusted_vehicle_wheel_matches.sql` — SQL: tables: trusted_vehicle_wheel_matches (~184 tok)

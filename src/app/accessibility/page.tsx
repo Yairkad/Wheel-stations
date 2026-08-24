@@ -52,6 +52,24 @@ export default function AccessibilityPage() {
           </section>
 
           <section>
+            <h2 className="text-xl font-semibold text-gray-800 mb-3">וידג&apos;ט הנגישות</h2>
+            <p className="text-gray-700 mb-2">
+              בכל עמוד במערכת מופיע כפתור נגישות צף (בפינה השמאלית התחתונה), המאפשר לכל משתמש/ת להתאים את התצוגה באופן עצמאי:
+            </p>
+            <ul className="list-disc list-inside text-gray-700 space-y-1 mr-4">
+              <li>הגדלה/הקטנה של גודל הטקסט</li>
+              <li>ניגודיות גבוהה או היפוך צבעים</li>
+              <li>תצוגה בגווני אפור</li>
+              <li>הדגשת קישורים</li>
+              <li>גופן קריא עם ריווח שורות מוגדל</li>
+              <li>עצירת אנימציות ומעברים</li>
+            </ul>
+            <p className="text-gray-700 mt-2">
+              ההעדפות נשמרות בדפדפן, כך שאין צורך להגדיר אותן מחדש בכל ביקור.
+            </p>
+          </section>
+
+          <section>
             <h2 className="text-xl font-semibold text-gray-800 mb-3">רכיבים שעשויים להיות פחות נגישים</h2>
             <p className="text-gray-700 mb-2">
               אנו עובדים כל הזמן על שיפור הנגישות. ייתכן שחלק מהרכיבים הבאים עדיין לא נגישים באופן מלא:

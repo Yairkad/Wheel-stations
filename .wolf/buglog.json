@@ -4018,6 +4018,121 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-24T12:06:53.632Z"
+    },
+    {
+      "id": "bug-247",
+      "timestamp": "2026-08-24T16:47:43.614Z",
+      "error_message": "Incorrect value in code",
+      "file": "UX_AUDIT_TODO.md",
+      "root_cause": "Had 'רים שכבר \"",
+      "fix": "Changed to `20260823_add_deposit_amount_override.sql`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T16:47:43.614Z"
+    },
+    {
+      "id": "bug-248",
+      "timestamp": "2026-08-24T16:57:06.660Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/layout.tsx",
+      "root_cause": "Had \"@vercel/speed-insights/next\"",
+      "fix": "Changed to \"@/components/AccessibilityWidget\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T16:57:06.660Z"
+    },
+    {
+      "id": "bug-249",
+      "timestamp": "2026-08-24T17:39:25.834Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/components/AccessibilityWidget.tsx",
+      "root_cause": "Had \"absolute bottom-[64px] left-0 w-[288px] max-w-[ca",
+      "fix": "Changed to \"absolute bottom-[64px] left-0 w-[288px] max-w-[ca",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T17:39:25.834Z"
+    },
+    {
+      "id": "bug-250",
+      "timestamp": "2026-08-24T17:40:47.875Z",
+      "error_message": "בהגדלת גודל הטקסט דרך וידג׳ט הנגישות, תוכן הפאנל של הווידג׳ט עצמו גדל וחורג מהמסך",
+      "file": "src/components/AccessibilityWidget.tsx",
+      "root_cause": "הגדלת גודל הטקסט מיושמת על html { font-size: % }, וכל יחידות rem בעמוד (כולל מחלקות Tailwind rem-based בפאנל הווידג׳ט עצמו — w-72, text-sm/base, p-4 וכו׳) מחושבות תמיד יחסית ל-root, לא ליחידת אב מקומית. כך שכל הגדלת טקסט גם הגדילה את הפאנל עצמו — לולאת החזרה גרמה לחריגה אופקית, ובמסכים נמוכים (מובייל) גם חריגה אנכית מעל ראש המסך.",
+      "fix": "הומרו כל מחלקות ה-Tailwind ה-rem-based בפאנל (רוחב/ריפוד/מרווחים/גודל-טקסט/עיגול-פינות/כפתור) לערכי px קבועים (למשל w-[288px] במקום w-72), כך שהפאנל לא מגיב יותר ל-data-a11y-fontsize. נוסף גם max-h-[calc(100dvh-96px)] overflow-y-auto כרשת ביטחון למסכים נמוכים.",
+      "tags": [
+        "accessibility-widget",
+        "font-size",
+        "rem-units",
+        "overflow",
+        "tailwind",
+        "mobile"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T17:40:47.876Z"
+    },
+    {
+      "id": "bug-251",
+      "timestamp": "2026-08-24T18:35:34.065Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/wheel-stations/verified-matches/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: // 1. Automatic: 2+ distinct real returns already proved thi; // these are real specific wheels, a different CB is a genui",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-24T18:36:03.038Z"
+    },
+    {
+      "id": "bug-252",
+      "timestamp": "2026-08-24T18:36:25.396Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T18:36:25.396Z"
+    },
+    {
+      "id": "bug-253",
+      "timestamp": "2026-08-24T18:36:36.692Z",
+      "error_message": "CSS fix: rim_size",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "rim_size: w.rim_size, bolt_count: w.bolt_count, bolt_spacing: w.bolt_spacing → w.rim_size, bolt_count: w.bolt_count, bolt_spacing: w.bolt_spacing, center_bore: w.center_bore",
+      "fix": "Changed rim_size: w.rim_size, bolt_count: w.bolt_count, bolt_spacing: w.bolt_spacing → w.rim_size, bolt_count: w.bolt_count, bolt_spacing: w.bolt_spacing, center_bore: w.center_bore",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-24T18:36:36.692Z"
     }
   ]
 }
