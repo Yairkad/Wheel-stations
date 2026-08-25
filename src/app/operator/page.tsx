@@ -8,8 +8,7 @@ import { VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/l
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
-import DistrictFilterChips, { filterByDistricts } from '@/components/DistrictFilterChips'
-import { getDistricts, District } from '@/lib/districts'
+import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
 import { useClickOutside } from '@/hooks/useClickOutside'
 
 interface Operator {
@@ -109,8 +108,7 @@ export default function OperatorPage() {
 
   // Results
   const [results, setResults] = useState<WheelResult[]>([])
-  const [districtFilter, setDistrictFilter] = useState<string[]>([])
-  const [districts, setDistricts] = useState<District[]>([])
+  const [stationFilterId, setStationFilterId] = useState('')
 
   // Shared vehicle search history — same table/API as /search, so a search
   // saved from either page shows up for every operator/manager
@@ -216,7 +214,10 @@ export default function OperatorPage() {
   }, [])
 
   useEffect(() => {
-    getDistricts().then(setDistricts)
+    fetch('/api/wheel-stations')
+      .then(res => res.json())
+      .then(data => setAllStations(data.stations || []))
+      .catch(err => console.error('Failed to fetch stations:', err))
     refreshHistory()
   }, [])
 
@@ -394,6 +395,27 @@ export default function OperatorPage() {
     window.location.href = '/call-center'
   }
 
+  const hasActiveSearch = Boolean(
+    plateNumber || make || model || year || vehicleInfo || results.length > 0 ||
+    specFilters.rim_size || specFilters.bolt_count || specFilters.bolt_spacing || specFilters.center_bore
+  )
+
+  const handleClearSearch = () => {
+    setSearchTab('plate')
+    setPlateNumber('')
+    setMake('')
+    setModel('')
+    setYear('')
+    setSpecFilters({ rim_size: '', bolt_count: '', bolt_spacing: '', center_bore: '' })
+    setVehicleInfo(null)
+    setResults([])
+    setSearchError('')
+    setStationFilterId('')
+    setFieldErrors({ make: false, model: false, year: false })
+    setShowMakeSuggestions(false)
+    setShowModelSuggestions(false)
+  }
+
   // Shared vehicle search history — same table/API as /search (api/vehicle-search-history)
   const refreshHistory = async () => {
     try {
@@ -461,7 +483,7 @@ export default function OperatorPage() {
     setSearchTab('plate')
     setSearchError('')
     setResults([])
-    setDistrictFilter([])
+    setStationFilterId('')
     const vr = item.vehicleResult
     if (!vr.wheel_fitment) { setVehicleInfo(null); return }
     const rimSize = extractRimSize(vr.vehicle.front_tire)
@@ -1305,7 +1327,19 @@ ${contact?.phone || ''}
       <div style={styles.container}>
         {/* Search Section */}
         <div style={styles.section} className="operator-section">
-          <h3 style={styles.sectionTitle} className="operator-section-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חיפוש גלגל לרכב</span></h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+            <h3 style={{...styles.sectionTitle, margin: 0}} className="operator-section-title"><span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חיפוש גלגל לרכב</span></h3>
+            {hasActiveSearch && (
+              <button
+                onClick={handleClearSearch}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.78rem', cursor: 'pointer', padding: '4px' }}
+                title="נקה חיפוש"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                נקה חיפוש
+              </button>
+            )}
+          </div>
 
           {/* Plate search is the default, immediate action — no tab click needed.
               Model/spec are demoted to small fallback buttons below the plate
@@ -1613,30 +1647,6 @@ ${contact?.phone || ''}
             <div style={styles.vehicleInfoBox}>
               <div style={styles.vehicleInfoHeader}>
                 <span>{vehicleInfo.manufacturer} {vehicleInfo.model} {vehicleInfo.year}</span>
-                {vehicleInfo.source_url && (
-                  <a
-                    href={vehicleInfo.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={styles.sourceLink}
-                  >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> אמת מידות</span>
-                  </a>
-                )}
-                <button
-                  onClick={() => {
-                    const specParts = [`PCD ${vehicleInfo.bolt_count}×${vehicleInfo.bolt_spacing}`]
-                    if (vehicleInfo.center_bore) specParts.push(`CB ${vehicleInfo.center_bore}`)
-                    if (vehicleInfo.rim_size) specParts.push(`חישוק ${vehicleInfo.rim_size}"`)
-                    const vehicleLine = `${vehicleInfo.manufacturer} ${vehicleInfo.model} ${vehicleInfo.year}`
-                    const message = `🚗 ${vehicleLine}${plateNumber ? ` (${plateNumber})` : ''}\nמפרט גלגל: ${specParts.join(' · ')}`
-                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
-                  }}
-                  style={styles.sourceLink}
-                  title="שתף בוואטסאפ"
-                >
-                  <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> שתף</span>
-                </button>
               </div>
               <div style={styles.vehicleSpecsRow} className="operator-vehicle-specs-row">
                 <div style={styles.specBox}>
@@ -1654,6 +1664,37 @@ ${contact?.phone || ''}
                     <span style={styles.specLabel}>גודל</span>
                     <span style={styles.specValue}>{vehicleInfo.rim_size}"</span>
                   </div>
+                )}
+              </div>
+
+              {/* Actions row */}
+              <div style={styles.fitmentActionsRow}>
+                <button
+                  onClick={() => {
+                    const specParts = [`PCD ${vehicleInfo.bolt_count}×${vehicleInfo.bolt_spacing}`]
+                    if (vehicleInfo.center_bore) specParts.push(`CB ${vehicleInfo.center_bore}`)
+                    if (vehicleInfo.rim_size) specParts.push(`חישוק ${vehicleInfo.rim_size}"`)
+                    const vehicleLine = `${vehicleInfo.manufacturer} ${vehicleInfo.model} ${vehicleInfo.year}`
+                    const message = `🚗 ${vehicleLine}${plateNumber ? ` (${plateNumber})` : ''}\nמפרט גלגל: ${specParts.join(' · ')}`
+                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+                  }}
+                  style={styles.pillActionBtn}
+                  title="שתף בוואטסאפ"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  שיתוף
+                </button>
+                {vehicleInfo.source_url && (
+                  <a
+                    href={vehicleInfo.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.pillActionBtn}
+                    title="אמת מידות באתר המקור"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    אימות מידות
+                  </a>
                 )}
               </div>
             </div>
@@ -1705,7 +1746,7 @@ ${contact?.phone || ''}
 
         {/* Results */}
         {results.length > 0 && (() => {
-          const filteredResults = filterByDistricts(results, districtFilter)
+          const filteredResults = filterByStation(results, stationFilterId)
           return (
           <div style={styles.section}>
             <div style={styles.resultsHeader}>
@@ -1715,11 +1756,10 @@ ${contact?.phone || ''}
               </span>
             </div>
 
-            <DistrictFilterChips
-              results={results}
-              selected={districtFilter}
-              districts={districts}
-              onToggle={code => setDistrictFilter(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code])}
+            <StationFilterCombobox
+              stations={allStations}
+              selectedId={stationFilterId}
+              onChange={setStationFilterId}
             />
 
             {filteredResults.map(result => (
@@ -2472,6 +2512,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.75rem',
     textDecoration: 'none',
     border: '1px solid #bfdbfe',
+  },
+  fitmentActionsRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
+    marginTop: '10px',
+  },
+  pillActionBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    padding: '10px 20px',
+    borderRadius: '999px',
+    border: '1px solid #e7ddc4',
+    background: '#f8f2e2',
+    color: '#292524',
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+    textDecoration: 'none',
   },
   vehicleInfoRow: {
     display: 'flex',

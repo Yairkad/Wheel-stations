@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T18:20:30.848Z
-> Files: 144 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T20:48:48.751Z
+> Files: 154 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -28,6 +28,16 @@
 - `ux-head3.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6038 tok)
 - `ux3-mine.diff` (~521 tok)
 - `verify-a11y-widget.mjs` — Declares BASE (~828 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/replay/
+
+- `operator_head.tsx` — OperatorPage (~33537 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/59874a58-bf2a-4692-ab9a-8fbe3637d229/scratchpad/
+
+- `append-buglog.mjs` — Declares path (~2025 tok)
+- `find-multirole-user.mjs` — Declares env (~388 tok)
+- `repro-roleswitch.mjs` — Declares BASE (~868 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
@@ -98,10 +108,13 @@
 - `tmp-check-scale.mjs` — Declares envText (~241 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
 - `tmp-log-bug.mjs` — Declares path (~387 tok)
+- `tmp-repro-loading-icon.mjs` — Declares shotDir (~208 tok)
+- `tmp-repro-roleswitch.mjs` — Declares BASE (~1019 tok)
 - `tmp-shot-operator.mjs` — Declares BASE (~321 tok)
 - `tmp-verify-a11y.mjs` — Declares BASE (~791 tok)
 - `tmp-verify-a11y2.mjs` — Declares BASE (~423 tok)
 - `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
+- `tmp-verify-clear.mjs` — Declares BASE (~546 tok)
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
@@ -109,10 +122,12 @@
 - `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
 - `tmp-verify-operator.mjs` — Declares BASE (~666 tok)
 - `tmp-verify-pagination.mjs` — Declares BASE (~603 tok)
+- `tmp-verify-redesign.mjs` — Declares BASE (~380 tok)
 - `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
 - `tmp-verify-search.mjs` — Declares BASE (~981 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6197 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
+- `verify_station_filter.mjs` — SESSION_VERSION: testOperator, testSearch, run (~1200 tok)
 
 ## .claude/
 
@@ -151,11 +166,11 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98461 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98571 tok)
 
 ## src/app/accessibility/
 
-- `page.tsx` — הצהרת נגישות; מתארת גם את פקדי וידג'ט הנגישות הגלובלי (~1449 tok)
+- `page.tsx` — AccessibilityPage (~1450 tok)
 
 ## src/app/admin/
 
@@ -489,7 +504,7 @@
 
 ## src/app/call-center/
 
-- `page.tsx` — CallCenterPage (~16567 tok)
+- `page.tsx` — CallCenterPage (~16618 tok)
 
 ## src/app/feedback/
 
@@ -504,7 +519,7 @@
 
 ## src/app/login/
 
-- `page.tsx` — LoginPage (~10907 tok)
+- `page.tsx` — LoginPage (~10950 tok)
 
 ## src/app/lookup/
 
@@ -515,7 +530,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~33797 tok)
+- `page.tsx` — OperatorPage (~33706 tok)
 
 ## src/app/privacy/
 
@@ -530,7 +545,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~48398 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~46943 tok)
 
 ## src/app/sign/[stationId]/
 
@@ -551,14 +566,14 @@
 ## src/components/
 
 - `AccessibilityWidget.tsx` — DEFAULT_PREFS (~2293 tok)
-- `AppHeader.tsx` — AppHeader (~13687 tok)
-- `DistrictFilterChips.tsx` — filterByDistricts (~570 tok)
+- `AppHeader.tsx` — AppHeader (~13832 tok)
 - `LoadingSpin.tsx` — LoadingSpin (~198 tok)
+- `StationFilterCombobox.tsx` — shared typeahead station picker (replaces DistrictFilterChips, deleted) + filterByStation() helper; used by search/page.tsx + operator/page.tsx (~1120 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
 ## src/components/admin/
 
-- `AdminSidebar.tsx` — icons (~3946 tok)
+- `AdminSidebar.tsx` — icons (~4061 tok)
 
 ## src/components/punctures/
 
@@ -566,7 +581,7 @@
 ## src/hooks/
 
 - `useClickOutside.ts` — Exports useClickOutside (~204 tok)
-- `useRoleSwitch.ts` — Exports useRoleSwitch (~1333 tok)
+- `useRoleSwitch.ts` — Exports roleKey, useRoleSwitch (~1683 tok)
 
 ## src/lib/
 

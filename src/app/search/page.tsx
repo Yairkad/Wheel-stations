@@ -11,7 +11,7 @@ import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSiz
 import AppHeader from '@/components/AppHeader'
 import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModal'
 import LoadingSpin from '@/components/LoadingSpin'
-import DistrictFilterChips, { filterByDistricts } from '@/components/DistrictFilterChips'
+import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 
 const MAX_HISTORY_ITEMS = 30
@@ -52,8 +52,7 @@ function SearchPageContent() {
   const [vehicleResult, setVehicleResult] = useState<VehicleSearchResult | null>(null)
   const [vehicleError, setVehicleError] = useState<string | null>(null)
   const [vehicleSearchResults, setVehicleSearchResults] = useState<SearchResult[] | null>(null)
-  const [vehicleStationFilter, setVehicleStationFilter] = useState('')
-  const [districtFilter, setDistrictFilter] = useState<string[]>([])
+  const [stationFilterId, setStationFilterId] = useState('')
   const [manualRimSize, setManualRimSize] = useState<number | null>(null)
   const [vehicleHistory, setVehicleHistory] = useState<VehicleHistoryItem[]>([])
   const [ocrLoading, setOcrLoading] = useState(false)
@@ -357,7 +356,7 @@ function SearchPageContent() {
       if (!response.ok) throw new Error('Failed to search')
       const data = await response.json()
       setSearchResults(data.results)
-      setDistrictFilter([])
+      setStationFilterId('')
       setFilterOptions(data.filterOptions)
     } catch (err) {
       console.error(err)
@@ -408,7 +407,7 @@ function SearchPageContent() {
     setModelSearchModel('')
     setModelSearchYear('')
     setVehicleSearchTab('plate')
-    setVehicleStationFilter(''); setDistrictFilter([])
+    setStationFilterId('')
   }
 
   const closeVehicleModal = () => {
@@ -421,7 +420,7 @@ function SearchPageContent() {
     setModelSearchMake('')
     setModelSearchModel('')
     setModelSearchYear('')
-    setVehicleStationFilter(''); setDistrictFilter([])
+    setStationFilterId('')
   }
 
 
@@ -481,7 +480,7 @@ function SearchPageContent() {
         const res = await fetch(`/api/wheel-stations/search?${params}`)
         if (res.ok) {
           const data = await res.json()
-          setVehicleStationFilter(''); setDistrictFilter([])
+          setStationFilterId('')
           setVehicleSearchResults(data.results)
         }
       } catch {}
@@ -525,7 +524,7 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
-          setVehicleStationFilter(''); setDistrictFilter([])
+          setStationFilterId('')
           setVehicleSearchResults(searchData.results)
         }
       }
@@ -628,7 +627,7 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
-          setVehicleStationFilter(''); setDistrictFilter([])
+          setStationFilterId('')
           setVehicleSearchResults(searchData.results)
         }
       } else {
@@ -676,7 +675,7 @@ function SearchPageContent() {
       const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
       if (searchResponse.ok) {
         const searchData = await searchResponse.json()
-        setVehicleStationFilter(''); setDistrictFilter([])
+        setStationFilterId('')
         setVehicleSearchResults(searchData.results)
       }
     } catch {
@@ -1446,28 +1445,27 @@ function SearchPageContent() {
                   </div>
                 ) : (
                   <div style={styles.resultsList}>
-                    <DistrictFilterChips
-                      results={searchResults}
-                      selected={districtFilter}
-                      districts={districts}
-                      onToggle={code => setDistrictFilter(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code])}
+                    <StationFilterCombobox
+                      stations={stations}
+                      selectedId={stationFilterId}
+                      onChange={setStationFilterId}
                     />
                     {(() => {
-                      const districtFilteredResults = filterByDistricts(searchResults, districtFilter)
-                      if (districtFilteredResults.length === 0) {
+                      const stationFilteredResults = filterByStation(searchResults, stationFilterId)
+                      if (stationFilteredResults.length === 0) {
                         return (
                           <div style={styles.noResults}>
-                            <p style={{color:'#f59e0b'}}>אין תוצאות למחוזות שנבחרו</p>
+                            <p style={{color:'#f59e0b'}}>אין תוצאות לתחנה שנבחרה</p>
                           </div>
                         )
                       }
                       return (
                         <>
                     <div style={styles.resultsHeader}>
-                      נמצאו {districtFilteredResults.reduce((acc, r) => acc + (r.totalCount || 0), 0)} גלגלים ב-{districtFilteredResults.length} תחנות
+                      נמצאו {stationFilteredResults.reduce((acc, r) => acc + (r.totalCount || 0), 0)} גלגלים ב-{stationFilteredResults.length} תחנות
                     </div>
 
-                    {districtFilteredResults.map(result => (
+                    {stationFilteredResults.map(result => (
                       <div key={result.station.id} style={styles.resultStationGroup}>
                         <div style={styles.resultStationHeader}>
                           <div style={styles.resultStationName}>{result.station.name}</div>
@@ -1681,7 +1679,7 @@ function SearchPageContent() {
             {vehicleSearchTab === 'model' && (
               <button
                 role="tab"
-                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setDistrictFilter([]); setManualRimSize(null); }}
+                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
                 style={{...styles.searchFallbackBtn, marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px'}}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" transform="rotate(180 12 12)"/></svg>
@@ -1692,36 +1690,39 @@ function SearchPageContent() {
             {/* Tab Content: Plate Search */}
             {vehicleSearchTab === 'plate' && (
               <div id="plate-search-panel" role="tabpanel">
-                <div style={styles.vehicleInputRow}>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={vehiclePlate}
-                    onChange={e => setVehiclePlate(e.target.value)}
-                    onKeyPress={e => e.key === 'Enter' && handleVehicleLookup()}
-                    placeholder="הזן מספר רישוי..."
-                    style={styles.vehicleInput}
-                    dir="ltr"
-                    autoFocus
-                  />
-                  <button
-                    onClick={() => handleVehicleLookup()}
-                    disabled={vehicleLoading}
-                    style={styles.vehicleLookupBtn}
-                  >
-                    {vehicleLoading ? (
-                      <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    ) : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
-                  </button>
-                </div>
-                <div style={{textAlign: 'center', marginTop: '12px'}}>
-                  <div style={{fontSize: '0.78rem', color: '#9ca3af', marginBottom: '6px'}}>לא נמצא?</div>
+                {!vehicleResult && (
+                  <div style={styles.vehicleInputRow}>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={vehiclePlate}
+                      onChange={e => setVehiclePlate(e.target.value)}
+                      onKeyPress={e => e.key === 'Enter' && handleVehicleLookup()}
+                      placeholder="הזן מספר רישוי..."
+                      style={styles.vehicleInput}
+                      dir="ltr"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleVehicleLookup()}
+                      disabled={vehicleLoading}
+                      style={styles.vehicleLookupBtn}
+                    >
+                      {vehicleLoading ? (
+                        <svg className="spinning-wheel" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      ) : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>}
+                    </button>
+                  </div>
+                )}
+                <div style={{textAlign: 'center', marginTop: vehicleResult ? 0 : '12px'}}>
+                  {!vehicleResult && <div style={{fontSize: '0.78rem', color: '#9ca3af', marginBottom: '6px'}}>לא נמצא?</div>}
                   <button
                     role="tab"
                     aria-controls="model-search-panel"
-                    onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setDistrictFilter([]); setManualRimSize(null); }}
-                    style={styles.searchFallbackBtn}
+                    onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
+                    style={styles.searchFallbackBtnPrimary}
                   >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                     לפי יצרן ודגם
                   </button>
                 </div>
@@ -2144,10 +2145,10 @@ function SearchPageContent() {
                       )}
                     </div>
 
-                    {/* Actions row */}
-                    <div style={styles.fitmentActionsRow}>
-                      {/* Manual rim size selector when no tire info available */}
-                      {!extractRimSize(vehicleResult.vehicle.front_tire) && (
+                    {/* Manual rim size selector when no tire info available — an input, kept
+                        visually separate from the action buttons below it */}
+                    {!extractRimSize(vehicleResult.vehicle.front_tire) && (
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
                         <select
                           value={manualRimSize || ''}
                           onChange={(e) => setManualRimSize(e.target.value ? parseInt(e.target.value) : null)}
@@ -2158,25 +2159,11 @@ function SearchPageContent() {
                             <option key={size} value={size}>{size}"</option>
                           ))}
                         </select>
-                      )}
-                      {vehicleResult.wheel_fitment.source_url && (
-                        <a
-                          href={vehicleResult.wheel_fitment.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={styles.sourceLink}
-                          title="אמת מידות באתר המקור"
-                        >
-                          <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>אמת מידות</span>
-                        </a>
-                      )}
-                      <button
-                        onClick={() => handleOpenErrorReport(vehicleResult.vehicle, vehicleResult.wheel_fitment)}
-                        style={styles.reportErrorBtn}
-                        title="דווח על טעות במידות"
-                      >
-                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>דווח על טעות</span>
-                      </button>
+                      </div>
+                    )}
+
+                    {/* Actions row */}
+                    <div style={styles.fitmentActionsRow}>
                       <button
                         onClick={() => {
                           const wf = vehicleResult.wheel_fitment
@@ -2188,10 +2175,33 @@ function SearchPageContent() {
                           const message = `🚗 ${vehicleLine}${vehiclePlate ? ` (${vehiclePlate})` : ''}${specParts.length ? `\nמפרט גלגל: ${specParts.join(' · ')}` : ''}`
                           window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
                         }}
-                        style={styles.reportErrorBtn}
+                        style={styles.pillActionBtn}
                         title="שתף בוואטסאפ"
                       >
-                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>שתף</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        שיתוף
+                      </button>
+                      {vehicleResult.wheel_fitment.source_url && (
+                        <a
+                          href={vehicleResult.wheel_fitment.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={styles.pillActionBtn}
+                          title="אמת מידות באתר המקור"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                          אימות מידות
+                        </a>
+                      )}
+                    </div>
+
+                    <div style={{ textAlign: 'center', marginTop: '6px' }}>
+                      <button
+                        onClick={() => handleOpenErrorReport(vehicleResult.vehicle, vehicleResult.wheel_fitment)}
+                        style={styles.reportErrorLink}
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        דווח על טעות במידות
                       </button>
                     </div>
 
@@ -2202,56 +2212,24 @@ function SearchPageContent() {
 
                       // Show all wheels with matching PCD — available as clickable, borrowed as grayed-out
                       const allResults = vehicleSearchResults?.filter(result => result.wheels.length > 0) || []
-                      const nameFilteredResults = vehicleStationFilter.trim()
-                        ? allResults.filter(r => r.station.name.includes(vehicleStationFilter.trim()))
-                        : allResults
-                      const filteredResults = filterByDistricts(nameFilteredResults, districtFilter)
+                      const filteredResults = filterByStation(allResults, stationFilterId)
                       const totalAvailable = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length, 0)
                       const totalBorrowed = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => !w.is_available || w.temporarily_unavailable).length, 0)
 
                       if (allResults.length > 0) {
                         return (
                           <div style={styles.vehicleWheelResults}>
-                            {/* Station filter */}
-                            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'10px',position:'relative'}}>
-                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                              <input
-                                type="text"
-                                value={vehicleStationFilter}
-                                onChange={e => setVehicleStationFilter(e.target.value)}
-                                placeholder="סנן לפי תחנה..."
-                                style={{
-                                  flex: 1,
-                                  padding: '6px 10px',
-                                  border: '1px solid #e2e8f0',
-                                  borderRadius: '8px',
-                                  fontSize: '0.85rem',
-                                  background: '#f8fafc',
-                                  color: '#1e293b',
-                                  outline: 'none',
-                                }}
-                              />
-                              {vehicleStationFilter && (
-                                <button
-                                  onClick={() => { setVehicleStationFilter(''); setDistrictFilter([]) }}
-                                  style={{position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:'2px', lineHeight:1}}
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                </button>
-                              )}
-                            </div>
-                            <DistrictFilterChips
-                              results={nameFilteredResults}
-                              selected={districtFilter}
-                              districts={districts}
-                              onToggle={code => setDistrictFilter(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code])}
+                            <StationFilterCombobox
+                              stations={stations}
+                              selectedId={stationFilterId}
+                              onChange={setStationFilterId}
                             />
                             <div style={styles.vehicleResultsHeader}>
                               <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}>
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                 {totalAvailable} זמינים
                                 {totalBorrowed > 0 && <span style={{color:'#94a3b8', fontWeight:'normal'}}>• {totalBorrowed} מושאלים</span>}
-                                {(vehicleStationFilter || districtFilter.length > 0) && filteredResults.length === 0 && <span style={{color:'#f59e0b'}}>• אין תוצאות לסינון זה</span>}
+                                {stationFilterId && filteredResults.length === 0 && <span style={{color:'#f59e0b'}}>• אין תוצאות לסינון זה</span>}
                               </span>
                             </div>
                             {vehicleRimSize && (
@@ -3499,6 +3477,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 500,
     whiteSpace: 'nowrap',
   },
+  searchFallbackBtnPrimary: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 18px',
+    background: '#eff6ff',
+    border: '1px solid #bfdbfe',
+    borderRadius: '10px',
+    color: '#2563eb',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    whiteSpace: 'nowrap',
+    fontFamily: 'inherit',
+  },
   vehicleError: {
     background: '#fef2f2',
     color: '#dc2626',
@@ -3603,6 +3596,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     gap: '10px',
     flexWrap: 'wrap',
+  },
+  pillActionBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    padding: '10px 20px',
+    borderRadius: '999px',
+    border: '1px solid #e7ddc4',
+    background: '#f8f2e2',
+    color: '#292524',
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+    textDecoration: 'none',
+  },
+  reportErrorLink: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    color: '#94a3b8',
+    fontSize: '0.75rem',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    padding: '4px',
   },
   rimSizeSelect: {
     padding: '8px 12px',
