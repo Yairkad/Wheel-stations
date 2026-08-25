@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T13:43:29.443Z
-> Files: 135 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T14:40:24.752Z
+> Files: 138 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -105,7 +105,8 @@
 - `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
 - `tmp-verify-pagination.mjs` — Declares BASE (~603 tok)
 - `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6011 tok)
+- `tmp-verify-search.mjs` — Declares BASE (~981 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6076 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -381,6 +382,10 @@
 ## src/app/api/vehicle-models/scrape/
 
 
+## src/app/api/vehicle-search-history/
+
+- `route.ts` — Next.js API route: GET, POST, PATCH, DELETE (~1081 tok)
+
 ## src/app/api/vehicle/lookup/
 
 - `route.ts` — Vehicle Lookup API (~7232 tok)
@@ -520,7 +525,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — VEHICLE_HISTORY_KEY (~47518 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~49122 tok)
 
 ## src/app/sign/[stationId]/
 
@@ -559,7 +564,7 @@
 
 ## src/lib/
 
-- `types.ts` — Shared TypeScript interfaces used across pages (~514 tok)
+- `types.ts` — Shared TypeScript interfaces used across pages (~522 tok)
 - `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3437 tok)
 - `wheel-stats.ts` — computeWheelStats: shared available/taken/inactive wheel counts used by all wheel-stations API routes (~200 tok)
 
@@ -608,3 +613,4 @@
 - `20260823_add_deposit_amount_override.sql` — Adds `wheel_borrows.deposit_amount_override`, an optional per-request deposit set by (~19 tok)
 - `20260824_add_trusted_matches_center_bore.sql` — Both the automatic matching (verified_wheel_matches) and the operator-facing (~170 tok)
 - `20260824_add_trusted_vehicle_wheel_matches.sql` — SQL: tables: trusted_vehicle_wheel_matches (~184 tok)
+- `20260825_add_vehicle_search_history.sql` — Shared vehicle search history for /search's plate-lookup tab — replaces the old (~271 tok)

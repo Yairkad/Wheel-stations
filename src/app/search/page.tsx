@@ -11,6 +11,7 @@ import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSiz
 import AppHeader from '@/components/AppHeader'
 import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModal'
 import LoadingSpin from '@/components/LoadingSpin'
+import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 
 type VehicleSearchResult = {
   vehicle: {
@@ -40,17 +41,62 @@ interface VehicleHistoryItem {
   plate: string
   displayName: string
   year: number
-  date: string
   pinned: boolean
+  searchedBy: string | null
+  searchedAt: string
   vehicleResult: VehicleSearchResult
 }
 
-const VEHICLE_HISTORY_KEY = 'wheelSearchHistory'
-const MAX_HISTORY_ITEMS = 10
+const MAX_HISTORY_ITEMS = 30
+
+function filterByDistricts<T extends { station: { district: string | null } }>(results: T[], selected: string[]): T[] {
+  if (selected.length === 0) return results
+  return results.filter(r => r.station.district && selected.includes(r.station.district))
+}
+
+// Toggleable district chips, shown above results — only lists districts actually
+// present in the current result set, and hides itself when there's nothing to narrow.
+function DistrictFilterChips({ results, selected, onToggle, districts }: {
+  results: { station: { district: string | null } }[]
+  selected: string[]
+  onToggle: (code: string) => void
+  districts: District[]
+}) {
+  const codes = [...new Set(results.map(r => r.station.district).filter((d): d is string => !!d))]
+    .sort((a, b) => getDistrictName(a, districts).localeCompare(getDistrictName(b, districts)))
+  if (codes.length < 2) return null
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+      {codes.map(code => {
+        const active = selected.includes(code)
+        const color = getDistrictColor(code, districts)
+        return (
+          <button
+            key={code}
+            onClick={() => onToggle(code)}
+            aria-pressed={active}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              padding: '4px 10px', borderRadius: '999px', fontSize: '0.8rem',
+              border: `1px solid ${active ? color : '#e2e8f0'}`,
+              background: active ? color : '#f8fafc',
+              color: active ? '#fff' : '#475569',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: active ? '#fff' : color, display: 'inline-block' }} />
+            {getDistrictName(code, districts)}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
 
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const fromStationId = searchParams.get('from')
+  const { activeRoleEntry } = useRoleSwitch()
 
   const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState(true)
@@ -84,6 +130,7 @@ function SearchPageContent() {
   const [vehicleError, setVehicleError] = useState<string | null>(null)
   const [vehicleSearchResults, setVehicleSearchResults] = useState<SearchResult[] | null>(null)
   const [vehicleStationFilter, setVehicleStationFilter] = useState('')
+  const [districtFilter, setDistrictFilter] = useState<string[]>([])
   const [manualRimSize, setManualRimSize] = useState<number | null>(null)
   const [vehicleHistory, setVehicleHistory] = useState<VehicleHistoryItem[]>([])
   const [ocrLoading, setOcrLoading] = useState(false)
@@ -227,12 +274,28 @@ function SearchPageContent() {
   const [errorReportImage, setErrorReportImage] = useState<File | null>(null)
   const [errorReportLoading, setErrorReportLoading] = useState(false)
 
-  // Load vehicle search history from localStorage on mount
-  useEffect(() => {
+  // Shared vehicle search history — every operator/manager sees the same list
+  const refreshHistory = async () => {
     try {
-      const stored = localStorage.getItem(VEHICLE_HISTORY_KEY)
-      if (stored) setVehicleHistory(JSON.parse(stored))
+      const res = await fetch('/api/vehicle-search-history')
+      if (res.ok) {
+        const data = await res.json()
+        setVehicleHistory((data.history || []).map((r: any) => ({
+          id: r.id,
+          plate: r.plate,
+          displayName: r.display_name,
+          year: r.year,
+          pinned: r.pinned,
+          searchedBy: r.searched_by,
+          searchedAt: r.searched_at,
+          vehicleResult: r.vehicle_result,
+        })))
+      }
     } catch {}
+  }
+
+  useEffect(() => {
+    refreshHistory()
   }, [])
 
   // Handle Web Share Target: if ?shared=1, read image from IndexedDB and run OCR
@@ -371,6 +434,7 @@ function SearchPageContent() {
       if (!response.ok) throw new Error('Failed to search')
       const data = await response.json()
       setSearchResults(data.results)
+      setDistrictFilter([])
       setFilterOptions(data.filterOptions)
     } catch (err) {
       console.error(err)
@@ -421,7 +485,7 @@ function SearchPageContent() {
     setModelSearchModel('')
     setModelSearchYear('')
     setVehicleSearchTab('plate')
-    setVehicleStationFilter('')
+    setVehicleStationFilter(''); setDistrictFilter([])
   }
 
   const closeVehicleModal = () => {
@@ -434,52 +498,48 @@ function SearchPageContent() {
     setModelSearchMake('')
     setModelSearchModel('')
     setModelSearchYear('')
-    setVehicleStationFilter('')
+    setVehicleStationFilter(''); setDistrictFilter([])
   }
 
 
-  const saveToHistory = (plate: string, result: VehicleSearchResult) => {
+  const saveToHistory = async (plate: string, result: VehicleSearchResult) => {
     const v = result.vehicle
     const displayName = [v.manufacturer, v.model, v.year].filter(Boolean).join(' ')
-    setVehicleHistory(prev => {
-      const existing = prev.find(h => h.plate === plate)
-      const item: VehicleHistoryItem = {
-        id: existing?.id ?? `${plate}-${Date.now()}`,
-        plate,
-        displayName,
-        year: v.year,
-        date: new Date().toLocaleDateString('he-IL'),
-        pinned: existing?.pinned ?? false,
-        vehicleResult: result
-      }
-      const without = prev.filter(h => h.plate !== plate)
-      const pinned = without.filter(h => h.pinned)
-      const unpinned = without.filter(h => !h.pinned)
-      const next = item.pinned
-        ? [item, ...pinned, ...unpinned]
-        : [...pinned, item, ...unpinned.slice(0, MAX_HISTORY_ITEMS - 1)]
-      try { localStorage.setItem(VEHICLE_HISTORY_KEY, JSON.stringify(next)) } catch {}
-      return next
-    })
+    try {
+      await fetch('/api/vehicle-search-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plate,
+          displayName,
+          year: v.year,
+          vehicleResult: result,
+          searchedBy: activeRoleEntry?.data?.full_name ?? null,
+        }),
+      })
+      refreshHistory()
+    } catch {}
   }
 
-  const toggleHistoryPin = (id: string) => {
-    setVehicleHistory(prev => {
-      const next = prev.map(h => h.id === id ? { ...h, pinned: !h.pinned } : h)
-      const pinned = next.filter(h => h.pinned)
-      const unpinned = next.filter(h => !h.pinned).slice(0, MAX_HISTORY_ITEMS)
-      const result = [...pinned, ...unpinned]
-      try { localStorage.setItem(VEHICLE_HISTORY_KEY, JSON.stringify(result)) } catch {}
-      return result
-    })
+  const toggleHistoryPin = async (id: string) => {
+    const current = vehicleHistory.find(h => h.id === id)
+    if (!current) return
+    setVehicleHistory(prev => prev.map(h => h.id === id ? { ...h, pinned: !h.pinned } : h))
+    try {
+      await fetch('/api/vehicle-search-history', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, pinned: !current.pinned }),
+      })
+      refreshHistory()
+    } catch {}
   }
 
-  const removeFromHistory = (id: string) => {
-    setVehicleHistory(prev => {
-      const next = prev.filter(h => h.id !== id)
-      try { localStorage.setItem(VEHICLE_HISTORY_KEY, JSON.stringify(next)) } catch {}
-      return next
-    })
+  const removeFromHistory = async (id: string) => {
+    setVehicleHistory(prev => prev.filter(h => h.id !== id))
+    try {
+      await fetch(`/api/vehicle-search-history?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+    } catch {}
   }
 
   const loadFromHistory = async (item: VehicleHistoryItem) => {
@@ -498,7 +558,7 @@ function SearchPageContent() {
         const res = await fetch(`/api/wheel-stations/search?${params}`)
         if (res.ok) {
           const data = await res.json()
-          setVehicleStationFilter('')
+          setVehicleStationFilter(''); setDistrictFilter([])
           setVehicleSearchResults(data.results)
         }
       } catch {}
@@ -542,7 +602,7 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
-          setVehicleStationFilter('')
+          setVehicleStationFilter(''); setDistrictFilter([])
           setVehicleSearchResults(searchData.results)
         }
       }
@@ -645,7 +705,7 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
-          setVehicleStationFilter('')
+          setVehicleStationFilter(''); setDistrictFilter([])
           setVehicleSearchResults(searchData.results)
         }
       } else {
@@ -693,7 +753,7 @@ function SearchPageContent() {
       const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
       if (searchResponse.ok) {
         const searchData = await searchResponse.json()
-        setVehicleStationFilter('')
+        setVehicleStationFilter(''); setDistrictFilter([])
         setVehicleSearchResults(searchData.results)
       }
     } catch {
@@ -1463,11 +1523,28 @@ function SearchPageContent() {
                   </div>
                 ) : (
                   <div style={styles.resultsList}>
+                    <DistrictFilterChips
+                      results={searchResults}
+                      selected={districtFilter}
+                      districts={districts}
+                      onToggle={code => setDistrictFilter(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code])}
+                    />
+                    {(() => {
+                      const districtFilteredResults = filterByDistricts(searchResults, districtFilter)
+                      if (districtFilteredResults.length === 0) {
+                        return (
+                          <div style={styles.noResults}>
+                            <p style={{color:'#f59e0b'}}>אין תוצאות למחוזות שנבחרו</p>
+                          </div>
+                        )
+                      }
+                      return (
+                        <>
                     <div style={styles.resultsHeader}>
-                      נמצאו {searchResults.reduce((acc, r) => acc + (r.totalCount || 0), 0)} גלגלים ב-{searchResults.length} תחנות
+                      נמצאו {districtFilteredResults.reduce((acc, r) => acc + (r.totalCount || 0), 0)} גלגלים ב-{districtFilteredResults.length} תחנות
                     </div>
 
-                    {searchResults.map(result => (
+                    {districtFilteredResults.map(result => (
                       <div key={result.station.id} style={styles.resultStationGroup}>
                         <div style={styles.resultStationHeader}>
                           <div style={styles.resultStationName}>{result.station.name}</div>
@@ -1504,6 +1581,9 @@ function SearchPageContent() {
                         </div>
                       </div>
                     ))}
+                        </>
+                      )
+                    })()}
                   </div>
                 )}
               </>
@@ -1678,7 +1758,7 @@ function SearchPageContent() {
             {vehicleSearchTab === 'model' && (
               <button
                 role="tab"
-                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setManualRimSize(null); }}
+                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setDistrictFilter([]); setManualRimSize(null); }}
                 style={{...styles.searchFallbackBtn, marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px'}}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" transform="rotate(180 12 12)"/></svg>
@@ -1716,7 +1796,7 @@ function SearchPageContent() {
                   <button
                     role="tab"
                     aria-controls="model-search-panel"
-                    onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setManualRimSize(null); }}
+                    onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setVehicleStationFilter(''); setDistrictFilter([]); setManualRimSize(null); }}
                     style={styles.searchFallbackBtn}
                   >
                     לפי יצרן ודגם
@@ -1729,7 +1809,7 @@ function SearchPageContent() {
             {vehicleSearchTab === 'plate' && !vehicleResult && !vehicleLoading && vehicleHistory.length > 0 && (
               <div style={{ marginTop: '12px' }}>
                 <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px', textAlign: 'right' }}>
-                  היסטוריית חיפוש
+                  היסטוריית חיפוש משותפת
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '280px', overflowY: 'auto', paddingBottom: '2px' }}>
                   {vehicleHistory.map(item => (
@@ -1766,7 +1846,8 @@ function SearchPageContent() {
                         <div style={{ fontSize: '11px', color: '#9ca3af', display: 'flex', gap: '8px', marginTop: '1px', alignItems: 'center' }}>
                           <span dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.04em', color: '#6b7280' }}>{item.plate}</span>
                           <span>·</span>
-                          <span>{item.date}</span>
+                          <span>{new Date(item.searchedAt).toLocaleDateString('he-IL')}</span>
+                          {item.searchedBy && (<><span>·</span><span>{item.searchedBy}</span></>)}
                         </div>
                       </div>
                       {/* Heart / pin */}
@@ -2173,6 +2254,22 @@ function SearchPageContent() {
                       >
                         <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>דווח על טעות</span>
                       </button>
+                      <button
+                        onClick={() => {
+                          const wf = vehicleResult.wheel_fitment
+                          const specParts = wf ? [`PCD ${wf.pcd}`] : []
+                          if (wf?.center_bore) specParts.push(`CB ${wf.center_bore}`)
+                          const rim = extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize
+                          if (rim) specParts.push(`חישוק ${rim}"`)
+                          const vehicleLine = [vehicleResult.vehicle.manufacturer, vehicleResult.vehicle.model, vehicleResult.vehicle.year].filter(Boolean).join(' ')
+                          const message = `🚗 ${vehicleLine}${vehiclePlate ? ` (${vehiclePlate})` : ''}${specParts.length ? `\nמפרט גלגל: ${specParts.join(' · ')}` : ''}`
+                          window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+                        }}
+                        style={styles.reportErrorBtn}
+                        title="שתף בוואטסאפ"
+                      >
+                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>שתף</span>
+                      </button>
                     </div>
 
                     {/* Search Results */}
@@ -2182,9 +2279,10 @@ function SearchPageContent() {
 
                       // Show all wheels with matching PCD — available as clickable, borrowed as grayed-out
                       const allResults = vehicleSearchResults?.filter(result => result.wheels.length > 0) || []
-                      const filteredResults = vehicleStationFilter.trim()
+                      const nameFilteredResults = vehicleStationFilter.trim()
                         ? allResults.filter(r => r.station.name.includes(vehicleStationFilter.trim()))
                         : allResults
+                      const filteredResults = filterByDistricts(nameFilteredResults, districtFilter)
                       const totalAvailable = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length, 0)
                       const totalBorrowed = filteredResults.reduce((acc, r) => acc + r.wheels.filter(w => !w.is_available || w.temporarily_unavailable).length, 0)
 
@@ -2212,19 +2310,25 @@ function SearchPageContent() {
                               />
                               {vehicleStationFilter && (
                                 <button
-                                  onClick={() => setVehicleStationFilter('')}
+                                  onClick={() => { setVehicleStationFilter(''); setDistrictFilter([]) }}
                                   style={{position:'absolute', left:'8px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:'2px', lineHeight:1}}
                                 >
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                 </button>
                               )}
                             </div>
+                            <DistrictFilterChips
+                              results={nameFilteredResults}
+                              selected={districtFilter}
+                              districts={districts}
+                              onToggle={code => setDistrictFilter(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code])}
+                            />
                             <div style={styles.vehicleResultsHeader}>
                               <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}>
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                                 {totalAvailable} זמינים
                                 {totalBorrowed > 0 && <span style={{color:'#94a3b8', fontWeight:'normal'}}>• {totalBorrowed} מושאלים</span>}
-                                {vehicleStationFilter && filteredResults.length === 0 && <span style={{color:'#f59e0b'}}>• אין תוצאות לתחנה זו</span>}
+                                {(vehicleStationFilter || districtFilter.length > 0) && filteredResults.length === 0 && <span style={{color:'#f59e0b'}}>• אין תוצאות לסינון זה</span>}
                               </span>
                             </div>
                             {vehicleRimSize && (

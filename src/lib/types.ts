@@ -31,6 +31,7 @@ export interface SearchResult {
     name: string
     address: string
     city: string | null
+    district: string | null
   }
   wheels: {
     id: string
