@@ -25,6 +25,44 @@ export interface Manager {
   is_primary: boolean
 }
 
+// Shared "shared vehicle search history" shapes — used by both /search and
+// /operator, which both read/write the same vehicle_search_history table
+// (api/vehicle-search-history) so a search saved from either page shows up
+// for everyone regardless of which page they're on.
+export interface VehicleSearchResult {
+  vehicle: {
+    manufacturer: string
+    model: string
+    model_name?: string
+    year: number
+    color?: string
+    front_tire: string | null
+    import_type?: string
+    origin_country?: string
+  }
+  wheel_fitment: {
+    pcd: string
+    bolt_count: number
+    bolt_spacing: number
+    center_bore?: number | null
+    source_url?: string | null
+  } | null
+  source?: string
+  is_personal_import?: boolean
+  personal_import_warning?: string
+}
+
+export interface VehicleHistoryItem {
+  id: string
+  plate: string
+  displayName: string
+  year: number
+  pinned: boolean
+  searchedBy: string | null
+  searchedAt: string
+  vehicleResult: VehicleSearchResult
+}
+
 export interface SearchResult {
   station: {
     id: string

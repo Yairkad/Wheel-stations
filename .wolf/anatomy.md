@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T14:40:24.752Z
-> Files: 138 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T18:20:30.848Z
+> Files: 144 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -21,8 +21,11 @@
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/
 
+- `op-head.tsx` — OperatorPage (~32971 tok)
 - `tm-mine.diff` — TrustedMatch: TrustedMatchesPage (~327 tok)
 - `ux-head.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5853 tok)
+- `ux-head2.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5918 tok)
+- `ux-head3.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6038 tok)
 - `ux3-mine.diff` (~521 tok)
 - `verify-a11y-widget.mjs` — Declares BASE (~828 tok)
 
@@ -94,6 +97,7 @@
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-check-scale.mjs` — Declares envText (~241 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
+- `tmp-log-bug.mjs` — Declares path (~387 tok)
 - `tmp-shot-operator.mjs` — Declares BASE (~321 tok)
 - `tmp-verify-a11y.mjs` — Declares BASE (~791 tok)
 - `tmp-verify-a11y2.mjs` — Declares BASE (~423 tok)
@@ -103,10 +107,11 @@
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
 - `tmp-verify-icon.mjs` — Declares BASE (~468 tok)
 - `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
+- `tmp-verify-operator.mjs` — Declares BASE (~666 tok)
 - `tmp-verify-pagination.mjs` — Declares BASE (~603 tok)
 - `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
 - `tmp-verify-search.mjs` — Declares BASE (~981 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6076 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6197 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -510,7 +515,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~30408 tok)
+- `page.tsx` — OperatorPage (~33797 tok)
 
 ## src/app/privacy/
 
@@ -525,7 +530,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~49122 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~48398 tok)
 
 ## src/app/sign/[stationId]/
 
@@ -547,6 +552,7 @@
 
 - `AccessibilityWidget.tsx` — DEFAULT_PREFS (~2293 tok)
 - `AppHeader.tsx` — AppHeader (~13687 tok)
+- `DistrictFilterChips.tsx` — filterByDistricts (~570 tok)
 - `LoadingSpin.tsx` — LoadingSpin (~198 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
@@ -564,7 +570,7 @@
 
 ## src/lib/
 
-- `types.ts` — Shared TypeScript interfaces used across pages (~522 tok)
+- `types.ts` — Shared TypeScript interfaces used across pages (~812 tok)
 - `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3437 tok)
 - `wheel-stats.ts` — computeWheelStats: shared available/taken/inactive wheel counts used by all wheel-stations API routes (~200 tok)
 

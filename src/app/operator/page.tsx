@@ -4,10 +4,12 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
-import { VehicleModelRecord } from '@/lib/types'
+import { VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
+import DistrictFilterChips, { filterByDistricts } from '@/components/DistrictFilterChips'
+import { getDistricts, District } from '@/lib/districts'
 import { useClickOutside } from '@/hooks/useClickOutside'
 
 interface Operator {
@@ -107,6 +109,12 @@ export default function OperatorPage() {
 
   // Results
   const [results, setResults] = useState<WheelResult[]>([])
+  const [districtFilter, setDistrictFilter] = useState<string[]>([])
+  const [districts, setDistricts] = useState<District[]>([])
+
+  // Shared vehicle search history — same table/API as /search, so a search
+  // saved from either page shows up for every operator/manager
+  const [vehicleHistory, setVehicleHistory] = useState<VehicleHistoryItem[]>([])
 
   // Modal
   const [selectedWheel, setSelectedWheel] = useState<{
@@ -205,6 +213,11 @@ export default function OperatorPage() {
     }
     window.addEventListener('pageshow', handlePageShow)
     return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
+
+  useEffect(() => {
+    getDistricts().then(setDistricts)
+    refreshHistory()
   }, [])
 
   // Load the operator's recent sent-link log once their identity is known
@@ -379,6 +392,130 @@ export default function OperatorPage() {
   const handleBackToManagement = () => {
     localStorage.removeItem('operator_session')
     window.location.href = '/call-center'
+  }
+
+  // Shared vehicle search history — same table/API as /search (api/vehicle-search-history)
+  const refreshHistory = async () => {
+    try {
+      const res = await fetch('/api/vehicle-search-history')
+      if (res.ok) {
+        const data = await res.json()
+        setVehicleHistory((data.history || []).map((r: any) => ({
+          id: r.id,
+          plate: r.plate,
+          displayName: r.display_name,
+          year: r.year,
+          pinned: r.pinned,
+          searchedBy: r.searched_by,
+          searchedAt: r.searched_at,
+          vehicleResult: r.vehicle_result,
+        })))
+      }
+    } catch {}
+  }
+
+  const saveToHistory = async (plate: string, result: VehicleSearchResult) => {
+    const v = result.vehicle
+    const displayName = [v.manufacturer, v.model, v.year].filter(Boolean).join(' ')
+    try {
+      await fetch('/api/vehicle-search-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plate,
+          displayName,
+          year: v.year,
+          vehicleResult: result,
+          searchedBy: operator?.full_name ?? null,
+        }),
+      })
+      refreshHistory()
+    } catch {}
+  }
+
+  const toggleHistoryPin = async (id: string) => {
+    const current = vehicleHistory.find(h => h.id === id)
+    if (!current) return
+    setVehicleHistory(prev => prev.map(h => h.id === id ? { ...h, pinned: !h.pinned } : h))
+    try {
+      await fetch('/api/vehicle-search-history', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, pinned: !current.pinned }),
+      })
+      refreshHistory()
+    } catch {}
+  }
+
+  const removeFromHistory = async (id: string) => {
+    setVehicleHistory(prev => prev.filter(h => h.id !== id))
+    try {
+      await fetch(`/api/vehicle-search-history?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+    } catch {}
+  }
+
+  // Reload a history entry — reuses the cached vehicle info (no re-lookup of the
+  // plate) but re-fetches wheel availability fresh, since that changes constantly
+  const loadFromHistory = async (item: VehicleHistoryItem) => {
+    setPlateNumber(item.plate)
+    setSearchTab('plate')
+    setSearchError('')
+    setResults([])
+    setDistrictFilter([])
+    const vr = item.vehicleResult
+    if (!vr.wheel_fitment) { setVehicleInfo(null); return }
+    const rimSize = extractRimSize(vr.vehicle.front_tire)
+    const pcdInfo: VehicleInfo = {
+      manufacturer: vr.vehicle.manufacturer,
+      model: vr.vehicle.model,
+      year: vr.vehicle.year,
+      bolt_count: vr.wheel_fitment.bolt_count,
+      bolt_spacing: vr.wheel_fitment.bolt_spacing,
+      rim_size: rimSize ? rimSize.toString() : '',
+      front_tire: vr.vehicle.front_tire,
+      center_bore: vr.wheel_fitment.center_bore ?? null,
+      source_url: vr.wheel_fitment.source_url ?? null,
+    }
+    setVehicleInfo(pcdInfo)
+    setSearchLoading(true)
+    try {
+      const wheelParams = new URLSearchParams({
+        bolt_count: pcdInfo.bolt_count.toString(),
+        bolt_spacing: pcdInfo.bolt_spacing.toString(),
+      })
+      const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
+      const wheelsData = await wheelsRes.json()
+      if (!wheelsRes.ok) { setSearchError('שגיאה בחיפוש גלגלים'); return }
+
+      const stationIds = wheelsData.results?.map((r: { station: { id: string } }) => r.station.id) || []
+      let managersMap: Record<string, StationManager[]> = {}
+      if (stationIds.length > 0) {
+        const managersRes = await fetch(`/api/wheel-stations/managers?station_ids=${stationIds.join(',')}`)
+        if (managersRes.ok) {
+          const managersData = await managersRes.json()
+          managersMap = managersData.managers || {}
+        }
+      }
+
+      const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: any) => ({
+        station: { ...result.station, managers: managersMap[result.station.id] || [] },
+        wheels: result.wheels.map((w: any) => ({
+          ...w,
+          pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`,
+          bolt_count: pcdInfo.bolt_count,
+          bolt_spacing: pcdInfo.bolt_spacing,
+          center_bore: w.center_bore,
+          is_donut: w.is_donut,
+        })),
+        availableCount: result.availableCount,
+        totalCount: result.totalCount,
+      }))
+      setResults(transformedResults)
+    } catch {
+      setSearchError('שגיאה בחיפוש גלגלים')
+    } finally {
+      setSearchLoading(false)
+    }
   }
 
   const handleSearch = async () => {
@@ -609,6 +746,13 @@ export default function OperatorPage() {
       }))
 
       setResults(transformedResults)
+
+      if (searchTab === 'plate' && plateNumber.trim()) {
+        saveToHistory(plateNumber.trim(), {
+          vehicle: { manufacturer: pcdInfo.manufacturer, model: pcdInfo.model, year: pcdInfo.year, front_tire: pcdInfo.front_tire ?? null },
+          wheel_fitment: { pcd: `${pcdInfo.bolt_count}×${pcdInfo.bolt_spacing}`, bolt_count: pcdInfo.bolt_count, bolt_spacing: pcdInfo.bolt_spacing, center_bore: pcdInfo.center_bore, source_url: pcdInfo.source_url },
+        })
+      }
 
       if (transformedResults.length === 0) {
         toast('לא נמצאו גלגלים מתאימים')
@@ -1201,6 +1345,64 @@ ${contact?.phone || ''}
                   </button>
                 </div>
               </div>
+
+              {/* Shared vehicle search history */}
+              {!vehicleInfo && !searchLoading && vehicleHistory.length > 0 && (
+                <div style={{ marginTop: '16px' }}>
+                  <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '8px', textAlign: 'right' }}>
+                    היסטוריית חיפוש משותפת
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '280px', overflowY: 'auto', paddingBottom: '2px' }}>
+                    {vehicleHistory.map(item => (
+                      <div
+                        key={item.id}
+                        onClick={() => loadFromHistory(item)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
+                          background: '#f8fafc', border: `1px solid ${item.pinned ? '#fca5a5' : '#e2e8f0'}`,
+                          borderRadius: '10px', cursor: 'pointer', direction: 'rtl',
+                        }}
+                      >
+                        <div style={{ flexShrink: 0, color: '#6b7280', display: 'flex', alignItems: 'center' }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/>
+                            <circle cx="7" cy="17" r="2"/><circle cx="15" cy="17" r="2"/>
+                          </svg>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: '13px', color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.displayName}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#9ca3af', display: 'flex', gap: '8px', marginTop: '1px', alignItems: 'center' }}>
+                            <span dir="ltr" style={{ fontFamily: 'monospace', letterSpacing: '0.04em', color: '#6b7280' }}>{item.plate}</span>
+                            <span>·</span>
+                            <span>{new Date(item.searchedAt).toLocaleDateString('he-IL')}</span>
+                            {item.searchedBy && (<><span>·</span><span>{item.searchedBy}</span></>)}
+                          </div>
+                        </div>
+                        <button
+                          onClick={e => { e.stopPropagation(); toggleHistoryPin(item.id) }}
+                          title={item.pinned ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, color: item.pinned ? '#ef4444' : '#d1d5db', display: 'flex', alignItems: 'center' }}
+                        >
+                          <svg width="17" height="17" viewBox="0 0 24 24" fill={item.pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={e => { e.stopPropagation(); removeFromHistory(item.id) }}
+                          title="הסר מהיסטוריה"
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, color: '#d1d5db', display: 'flex', alignItems: 'center' }}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <button
@@ -1421,6 +1623,20 @@ ${contact?.phone || ''}
                     <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> אמת מידות</span>
                   </a>
                 )}
+                <button
+                  onClick={() => {
+                    const specParts = [`PCD ${vehicleInfo.bolt_count}×${vehicleInfo.bolt_spacing}`]
+                    if (vehicleInfo.center_bore) specParts.push(`CB ${vehicleInfo.center_bore}`)
+                    if (vehicleInfo.rim_size) specParts.push(`חישוק ${vehicleInfo.rim_size}"`)
+                    const vehicleLine = `${vehicleInfo.manufacturer} ${vehicleInfo.model} ${vehicleInfo.year}`
+                    const message = `🚗 ${vehicleLine}${plateNumber ? ` (${plateNumber})` : ''}\nמפרט גלגל: ${specParts.join(' · ')}`
+                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
+                  }}
+                  style={styles.sourceLink}
+                  title="שתף בוואטסאפ"
+                >
+                  <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> שתף</span>
+                </button>
               </div>
               <div style={styles.vehicleSpecsRow} className="operator-vehicle-specs-row">
                 <div style={styles.specBox}>
@@ -1488,16 +1704,25 @@ ${contact?.phone || ''}
         )}
 
         {/* Results */}
-        {results.length > 0 && (
+        {results.length > 0 && (() => {
+          const filteredResults = filterByDistricts(results, districtFilter)
+          return (
           <div style={styles.section}>
             <div style={styles.resultsHeader}>
               <h3 style={styles.sectionTitle}>תוצאות חיפוש</h3>
               <span style={styles.resultsCount}>
-                נמצאו {results.reduce((sum, r) => sum + r.wheels.filter(isAvailableMatch).length, 0)} גלגלים זמינים ב-{results.length} תחנות
+                נמצאו {filteredResults.reduce((sum, r) => sum + r.wheels.filter(isAvailableMatch).length, 0)} גלגלים זמינים ב-{filteredResults.length} תחנות
               </span>
             </div>
 
-            {results.map(result => (
+            <DistrictFilterChips
+              results={results}
+              selected={districtFilter}
+              districts={districts}
+              onToggle={code => setDistrictFilter(prev => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code])}
+            />
+
+            {filteredResults.map(result => (
               <div key={result.station.id} style={styles.stationCard}>
                 <div style={styles.stationHeader} className="operator-station-header">
                   <div>
@@ -1608,7 +1833,8 @@ ${contact?.phone || ''}
               </div>
             ))}
           </div>
-        )}
+          )
+        })()}
       </div>
 
       {/* Model Selection Modal - When multiple specs found */}

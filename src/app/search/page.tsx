@@ -4,94 +4,17 @@ import { useState, useEffect, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
-import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
+import { getDistricts, District } from '@/lib/districts'
 import { VERSION } from '@/lib/version'
-import { Station, Manager, SearchResult, FilterOptions, VehicleModelRecord } from '@/lib/types'
+import { Station, Manager, SearchResult, FilterOptions, VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit, getDiameterDiffPct } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModal'
 import LoadingSpin from '@/components/LoadingSpin'
+import DistrictFilterChips, { filterByDistricts } from '@/components/DistrictFilterChips'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 
-type VehicleSearchResult = {
-  vehicle: {
-    manufacturer: string
-    model: string
-    model_name?: string
-    year: number
-    color?: string
-    front_tire: string | null
-    import_type?: string
-    origin_country?: string
-  }
-  wheel_fitment: {
-    pcd: string
-    bolt_count: number
-    bolt_spacing: number
-    center_bore?: number
-    source_url?: string
-  } | null
-  source?: string
-  is_personal_import?: boolean
-  personal_import_warning?: string
-}
-
-interface VehicleHistoryItem {
-  id: string
-  plate: string
-  displayName: string
-  year: number
-  pinned: boolean
-  searchedBy: string | null
-  searchedAt: string
-  vehicleResult: VehicleSearchResult
-}
-
 const MAX_HISTORY_ITEMS = 30
-
-function filterByDistricts<T extends { station: { district: string | null } }>(results: T[], selected: string[]): T[] {
-  if (selected.length === 0) return results
-  return results.filter(r => r.station.district && selected.includes(r.station.district))
-}
-
-// Toggleable district chips, shown above results — only lists districts actually
-// present in the current result set, and hides itself when there's nothing to narrow.
-function DistrictFilterChips({ results, selected, onToggle, districts }: {
-  results: { station: { district: string | null } }[]
-  selected: string[]
-  onToggle: (code: string) => void
-  districts: District[]
-}) {
-  const codes = [...new Set(results.map(r => r.station.district).filter((d): d is string => !!d))]
-    .sort((a, b) => getDistrictName(a, districts).localeCompare(getDistrictName(b, districts)))
-  if (codes.length < 2) return null
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
-      {codes.map(code => {
-        const active = selected.includes(code)
-        const color = getDistrictColor(code, districts)
-        return (
-          <button
-            key={code}
-            onClick={() => onToggle(code)}
-            aria-pressed={active}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '5px',
-              padding: '4px 10px', borderRadius: '999px', fontSize: '0.8rem',
-              border: `1px solid ${active ? color : '#e2e8f0'}`,
-              background: active ? color : '#f8fafc',
-              color: active ? '#fff' : '#475569',
-              cursor: 'pointer',
-            }}
-          >
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: active ? '#fff' : color, display: 'inline-block' }} />
-            {getDistrictName(code, districts)}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
 
 function SearchPageContent() {
   const searchParams = useSearchParams()

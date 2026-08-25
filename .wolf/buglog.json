@@ -4604,6 +4604,248 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-25T14:35:58.520Z"
+    },
+    {
+      "id": "bug-283",
+      "timestamp": "2026-08-25T17:13:04.356Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Had '@/hooks/useRoleSwitch'",
+      "fix": "Changed to '@/components/DistrictFilterChips'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:13:04.356Z"
+    },
+    {
+      "id": "bug-284",
+      "timestamp": "2026-08-25T17:13:29.521Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "42 lines replaced/restructured",
+      "fix": "Rewrote 47→3 lines (42 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:13:29.521Z"
+    },
+    {
+      "id": "bug-285",
+      "timestamp": "2026-08-25T17:22:05.053Z",
+      "error_message": "Type error",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:22:05.053Z"
+    },
+    {
+      "id": "bug-286",
+      "timestamp": "2026-08-25T17:25:32.133Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:25:32.133Z"
+    },
+    {
+      "id": "bug-287",
+      "timestamp": "2026-08-25T17:37:25.252Z",
+      "error_message": "CSS fix: station, results",
+      "file": "src/components/DistrictFilterChips.tsx",
+      "root_cause": "station: { district: string | null → { district?: string | null; results: { station: { district: string | null → { station: { district?: string | null",
+      "fix": "Changed station: { district: string | null → { district?: string | null; results: { station: { district: string | null → { station: { district?: string | null",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:37:25.252Z"
+    },
+    {
+      "id": "bug-288",
+      "timestamp": "2026-08-25T17:37:46.244Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:37:46.244Z"
+    },
+    {
+      "id": "bug-289",
+      "timestamp": "2026-08-25T17:44:52.269Z",
+      "error_message": "Incorrect value in code",
+      "file": "tmp-verify-operator.mjs",
+      "root_cause": "Had 'networkidle'",
+      "fix": "Changed to 'domcontentloaded'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:44:52.269Z"
+    },
+    {
+      "id": "bug-290",
+      "timestamp": "2026-08-25T17:48:25.288Z",
+      "error_message": "Wrong reference: 1500 should be 5000",
+      "file": "tmp-verify-operator.mjs",
+      "root_cause": "Used \"1500\" instead of \"5000\"",
+      "fix": "Changed 1500 → 5000",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T17:48:25.288Z"
+    },
+    {
+      "id": "bug-291",
+      "timestamp": "2026-08-25T18:08:58.233Z",
+      "error_message": "Incorrect value in code",
+      "file": "UX_AUDIT_TODO.md",
+      "root_cause": "Had 'יפים לבחירה מרובה מעל התוצאות (גם בטאב לוחית וגם ",
+      "fix": "Changed to 'יפים לבחירה מרובה מעל התוצאות, לפי `",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T18:08:58.233Z"
+    },
+    {
+      "id": "bug-292",
+      "timestamp": "2026-08-25T18:10:50.309Z",
+      "error_message": "המשתמש דיווח שכל שיפורי המוקדנים (סינון מחוז, היסטוריה משותפת, כפתור שיתוף) לא מופיעים בלוקאל",
+      "file": "src/app/operator/page.tsx (חסר), src/app/search/page.tsx (נבנה בטעות שם)",
+      "root_cause": "TODO ישן ציין במפורש את search/page.tsx (VEHICLE_HISTORY_KEY, fitmentActionsRow) כיעד לפיצ'רים האלה, ולכן הם נבנו שם. אבל /search אינו הדף שמוקדנים אמיתיים משתמשים בו בפועל — /operator הוא, עם מימוש עצמאי לגמרי (WheelResult/VehicleInfo משלו, בלי קוד משותף מלבד קריאה לאותו /api/wheel-stations/search). המשתמש גילה את זה כי המחרוזות בצילום המסך שלו (\"כתובת לא הוגדרה\", \"אין גלגל תואם בתחנה זו\") לא נמצאו בחיפוש בקובץ search/page.tsx.",
+      "fix": "הועברו שלושת הפיצ'רים גם ל-operator/page.tsx. חולץ רכיב DistrictFilterChips משותף, והועברו הטיפוסים VehicleSearchResult/VehicleHistoryItem ל-src/lib/types.ts כך ששני הדפים חולקים את אותה טבלת היסטוריה.",
+      "tags": [
+        "wrong-file",
+        "operator-vs-search",
+        "todo-stale-reference",
+        "district-filter",
+        "shared-history"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T18:10:50.317Z"
+    },
+    {
+      "id": "bug-293",
+      "timestamp": "2026-08-25T18:14:09.048Z",
+      "error_message": "Type error",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/op-head.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T18:14:09.048Z"
+    },
+    {
+      "id": "bug-294",
+      "timestamp": "2026-08-25T18:15:02.547Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/op-head.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T18:15:02.547Z"
+    },
+    {
+      "id": "bug-295",
+      "timestamp": "2026-08-25T18:15:24.893Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/op-head.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T18:15:24.893Z"
+    },
+    {
+      "id": "bug-296",
+      "timestamp": "2026-08-25T18:15:48.377Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/op-head.tsx",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 11→20 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T18:15:48.377Z"
+    },
+    {
+      "id": "bug-297",
+      "timestamp": "2026-08-25T18:20:30.878Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/ux-head3.md",
+      "root_cause": "Had 'יפים לבחירה מרובה מעל התוצאות (גם בטאב לוחית וגם ",
+      "fix": "Changed to 'יפים לבחירה מרובה מעל התוצאות, לפי `",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T18:20:30.878Z"
     }
   ]
 }
