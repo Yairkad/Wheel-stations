@@ -1761,3 +1761,27 @@
 | 08:37 | Created tmp-verify-loading.mjs | — | ~636 |
 | 08:38 | Finished the "loading state on every button" request: swept ~17 files, added spinner+disabled to ~60 async buttons via new shared LoadingSpin component, fixed a real bug (wheels-spinner CSS class never existed, search buttons showed zero animation) | src/components/LoadingSpin.tsx (new), src/app/[stationId]/page.tsx, super-manager, stations, search, admin/vehicles, admin/reports, admin/users, admin/call-centers, admin/page, call-center, operator, login, admin/punctures/login, sign/[stationId], punctures, admin/trusted-matches, admin/punctures | tsc clean throughout (checked after every file batch); spot-verified live via Playwright (login button shows spinner+disabled during a mocked slow request, no console errors) | ~9000 |
 | 08:42 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/tm-mine.diff | — | ~327 |
+| 08:45 | Session end: 62 writes across 3 files (page.tsx, tmp-verify-loading.mjs, tm-mine.diff) | 11 reads | ~237448 tok |
+| 09:08 | Edited src/app/api/vehicle-models/route.ts | added nullish coalescing | ~1674 |
+| 09:09 | Edited src/app/admin/vehicles/page.tsx | expanded (+11 lines) | ~247 |
+| 09:09 | Edited src/app/admin/vehicles/page.tsx | 9→9 lines | ~267 |
+| 09:10 | Edited src/app/admin/vehicles/page.tsx | CSS: facets | ~1024 |
+| 09:11 | Edited src/app/admin/vehicles/page.tsx | "יוצאו ${filteredVehicles." → "יוצאו ${allMatching.lengt" | ~16 |
+| 09:11 | Edited src/app/admin/vehicles/page.tsx | added error handling | ~190 |
+| 09:11 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~12 |
+| 09:12 | Edited src/app/admin/vehicles/page.tsx | removed 57 lines | ~10 |
+| 09:13 | Edited src/app/admin/vehicles/page.tsx | removed 86 lines | ~11 |
+| 09:13 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~3 |
+| 09:14 | Edited src/app/admin/vehicles/page.tsx | expanded (+23 lines) | ~431 |
+| 09:15 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~34 |
+
+## Session: 2026-08-25 09:18
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 09:18 | Created tmp-verify-pagination.mjs | — | ~603 |
+| 09:22 | Implemented real server-side pagination + search for admin/vehicles (UX_AUDIT_TODO.md item): API now returns one page (default 50 rows) + total count instead of the whole 3,109-row/~1.7MB table on every load; dropped the client fuzzy Hebrew search (normalizeHebrew stripped every alef, suspected false-positive matches) in favor of server ILIKE substring search across all 9 filter dimensions; added a separate narrow-column "facets" fetch so filter dropdowns still see the whole table | src/app/api/vehicle-models/route.ts, src/app/admin/vehicles/page.tsx | verified against live DB via curl: pagination/all filter modes/facets/legacy no-page callers all correct; page payload 56KB vs ~1.7MB before; tsc clean; UI itself not visually verified live (admin session needs a real cookie-signed login, no test credentials available in this env) | ~7000 |
+| 09:23 | בדיקת מנגנון כניסה בטביעת אצבע (WebAuthn) — אימות שהקוד אכן מייצר פרומפט ביומטרי ישיר ולא Passkey (residentKey discouraged + phone-scoped, כבר תוקן בקומיטים קודמים), אך נמצא באג פרודקשן חדש וחוסם: NEXT_PUBLIC_RP_ID ריק ב-Vercel Production/Preview → נופל ל-localhost → כל ניסיון נכשל מיידית ב-SecurityError בלי שהחיישן בכלל מופעל | src/lib/webauthn.ts, Vercel env (wheel-stations) | אובחן במלואו, לא תוקן — ממתין לאישור המשתמש לשנות env var בפרודקשן + redeploy | ~12000 |
+| 09:23 | Edited UX_AUDIT_TODO.md | — | ~0 |
+| 09:23 | Created ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/webauthn_biometric_login_paused.md | — | ~903 |
+| 09:24 | Edited ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/MEMORY.md | inline fix | ~54 |

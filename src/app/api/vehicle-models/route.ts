@@ -58,10 +58,12 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get('year')
     const search = searchParams.get('search') // General search term
     const limit = searchParams.get('limit')
+    const page = searchParams.get('page') // presence activates paginated admin-list mode
+    const fields = searchParams.get('fields') // 'facets' = narrow-column mode for filter dropdowns
 
-    // Helper function to build query with filters
+    // Helper function to build query with filters shared by every mode
     const buildQuery = () => {
-      let q = supabase.from('vehicle_models').select('*')
+      let q = supabase.from('vehicle_models').select(fields === 'facets' ? 'make, make_he, model, variants, bolt_count, bolt_spacing, center_bore, rim_size' : '*', page ? { count: 'exact' } : undefined)
 
       // General search - split into words and search each word across all text fields
       // This allows "מזדה 6" to find cars where make_he contains "מזדה" AND model contains "6"
@@ -85,6 +87,47 @@ export async function GET(request: NextRequest) {
         q = q.lte('year_from', yearNum).or(`year_to.gte.${yearNum},year_to.is.null`)
       }
 
+      // Admin-list column filters (only meaningful in paginated mode, but harmless otherwise)
+      const fMake = searchParams.get('fMake')
+      if (fMake) {
+        q = q.or(`make.ilike.${fMake}%,make_he.ilike.%${fMake}%`)
+      }
+      const fModel = searchParams.get('fModel')
+      if (fModel) {
+        q = q.or(`model.ilike.%${fModel}%,variants.ilike.%${fModel}%`)
+      }
+      const yearFromMin = searchParams.get('yearFromMin')
+      if (yearFromMin) q = q.gte('year_from', parseInt(yearFromMin))
+      const yearFromMax = searchParams.get('yearFromMax')
+      if (yearFromMax) q = q.lte('year_from', parseInt(yearFromMax))
+      const fBoltCount = searchParams.get('fBoltCount')
+      if (fBoltCount) q = q.eq('bolt_count', parseInt(fBoltCount))
+      const fBoltSpacing = searchParams.get('fBoltSpacing')
+      if (fBoltSpacing) q = q.eq('bolt_spacing', parseFloat(fBoltSpacing))
+      const fCenterBoreMode = searchParams.get('fCenterBoreMode')
+      if (fCenterBoreMode === 'empty') {
+        q = q.is('center_bore', null)
+      } else if (fCenterBoreMode === 'equals') {
+        const v = searchParams.get('fCenterBore')
+        if (v) q = q.eq('center_bore', parseFloat(v))
+      } else if (fCenterBoreMode === 'greater') {
+        const v = searchParams.get('fCenterBore')
+        if (v) q = q.gte('center_bore', parseFloat(v))
+      }
+      const fRimSizeMode = searchParams.get('fRimSizeMode')
+      if (fRimSizeMode === 'empty') {
+        q = q.or('rim_size.is.null,rim_size.eq.')
+      } else if (fRimSizeMode === 'equals') {
+        const v = searchParams.get('fRimSize')
+        if (v) q = q.eq('rim_size', v)
+      }
+      const fSourceUrlMode = searchParams.get('fSourceUrlMode')
+      if (fSourceUrlMode === 'has_value') {
+        q = q.not('source_url', 'is', null).neq('source_url', '')
+      } else if (fSourceUrlMode === 'empty') {
+        q = q.or('source_url.is.null,source_url.eq.')
+      }
+
       return q
     }
 
@@ -102,7 +145,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ vehicles: data, models: data })
     }
 
-    // Supabase has a default limit of 1000, use pagination to get all records
+    // Paginated admin-list mode: one page + total count, no unbounded fetch
+    if (page) {
+      const pageNum = Math.max(1, parseInt(page) || 1)
+      const pageSize = Math.min(200, Math.max(1, parseInt(searchParams.get('pageSize') || '50')))
+      const from = (pageNum - 1) * pageSize
+
+      const { data, error, count } = await buildQuery()
+        .order('make', { ascending: true })
+        .range(from, from + pageSize - 1)
+
+      if (error) {
+        console.error('Supabase error:', error)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      return NextResponse.json({ vehicles: data, models: data, total: count ?? 0, page: pageNum, pageSize })
+    }
+
+    // Legacy unbounded mode (also used for the 'facets' narrow-column fetch) — Supabase caps
+    // a single request at 1000 rows, so page through it internally to return everything.
     let allData: any[] = []
     let from = 0
     const pageSize = 1000

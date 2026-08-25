@@ -74,6 +74,17 @@ function VehiclesAdminPage() {
   const [vehicles, setVehicles] = useState<VehicleModel[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  // Server-side pagination — vehicles above holds only the current page (~44k-row
+  // table previously loaded entirely on every fetch, see UX_AUDIT_TODO.md)
+  const PAGE_SIZE = 50
+  const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+
+  // Narrow-column, all-rows dataset used ONLY to populate filter dropdowns/autocomplete —
+  // decoupled from `vehicles` (current page) so those lists don't shrink to one page's values
+  const [facetVehicles, setFacetVehicles] = useState<Pick<VehicleModel, 'make' | 'make_he' | 'model' | 'variants' | 'bolt_count' | 'bolt_spacing' | 'center_bore' | 'rim_size'>[]>([])
 
   // Scroll to top button
   const [showScrollTop, setShowScrollTop] = useState(false)
@@ -175,15 +186,15 @@ function VehiclesAdminPage() {
     source_url: { type: '', value: '' },
   })
 
-  // Get unique values from vehicles for filters
-  const uniqueMakeValues = [...new Set(vehicles.map(v => v.make))].sort()
-  const uniqueMakeHeValues = [...new Set(vehicles.filter(v => v.make_he).map(v => v.make_he))].sort()
-  const uniqueModelValues = [...new Set(vehicles.map(v => v.model))].sort()
-  const uniqueVariantsValues = [...new Set(vehicles.filter(v => v.variants).map(v => v.variants!))].sort()
-  const uniqueBoltCountValues = [...new Set(vehicles.map(v => v.bolt_count))].sort((a, b) => a - b)
-  const uniqueBoltSpacingValues = [...new Set(vehicles.map(v => v.bolt_spacing))].sort((a, b) => a - b)
-  const uniqueCenterBoreValues = [...new Set(vehicles.filter(v => v.center_bore).map(v => v.center_bore!))].sort((a, b) => a - b)
-  const uniqueRimSizeValues = [...new Set(vehicles.filter(v => v.rim_size).map(v => v.rim_size!))].sort()
+  // Get unique values across the WHOLE table (not just the current page) for filter dropdowns
+  const uniqueMakeValues = [...new Set(facetVehicles.map(v => v.make))].sort()
+  const uniqueMakeHeValues = [...new Set(facetVehicles.filter(v => v.make_he).map(v => v.make_he))].sort()
+  const uniqueModelValues = [...new Set(facetVehicles.map(v => v.model))].sort()
+  const uniqueVariantsValues = [...new Set(facetVehicles.filter(v => v.variants).map(v => v.variants!))].sort()
+  const uniqueBoltCountValues = [...new Set(facetVehicles.map(v => v.bolt_count))].sort((a, b) => a - b)
+  const uniqueBoltSpacingValues = [...new Set(facetVehicles.map(v => v.bolt_spacing))].sort((a, b) => a - b)
+  const uniqueCenterBoreValues = [...new Set(facetVehicles.filter(v => v.center_bore).map(v => v.center_bore!))].sort((a, b) => a - b)
+  const uniqueRimSizeValues = [...new Set(facetVehicles.filter(v => v.rim_size).map(v => v.rim_size!))].sort()
   const uniqueYearValues = [...new Set(vehicles.map(v => v.year_from))].sort((a, b) => a - b)
 
   // Track which filter dropdown is open
@@ -385,23 +396,87 @@ function VehiclesAdminPage() {
     }
   }, [searchParams, isAuthenticated])
 
+  // Debounce free-text search before it triggers a server fetch
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300)
+    return () => clearTimeout(t)
+  }, [searchQuery])
+
+  // Any filter/search change starts back at page 1
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, columnFilters])
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchVehicles()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, page, debouncedSearch, columnFilters])
+
+  useEffect(() => {
+    if (isAuthenticated) fetchFacets()
   }, [isAuthenticated])
 
+  // Builds the query params shared by the paginated list fetch and the "export all" fetch
+  const buildFilterParams = () => {
+    const params = new URLSearchParams()
+    if (debouncedSearch) params.set('search', debouncedSearch)
+    if (columnFilters.make.type === 'equals' && columnFilters.make.value) params.set('fMake', columnFilters.make.value)
+    if (columnFilters.model.type === 'equals' && columnFilters.model.value) params.set('fModel', columnFilters.model.value)
+    if (columnFilters.year_from.value) params.set('yearFromMin', columnFilters.year_from.value)
+    if (columnFilters.year_from.valueTo) params.set('yearFromMax', columnFilters.year_from.valueTo)
+    if (columnFilters.bolt_count.type === 'equals' && columnFilters.bolt_count.value) params.set('fBoltCount', columnFilters.bolt_count.value)
+    if (columnFilters.bolt_spacing.type === 'equals' && columnFilters.bolt_spacing.value) params.set('fBoltSpacing', columnFilters.bolt_spacing.value)
+    if (columnFilters.center_bore.type === 'equals' && columnFilters.center_bore.value) {
+      params.set('fCenterBoreMode', 'equals')
+      params.set('fCenterBore', columnFilters.center_bore.value)
+    } else if (columnFilters.center_bore.type === 'greater' && columnFilters.center_bore.value) {
+      params.set('fCenterBoreMode', 'greater')
+      params.set('fCenterBore', columnFilters.center_bore.value)
+    } else if (columnFilters.center_bore.type === 'empty') {
+      params.set('fCenterBoreMode', 'empty')
+    }
+    if (columnFilters.rim_size.type === 'equals' && columnFilters.rim_size.value) {
+      params.set('fRimSizeMode', 'equals')
+      params.set('fRimSize', columnFilters.rim_size.value)
+    } else if (columnFilters.rim_size.type === 'empty') {
+      params.set('fRimSizeMode', 'empty')
+    }
+    if (columnFilters.source_url.type === 'has_value') params.set('fSourceUrlMode', 'has_value')
+    else if (columnFilters.source_url.type === 'empty') params.set('fSourceUrlMode', 'empty')
+    return params
+  }
+
   const fetchVehicles = async () => {
+    setLoading(true)
     try {
-      const response = await fetch('/api/vehicle-models')
+      const params = buildFilterParams()
+      params.set('page', String(page))
+      params.set('pageSize', String(PAGE_SIZE))
+      const response = await fetch(`/api/vehicle-models?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
         setVehicles(data.vehicles || [])
+        setTotalCount(data.total || 0)
       }
     } catch (err) {
       console.error('Error fetching vehicles:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // One-time, narrow-column fetch of the WHOLE table for filter dropdowns/autocomplete
+  const fetchFacets = async () => {
+    try {
+      const response = await fetch('/api/vehicle-models?fields=facets')
+      if (response.ok) {
+        const data = await response.json()
+        setFacetVehicles(data.vehicles || [])
+      }
+    } catch (err) {
+      console.error('Error fetching filter facets:', err)
     }
   }
 
@@ -1114,8 +1189,22 @@ function VehiclesAdminPage() {
 
   const isPending = (v: VehicleModel) => !v.verified_at && !!v.source_url
 
-  // Export to Excel (CSV with BOM for Hebrew support)
-  const exportToExcel = () => {
+  // Export to Excel (CSV with BOM for Hebrew support) — fetches every row matching the
+  // current filters fresh from the server, since `vehicles` in state only holds one page
+  const exportToExcel = async () => {
+    let allMatching: VehicleModel[] = vehicles
+    try {
+      const response = await fetch(`/api/vehicle-models?${buildFilterParams().toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        allMatching = data.vehicles || []
+      }
+    } catch (err) {
+      console.error('Error fetching vehicles for export:', err)
+      toast.error('שגיאה בייצוא')
+      return
+    }
+
     // Add BOM for UTF-8 Excel compatibility
     const BOM = '\uFEFF'
 
@@ -1123,7 +1212,7 @@ function VehiclesAdminPage() {
     const headers = ['יצרן', 'יצרן (עברית)', 'דגם', 'דגם (עברית)', 'משנה', 'עד שנה', 'ברגים', 'מרווח', 'CB', 'חישוק', 'צמיג']
 
     // Map data
-    const rows = filteredVehicles.map(v => [
+    const rows = allMatching.map(v => [
       v.make,
       v.make_he || '',
       v.model,
@@ -1154,63 +1243,7 @@ function VehiclesAdminPage() {
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
 
-    toast.success(`יוצאו ${filteredVehicles.length} רשומות`)
-  }
-
-  // Fuzzy matching helper - normalizes Hebrew text for comparison
-  // Handles common variations like מאזדה/מזדה, טויוטה/טויטה, etc.
-  const normalizeHebrew = (text: string): string => {
-    if (!text) return ''
-    let normalized = text.toLowerCase()
-    // Remove common vowel letters that cause variations
-    // Alef (א) variations
-    normalized = normalized.replace(/א/g, '')
-    // Vav (ו) as a vowel
-    normalized = normalized.replace(/ו+/g, 'ו')
-    // Yod (י) as a vowel
-    normalized = normalized.replace(/י+/g, 'י')
-    // Ayin (ע) - sometimes dropped
-    // normalized = normalized.replace(/ע/g, '')
-    // He (ה) at end of words
-    normalized = normalized.replace(/ה$/g, '')
-    return normalized.trim()
-  }
-
-  // Check if two strings match with fuzzy Hebrew matching
-  const fuzzyMatch = (text: string, query: string): boolean => {
-    if (!text || !query) return false
-    const normalizedText = normalizeHebrew(text)
-    const normalizedQuery = normalizeHebrew(query)
-    // Check if normalized query is contained in normalized text
-    return normalizedText.includes(normalizedQuery) || text.toLowerCase().includes(query.toLowerCase())
-  }
-
-  // Apply column filter to a value
-  const applyColumnFilter = (value: any, filter: { type: string; value: string }): boolean => {
-    if (!filter.type) return true
-
-    if (filter.type === 'empty') {
-      return value === null || value === undefined || value === ''
-    }
-
-    if (filter.type === 'equals') {
-      if (typeof value === 'number') {
-        return value === parseFloat(filter.value)
-      }
-      return String(value).toLowerCase() === filter.value.toLowerCase()
-    }
-
-    if (filter.type === 'greater') {
-      const numVal = typeof value === 'number' ? value : parseFloat(value)
-      return !isNaN(numVal) && numVal > parseFloat(filter.value)
-    }
-
-    if (filter.type === 'less') {
-      const numVal = typeof value === 'number' ? value : parseFloat(value)
-      return !isNaN(numVal) && numVal < parseFloat(filter.value)
-    }
-
-    return true
+    toast.success(`יוצאו ${allMatching.length} רשומות`)
   }
 
   // Check if any filter is active
@@ -1232,91 +1265,6 @@ function VehiclesAdminPage() {
     })
     setSearchQuery('')
   }
-
-  // Filter vehicles
-  const filteredVehicles = vehicles.filter(v => {
-    // Search query filter - supports Hebrew and English with fuzzy matching
-    // Split query into words to support "מזדה 6" style searches
-    if (searchQuery) {
-      const searchWords = searchQuery.trim().split(/\s+/).filter(w => w.length > 0)
-
-      // Each word must match at least one field
-      const allWordsMatch = searchWords.every(word => {
-        const wordLower = word.toLowerCase()
-        return (
-          v.make.toLowerCase().includes(wordLower) ||
-          v.make_he?.toLowerCase().includes(word) ||
-          v.model.toLowerCase().includes(wordLower) ||
-          v.variants?.toLowerCase().includes(word) ||
-          // Fuzzy Hebrew matching
-          fuzzyMatch(v.make_he || '', word) ||
-          fuzzyMatch(v.variants || '', word)
-        )
-      })
-      if (!allWordsMatch) return false
-    }
-
-    // Column filters
-    // Make filter - startsWith for English, includes for Hebrew (no fuzzy to avoid false positives)
-    if (columnFilters.make.type === 'equals' && columnFilters.make.value) {
-      const filterVal = columnFilters.make.value.toLowerCase()
-      const matchesEnglish = v.make.toLowerCase().startsWith(filterVal)
-      const matchesHebrew = v.make_he?.toLowerCase().includes(filterVal)
-      if (!matchesEnglish && !matchesHebrew) return false
-    }
-    // Model filter - partial match (contains), with fuzzy Hebrew matching
-    if (columnFilters.model.type === 'equals' && columnFilters.model.value) {
-      const filterVal = columnFilters.model.value.toLowerCase()
-      const matchesEnglish = v.model.toLowerCase().includes(filterVal)
-      const matchesHebrewExact = v.variants?.includes(columnFilters.model.value)
-      const matchesHebrewFuzzy = v.variants ? fuzzyMatch(v.variants, columnFilters.model.value) : false
-      if (!matchesEnglish && !matchesHebrewExact && !matchesHebrewFuzzy) return false
-    }
-    // Year filter - range: year_from.value = from, year_from.valueTo = to
-    if (columnFilters.year_from.value || columnFilters.year_from.valueTo) {
-      const fromYear = parseInt(columnFilters.year_from.value)
-      const toYear = columnFilters.year_from.valueTo ? parseInt(columnFilters.year_from.valueTo) : NaN
-      if (!isNaN(fromYear) && v.year_from < fromYear) return false
-      if (!isNaN(toYear) && v.year_from > toYear) return false
-    }
-    // Bolt count filter - exact match from dropdown
-    if (columnFilters.bolt_count.type === 'equals' && columnFilters.bolt_count.value) {
-      if (v.bolt_count !== parseInt(columnFilters.bolt_count.value)) return false
-    }
-    // Bolt spacing filter - exact match from dropdown
-    if (columnFilters.bolt_spacing.type === 'equals' && columnFilters.bolt_spacing.value) {
-      if (v.bolt_spacing !== parseFloat(columnFilters.bolt_spacing.value)) return false
-    }
-    // Center bore filter - equals or greater than or equal
-    if (columnFilters.center_bore.value) {
-      const filterValue = parseFloat(columnFilters.center_bore.value)
-      if (!isNaN(filterValue)) {
-        if (columnFilters.center_bore.type === 'equals') {
-          if (v.center_bore !== filterValue) return false
-        } else if (columnFilters.center_bore.type === 'greater') {
-          // Greater than or equal
-          if (v.center_bore === null || v.center_bore < filterValue) return false
-        }
-      }
-    } else if (columnFilters.center_bore.type === 'empty') {
-      if (v.center_bore !== null) return false
-    }
-    // Rim size filter - exact match from dropdown
-    if (columnFilters.rim_size.type === 'equals' && columnFilters.rim_size.value) {
-      if (v.rim_size !== columnFilters.rim_size.value) return false
-    } else if (columnFilters.rim_size.type === 'empty') {
-      if (v.rim_size !== null && v.rim_size !== '') return false
-    }
-
-    // Source URL filter - has value or empty
-    if (columnFilters.source_url.type === 'has_value') {
-      if (!v.source_url || v.source_url === '') return false
-    } else if (columnFilters.source_url.type === 'empty') {
-      if (v.source_url && v.source_url !== '') return false
-    }
-
-    return true
-  })
 
   // Show loading while checking auth
   if (authLoading || !isAuthenticated) {
@@ -1400,7 +1348,7 @@ function VehiclesAdminPage() {
           <div style={{...styles.statIcon, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)'}} className="stat-icon-responsive"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
           <div>
             <div style={styles.statLabel}>דגמים</div>
-            <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{vehicles.length}</div>
+            <div style={{...styles.statValue, color: '#3b82f6'}} className="stat-value-responsive">{totalCount}</div>
           </div>
         </div>
         <div style={styles.statCard} className="stat-card-responsive">
@@ -1557,7 +1505,7 @@ function VehiclesAdminPage() {
           <div style={styles.cardList}>
             {loading ? (
               <div style={styles.loading}>טוען...</div>
-            ) : filteredVehicles.length === 0 ? (
+            ) : vehicles.length === 0 ? (
               <div style={styles.emptyMessage}>
                 {hasActiveFilters() ? (
                   <>
@@ -1571,7 +1519,7 @@ function VehiclesAdminPage() {
                 )}
               </div>
             ) : (
-              filteredVehicles.map(v => (
+              vehicles.map(v => (
                 <div key={v.id} style={styles.vehicleCard}>
                   {/* Row 1: name + action button */}
                   <div style={styles.cardRow1}>
@@ -1653,7 +1601,7 @@ function VehiclesAdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredVehicles.length === 0 ? (
+                  {vehicles.length === 0 ? (
                     <tr>
                       <td colSpan={9} style={styles.emptyRow}>
                         <div style={styles.emptyMessage}>
@@ -1671,7 +1619,7 @@ function VehiclesAdminPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredVehicles.map(v => (
+                    vehicles.map(v => (
                       <tr key={v.id} style={styles.tr}>
                         <td style={styles.td}>
                           <div>{v.make}</div>
@@ -1729,6 +1677,29 @@ function VehiclesAdminPage() {
                 </tbody>
               </table>
             )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && totalCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', padding: '20px 0', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#1e293b', cursor: page === 1 ? 'default' : 'pointer', opacity: page === 1 ? 0.5 : 1, fontSize: '0.85rem' }}
+            >
+              הקודם
+            </button>
+            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+              עמוד {page} מתוך {Math.max(1, Math.ceil(totalCount / PAGE_SIZE))} · סה&quot;כ {totalCount.toLocaleString()} רשומות
+            </span>
+            <button
+              onClick={() => setPage(p => (p < Math.ceil(totalCount / PAGE_SIZE) ? p + 1 : p))}
+              disabled={page >= Math.ceil(totalCount / PAGE_SIZE)}
+              style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#1e293b', cursor: page >= Math.ceil(totalCount / PAGE_SIZE) ? 'default' : 'pointer', opacity: page >= Math.ceil(totalCount / PAGE_SIZE) ? 0.5 : 1, fontSize: '0.85rem' }}
+            >
+              הבא
+            </button>
           </div>
         )}
       </div>

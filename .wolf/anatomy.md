@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T05:42:19.651Z
-> Files: 130 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T06:24:01.384Z
+> Files: 131 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -61,9 +61,9 @@
 ## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
 
 - `feedback_hebrew_only.md` (~347 tok)
-- `MEMORY.md` (~112 tok)
+- `MEMORY.md` (~125 tok)
 - `project_forgot_password_whatsapp_idea.md` (~492 tok)
-- `webauthn_biometric_login_paused.md` (~947 tok)
+- `webauthn_biometric_login_paused.md` (~875 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
@@ -96,8 +96,9 @@
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
 - `tmp-verify-icon.mjs` — Declares BASE (~468 tok)
 - `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
+- `tmp-verify-pagination.mjs` — Declares BASE (~603 tok)
 - `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5858 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5836 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -180,7 +181,7 @@
 
 ## src/app/admin/vehicles/
 
-- `page.tsx` — VehiclesAdminPageWrapper (~44269 tok)
+- `page.tsx` — VehiclesAdminPageWrapper (~44154 tok)
 
 ## src/app/api/admin/analytics/
 
@@ -358,7 +359,7 @@
 
 ## src/app/api/vehicle-models/
 
-- `route.ts` — Next.js API route: GET, POST (~2063 tok)
+- `route.ts` — Next.js API route: GET, POST (~2964 tok)
 
 ## src/app/api/vehicle-models/[id]/
 

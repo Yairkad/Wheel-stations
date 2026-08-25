@@ -4326,6 +4326,89 @@
       "related_bugs": [],
       "occurrences": 5,
       "last_seen": "2026-08-25T05:25:53.601Z"
+    },
+    {
+      "id": "bug-266",
+      "timestamp": "2026-08-25T06:08:16.125Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/vehicle-models/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T06:08:16.125Z"
+    },
+    {
+      "id": "bug-267",
+      "timestamp": "2026-08-25T06:11:15.882Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "Had `יוצאו ${filteredVehicles.length} רשומות`",
+      "fix": "Changed to `יוצאו ${allMatching.length} רשומות`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T06:11:15.882Z"
+    },
+    {
+      "id": "bug-268",
+      "timestamp": "2026-08-25T06:11:45.333Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T06:11:45.333Z"
+    },
+    {
+      "id": "bug-269",
+      "timestamp": "2026-08-25T06:11:46.947Z",
+      "error_message": "Wrong reference: filteredVehicles should be allMatching",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "Used \"filteredVehicles\" instead of \"allMatching\"",
+      "fix": "Changed filteredVehicles → allMatching",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-25T06:13:49.384Z"
+    },
+    {
+      "id": "bug-270",
+      "timestamp": "2026-08-25T00:00:00.000Z",
+      "error_message": "המשתמש ביקש לבדוק את מנגנון הכניסה בטביעת אצבע 'שבאמת לא דורש מפתח גישה' — נמצא שברירת מחדל ל-localhost בפרודקשן, לא דווח כשגיאה ספציפית על ידי המשתמש",
+      "file": "src/lib/webauthn.ts",
+      "root_cause": "משתנה הסביבה NEXT_PUBLIC_RP_ID בפרודקשן ב-Vercel (פרויקט wheel-stations) מוגדר כמחרוזת ריקה (\"\") ולא לדומיין האמיתי. getRpConfig() עושה `process.env.NEXT_PUBLIC_RP_ID || 'localhost'` — מחרוזת ריקה היא falsy ב-JS אז rpID נופל בחזרה ל-'localhost', ובעקבותיו origin נופל ל-'http://localhost:3000' (NEXT_PUBLIC_WEBAUTHN_ORIGIN לא מוגדר כלל). האתר האמיתי הוא https://wheel-stations.vercel.app, אז הדפדפן דוחה כל startRegistration/startAuthentication מיד עם SecurityError (rpId לא תואם לדומיין הנוכחי) — עוד לפני שמופיע חיישן טביעת האצבע/פנים. זה קורה לכל ניסיון בפרודקשן, לא רק למקרה ספציפי.",
+      "fix": "לא תוקן עדיין — דורש: vercel env add NEXT_PUBLIC_RP_ID (ערך: wheel-stations.vercel.app) לסביבות Production+Preview, ואז redeploy (NEXT_PUBLIC_* נאפים ב-build time, לא runtime, אז לא מספיק לשנות בדשבורד בלי דיפלוי מחדש). NEXT_PUBLIC_WEBAUTHN_ORIGIN לא חייב הגדרה נפרדת — הנוסחה הקיימת בקוד (`https://${rpID}`) תיתן את הערך הנכון ברגע ש-RP_ID יתוקן. חלק אחר של אותה תכונה (residentKey: 'discouraged' + authenticatorAttachment: 'platform' + שליחת phone תמיד ב-authenticate/begin, כדי לעקוף UI של Passkey וליצור פרומפט טביעת אצבע/פנים ישיר) כבר תוקן נכון בקוד בקומיטים קודמים (6ae74f6, a2ce67b) — הבאג הזה הוא נפרד וחוסם בפועל את כל התכונה בפרודקשן בכל מקרה.",
+      "tags": [
+        "webauthn",
+        "biometric",
+        "production-config",
+        "env-var",
+        "vercel",
+        "not-fixed"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T00:00:00.000Z"
     }
   ]
 }
