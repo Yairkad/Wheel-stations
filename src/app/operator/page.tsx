@@ -7,6 +7,7 @@ import { SESSION_VERSION } from '@/lib/version'
 import { VehicleModelRecord } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import LoadingSpin from '@/components/LoadingSpin'
 import { useClickOutside } from '@/hooks/useClickOutside'
 
 interface Operator {
@@ -1476,7 +1477,7 @@ ${contact?.phone || ''}
                         disabled={checking}
                         style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#1e293b', cursor: checking ? 'default' : 'pointer', fontSize: '0.85rem', fontFamily: 'inherit', opacity: checking ? 0.6 : 1 }}
                       >
-                        {checking ? 'בודק...' : 'בדוק סטטוס'}
+                        {checking ? <LoadingSpin text="בודק..." size={13} /> : 'בדוק סטטוס'}
                       </button>
                     )}
                   </div>

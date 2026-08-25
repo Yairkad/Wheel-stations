@@ -9,6 +9,7 @@ import { isPushSupported, requestNotificationPermission, registerServiceWorker, 
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
 import { findSimilarFailedMount, WheelHistoryEntry } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
+import LoadingSpin from '@/components/LoadingSpin'
 import { SESSION_VERSION } from '@/lib/version'
 
 const DEFAULT_WHATSAPP_TEMPLATE = `שלום רב 👋
@@ -2597,14 +2598,14 @@ ${signFormUrl}
                                 onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'approve') }}
                                 disabled={approvalLoading === borrow.id}
                               >
-                                {approvalLoading === borrow.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>אשר</span>}
+                                {approvalLoading === borrow.id ? <LoadingSpin text="" size={13} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>אשר</span>}
                               </button>
                               <button
                                 style={styles.rejectBtn}
                                 onClick={(e) => { e.stopPropagation(); handleBorrowAction(borrow.id, 'reject') }}
                                 disabled={approvalLoading === borrow.id}
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                {approvalLoading === borrow.id ? <LoadingSpin text="" size={14} /> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>}
                               </button>
                             </>
                           )}
@@ -2711,7 +2712,7 @@ ${signFormUrl}
                           opacity: restoringWheel === wheel.id ? 0.6 : 1
                         }}
                       >
-                        {restoringWheel === wheel.id ? '...' : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>שחזר</span>}
+                        {restoringWheel === wheel.id ? <LoadingSpin text="" size={12} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>שחזר</span>}
                       </button>
                       {!isDismissed && (
                         <button
@@ -3210,7 +3211,7 @@ ${signFormUrl}
                         onClick={() => handleMarkAvailable(wheel)}
                         disabled={actionLoading}
                       >
-                        <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>החזר לזמין</span>
+                        {actionLoading ? <LoadingSpin text="" size={13} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>החזר לזמין</span>}
                       </button>
                     )}
 
@@ -3710,7 +3711,7 @@ ${signFormUrl}
                 onClick={submitReturn}
                 disabled={actionLoading || !returnForm.mount_result || (returnForm.mount_result === 'failed' && !returnForm.note.trim())}
               >
-                {actionLoading ? 'מחזיר...' : 'החזר גלגל'}
+                {actionLoading ? <LoadingSpin text="מחזיר..." /> : 'החזר גלגל'}
               </button>
             </div>
           </div>
@@ -3943,7 +3944,7 @@ ${signFormUrl}
                 onClick={handleManualBorrow}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>רשום השאלה</span>}
+                {actionLoading ? <LoadingSpin text="שומר..." size={15} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>רשום השאלה</span>}
               </button>
             </div>
           </div>
@@ -4203,7 +4204,7 @@ ${signFormUrl}
                 onClick={handleMarkUnavailable}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>סמן כלא זמין</span>}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>סמן כלא זמין</span>}
               </button>
             </div>
           </div>
@@ -4262,7 +4263,7 @@ ${signFormUrl}
             <div style={styles.modalButtons}>
               <button style={styles.cancelBtn} onClick={() => setShowLoginModal(false)}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleLogin} disabled={actionLoading}>
-                {actionLoading ? 'מתחבר...' : 'כניסה'}
+                {actionLoading ? <LoadingSpin text="מתחבר..." /> : 'כניסה'}
               </button>
             </div>
             <button
@@ -4505,7 +4506,7 @@ ${signFormUrl}
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => setShowAddWheelModal(false)}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleAddWheel} disabled={actionLoading}>
-                {actionLoading ? 'שומר...' : 'הוסף'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : 'הוסף'}
               </button>
             </div>
           </div>
@@ -4725,7 +4726,7 @@ ${signFormUrl}
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
               <button style={styles.cancelBtn} onClick={() => { setShowEditWheelModal(false); setSelectedWheel(null) }}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleEditWheel} disabled={actionLoading}>
-                {actionLoading ? 'שומר...' : 'עדכן'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : 'עדכן'}
               </button>
             </div>
           </div>
@@ -4778,7 +4779,7 @@ ${signFormUrl}
                 }}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : 'שמור כתובת'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : 'שמור כתובת'}
               </button>
             </div>
 
@@ -4941,7 +4942,7 @@ ${signFormUrl}
                 }}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : 'שמור הגדרות תשלום'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : 'שמור הגדרות תשלום'}
               </button>
             </div>
 
@@ -5015,7 +5016,7 @@ ${signFormUrl}
                   }}
                   disabled={actionLoading}
                 >
-                  {actionLoading ? 'שומר...' : 'שמור הגדרות מייל'}
+                  {actionLoading ? <LoadingSpin text="שומר..." /> : 'שמור הגדרות מייל'}
                 </button>
               </div>
             ) : (
@@ -5072,7 +5073,7 @@ ${signFormUrl}
                     <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוסף איש קשר</span>
                   </button>
                   <button style={{...styles.smallBtn, background: '#10b981'}} onClick={handleSaveContacts} disabled={actionLoading}>
-                    {actionLoading ? 'שומר...' : 'שמור אנשי קשר'}
+                    {actionLoading ? <LoadingSpin text="שומר..." /> : 'שמור אנשי קשר'}
                   </button>
                 </div>
               </div>
@@ -5199,7 +5200,7 @@ ${signFormUrl}
                 onClick={handleChangePassword}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : 'שנה סיסמה'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : 'שנה סיסמה'}
               </button>
               <button
                 style={{...styles.cancelBtn, flex: 1}}
@@ -5236,7 +5237,7 @@ ${signFormUrl}
                 onClick={async () => { await handleSaveWhatsAppTemplate(); setShowWhatsAppTemplateModal(false) }}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : 'שמור נוסח'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : 'שמור נוסח'}
               </button>
               <button
                 style={{...styles.cancelBtn, flex: 1}}
@@ -5507,7 +5508,7 @@ ${signFormUrl}
                     }}
                     disabled={uploadLoading}
                   >
-                    {uploadLoading ? 'מעלה...' : 'העלה קובץ Excel'}
+                    {uploadLoading ? <LoadingSpin text="מעלה..." /> : 'העלה קובץ Excel'}
                     <span style={{display: 'block', fontSize: '0.8rem', marginTop: '5px', opacity: 0.8}}>
                       בחר קובץ מהמחשב
                     </span>
@@ -5537,7 +5538,7 @@ ${signFormUrl}
                       onClick={handleSheetsImport}
                       disabled={uploadLoading || !sheetsUrl.trim()}
                     >
-                      {uploadLoading ? 'מייבא...' : 'ייבא מ-Google Sheets'}
+                      {uploadLoading ? <LoadingSpin text="מייבא..." /> : 'ייבא מ-Google Sheets'}
                       <span style={{display: 'block', fontSize: '0.8rem', marginTop: '5px', opacity: 0.8}}>
                         הגיליון חייב להיות ציבורי או משותף
                       </span>
@@ -5765,15 +5766,15 @@ ${signFormUrl}
                 onClick={() => { handleBorrowAction(previewBorrow.id, 'reject'); setPreviewBorrow(null) }}
                 disabled={approvalLoading === previewBorrow.id}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                דחה
+                {approvalLoading === previewBorrow.id ? <LoadingSpin text="" /> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                דחה</>}
               </button>
               <button
                 style={styles.approveBtnLarge}
                 onClick={() => { handleBorrowAction(previewBorrow.id, 'approve'); setPreviewBorrow(null) }}
                 disabled={approvalLoading === previewBorrow.id}
               >
-                {approvalLoading === previewBorrow.id ? '...' : <>
+                {approvalLoading === previewBorrow.id ? <LoadingSpin text="" /> : <>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   אשר בקשה
                 </>}

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import * as XLSX from 'xlsx'
 import { VERSION, SESSION_VERSION } from '@/lib/version'
 import AppHeader from '@/components/AppHeader'
+import LoadingSpin from '@/components/LoadingSpin'
 
 type MainTab = 'inventory' | 'borrows' | 'alerts' | 'reports'
 
@@ -624,7 +625,7 @@ export default function SuperManagerPage() {
                         disabled={formLoading}
                         style={{ flex: 1, padding: '12px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, opacity: formLoading ? 0.6 : 1 }}
                       >
-                        {formLoading ? 'שומר...' : 'שמור'}
+                        {formLoading ? <LoadingSpin text="שומר..." /> : 'שמור'}
                       </button>
                       <button
                         onClick={() => { setShowForm(false); setEditingWheel(null) }}
@@ -1130,7 +1131,7 @@ export default function SuperManagerPage() {
                 ביטול
               </button>
               <button onClick={handleDistrictExport} disabled={exportLoading} style={{ flex: 2, padding: '12px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '1rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                {exportLoading ? 'מייצא...' : (<><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ייצא לאקסל</>)}
+                {exportLoading ? <LoadingSpin text="מייצא..." size={15} /> : (<><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>ייצא לאקסל</>)}
               </button>
             </div>
           </div>

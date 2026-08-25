@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import type { RoleResult } from '@/lib/types'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import LoadingSpin from '@/components/LoadingSpin'
 
 export default function LoginPage() {
   const { switchToRole, switchingRole } = useRoleSwitch()
@@ -492,7 +493,7 @@ export default function LoginPage() {
           {error && <div style={styles.error}>{error}</div>}
 
           <button type="submit" style={styles.formSubmit} className="form-submit" disabled={loading}>
-            {loading ? 'מתחבר...' : 'כניסה'}
+            {loading ? <LoadingSpin text="מתחבר..." /> : 'כניסה'}
           </button>
 
           {hasPasskey && (
@@ -502,7 +503,7 @@ export default function LoginPage() {
               disabled={biometricLoading}
               style={{ ...styles.formSubmit, background: '#fff', color: '#2563eb', border: '1px solid #bfdbfe', boxShadow: 'none' }}
             >
-              {biometricLoading ? 'מאמת...' : (
+              {biometricLoading ? <LoadingSpin text="מאמת..." /> : (
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 11c0 3.5-1.5 6.5-3 8.5"/>
@@ -542,7 +543,7 @@ export default function LoginPage() {
               disabled={enrollLoading}
               style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '4px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' }}
             >
-              {enrollLoading ? 'מפעיל...' : 'הפעל כניסה עם טביעת אצבע'}
+              {enrollLoading ? <LoadingSpin text="מפעיל..." /> : 'הפעל כניסה עם טביעת אצבע'}
             </button>
           )}
         </form>

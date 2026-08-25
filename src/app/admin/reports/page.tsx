@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
+import LoadingSpin from '@/components/LoadingSpin'
 
 interface ErrorReport {
   id: string
@@ -659,28 +660,28 @@ export default function ErrorReportsPage() {
                     onClick={() => updateReportStatus(selectedReport.id, 'pending')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ממתין</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ממתין</span>}
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnReviewed}}
                     onClick={() => updateReportStatus(selectedReport.id, 'reviewed')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>נבדק</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>נבדק</span>}
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnFixed}}
                     onClick={() => updateReportStatus(selectedReport.id, 'fixed')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>תוקן</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>תוקן</span>}
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnRejected}}
                     onClick={() => updateReportStatus(selectedReport.id, 'rejected')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>נדחה</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>נדחה</span>}
                   </button>
                 </div>
               </div>
@@ -692,7 +693,7 @@ export default function ErrorReportsPage() {
                 onClick={() => deleteReport(selectedReport.id)}
                 disabled={actionLoading}
               >
-                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>
+                {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>}
               </button>
               <Link
                 href={`/admin/vehicles?make=${encodeURIComponent(selectedReport.make || '')}&model=${encodeURIComponent(selectedReport.model || '')}&year=${selectedReport.year_from || ''}&report=${selectedReport.id}&bolt_count=${selectedReport.correct_bolt_count || ''}&bolt_spacing=${selectedReport.correct_bolt_spacing || ''}&center_bore=${selectedReport.correct_center_bore || ''}&rim_size=${encodeURIComponent(selectedReport.correct_rim_size || '')}&tire_size=${encodeURIComponent(selectedReport.correct_tire_size || '')}`}
@@ -795,28 +796,28 @@ export default function ErrorReportsPage() {
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'pending')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ממתין</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ממתין</span>}
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnReviewed}}
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'reviewed')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>נבדק</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>נבדק</span>}
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnFixed}}
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'added')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נוסף למאגר</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נוסף למאגר</span>}
                   </button>
                   <button
                     style={{...styles.statusBtn, ...styles.statusBtnRejected}}
                     onClick={() => updateMissingReportStatus(selectedMissingReport.id, 'rejected')}
                     disabled={actionLoading}
                   >
-                    <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>נדחה</span>
+                    {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>נדחה</span>}
                   </button>
                 </div>
               </div>
@@ -828,7 +829,7 @@ export default function ErrorReportsPage() {
                 onClick={() => deleteMissingReport(selectedMissingReport.id)}
                 disabled={actionLoading}
               >
-                <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>
+                {actionLoading ? <LoadingSpin text="" size={14} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>}
               </button>
               <button style={styles.btnCancel} onClick={() => setSelectedMissingReport(null)}>
                 סגור

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import LoadingSpin from '@/components/LoadingSpin'
 import { useClickOutside } from '@/hooks/useClickOutside'
 
 interface Manager {
@@ -808,7 +809,7 @@ export default function CallCenterPage() {
             <div style={styles.modalFooter}>
               <button style={styles.btnCancel} onClick={() => setShowAddOperator(false)}>ביטול</button>
               <button style={styles.btnSubmit} onClick={handleAddOperator} disabled={actionLoading}>
-                {actionLoading ? 'מוסיף...' : 'הוסף'}
+                {actionLoading ? <LoadingSpin text="מוסיף..." /> : 'הוסף'}
               </button>
             </div>
           </div>
@@ -859,7 +860,7 @@ export default function CallCenterPage() {
             <div style={styles.modalFooter}>
               <button style={styles.btnCancel} onClick={() => setShowEditOperator(null)}>ביטול</button>
               <button style={styles.btnSubmit} onClick={handleEditOperator} disabled={actionLoading}>
-                {actionLoading ? 'שומר...' : 'שמור'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : 'שמור'}
               </button>
             </div>
           </div>
@@ -911,7 +912,7 @@ export default function CallCenterPage() {
             <div style={styles.modalFooter}>
               <button style={styles.btnCancel} onClick={() => setShowAddManager(false)}>ביטול</button>
               <button style={styles.btnSubmit} onClick={handleAddManager} disabled={actionLoading}>
-                {actionLoading ? 'מוסיף...' : 'הוסף'}
+                {actionLoading ? <LoadingSpin text="מוסיף..." /> : 'הוסף'}
               </button>
             </div>
           </div>
@@ -982,7 +983,7 @@ export default function CallCenterPage() {
             <div style={styles.modalFooter}>
               <button style={styles.btnCancel} onClick={() => { setShowChangePassword(false); setPasswordForm({ current: '', new: '', confirm: '' }) }}>ביטול</button>
               <button style={styles.btnSubmit} onClick={handleChangePassword} disabled={actionLoading}>
-                {actionLoading ? 'משנה...' : 'שנה סיסמה'}
+                {actionLoading ? <LoadingSpin text="משנה..." /> : 'שנה סיסמה'}
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
+import LoadingSpin from '@/components/LoadingSpin'
 
 interface TrustedMatch {
   id: string
@@ -117,7 +118,7 @@ export default function TrustedMatchesPage() {
             disabled={submitting}
             style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 600, cursor: 'pointer', opacity: submitting ? 0.6 : 1 }}
           >
-            {submitting ? 'מוסיף...' : 'הוסף'}
+            {submitting ? <LoadingSpin text="מוסיף..." /> : 'הוסף'}
           </button>
         </div>
 

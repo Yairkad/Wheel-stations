@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
+import LoadingSpin from '@/components/LoadingSpin'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -632,7 +633,7 @@ function UsersPageInner() {
             <label style={labelStyle}>סיסמה חדשה <span style={{ color: '#94a3b8', fontWeight: 400 }}>(השאר ריק לשמור קיימת)</span></label>
             <input type="password" value={editPass} onChange={e => setEditPass(e.target.value)} style={inputStyle} placeholder="לפחות 4 תווים" />
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button onClick={handleSaveEdit} disabled={busy} style={btnPrimary}>שמור</button>
+              <button onClick={handleSaveEdit} disabled={busy} style={btnPrimary}>{busy ? <LoadingSpin text="שומר..." /> : 'שמור'}</button>
               <button onClick={() => setEditUser(null)} style={btnSecondary}>ביטול</button>
             </div>
           </div>
@@ -646,7 +647,7 @@ function UsersPageInner() {
             בטוח למחוק את <strong>{deleteUser.full_name}</strong>? הפעולה תמחק גם את כל התפקידים שלו.
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={handleDelete} disabled={busy} style={{ ...btnPrimary, background: '#ef4444' }}>מחק</button>
+            <button onClick={handleDelete} disabled={busy} style={{ ...btnPrimary, background: '#ef4444' }}>{busy ? <LoadingSpin text="מוחק..." /> : 'מחק'}</button>
             <button onClick={() => setDeleteUser(null)} style={btnSecondary}>ביטול</button>
           </div>
         </Modal>
@@ -672,7 +673,7 @@ function UsersPageInner() {
               ))}
           </select>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={handleMerge} disabled={busy || !mergeTarget} style={btnPrimary}>מזג</button>
+            <button onClick={handleMerge} disabled={busy || !mergeTarget} style={btnPrimary}>{busy ? <LoadingSpin text="ממזג..." /> : 'מזג'}</button>
             <button onClick={() => setMergeSource(null)} style={btnSecondary}>ביטול</button>
           </div>
         </Modal>
@@ -800,7 +801,7 @@ function UsersPageInner() {
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-              <button onClick={handleAddRole} disabled={busy} style={{ ...btnPrimary, background: '#2563eb' }}>הוסף תפקיד</button>
+              <button onClick={handleAddRole} disabled={busy} style={{ ...btnPrimary, background: '#2563eb' }}>{busy ? <LoadingSpin text="מוסיף..." /> : 'הוסף תפקיד'}</button>
               <button onClick={() => { setAddRoleUser(null); resetAddRoleForm() }} style={btnSecondary}>ביטול</button>
             </div>
           </div>
@@ -943,7 +944,7 @@ function UsersPageInner() {
             )}
 
             <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-              <button onClick={handleAddUser} disabled={busy} style={{ ...btnPrimary, background: '#16a34a' }}>הוסף</button>
+              <button onClick={handleAddUser} disabled={busy} style={{ ...btnPrimary, background: '#16a34a' }}>{busy ? <LoadingSpin text="מוסיף..." /> : 'הוסף'}</button>
               <button onClick={() => { setShowAdd(false); resetAddForm() }} style={btnSecondary}>ביטול</button>
             </div>
           </div>

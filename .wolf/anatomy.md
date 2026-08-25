@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-24T19:44:38.621Z
-> Files: 121 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T05:42:19.651Z
+> Files: 130 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -21,6 +21,7 @@
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/
 
+- `tm-mine.diff` — TrustedMatch: TrustedMatchesPage (~327 tok)
 - `verify-a11y-widget.mjs` — Declares BASE (~828 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
@@ -94,6 +95,7 @@
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
 - `tmp-verify-icon.mjs` — Declares BASE (~468 tok)
+- `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
 - `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5858 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
@@ -135,7 +137,7 @@
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98282 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98461 tok)
 
 ## src/app/accessibility/
 
@@ -143,6 +145,7 @@
 
 ## src/app/admin/
 
+- `page.tsx` — WheelsAdminPage (~18868 tok)
 
 ## src/app/admin/analytics/
 
@@ -150,31 +153,34 @@
 
 ## src/app/admin/call-centers/
 
-- `page.tsx` — CallCentersAdminPage (~9385 tok)
+- `page.tsx` — CallCentersAdminPage (~9436 tok)
 
 ## src/app/admin/login-report/
 
 
 ## src/app/admin/punctures/
 
+- `page.tsx` — parseLatLngFromUrl (~10559 tok)
 
 ## src/app/admin/punctures/login/
 
+- `page.tsx` — PunctureManagerLoginPage (~1368 tok)
 
 ## src/app/admin/reports/
 
+- `page.tsx` — ErrorReportsPage (~16586 tok)
 
 ## src/app/admin/trusted-matches/
 
-- `page.tsx` — emptyForm (~2247 tok)
+- `page.tsx` — emptyForm (~2268 tok)
 
 ## src/app/admin/users/
 
-- `page.tsx` — ROLE_LABELS (~15136 tok)
+- `page.tsx` — ROLE_LABELS (~15214 tok)
 
 ## src/app/admin/vehicles/
 
-- `page.tsx` — VehiclesAdminPageWrapper (~44236 tok)
+- `page.tsx` — VehiclesAdminPageWrapper (~44269 tok)
 
 ## src/app/api/admin/analytics/
 
@@ -465,7 +471,7 @@
 
 ## src/app/call-center/
 
-- `page.tsx` — CallCenterPage (~16528 tok)
+- `page.tsx` — CallCenterPage (~16567 tok)
 
 ## src/app/feedback/
 
@@ -480,7 +486,7 @@
 
 ## src/app/login/
 
-- `page.tsx` — LoginPage (~10874 tok)
+- `page.tsx` — LoginPage (~10907 tok)
 
 ## src/app/lookup/
 
@@ -491,13 +497,14 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~30379 tok)
+- `page.tsx` — OperatorPage (~30403 tok)
 
 ## src/app/privacy/
 
 
 ## src/app/punctures/
 
+- `page.tsx` — MapView (~8912 tok)
 
 ## src/app/reverse-search/
 
@@ -505,18 +512,19 @@
 
 ## src/app/search/
 
-- `page.tsx` — VEHICLE_HISTORY_KEY (~47411 tok)
+- `page.tsx` — VEHICLE_HISTORY_KEY (~47518 tok)
 
 ## src/app/sign/[stationId]/
 
-- `page.tsx` — STEP_LABELS (~18245 tok)
+- `page.tsx` — STEP_LABELS (~18268 tok)
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~37910 tok)
+- `page.tsx` — WheelStationsPage (~38011 tok)
 
 ## src/app/super-manager/
 
+- `page.tsx` — SESSION_EXPIRY_MS (~18024 tok)
 
 ## src/app/tmp-calc-test/
 
@@ -526,6 +534,7 @@
 
 - `AccessibilityWidget.tsx` — DEFAULT_PREFS (~2293 tok)
 - `AppHeader.tsx` — AppHeader (~13687 tok)
+- `LoadingSpin.tsx` — LoadingSpin (~198 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
 
 ## src/components/admin/

@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
+import LoadingSpin from '@/components/LoadingSpin'
 
 interface VehicleModel {
   id: string
@@ -2253,7 +2254,7 @@ function VehiclesAdminPage() {
                     onClick={handleAddScrapedResult}
                     disabled={addLoading}
                   >
-                    {addLoading ? 'מוסיף...' : (
+                    {addLoading ? <LoadingSpin text="מוסיף..." /> : (
                       <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>הוסף למאגר</span>
                     )}
                   </button>
@@ -2439,7 +2440,7 @@ function VehiclesAdminPage() {
                 onClick={handleAddManual}
                 disabled={addLoading}
               >
-                {addLoading ? 'מוסיף...' : (
+                {addLoading ? <LoadingSpin text="מוסיף..." /> : (
                   <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הוסף למאגר</span>
                 )}
               </button>
@@ -2598,7 +2599,7 @@ function VehiclesAdminPage() {
                   onClick={handleUpdateVehicle}
                   disabled={editLoading}
                 >
-                  {editLoading ? 'מעדכן...' : (
+                  {editLoading ? <LoadingSpin text="מעדכן..." /> : (
                     <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>עדכן</span>
                   )}
                 </button>

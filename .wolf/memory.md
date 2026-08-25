@@ -1655,3 +1655,109 @@
 | 22:44 | Edited tmp-verify-roleswitch.mjs | inline fix | ~19 |
 | 22:47 | Reordered admin sidebar nav (users/stations/call-centers/punctures/analytics, then vehicles-db/reports/matches) + added shared loading-state (disabled + spinning-wheel spinner, blocks re-click) to all 5 role-switch UIs via useRoleSwitch's new switchingRole flag | src/components/admin/AdminSidebar.tsx, src/hooks/useRoleSwitch.ts, src/components/AppHeader.tsx, src/app/operator/page.tsx, src/app/call-center/page.tsx, src/app/login/page.tsx | verified via Playwright (mocked 2-role login response — card shows disabled+spinner immediately on click); tsc clean; first step of a larger "loading state on every button" request, intentionally scoped to role-switching only for now | ~900 |
 | 22:47 | Session end: 41 writes across 16 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 32 reads | ~146240 tok |
+| 22:52 | Session end: 41 writes across 16 files (AccessibilityWidget.tsx, globals.css, layout.tsx, page.tsx, verify-a11y-widget.mjs) | 32 reads | ~146240 tok |
+| 23:00 | Edited src/app/search/page.tsx | "wheels-spinner" → "inline-flex" | ~188 |
+| 23:00 | Edited src/app/stations/page.tsx | "wheels-spinner" → "inline-flex" | ~181 |
+| 23:02 | Created src/components/LoadingSpin.tsx | — | ~198 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | added 1 import(s) | ~42 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | inline fix | ~23 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | inline fix | ~100 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~138 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~22 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~21 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~21 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~23 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~25 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~25 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~25 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~23 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~23 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~26 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | inline fix | ~28 |
+| 08:15 | Edited src/app/[stationId]/page.tsx | 9→9 lines | ~320 |
+| 08:15 | Edited src/app/[stationId]/page.tsx | 4→4 lines | ~140 |
+| 08:15 | Edited src/app/[stationId]/page.tsx | 5→5 lines | ~158 |
+| 08:15 | Edited src/app/[stationId]/page.tsx | 4→4 lines | ~97 |
+
+## Session: 2026-08-25 08:16
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-25 08:16
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-25 08:18
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-25 08:18
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 08:19 | Edited src/app/[stationId]/page.tsx | "..." → " size={12} /> : <span sty" | ~113 |
+| 08:21 | Edited src/app/super-manager/page.tsx | added 1 import(s) | ~28 |
+| 08:21 | Edited src/app/super-manager/page.tsx | inline fix | ~23 |
+| 08:21 | Edited src/app/super-manager/page.tsx | inline fix | ~107 |
+| 08:21 | Edited src/app/search/page.tsx | added 1 import(s) | ~52 |
+| 08:22 | Edited src/app/search/page.tsx | inline fix | ~115 |
+| 08:22 | Edited src/app/search/page.tsx | inline fix | ~101 |
+| 08:22 | Edited src/app/stations/page.tsx | added 1 import(s) | ~52 |
+| 08:22 | Edited src/app/stations/page.tsx | inline fix | ~20 |
+| 08:22 | Edited src/app/stations/page.tsx | inline fix | ~21 |
+| 08:23 | Edited src/app/admin/vehicles/page.tsx | added 1 import(s) | ~32 |
+| 08:23 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~20 |
+| 08:23 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~19 |
+| 08:23 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~20 |
+| 08:24 | Edited src/app/admin/reports/page.tsx | added 1 import(s) | ~32 |
+| 08:24 | Edited src/app/admin/reports/page.tsx | "inline-flex" → " size={14} /> : <span sty" | ~107 |
+| 08:24 | Edited src/app/admin/reports/page.tsx | "inline-flex" → " size={14} /> : <span sty" | ~112 |
+| 08:24 | Edited src/app/admin/reports/page.tsx | "inline-flex" → " size={14} /> : <span sty" | ~97 |
+| 08:24 | Edited src/app/admin/reports/page.tsx | "inline-flex" → " size={14} /> : <span sty" | ~99 |
+| 08:24 | Edited src/app/admin/reports/page.tsx | "inline-flex" → " size={14} /> : <span sty" | ~108 |
+| 08:24 | Edited src/app/admin/reports/page.tsx | "inline-flex" → " size={14} /> : <span sty" | ~111 |
+| 08:25 | Edited src/app/admin/users/page.tsx | added 1 import(s) | ~32 |
+| 08:25 | Edited src/app/admin/users/page.tsx | inline fix | ~40 |
+| 08:25 | Edited src/app/admin/users/page.tsx | inline fix | ~47 |
+| 08:25 | Edited src/app/admin/users/page.tsx | inline fix | ~43 |
+| 08:25 | Edited src/app/admin/users/page.tsx | inline fix | ~50 |
+| 08:25 | Edited src/app/admin/users/page.tsx | inline fix | ~49 |
+| 08:26 | Edited src/app/admin/call-centers/page.tsx | added 1 import(s) | ~32 |
+| 08:26 | Edited src/app/admin/call-centers/page.tsx | inline fix | ~22 |
+| 08:26 | Edited src/app/admin/call-centers/page.tsx | 2→2 lines | ~95 |
+| 08:26 | Edited src/app/admin/call-centers/page.tsx | 2→2 lines | ~126 |
+| 08:26 | Edited src/app/admin/page.tsx | added 1 import(s) | ~32 |
+| 08:26 | Edited src/app/admin/page.tsx | inline fix | ~30 |
+| 08:26 | Edited src/app/admin/page.tsx | inline fix | ~31 |
+| 08:26 | Edited src/app/admin/page.tsx | 2→2 lines | ~86 |
+| 08:26 | Edited src/app/admin/page.tsx | "inline-flex" → " size={13} /> : <span sty" | ~144 |
+| 08:27 | Edited src/app/operator/page.tsx | added 1 import(s) | ~30 |
+| 08:29 | Edited src/app/call-center/page.tsx | added 1 import(s) | ~30 |
+| 08:29 | Edited src/app/call-center/page.tsx | inline fix | ~22 |
+| 08:29 | Edited src/app/call-center/page.tsx | inline fix | ~21 |
+| 08:29 | Edited src/app/call-center/page.tsx | inline fix | ~23 |
+| 08:30 | Edited src/app/operator/page.tsx | 2→1 lines | ~16 |
+| 08:30 | Edited src/app/login/page.tsx | added 1 import(s) | ~30 |
+| 08:30 | Edited src/app/login/page.tsx | inline fix | ~19 |
+| 08:30 | Edited src/app/login/page.tsx | inline fix | ~20 |
+| 08:30 | Edited src/app/login/page.tsx | inline fix | ~27 |
+| 08:31 | Edited src/app/admin/punctures/login/page.tsx | added 1 import(s) | ~27 |
+| 08:31 | Edited src/app/admin/punctures/login/page.tsx | inline fix | ~18 |
+| 08:31 | Edited src/app/sign/[stationId]/page.tsx | inline fix | ~99 |
+| 08:32 | Edited src/app/sign/[stationId]/page.tsx | added 1 import(s) | ~29 |
+| 08:33 | Edited src/app/operator/page.tsx | added 1 import(s) | ~30 |
+| 08:33 | Edited src/app/operator/page.tsx | inline fix | ~27 |
+| 08:33 | Edited src/app/punctures/page.tsx | added 1 import(s) | ~44 |
+| 08:33 | Edited src/app/punctures/page.tsx | inline fix | ~23 |
+| 08:33 | Edited src/app/admin/trusted-matches/page.tsx | added 1 import(s) | ~32 |
+| 08:33 | Edited src/app/admin/trusted-matches/page.tsx | inline fix | ~20 |
+| 08:34 | Edited src/app/admin/punctures/page.tsx | added 1 import(s) | ~32 |
+| 08:34 | Edited src/app/admin/punctures/page.tsx | inline fix | ~24 |
+| 08:34 | Edited src/app/admin/punctures/page.tsx | inline fix | ~24 |
+| 08:34 | Edited src/app/admin/punctures/page.tsx | inline fix | ~22 |
+| 08:37 | Created tmp-verify-loading.mjs | — | ~636 |
+| 08:38 | Finished the "loading state on every button" request: swept ~17 files, added spinner+disabled to ~60 async buttons via new shared LoadingSpin component, fixed a real bug (wheels-spinner CSS class never existed, search buttons showed zero animation) | src/components/LoadingSpin.tsx (new), src/app/[stationId]/page.tsx, super-manager, stations, search, admin/vehicles, admin/reports, admin/users, admin/call-centers, admin/page, call-center, operator, login, admin/punctures/login, sign/[stationId], punctures, admin/trusted-matches, admin/punctures | tsc clean throughout (checked after every file batch); spot-verified live via Playwright (login button shows spinner+disabled during a mocked slow request, no console errors) | ~9000 |
+| 08:42 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/tm-mine.diff | — | ~327 |

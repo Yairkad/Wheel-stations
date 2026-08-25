@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, use, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import LoadingSpin from '@/components/LoadingSpin'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import html2canvas from 'html2canvas'
@@ -1079,7 +1080,7 @@ function SignFormContent({ stationId }: { stationId: string }) {
                 ...(submitting ? styles.submitBtnDisabled : {})
               }}
             >
-              {submitting ? 'שולח...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>שליחת הטופס</span>}
+              {submitting ? <LoadingSpin text="שולח..." size={15} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>שליחת הטופס</span>}
             </button>
           ) : (
             <button onClick={handleNext} style={styles.nextBtn}>

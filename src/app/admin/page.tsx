@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
+import LoadingSpin from '@/components/LoadingSpin'
 
 interface Manager {
   id?: string
@@ -793,7 +794,7 @@ export default function WheelsAdminPage() {
                 onClick={editingStation ? handleUpdateStation : handleAddStation}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : (editingStation ? 'עדכן' : 'צור תחנה')}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : (editingStation ? 'עדכן' : 'צור תחנה')}
               </button>
             </div>
           </div>
@@ -872,7 +873,7 @@ export default function WheelsAdminPage() {
                 onClick={editingDistrict ? handleUpdateDistrict : handleAddDistrict}
                 disabled={actionLoading}
               >
-                {actionLoading ? 'שומר...' : (editingDistrict ? 'עדכן' : 'צור מחוז')}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : (editingDistrict ? 'עדכן' : 'צור מחוז')}
               </button>
             </div>
           </div>
@@ -1014,13 +1015,13 @@ function StationCard({
               onClick={onToggleActive}
               disabled={actionLoading}
             >
-              {station.is_active ? (
+              {actionLoading ? <LoadingSpin text="" size={13} /> : station.is_active ? (
                 <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="#ef4444" stroke="none"><circle cx="12" cy="12" r="12"/></svg>השבת</span>
               ) : (
                 <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="10" height="10" viewBox="0 0 24 24" fill="#22c55e" stroke="none"><circle cx="12" cy="12" r="12"/></svg>הפעל</span>
               )}
             </button>
-            <button style={{...styles.btnCompact, ...styles.btnCompactDelete}} onClick={onDelete} disabled={actionLoading}><span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span></button>
+            <button style={{...styles.btnCompact, ...styles.btnCompactDelete}} onClick={onDelete} disabled={actionLoading}>{actionLoading ? <LoadingSpin text="" size={13} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>מחק</span>}</button>
           </div>
         </>
       )}

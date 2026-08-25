@@ -9,6 +9,7 @@ import { Station, Manager, SearchResult, FilterOptions } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit, getDiameterDiffPct } from '@/lib/vehicle-mappings'
 import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModal'
 import AppHeader from '@/components/AppHeader'
+import LoadingSpin from '@/components/LoadingSpin'
 
 export default function WheelStationsPage() {
   const [stations, setStations] = useState<Station[]>([])
@@ -1181,7 +1182,7 @@ export default function WheelStationsPage() {
                   onClick={handleSearch}
                   disabled={searchLoading}
                 >
-                  {searchLoading ? <><span className="wheels-spinner"></span> מחפש...</> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חפש</span>}
+                  {searchLoading ? <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg className="spinning-wheel" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>מחפש...</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> חפש</span>}
                 </button>
               </>
             ) : (
@@ -2020,7 +2021,7 @@ export default function WheelStationsPage() {
                     cursor: loginLoading ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {loginLoading ? 'מתחבר...' : (
+                  {loginLoading ? <LoadingSpin text="מתחבר..." /> : (
                     <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>התחבר</span>
                   )}
                 </button>
@@ -2252,7 +2253,7 @@ export default function WheelStationsPage() {
                   disabled={addModelLoading}
                   style={styles.submitBtn}
                 >
-                  {addModelLoading ? 'מוסיף...' : (
+                  {addModelLoading ? <LoadingSpin text="מוסיף..." /> : (
                     <span style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הוסף למאגר</span>
                   )}
                 </button>

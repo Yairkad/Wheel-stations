@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import type { PunctureShop } from '@/components/punctures/MapView'
 import { HoursFields, HoursState, emptyHours, hoursToString } from '@/components/punctures/HoursFields'
+import LoadingSpin from '@/components/LoadingSpin'
 
 const MapView = dynamic(() => import('@/components/punctures/MapView'), {
   ssr: false,
@@ -314,7 +315,7 @@ function SuggestModal({ onClose }: { onClose: () => void }) {
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button type="submit" disabled={sending} className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50">
-              {sending ? 'שולח...' : 'שלח הצעה'}
+              {sending ? <LoadingSpin text="שולח..." size={13} /> : 'שלח הצעה'}
             </button>
           </form>
         )}

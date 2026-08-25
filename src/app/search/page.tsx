@@ -10,6 +10,7 @@ import { Station, Manager, SearchResult, FilterOptions, VehicleModelRecord } fro
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit, getDiameterDiffPct } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModal'
+import LoadingSpin from '@/components/LoadingSpin'
 
 type VehicleSearchResult = {
   vehicle: {
@@ -1446,7 +1447,7 @@ function SearchPageContent() {
                   onClick={handleSearch}
                   disabled={searchLoading}
                 >
-                  {searchLoading ? <><span className="wheels-spinner"></span> מחפש...</> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש</span>}
+                  {searchLoading ? <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg className="spinning-wheel" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>מחפש...</span> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>חפש</span>}
                 </button>
               </>
             ) : (
@@ -2543,7 +2544,7 @@ function SearchPageContent() {
                     cursor: loginLoading ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {loginLoading ? 'מתחבר...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>התחבר</span>}
+                  {loginLoading ? <LoadingSpin text="מתחבר..." size={15} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>התחבר</span>}
                 </button>
               </div>
             </div>
@@ -2826,7 +2827,7 @@ function SearchPageContent() {
                   disabled={addModelLoading}
                   style={styles.submitBtn}
                 >
-                  {addModelLoading ? 'מוסיף...' : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הוסף למאגר</span>}
+                  {addModelLoading ? <LoadingSpin text="מוסיף..." size={15} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>הוסף למאגר</span>}
                 </button>
                 <button
                   onClick={() => setShowAddModelModal(false)}

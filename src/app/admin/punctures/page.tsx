@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePunctureAdminAuth } from '@/hooks/usePunctureAdminAuth'
 import { HoursFields, HoursState, emptyHours, parseHoursState, hoursToString } from '@/components/punctures/HoursFields'
 import { AdminShell } from '@/components/admin/AdminShell'
+import LoadingSpin from '@/components/LoadingSpin'
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
@@ -209,7 +210,7 @@ function ApproveModal({ suggestion, authPayload, onDone, onClose }: {
           <button onClick={submit} disabled={saving || resolving} style={{
             width: '100%', padding: '11px', background: '#f59e0b', border: 'none',
             borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
-          }}>{saving ? 'שומר...' : 'אשר והוסף לרשימה'}</button>
+          }}>{saving ? <LoadingSpin text="שומר..." /> : 'אשר והוסף לרשימה'}</button>
         </div>
       </div>
     </div>
@@ -311,7 +312,7 @@ function EditShopModal({ shop, authPayload, onDone, onClose }: {
             <button onClick={submit} disabled={saving || resolving} style={{
               flex: 2, padding: '11px', background: '#3b82f6', border: 'none',
               borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
-            }}>{saving ? 'שומר...' : 'שמור שינויים'}</button>
+            }}>{saving ? <LoadingSpin text="שומר..." /> : 'שמור שינויים'}</button>
           </div>
         </div>
       </div>
@@ -408,7 +409,7 @@ function AddShopModal({ authPayload, onDone, onClose }: {
           <button onClick={submit} disabled={saving} style={{
             width: '100%', padding: '11px', background: '#f59e0b', border: 'none',
             borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
-          }}>{saving ? 'שומר...' : 'הוסף חנות'}</button>
+          }}>{saving ? <LoadingSpin text="שומר..." /> : 'הוסף חנות'}</button>
         </div>
       </div>
     </div>

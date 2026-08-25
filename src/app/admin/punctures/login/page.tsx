@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import LoadingSpin from '@/components/LoadingSpin'
 
 export default function PunctureManagerLoginPage() {
   const router = useRouter()
@@ -80,7 +81,7 @@ export default function PunctureManagerLoginPage() {
         />
         {error && <div style={s.error}>{error}</div>}
         <button onClick={handleLogin} disabled={loading} style={s.btn}>
-          {loading ? 'מתחבר...' : 'כניסה'}
+          {loading ? <LoadingSpin text="מתחבר..." /> : 'כניסה'}
         </button>
         <a href="/punctures" style={s.back}>← חזרה לרשימת הפנצ׳ריות</a>
       </div>
