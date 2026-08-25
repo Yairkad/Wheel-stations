@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T06:24:01.384Z
-> Files: 131 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T13:43:29.443Z
+> Files: 135 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -22,6 +22,8 @@
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/
 
 - `tm-mine.diff` — TrustedMatch: TrustedMatchesPage (~327 tok)
+- `ux-head.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5853 tok)
+- `ux3-mine.diff` (~521 tok)
 - `verify-a11y-widget.mjs` — Declares BASE (~828 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
@@ -34,6 +36,10 @@
 - `append_bug.py` (~408 tok)
 - `append_bug2.py` (~650 tok)
 - `verify-calc.mjs` — Declares shotDir (~400 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/de0847df-c6b9-4343-920c-e2446045ac78/scratchpad/
+
+- `shot-operator.mjs` — Declares BASE (~314 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f2855ed1-2611-4f5d-8860-bdc62b26ff12/scratchpad/
 
@@ -63,7 +69,7 @@
 - `feedback_hebrew_only.md` (~347 tok)
 - `MEMORY.md` (~125 tok)
 - `project_forgot_password_whatsapp_idea.md` (~492 tok)
-- `webauthn_biometric_login_paused.md` (~875 tok)
+- `webauthn_biometric_login_paused.md` (~1043 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
@@ -88,6 +94,7 @@
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-check-scale.mjs` — Declares envText (~241 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
+- `tmp-shot-operator.mjs` — Declares BASE (~321 tok)
 - `tmp-verify-a11y.mjs` — Declares BASE (~791 tok)
 - `tmp-verify-a11y2.mjs` — Declares BASE (~423 tok)
 - `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
@@ -98,7 +105,7 @@
 - `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
 - `tmp-verify-pagination.mjs` — Declares BASE (~603 tok)
 - `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5836 tok)
+- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6011 tok)
 - `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
 
 ## .claude/
@@ -498,7 +505,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~30403 tok)
+- `page.tsx` — OperatorPage (~30408 tok)
 
 ## src/app/privacy/
 

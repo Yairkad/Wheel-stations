@@ -4397,18 +4397,83 @@
       "error_message": "המשתמש ביקש לבדוק את מנגנון הכניסה בטביעת אצבע 'שבאמת לא דורש מפתח גישה' — נמצא שברירת מחדל ל-localhost בפרודקשן, לא דווח כשגיאה ספציפית על ידי המשתמש",
       "file": "src/lib/webauthn.ts",
       "root_cause": "משתנה הסביבה NEXT_PUBLIC_RP_ID בפרודקשן ב-Vercel (פרויקט wheel-stations) מוגדר כמחרוזת ריקה (\"\") ולא לדומיין האמיתי. getRpConfig() עושה `process.env.NEXT_PUBLIC_RP_ID || 'localhost'` — מחרוזת ריקה היא falsy ב-JS אז rpID נופל בחזרה ל-'localhost', ובעקבותיו origin נופל ל-'http://localhost:3000' (NEXT_PUBLIC_WEBAUTHN_ORIGIN לא מוגדר כלל). האתר האמיתי הוא https://wheel-stations.vercel.app, אז הדפדפן דוחה כל startRegistration/startAuthentication מיד עם SecurityError (rpId לא תואם לדומיין הנוכחי) — עוד לפני שמופיע חיישן טביעת האצבע/פנים. זה קורה לכל ניסיון בפרודקשן, לא רק למקרה ספציפי.",
-      "fix": "לא תוקן עדיין — דורש: vercel env add NEXT_PUBLIC_RP_ID (ערך: wheel-stations.vercel.app) לסביבות Production+Preview, ואז redeploy (NEXT_PUBLIC_* נאפים ב-build time, לא runtime, אז לא מספיק לשנות בדשבורד בלי דיפלוי מחדש). NEXT_PUBLIC_WEBAUTHN_ORIGIN לא חייב הגדרה נפרדת — הנוסחה הקיימת בקוד (`https://${rpID}`) תיתן את הערך הנכון ברגע ש-RP_ID יתוקן. חלק אחר של אותה תכונה (residentKey: 'discouraged' + authenticatorAttachment: 'platform' + שליחת phone תמיד ב-authenticate/begin, כדי לעקוף UI של Passkey וליצור פרומפט טביעת אצבע/פנים ישיר) כבר תוקן נכון בקוד בקומיטים קודמים (6ae74f6, a2ce67b) — הבאג הזה הוא נפרד וחוסם בפועל את כל התכונה בפרודקשן בכל מקרה.",
+      "fix": "חלקית תוקן (2026-08-25, לבקשת המשתמש): NEXT_PUBLIC_RP_ID עודכן ב-Vercel Production ל-'wheel-stations.vercel.app' דרך `vercel env add ... --force` (אומת עם vercel env ls — הערך עודכן, timestamp טרי). המשתמש ביקש במפורש רק לתקן את המשתנה בלי להריץ redeploy עדיין — כלומר השינוי לא ייכנס לתוקף עד דיפלוי הבא, כי NEXT_PUBLIC_* נאפים ב-build time. Preview environment לא עודכן: ה-CLI דרש disambiguation של git-branch גם עם --yes --force (כנראה quirk כי הערך הקודם היה בלי branch ספציפי), ובכל מקרה preview deployments מקבלים דומיין דינמי לכל דיפלוי אז ערך RP_ID קבוע לא באמת נכון שם — לא נרדף אחרי זה. NEXT_PUBLIC_WEBAUTHN_ORIGIN לא הוגדר בנפרד — הנוסחה הקיימת בקוד (`https://${rpID}`) תיתן את הערך הנכון ב-production ברגע שיהיה דיפלוי חדש. חלק אחר של אותה תכונה (residentKey: 'discouraged' + authenticatorAttachment: 'platform' + שליחת phone תמיד ב-authenticate/begin) כבר תוקן נכון בקוד בקומיטים קודמים (6ae74f6, a2ce67b).",
       "tags": [
         "webauthn",
         "biometric",
         "production-config",
         "env-var",
         "vercel",
-        "not-fixed"
+        "partially-fixed",
+        "needs-redeploy"
       ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-25T00:00:00.000Z"
+    },
+    {
+      "id": "bug-271",
+      "timestamp": "2026-08-25T06:26:56.929Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/webauthn_biometric_login_paused.md",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 6→7 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T06:26:56.929Z"
+    },
+    {
+      "id": "bug-272",
+      "timestamp": "2026-08-25T13:36:38.876Z",
+      "error_message": "Incorrect value in code",
+      "file": "UX_AUDIT_TODO.md",
+      "root_cause": "Had `page.tsx:1274-1279`",
+      "fix": "Changed to `year_from`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T13:36:38.876Z"
+    },
+    {
+      "id": "bug-273",
+      "timestamp": "2026-08-25T13:39:35.025Z",
+      "error_message": "Wrong reference: 149 should be 145",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/ux3-mine.diff",
+      "root_cause": "Used \"149\" instead of \"145\"",
+      "fix": "Changed 149 → 145",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "diff"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T13:39:35.025Z"
+    },
+    {
+      "id": "bug-274",
+      "timestamp": "2026-08-25T13:43:23.526Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/ux-head.md",
+      "root_cause": "Had `page.tsx:1274-1279`",
+      "fix": "Changed to `year_from`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T13:43:23.526Z"
     }
   ]
 }
