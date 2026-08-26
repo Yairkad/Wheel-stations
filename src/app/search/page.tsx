@@ -408,6 +408,7 @@ function SearchPageContent() {
     setModelSearchYear('')
     setVehicleSearchTab('plate')
     setStationFilterId('')
+    setManualRimSize(null)
   }
 
   const closeVehicleModal = () => {
@@ -1714,18 +1715,31 @@ function SearchPageContent() {
                     </button>
                   </div>
                 )}
-                <div style={{textAlign: 'center', marginTop: vehicleResult ? 0 : '12px'}}>
-                  {!vehicleResult && <div style={{fontSize: '0.78rem', color: '#9ca3af', marginBottom: '6px'}}>לא נמצא?</div>}
-                  <button
-                    role="tab"
-                    aria-controls="model-search-panel"
-                    onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
-                    style={styles.searchFallbackBtnPrimary}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                    לפי יצרן ודגם
-                  </button>
-                </div>
+                {!vehicleResult ? (
+                  <div style={{textAlign: 'center', marginTop: '12px'}}>
+                    <div style={{fontSize: '0.78rem', color: '#9ca3af', marginBottom: '6px'}}>לא נמצא?</div>
+                    <button
+                      role="tab"
+                      aria-controls="model-search-panel"
+                      onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
+                      style={styles.searchFallbackBtnPrimary}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                      לפי יצרן ודגם
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{textAlign: 'center'}}>
+                    <button
+                      onClick={openVehicleModal}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.78rem', cursor: 'pointer', padding: '4px', fontFamily: 'inherit' }}
+                      title="נקה חיפוש"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                      נקה חיפוש
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
