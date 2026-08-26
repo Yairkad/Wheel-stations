@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       wheel_rim_size,
       wheel_bolt_count,
       wheel_bolt_spacing,
+      wheel_center_bore,
       notes,
       created_by,
     } = body
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
         wheel_rim_size: String(wheel_rim_size).trim(),
         wheel_bolt_count: parseInt(wheel_bolt_count),
         wheel_bolt_spacing: parseFloat(wheel_bolt_spacing),
+        wheel_center_bore: wheel_center_bore ? parseFloat(wheel_center_bore) : null,
         notes: notes || null,
         created_by: created_by || null,
       })

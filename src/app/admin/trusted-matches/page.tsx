@@ -15,6 +15,7 @@ interface TrustedMatch {
   wheel_rim_size: string
   wheel_bolt_count: number
   wheel_bolt_spacing: number
+  wheel_center_bore: number | null
   notes: string | null
   created_at: string
 }
@@ -27,6 +28,7 @@ const emptyForm = {
   wheel_rim_size: '',
   wheel_bolt_count: '',
   wheel_bolt_spacing: '',
+  wheel_center_bore: '',
   notes: '',
 }
 
@@ -111,7 +113,11 @@ export default function TrustedMatchesPage() {
             <input placeholder='גודל ג׳אנט (למשל 16)' value={form.wheel_rim_size} onChange={e => setForm({ ...form, wheel_rim_size: e.target.value })} style={inputStyle} />
             <input placeholder="כמות ברגים" type="number" value={form.wheel_bolt_count} onChange={e => setForm({ ...form, wheel_bolt_count: e.target.value })} style={inputStyle} />
             <input placeholder="מרווח ברגים" type="number" value={form.wheel_bolt_spacing} onChange={e => setForm({ ...form, wheel_bolt_spacing: e.target.value })} style={inputStyle} />
+            <input placeholder="CB - קוטר מרכז (אופציונלי)" type="number" value={form.wheel_center_bore} onChange={e => setForm({ ...form, wheel_center_bore: e.target.value })} style={inputStyle} />
           </div>
+          <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '-6px', marginBottom: '12px' }}>
+            אם ה-CB לא ידוע או לא רלוונטי — אפשר להשאיר ריק, הצירוף יחול על כל הגלגלים בגודל/ברגים האלה בלי קשר ל-CB.
+          </p>
           <input placeholder="הערות (אופציונלי)" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} style={{ ...inputStyle, width: '100%', marginBottom: '12px' }} />
           <button
             onClick={handleSubmit}
@@ -135,7 +141,7 @@ export default function TrustedMatchesPage() {
                     {m.vehicle_make} {m.vehicle_model} {m.year_from || m.year_to ? `(${m.year_from || ''}${m.year_from && m.year_to ? '-' : ''}${m.year_to || '+'})` : ''}
                   </div>
                   <div style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                    {m.wheel_bolt_count}×{m.wheel_bolt_spacing} | {m.wheel_rim_size}&quot;
+                    {m.wheel_bolt_count}×{m.wheel_bolt_spacing} | {m.wheel_rim_size}&quot;{m.wheel_center_bore ? ` | CB ${m.wheel_center_bore}` : ' | CB לא צוין (חל על כל CB)'}
                     {m.notes && <span> — {m.notes}</span>}
                   </div>
                 </div>
