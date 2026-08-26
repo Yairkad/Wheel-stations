@@ -84,7 +84,7 @@ function VehiclesAdminPage() {
 
   // Narrow-column, all-rows dataset used ONLY to populate filter dropdowns/autocomplete —
   // decoupled from `vehicles` (current page) so those lists don't shrink to one page's values
-  const [facetVehicles, setFacetVehicles] = useState<Pick<VehicleModel, 'make' | 'make_he' | 'model' | 'variants' | 'bolt_count' | 'bolt_spacing' | 'center_bore' | 'rim_size'>[]>([])
+  const [facetVehicles, setFacetVehicles] = useState<Pick<VehicleModel, 'make' | 'make_he' | 'model' | 'variants' | 'bolt_count' | 'bolt_spacing' | 'center_bore' | 'rim_size' | 'year_from'>[]>([])
 
   // Scroll to top button
   const [showScrollTop, setShowScrollTop] = useState(false)
@@ -195,7 +195,7 @@ function VehiclesAdminPage() {
   const uniqueBoltSpacingValues = [...new Set(facetVehicles.map(v => v.bolt_spacing))].sort((a, b) => a - b)
   const uniqueCenterBoreValues = [...new Set(facetVehicles.filter(v => v.center_bore).map(v => v.center_bore!))].sort((a, b) => a - b)
   const uniqueRimSizeValues = [...new Set(facetVehicles.filter(v => v.rim_size).map(v => v.rim_size!))].sort()
-  const uniqueYearValues = [...new Set(vehicles.map(v => v.year_from))].sort((a, b) => a - b)
+  const uniqueYearValues = [...new Set(facetVehicles.map(v => v.year_from))].sort((a, b) => a - b)
 
   // Track which filter dropdown is open
   const [openFilter, setOpenFilter] = useState<string | null>(null)

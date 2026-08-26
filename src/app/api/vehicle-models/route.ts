@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 
     // Helper function to build query with filters shared by every mode
     const buildQuery = () => {
-      let q = supabase.from('vehicle_models').select(fields === 'facets' ? 'make, make_he, model, variants, bolt_count, bolt_spacing, center_bore, rim_size' : '*', page ? { count: 'exact' } : undefined)
+      let q = supabase.from('vehicle_models').select(fields === 'facets' ? 'make, make_he, model, variants, bolt_count, bolt_spacing, center_bore, rim_size, year_from' : '*', page ? { count: 'exact' } : undefined)
 
       // General search - split into words and search each word across all text fields
       // This allows "מזדה 6" to find cars where make_he contains "מזדה" AND model contains "6"

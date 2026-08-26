@@ -735,9 +735,20 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
   }, [isManager, currentManager, stationId])
 
+  // A biometric-only (WebAuthn) login has no real password to store, so sessionPassword
+  // can legitimately be '' for a fully valid, logged-in manager. Every action below that
+  // sends manager_password/current_password to the server needs this guard — otherwise it
+  // silently sends an empty password and gets a confusing generic failure back.
+  const requirePassword = () => {
+    if (sessionPassword) return true
+    toast.error('סיסמה לא נמצאה. נא להתנתק ולהתחבר מחדש')
+    return false
+  }
+
   // Toggle push notifications
   const handleTogglePush = async () => {
     if (!currentManager) return
+    if (!requirePassword()) return
     setEnablingPush(true)
 
     try {
@@ -1145,6 +1156,7 @@ ${signFormUrl}
 
   // Show recovery certificate
   const handleShowRecoveryCert = async () => {
+    if (!requirePassword()) return
     setRecoveryLoading(true)
     setShowRecoveryCertModal(true)
     try {
@@ -1380,6 +1392,7 @@ ${signFormUrl}
       toast.error('נא לציין סיבה לכישלון ההרכבה')
       return
     }
+    if (!requirePassword()) return
 
     setActionLoading(true)
     try {
@@ -1431,6 +1444,7 @@ ${signFormUrl}
       toast.error('נא למלא את כל שדות החובה')
       return
     }
+    if (!requirePassword()) return
 
     setManualBorrowFormErrors([])
     setActionLoading(true)
@@ -1493,6 +1507,7 @@ ${signFormUrl}
       setWheelFormErrors(errors)
       return
     }
+    if (!requirePassword()) return
     setWheelFormErrors([])
     setActionLoading(true)
     const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
@@ -1559,6 +1574,7 @@ ${signFormUrl}
       setWheelFormErrors(errors)
       return
     }
+    if (!requirePassword()) return
     setWheelFormErrors([])
     setActionLoading(true)
     const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
@@ -1614,6 +1630,7 @@ ${signFormUrl}
 
   // Delete wheel
   const handleDeleteWheel = async (wheel: Wheel) => {
+    if (!requirePassword()) return
     showConfirm({
       title: 'מחיקת גלגל',
       message: `למחוק את גלגל #${wheel.wheel_number}? פעולה זו אינה ניתנת לביטול`,
@@ -1706,6 +1723,7 @@ ${signFormUrl}
 
   // Save contacts
   const handleSaveContacts = async () => {
+    if (!requirePassword()) return
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/managers`, {
@@ -1736,6 +1754,7 @@ ${signFormUrl}
   const doImport = async (importActionMode: 'add_new_only' | 'upsert' | 'replace_all', data?: Record<string, unknown>[]) => {
     const wheels = data ?? pendingImportData
     if (!wheels) return
+    if (!requirePassword()) return
     setShowImportConflictModal(false)
     setUploadLoading(true)
     try {
@@ -1776,6 +1795,7 @@ ${signFormUrl}
   const handleExcelUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
+    if (!requirePassword()) return
 
     event.target.value = ''
 
@@ -1842,6 +1862,7 @@ ${signFormUrl}
       toast.error('נא להזין קישור לגיליון Google Sheets')
       return
     }
+    if (!requirePassword()) return
 
     setUploadLoading(true)
     try {
@@ -4757,6 +4778,7 @@ ${signFormUrl}
               <button
                 style={{...styles.smallBtn, background: '#10b981'}}
                 onClick={async () => {
+                  if (!requirePassword()) return
                   setActionLoading(true)
                   try {
                     const response = await fetch(`/api/wheel-stations/${stationId}`, {
@@ -4919,6 +4941,7 @@ ${signFormUrl}
               <button
                 style={{...styles.smallBtn, background: '#10b981', marginTop: '16px'}}
                 onClick={async () => {
+                  if (!requirePassword()) return
                   setActionLoading(true)
                   try {
                     const response = await fetch(`/api/wheel-stations/${stationId}`, {
@@ -4988,6 +5011,7 @@ ${signFormUrl}
                 <button
                   style={{...styles.smallBtn, background: '#10b981', marginTop: '8px'}}
                   onClick={async () => {
+                    if (!requirePassword()) return
                     setActionLoading(true)
                     try {
                       const validEmails = notificationEmails.filter(e => e.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
