@@ -5300,6 +5300,22 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-25T20:48:48.783Z"
+    },
+    {
+      "id": "bug-326",
+      "timestamp": "2026-08-26T04:12:07.446Z",
+      "error_message": "CSS fix: textAlign",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "textAlign: 'center', marginTop: vehicleResult ? 0 : '12px' → 'center'",
+      "fix": "Changed textAlign: 'center', marginTop: vehicleResult ? 0 : '12px' → 'center'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T04:12:07.446Z"
     }
   ]
 }
