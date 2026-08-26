@@ -2057,10 +2057,12 @@ ${contact?.phone || ''}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {allStations.map(station => (
                   <div key={station.id} style={{border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px'}}>
-                    <div style={{fontWeight: 600, color: '#1e293b', fontSize: '0.95rem'}}>{station.name}</div>
-                    {station.address && (
-                      <div style={{color: '#64748b', fontSize: '0.8rem', marginTop: '2px'}}>{station.address}</div>
-                    )}
+                    <div style={{paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid #f1f5f9'}}>
+                      <div style={{fontWeight: 700, color: '#0f172a', fontSize: '1.05rem'}}>{station.name}</div>
+                      {station.address && (
+                        <div style={{color: '#64748b', fontSize: '0.8rem', marginTop: '2px'}}>{station.address}</div>
+                      )}
+                    </div>
                     {station.wheel_station_managers && station.wheel_station_managers.length > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
                         {station.wheel_station_managers.map(manager => (

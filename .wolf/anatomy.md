@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-25T20:48:48.751Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-26T04:45:25.189Z
 > Files: 154 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
@@ -21,6 +21,7 @@
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/
 
+- `check_stations_modal.mjs` — SESSION_VERSION: run (~346 tok)
 - `op-head.tsx` — OperatorPage (~32971 tok)
 - `tm-mine.diff` — TrustedMatch: TrustedMatchesPage (~327 tok)
 - `ux-head.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5853 tok)
@@ -530,7 +531,7 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~33706 tok)
+- `page.tsx` — OperatorPage (~34557 tok)
 
 ## src/app/privacy/
 

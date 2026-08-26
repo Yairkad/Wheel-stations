@@ -5316,6 +5316,22 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-26T04:12:07.446Z"
+    },
+    {
+      "id": "bug-327",
+      "timestamp": "2026-08-26T04:45:00.600Z",
+      "error_message": "CSS fix: fontWeight, color",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "fontWeight: 600, color: '#1e293b', fontSize: '0.95rem' → 700, color: '#0f172a', fontSize: '1.05rem', paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid #f1f5f9'; color: '#64748b', fontSize: '0.8rem', marginTop: '2px' → '#64748b', fontSize: '0.8rem', marginTop: '-4px', marginBottom: '4px'",
+      "fix": "Changed fontWeight: 600, color: '#1e293b', fontSize: '0.95rem' → 700, color: '#0f172a', fontSize: '1.05rem', paddingBottom: '8px', marginBottom: '8px', borderBottom: '1px solid #f1f5f9'; color: '#64748b', fontSize: '0.8rem', marginTop: '2px' → '#64748b', fontSize: '0.8rem', marginTop: '-4px', marginBottom: '4px'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-26T04:45:25.217Z"
     }
   ]
 }
