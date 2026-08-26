@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
-import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
 import { useClickOutside } from '@/hooks/useClickOutside'
 
@@ -69,7 +69,7 @@ export default function CallCenterPage() {
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
 
   // Role switching
-  const { authRoles, activeRole, currentRoleLabel, switchToRole, switchingRole } = useRoleSwitch()
+  const { authRoles, activeRole, currentRoleLabel, switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
 
@@ -548,14 +548,17 @@ export default function CallCenterPage() {
                     </button>
                     {showRoleMenu && (
                       <div style={styles.roleDropdown} role="menu">
-                        {authRoles.map((r) => (
-                          <button key={r.role} role="menuitem" disabled={switchingRole} style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}), ...(switchingRole ? { opacity: 0.6, cursor: 'default' } : {})}} onClick={() => { switchToRole(r); setShowRoleMenu(false) }}>
-                            {switchingRole && (
-                              <svg className="spinning-wheel" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                            )}
-                            {r.label}
-                          </button>
-                        ))}
+                        {authRoles.map((r) => {
+                          const isSwitchingThis = switchingToKey === roleKey(r)
+                          return (
+                            <button key={roleKey(r)} role="menuitem" disabled={switchingRole} style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}), ...(switchingRole ? { opacity: isSwitchingThis ? 1 : 0.5, cursor: 'default' } : {})}} onClick={() => switchToRole(r)}>
+                              {isSwitchingThis && (
+                                <svg className="spinning-wheel" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                              )}
+                              {r.label}
+                            </button>
+                          )
+                        })}
                       </div>
                     )}
                   </>

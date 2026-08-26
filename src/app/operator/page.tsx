@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import { VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
-import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
 import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
 import { useClickOutside } from '@/hooks/useClickOutside'
@@ -68,7 +68,7 @@ export default function OperatorPage() {
   // Header menus
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
-  const { authRoles, activeRole, currentRoleLabel, switchToRole, switchingRole } = useRoleSwitch()
+  const { authRoles, activeRole, currentRoleLabel, switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
   const [phone, setPhone] = useState('')
@@ -1068,8 +1068,8 @@ ${contact?.phone || ''}
   // against (plate/model tabs). The spec tab has no vehicle, so it keeps showing raw specs.
   type WheelTier = 'yes' | 'maybe' | 'no'
 
-  const specKeyOf = (w: { rim_size: string; bolt_count: number; bolt_spacing: number }) =>
-    `${w.rim_size}|${w.bolt_count}|${w.bolt_spacing}`
+  const specKeyOf = (w: { rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null }) =>
+    `${w.rim_size}|${w.bolt_count}|${w.bolt_spacing}|${w.center_bore ?? 'null'}`
 
   const getRawWheelTier = (wheel: WheelResult['wheels'][number]): WheelTier => {
     const wheelSize = parseInt(wheel.rim_size)
@@ -1120,12 +1120,12 @@ ${contact?.phone || ''}
       setTrustedSpecs(new Set())
       return
     }
-    const specsMap = new Map<string, { rim_size: string; bolt_count: number; bolt_spacing: number }>()
+    const specsMap = new Map<string, { rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null }>()
     for (const r of results) {
       for (const w of r.wheels) {
         if (!w.is_available || w.temporarily_unavailable) continue
         if (getRawWheelTier(w) === 'maybe') {
-          specsMap.set(specKeyOf(w), { rim_size: w.rim_size, bolt_count: w.bolt_count, bolt_spacing: w.bolt_spacing })
+          specsMap.set(specKeyOf(w), { rim_size: w.rim_size, bolt_count: w.bolt_count, bolt_spacing: w.bolt_spacing, center_bore: w.center_bore })
         }
       }
     }
@@ -1181,7 +1181,7 @@ ${contact?.phone || ''}
     return (
       <div style={styles.loginContainer}>
         <div style={{color: '#94a3b8', textAlign: 'center'}}>
-          <div style={{marginBottom: '10px'}}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg></div>
+          <div style={{marginBottom: '10px'}}><svg className="spinning-wheel" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
           מעביר לדף ההתחברות...
         </div>
       </div>
@@ -1305,14 +1305,20 @@ ${contact?.phone || ''}
                   </button>
                   {showRoleMenu && (
                     <div style={styles.roleDropdown} role="menu">
-                      {authRoles.map((r) => (
-                        <button key={r.role} role="menuitem" disabled={switchingRole} style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}), ...(switchingRole ? { opacity: 0.6, cursor: 'default' } : {})}} onClick={() => { switchToRole(r); setShowRoleMenu(false) }}>
-                          {switchingRole && (
-                            <svg className="spinning-wheel" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                          )}
-                          {r.label}
-                        </button>
-                      ))}
+                      {authRoles.map((r) => {
+                        const isSwitchingThis = switchingToKey === roleKey(r)
+                        return (
+                          // Dropdown is deliberately left open on click (unlike other menu
+                          // items) so this per-row spinner is visible during the hard
+                          // navigation switchToRole triggers, instead of vanishing instantly.
+                          <button key={roleKey(r)} role="menuitem" disabled={switchingRole} style={{...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}), ...(switchingRole ? { opacity: isSwitchingThis ? 1 : 0.5, cursor: 'default' } : {})}} onClick={() => switchToRole(r)}>
+                            {isSwitchingThis && (
+                              <svg className="spinning-wheel" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            )}
+                            {r.label}
+                          </button>
+                        )
+                      })}
                     </div>
                   )}
                 </>
@@ -2320,6 +2326,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 500,
   },
   container: {
+    width: '100%',
     maxWidth: '900px',
     margin: '0 auto',
     padding: '20px',

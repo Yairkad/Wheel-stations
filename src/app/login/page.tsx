@@ -6,11 +6,11 @@ import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { VERSION } from '@/lib/version'
 import type { RoleResult } from '@/lib/types'
-import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
 
 export default function LoginPage() {
-  const { switchToRole, switchingRole } = useRoleSwitch()
+  const { switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -358,9 +358,10 @@ export default function LoginPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {roles.map((r) => {
               const cfg = roleConfig[r.role] ?? { color: '#475569', bg: '#f8fafc', border: '#e2e8f0', icon: null }
+              const isSwitchingThis = switchingToKey === roleKey(r)
               return (
                 <button
-                  key={r.role}
+                  key={roleKey(r)}
                   className="role-card"
                   disabled={switchingRole}
                   onClick={() => {
@@ -376,11 +377,11 @@ export default function LoginPage() {
                     background: cfg.bg,
                     border: `1px solid ${cfg.border}`,
                     borderRadius: '12px',
-                    opacity: switchingRole ? 0.6 : 1,
+                    opacity: switchingRole ? (isSwitchingThis ? 1 : 0.5) : 1,
                     color: cfg.color,
                     fontSize: '14px',
                     fontWeight: 700,
-                    cursor: 'pointer',
+                    cursor: switchingRole ? 'default' : 'pointer',
                     transition: 'all 0.18s',
                     textAlign: 'right' as const,
                     fontFamily: 'inherit',
@@ -390,7 +391,7 @@ export default function LoginPage() {
                 >
                   <span style={{ flexShrink: 0, color: cfg.color }}>{cfg.icon}</span>
                   <span style={{ flex: 1 }}>{r.label}</span>
-                  {switchingRole ? (
+                  {isSwitchingThis ? (
                     <svg className="spinning-wheel" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                   ) : (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ opacity: 0.4 }}>

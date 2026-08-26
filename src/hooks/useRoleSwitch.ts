@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { SESSION_VERSION } from '@/lib/version'
 import type { RoleResult } from '@/lib/types'
 
@@ -13,6 +12,7 @@ interface UseRoleSwitchResult {
   currentRoleLabel: string | undefined
   switchToRole: (role: RoleResult) => void
   switchingRole: boolean
+  switchingToKey: string | null
 }
 
 function getRoleDisplay(role: string, label?: string): string {
@@ -27,16 +27,26 @@ function getRoleDisplay(role: string, label?: string): string {
   }
 }
 
+// Multiple RoleResult entries can share the same `role` (e.g. an operator working
+// two call centers, or a manager of two stations) — `r.role` alone isn't a unique
+// identifier. This gives every entry a stable per-entry key, used both as the React
+// `key` and to track exactly which entry is mid-switch (so only the clicked one
+// animates, not every row sharing its role).
+export function roleKey(r: RoleResult): string {
+  const d = r.data as Record<string, unknown>
+  const disambiguator = (d.station_id ?? d.call_center_id ?? d.sub_role ?? '') as string
+  return `${r.role}:${disambiguator}`
+}
+
 // Reads a person's roles + currently-active one from localStorage, and provides
 // switchToRole() to persist a new session and navigate there. Single source of
 // truth for what used to be 5 near-identical copies (AppHeader, operator page,
 // call-center page, AdminSidebar, login page's post-auth role picker).
 export function useRoleSwitch(): UseRoleSwitchResult {
-  const router = useRouter()
   const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
   const [activeRole, setActiveRole] = useState('')
   const [activeSubRole, setActiveSubRole] = useState<string | null>(null)
-  const [switchingRole, setSwitchingRole] = useState(false)
+  const [switchingToKey, setSwitchingToKey] = useState<string | null>(null)
 
   useEffect(() => {
     try {
@@ -48,7 +58,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
   }, [])
 
   const switchToRole = useCallback((r: RoleResult) => {
-    setSwitchingRole(true)
+    setSwitchingToKey(roleKey(r))
     localStorage.setItem('active_role', r.role)
     if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
     else localStorage.removeItem('active_sub_role')
@@ -57,6 +67,13 @@ export function useRoleSwitch(): UseRoleSwitchResult {
 
     const d = r.data
     const pwd = localStorage.getItem('auth_password') || ''
+    // A hard navigation (not router.push) is deliberate: several role combinations
+    // resolve to the exact same URL (e.g. two operator entries for different call
+    // centers both land on /operator), so a client-side push would be a same-route
+    // no-op — the page never remounts, its one-time session-read effect never
+    // re-runs, and the user is left looking at the PREVIOUS role's data forever
+    // while only the header's role chip updates. A full reload guarantees every
+    // page re-reads the freshly-written session from scratch.
     switch (r.role) {
       case 'station_manager': {
         localStorage.setItem(`station_session_${d.station_id as string}`, JSON.stringify({
@@ -67,7 +84,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
-        router.push(`/${d.station_id as string}`)
+        window.location.href = `/${d.station_id as string}`
         break
       }
       case 'operator': {
@@ -80,7 +97,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
-        router.push(d.sub_role === 'manager' ? '/call-center' : '/operator')
+        window.location.href = d.sub_role === 'manager' ? '/call-center' : '/operator'
         break
       }
       case 'district_manager': {
@@ -90,7 +107,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
-        router.push('/super-manager')
+        window.location.href = '/super-manager'
         break
       }
       case 'editor': {
@@ -99,7 +116,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
           phone: d.phone,
           password: pwd,
         }))
-        router.push('/admin/punctures')
+        window.location.href = '/admin/punctures'
         break
       }
       case 'admin': {
@@ -107,11 +124,11 @@ export function useRoleSwitch(): UseRoleSwitchResult {
           expiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
           pwd,
         }))
-        router.push('/admin')
+        window.location.href = '/admin'
         break
       }
     }
-  }, [router])
+  }, [])
 
   const activeRoleEntry = authRoles.find(r => {
     if (r.role !== activeRole) return false
@@ -121,5 +138,5 @@ export function useRoleSwitch(): UseRoleSwitchResult {
 
   const currentRoleLabel = activeRoleEntry ? getRoleDisplay(activeRoleEntry.role, activeRoleEntry.label) : undefined
 
-  return { authRoles, activeRole, activeSubRole, activeRoleEntry, currentRoleLabel, switchToRole, switchingRole }
+  return { authRoles, activeRole, activeSubRole, activeRoleEntry, currentRoleLabel, switchToRole, switchingRole: switchingToKey !== null, switchingToKey }
 }

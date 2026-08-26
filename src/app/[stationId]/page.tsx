@@ -3215,11 +3215,14 @@ ${signFormUrl}
                       </button>
                     )}
 
-                    {/* Options button with dropdown */}
-                    <div style={{ position: 'relative' }}>
+                    {/* Options button with dropdown — stretches to fill the row (matching
+                        the mobile-only full-width override below 480px) when it's the only
+                        action button; stays content-sized next to "החזר לזמין" otherwise */}
+                    <div style={{ position: 'relative', ...(!wheel.temporarily_unavailable && { flex: 1 }) }}>
                       <button
                         style={{
                           ...styles.optionsBtn,
+                          ...(!wheel.temporarily_unavailable && { width: '100%', justifyContent: 'center' }),
                           ...(openOptionsMenu === wheel.id && { background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }),
                         }}
                         onClick={(e) => {

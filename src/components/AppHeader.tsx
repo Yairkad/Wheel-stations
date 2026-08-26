@@ -6,7 +6,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import type { RoleResult } from '@/lib/types'
-import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 
 interface UserSession {
   manager: {
@@ -33,7 +33,7 @@ interface AppHeaderProps {
 export default function AppHeader({ currentStationId, notificationCount, pushEnabled, onDistrictExport }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { switchToRole, switchingRole } = useRoleSwitch()
+  const { switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
   const [userSession, setUserSession] = useState<UserSession | null>(null)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showFormSubmenu, setShowFormSubmenu] = useState(false)
@@ -296,9 +296,12 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   }
 
   const navigateToRole = (r: RoleResult) => {
+    // Deliberately leaves the dropdown open (unlike other actions here) so the
+    // per-row switching spinner below is actually visible during the hard
+    // navigation switchToRole triggers — closing it immediately would hide the
+    // only feedback the user gets before the new page loads.
     switchToRole(r)
     setActiveRole(r.role)
-    setShowRoleMenu(false)
   }
 
   const activeSubRole = typeof window !== 'undefined' ? localStorage.getItem('active_sub_role') : null
@@ -672,26 +675,29 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
                     </button>
                     {showRoleMenu && (
                       <div style={styles.roleDropdown} role="menu">
-                        {authRoles.map((r) => (
-                          <button
-                            key={r.role}
-                            role="menuitem"
-                            disabled={switchingRole}
-                            style={{ ...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}), ...(switchingRole ? { opacity: 0.6, cursor: 'default' } : {}) }}
-                            onClick={() => navigateToRole(r)}
-                          >
-                            {switchingRole ? (
-                              <svg className="spinning-wheel" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                            ) : (
-                              r.role === activeRole && (
-                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                  <polyline points="20 6 9 17 4 12"/>
-                                </svg>
-                              )
-                            )}
-                            {r.label}
-                          </button>
-                        ))}
+                        {authRoles.map((r) => {
+                          const isSwitchingThis = switchingToKey === roleKey(r)
+                          return (
+                            <button
+                              key={roleKey(r)}
+                              role="menuitem"
+                              disabled={switchingRole}
+                              style={{ ...styles.roleOption, ...(r.role === activeRole ? styles.roleOptionActive : {}), ...(switchingRole ? { opacity: isSwitchingThis ? 1 : 0.5, cursor: 'default' } : {}) }}
+                              onClick={() => navigateToRole(r)}
+                            >
+                              {isSwitchingThis ? (
+                                <svg className="spinning-wheel" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                              ) : (
+                                r.role === activeRole && (
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                  </svg>
+                                )
+                              )}
+                              {r.label}
+                            </button>
+                          )
+                        })}
                       </div>
                     )}
                   </>

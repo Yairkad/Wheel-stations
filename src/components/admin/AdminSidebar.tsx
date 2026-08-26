@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { useAdminPendingReports } from '@/hooks/useAdminPendingReports'
-import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import type { RoleResult } from '@/lib/types'
 
 const icons = {
@@ -86,12 +86,14 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
   const pendingReports = useAdminPendingReports()
   const [mobileOpen,   setMobileOpen]   = useState(false)
   const [showRolePick, setShowRolePick] = useState(false)
-  const { authRoles, switchToRole, switchingRole } = useRoleSwitch()
+  const { authRoles, switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
   const otherRoles = authRoles.filter(r => r.role !== 'admin')
 
+  // Dropdown is deliberately left open (no setShowRolePick(false) here) so the
+  // per-row switching spinner below is visible during the hard navigation
+  // switchToRole triggers, instead of vanishing instantly.
   function navigateToRole(r: RoleResult) {
     switchToRole(r)
-    setShowRolePick(false)
   }
 
   const isActive = (href: string) =>
@@ -199,27 +201,30 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
                 background: '#1e293b', border: '1px solid #334155', borderRadius: 8,
                 overflow: 'hidden', zIndex: 50,
               }}>
-                {otherRoles.map(r => (
-                  <button
-                    key={r.role}
-                    onClick={() => navigateToRole(r)}
-                    disabled={switchingRole}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'right',
-                      padding: '10px 14px', background: 'none', border: 'none',
-                      color: '#e2e8f0', fontSize: '0.85rem', cursor: switchingRole ? 'default' : 'pointer',
-                      opacity: switchingRole ? 0.6 : 1,
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#334155')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  >
-                    {switchingRole && (
-                      <svg className="spinning-wheel" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    )}
-                    {r.label}
-                  </button>
-                ))}
+                {otherRoles.map(r => {
+                  const isSwitchingThis = switchingToKey === roleKey(r)
+                  return (
+                    <button
+                      key={roleKey(r)}
+                      onClick={() => navigateToRole(r)}
+                      disabled={switchingRole}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'right',
+                        padding: '10px 14px', background: 'none', border: 'none',
+                        color: '#e2e8f0', fontSize: '0.85rem', cursor: switchingRole ? 'default' : 'pointer',
+                        opacity: switchingRole ? (isSwitchingThis ? 1 : 0.5) : 1,
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#334155')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                    >
+                      {isSwitchingThis && (
+                        <svg className="spinning-wheel" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      )}
+                      {r.label}
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>

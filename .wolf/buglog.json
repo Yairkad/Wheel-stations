@@ -4846,6 +4846,460 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-25T18:20:30.878Z"
+    },
+    {
+      "id": "bug-298",
+      "timestamp": "2026-08-25T20:13:09.207Z",
+      "error_message": "CSS fix: display, gap",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "display: 'flex', → 'inline-flex',; gap: '10px', → '4px',",
+      "fix": "Changed display: 'flex', → 'inline-flex',; gap: '10px', → '4px',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-25T20:13:53.908Z"
+    },
+    {
+      "id": "bug-299",
+      "timestamp": "2026-08-25T20:15:44.136Z",
+      "error_message": "Wrong reference: 2025 should be 2026",
+      "file": "src/app/accessibility/page.tsx",
+      "root_cause": "Used \"2025\" instead of \"2026\"",
+      "fix": "Changed 2025 → 2026",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-25T20:16:00.047Z"
+    },
+    {
+      "id": "bug-300",
+      "timestamp": "2026-08-25T20:25:05.307Z",
+      "error_message": "Type error",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:25:05.307Z"
+    },
+    {
+      "id": "bug-301",
+      "timestamp": "2026-08-25T20:25:32.202Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Had \"operator-section-title\"",
+      "fix": "Changed to '15px'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:25:32.202Z"
+    },
+    {
+      "id": "bug-302",
+      "timestamp": "2026-08-25T20:29:00.081Z",
+      "error_message": "CSS fix: textAlign",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "textAlign: 'center', marginTop: '12px' → 'center', marginTop: vehicleResult ? 0 : '12px'",
+      "fix": "Changed textAlign: 'center', marginTop: '12px' → 'center', marginTop: vehicleResult ? 0 : '12px'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 5,
+      "last_seen": "2026-08-25T20:34:12.548Z"
+    },
+    {
+      "id": "bug-303",
+      "timestamp": "2026-08-25T20:30:04.925Z",
+      "error_message": "Wrong reference: useRoleSwitch should be switchingToKey",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "Used \"useRoleSwitch\" instead of \"switchingToKey\"",
+      "fix": "Changed useRoleSwitch → switchingToKey",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-08-25T20:36:01.541Z"
+    },
+    {
+      "id": "bug-304",
+      "timestamp": "2026-08-25T20:32:27.541Z",
+      "error_message": "Wrong reference: useRoleSwitch should be switchingToKey",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "Used \"useRoleSwitch\" instead of \"switchingToKey\"",
+      "fix": "Changed useRoleSwitch → switchingToKey",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:32:27.541Z"
+    },
+    {
+      "id": "bug-305",
+      "timestamp": "2026-08-25T20:32:56.146Z",
+      "error_message": "CSS fix: opacity",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "opacity: 0.6, cursor: 'default' → isSwitchingThis ? 1 : 0.5, cursor: 'default'",
+      "fix": "Changed opacity: 0.6, cursor: 'default' → isSwitchingThis ? 1 : 0.5, cursor: 'default'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:32:56.146Z"
+    },
+    {
+      "id": "bug-306",
+      "timestamp": "2026-08-25T20:34:21.960Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/components/admin/AdminSidebar.tsx",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7→9 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:34:21.960Z"
+    },
+    {
+      "id": "bug-307",
+      "timestamp": "2026-08-25T20:34:34.050Z",
+      "error_message": "CSS fix: opacity",
+      "file": "src/components/admin/AdminSidebar.tsx",
+      "root_cause": "opacity: switchingRole ? 0.6 : 1, → switchingRole ? (isSwitchingThis ? 1 : 0.5) : 1,",
+      "fix": "Changed opacity: switchingRole ? 0.6 : 1, → switchingRole ? (isSwitchingThis ? 1 : 0.5) : 1,",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:34:34.050Z"
+    },
+    {
+      "id": "bug-308",
+      "timestamp": "2026-08-25T20:35:17.619Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Had '@/components/DistrictFilterChips'",
+      "fix": "Changed to '@/components/StationFilterCombobox'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-08-25T20:40:07.934Z"
+    },
+    {
+      "id": "bug-309",
+      "timestamp": "2026-08-25T20:36:30.623Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "36 lines replaced/restructured",
+      "fix": "Rewrote 54→22 lines (36 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:36:30.623Z"
+    },
+    {
+      "id": "bug-310",
+      "timestamp": "2026-08-25T20:37:22.194Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:37:22.194Z"
+    },
+    {
+      "id": "bug-311",
+      "timestamp": "2026-08-25T20:40:39.408Z",
+      "error_message": "Significant refactor of ",
+      "file": "verify_station_filter.mjs",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 14→44 lines (6 removed) | Also: // Open the search modal; const searchTrigger = page.locator('text=חיפוש גלג",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-25T20:41:20.723Z"
+    },
+    {
+      "id": "bug-312",
+      "timestamp": "2026-08-25T20:41:19.395Z",
+      "error_message": "Missing error handling in route",
+      "file": "tmp-repro-roleswitch.mjs",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: // Stub navigation itself so switchToRole's window.location.; // actually unloads the page — lets us inspect the pure Reac",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-25T20:43:34.226Z"
+    },
+    {
+      "id": "bug-313",
+      "timestamp": "2026-08-25T20:42:11.016Z",
+      "error_message": "Wrong condition in logic",
+      "file": "tmp-repro-roleswitch.mjs",
+      "root_cause": "Condition was: if (route.request()",
+      "fix": "Changed to: if (req.url()",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:42:11.016Z"
+    },
+    {
+      "id": "bug-314",
+      "timestamp": "2026-08-25T20:42:20.687Z",
+      "error_message": "Wrong reference: 120 should be 500",
+      "file": "tmp-repro-roleswitch.mjs",
+      "root_cause": "Used \"120\" instead of \"500\"",
+      "fix": "Changed 120 → 500",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:42:20.687Z"
+    },
+    {
+      "id": "bug-315",
+      "timestamp": "2026-08-25T20:43:45.530Z",
+      "error_message": "Significant refactor of ",
+      "file": "tmp-repro-roleswitch.mjs",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 8→4 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:43:45.530Z"
+    },
+    {
+      "id": "bug-316",
+      "timestamp": "2026-08-25T20:45:03.634Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/replay/operator_head.tsx",
+      "root_cause": "Had '@/components/DistrictFilterChips'",
+      "fix": "Changed to '@/components/StationFilterCombobox'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:45:03.634Z"
+    },
+    {
+      "id": "bug-317",
+      "timestamp": "2026-08-25T20:46:22.123Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/replay/operator_head.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:46:22.123Z"
+    },
+    {
+      "id": "bug-318",
+      "timestamp": "2026-08-25T20:47:02.330Z",
+      "error_message": "Type error",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/replay/operator_head.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:47:02.330Z"
+    },
+    {
+      "id": "bug-319",
+      "timestamp": "2026-08-25T20:47:19.128Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/replay/operator_head.tsx",
+      "root_cause": "24 lines replaced/restructured",
+      "fix": "Rewrote 27→3 lines (24 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:47:19.128Z"
+    },
+    {
+      "id": "bug-320",
+      "timestamp": "2026-08-25T20:47:24.240Z",
+      "error_message": "User: switching roles from an already-open page — the role chip/badge updates immediately but the page content stays on the previous role's data (\"מתחלף תג תפקיד ומסך נשאר בקודם\")",
+      "file": "src/hooks/useRoleSwitch.ts",
+      "root_cause": "switchToRole() used router.push() to the destination route. Several distinct RoleResult entries resolve to the exact same URL (e.g. two 'operator' entries for different call centers both route to /operator, or a station_manager with the manager role landing back on the same dynamic [stationId] segment). A same-route client-side push is a no-op for React Router/Next App Router — the page component never remounts, so its one-time session-read useEffect (empty [] deps, reads operator_session/station_session_* from localStorage) never re-runs. Meanwhile the role chip's label is driven by separate React state that DOES update synchronously in switchToRole, so the badge visibly changes while the underlying page keeps rendering the old session's data.",
+      "fix": "Changed every case in switchToRole() from router.push(path) to window.location.href = path — a hard reload guarantees every page re-reads the freshly-written localStorage session from scratch on every role switch, regardless of whether source and destination URLs happen to coincide. Removed the now-unused useRouter import from the hook.",
+      "tags": [
+        "role-switch",
+        "stale-state",
+        "useEffect-deps",
+        "navigation",
+        "operator",
+        "appheader"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:47:24.240Z"
+    },
+    {
+      "id": "bug-321",
+      "timestamp": "2026-08-25T20:47:24.240Z",
+      "error_message": "User: after picking a role, the loading/spinner animation appeared on every role option, not just the one clicked; the others should just be disabled with no animation (\"שיעשה רק על הנבחר וכל השאר רק חסומים ללחיצה ללא אנימציית טעינה\")",
+      "file": "src/hooks/useRoleSwitch.ts, src/app/login/page.tsx, src/components/AppHeader.tsx, src/app/operator/page.tsx, src/app/call-center/page.tsx, src/components/admin/AdminSidebar.tsx",
+      "root_cause": "The hook exposed a single global switchingRole boolean. Every consumer's role list rendered its spinner icon with the SAME boolean condition inside the .map(), so clicking any one role set switchingRole=true and every row (not just the clicked one) rendered the spinner + dimmed state simultaneously. There was also no unique per-entry key (React key={r.role}), which breaks for accounts with 2+ entries sharing the same role (multiple call centers / multiple stations).",
+      "fix": "Added roleKey(r) (a stable per-entry key from role + station_id/call_center_id/sub_role) and switchingToKey (the specific entry being switched to, instead of a bare boolean) to useRoleSwitch. All 5 consumers now compare switchingToKey === roleKey(r) to show the spinner only on the clicked row, while disabled+dimmed (opacity 0.5) still applies to every row via the derived switchingRole boolean. Also stopped closing the dropdown menus (AppHeader, operator, call-center, AdminSidebar) immediately on click, since that hid the per-row spinner before it could ever be seen.",
+      "tags": [
+        "role-switch",
+        "animation",
+        "ui-bug",
+        "react-key"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:47:24.240Z"
+    },
+    {
+      "id": "bug-322",
+      "timestamp": "2026-08-25T20:47:24.240Z",
+      "error_message": "User: screenshot of a stray-looking icon during a role switch — a circular refresh/undo icon over faint gray text on an otherwise blank page (\"האייקון של מחזיר לדף הבית\")",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Confirmed live via Playwright repro (navigate to /operator with no session) that this is the `if (!operator)` transient loading branch, shown while the mount effect hasn't populated operator state yet (and now shown more often, since the previous bug's fix makes every role switch a hard reload). Its SVG used an 'undo/refresh' icon (polyline + arc path) with the arc's path data truncated to `.49-3` instead of the correct `.49-3.51` used by every other occurrence of the same icon in the codebase (confirmed against 3 matching usages in [stationId]/page.tsx) — a copy/paste truncation. It was also fully static (no animation) despite representing a loading state.",
+      "fix": "Replaced the icon with the same clock-style spinner (`circle` + clock-hand `path`) and `className=\"spinning-wheel\"` used for every other loading/switching indicator across the app (global .spin keyframe in globals.css), instead of patching the truncated undo-icon path — this is both correct and consistent with the rest of the app's loading iconography. Page-level centering (loginContainer: minHeight 100vh, flex, alignItems/justifyContent center) was already correct, confirmed by live screenshot.",
+      "tags": [
+        "svg",
+        "copy-paste-bug",
+        "loading-state",
+        "operator"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:47:24.240Z"
+    },
+    {
+      "id": "bug-323",
+      "timestamp": "2026-08-25T20:47:24.240Z",
+      "error_message": "User: on the vehicle-search modal (/search), after a plate lookup finds a result, the plate number input + search button stay visible above the result card instead of being hidden; also asked to restyle the \"לפי יצרן ודגם\" (by make/model) fallback button",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "The plate tab's input row (styles.vehicleInputRow) and its \"לא נמצא? / לפי יצרן ודגם\" fallback block were unconditionally rendered whenever vehicleSearchTab === 'plate', with no check against vehicleResult — only the search-history list below it had a `!vehicleResult` guard.",
+      "fix": "Wrapped the input row in `{!vehicleResult && (...)}`, hid the \"לא נמצא?\" caption once a result exists (it's contradictory once something WAS found), and gave the \"לפי יצרן ודגם\" button its own distinct style (new styles.searchFallbackBtnPrimary — filled blue pill with an icon) instead of sharing the low-contrast dark-surface-leftover styles.searchFallbackBtn used by the unrelated model-tab back button.",
+      "tags": [
+        "search-page",
+        "conditional-render",
+        "styling"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:47:24.240Z"
+    },
+    {
+      "id": "bug-324",
+      "timestamp": "2026-08-25T20:47:24.240Z",
+      "error_message": "User: on desktop the \"אפשרויות\" (options) wheel-card button is much smaller than the card, while on mobile it exactly matches the card width — why the inconsistency?",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "styles.optionsBtn has no width — it sizes to its own label content. A `@media (max-width: 480px)` rule explicitly forces `.station-card-actions button { width: 100% !important }` + column layout, but nothing does the equivalent above that breakpoint, so on any wider viewport the button is a small fixed-content pill regardless of how wide the card is.",
+      "fix": "When the options button is the only action in the row (i.e. wheel.temporarily_unavailable is false, so there's no adjacent \"החזר לזמין\" button), its wrapper div now gets flex:1 and the button gets width:100% so it fills the row on every screen size, matching the mobile behavior. Left the two-button case (options next to the wider return-to-available button) untouched, since a compact secondary button next to a flex:1 primary one is the intended layout there.",
+      "tags": [
+        "responsive",
+        "css",
+        "station-page",
+        "wheel-card"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:47:24.240Z"
+    },
+    {
+      "id": "bug-325",
+      "timestamp": "2026-08-25T20:48:48.783Z",
+      "error_message": "CSS fix: border",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/replay/operator_head.tsx",
+      "root_cause": "border: '1px solid #bfdbfe', → '1px solid #e7ddc4',",
+      "fix": "Changed border: '1px solid #bfdbfe', → '1px solid #e7ddc4',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-25T20:48:48.783Z"
     }
   ]
 }
