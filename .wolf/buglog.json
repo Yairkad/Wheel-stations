@@ -5332,6 +5332,440 @@
       "related_bugs": [],
       "occurrences": 2,
       "last_seen": "2026-08-26T04:45:25.217Z"
+    },
+    {
+      "id": "bug-328",
+      "timestamp": "2026-08-26T05:10:23.149Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/api/vehicle-models/route.ts",
+      "root_cause": "Had 'make, make_he, model, variants, bolt_count, bolt_",
+      "fix": "Changed to 'make, make_he, model, variants, bolt_count, bolt_",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T05:10:23.149Z"
+    },
+    {
+      "id": "bug-329",
+      "timestamp": "2026-08-26T05:11:10.552Z",
+      "error_message": "Wrong reference: vehicles should be facetVehicles",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "Used \"vehicles\" instead of \"facetVehicles\"",
+      "fix": "Changed vehicles → facetVehicles",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T05:11:10.552Z"
+    },
+    {
+      "id": "bug-330",
+      "timestamp": "2026-08-26T05:27:31.416Z",
+      "error_message": "Wrong condition in logic",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Condition was: if (!currentManager)",
+      "fix": "Changed to: if (sessionPassword)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T05:27:31.416Z"
+    },
+    {
+      "id": "bug-331",
+      "timestamp": "2026-08-26T05:29:50.087Z",
+      "error_message": "Wrong reference: showConfirm should be if",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Used \"showConfirm\" instead of \"if\"",
+      "fix": "Changed showConfirm → if",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T05:29:50.087Z"
+    },
+    {
+      "id": "bug-332",
+      "timestamp": "2026-08-26T05:30:45.419Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Was returning: setShowImportConflictModal(false)",
+      "fix": "Now returns: if (!requirePassword()) return",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T05:30:45.419Z"
+    },
+    {
+      "id": "bug-333",
+      "timestamp": "2026-08-26T06:04:04.424Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/lib/version.ts",
+      "root_cause": "Had '18.5.8'",
+      "fix": "Changed to '18.9.9'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T06:04:04.424Z"
+    },
+    {
+      "id": "bug-334",
+      "timestamp": "2026-08-26T06:13:30.824Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "9 lines replaced/restructured",
+      "fix": "Rewrote 11→4 lines (9 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-26T06:13:30.824Z"
+    },
+    {
+      "id": "bug-335",
+      "timestamp": "2026-08-27T21:04:41.154Z",
+      "error_message": "Type error",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-27T21:04:41.154Z"
+    },
+    {
+      "id": "bug-336",
+      "timestamp": "2026-08-27T21:07:10.952Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-27T21:07:10.952Z"
+    },
+    {
+      "id": "bug-337",
+      "timestamp": "2026-08-27T21:07:24.018Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/globals.css",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 13→9 lines (10 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-27T21:07:24.018Z"
+    },
+    {
+      "id": "bug-338",
+      "timestamp": "2026-08-28T05:09:23.880Z",
+      "error_message": "Significant refactor of ",
+      "file": "tmp-verify-header-safe-area.html",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 28→60 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T05:09:23.880Z"
+    },
+    {
+      "id": "bug-339",
+      "timestamp": "2026-08-28T05:10:59.929Z",
+      "error_message": "Significant refactor of ",
+      "file": "tmp-verify-header-safe-area.mjs",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 19→37 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T05:10:59.929Z"
+    },
+    {
+      "id": "bug-340",
+      "timestamp": "2026-08-28T05:18:54.926Z",
+      "error_message": "Significant refactor of ",
+      "file": "tmp-verify-header-safe-area.mjs",
+      "root_cause": "32 lines replaced/restructured",
+      "fix": "Rewrote 46→7 lines (32 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T05:18:54.926Z"
+    },
+    {
+      "id": "bug-341",
+      "timestamp": "2026-08-28T05:19:49.827Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../.claude/plans/groovy-finding-otter.md",
+      "root_cause": "Had 's existing `",
+      "fix": "Changed to `tmp-verify-header-safe-area.html`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T05:19:49.827Z"
+    },
+    {
+      "id": "bug-342",
+      "timestamp": "2026-08-28T06:27:25.501Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/plans/groovy-finding-otter.md",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 5→15 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T06:27:25.501Z"
+    },
+    {
+      "id": "bug-343",
+      "timestamp": "2026-08-28T06:35:24.331Z",
+      "error_message": "Wrong reference: 335 should be 343",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "Used \"335\" instead of \"343\"",
+      "fix": "Changed 335 → 343",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T06:35:24.331Z"
+    },
+    {
+      "id": "bug-344",
+      "timestamp": "2026-08-28T06:35:53.118Z",
+      "error_message": "Wrong reference: 337 should be 345",
+      "file": "src/app/globals.css",
+      "root_cause": "Used \"337\" instead of \"345\"",
+      "fix": "Changed 337 → 345",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T06:35:53.118Z"
+    },
+    {
+      "id": "bug-345",
+      "timestamp": "2026-08-28T00:00:00.000Z",
+      "error_message": "משתמש (יעקב טופיק, מנהל מחוז) התחבר עם הפרטים שלו אבל ההדר הציג שם/תחנה של אדם אחר (הדס שפירא / חבל אילות)",
+      "file": "src/app/login/page.tsx",
+      "root_cause": "handleLogin/handleBiometricLogin כותבים auth_roles חדש בכל התחברות, אבל אף פעם לא ניקו מפתחות session ישנים מתפקיד/משתמש קודם על אותו דפדפן/מכשיר (station_session_*, operator_session, super_manager_session, puncture_manager_auth, wheels_admin_auth) — למשל מנהל תחנה אמיתי שסגר טאב במכשיר משותף בלי להתנתק בפירוש. ה-session הישן נשאר ב-localStorage ומזהם התחברות עתידית של משתמש אחר לגמרי.",
+      "fix": "נוספה clearStaleSessions() שרצה ממש לפני כתיבת auth_roles בשני נתיבי ההתחברות (handleLogin, handleBiometricLogin) — מנקה את כל מפתחות ה-session של תפקידים אחרים כדי שכל התחברות חדשה תתחיל מדף נקי.",
+      "tags": [
+        "session-bleed",
+        "identity",
+        "login",
+        "localStorage",
+        "multi-role",
+        "district-manager"
+      ],
+      "related_bugs": [
+        "bug-346"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T00:00:00.000Z"
+    },
+    {
+      "id": "bug-346",
+      "timestamp": "2026-08-28T00:00:00.000Z",
+      "error_message": "אותו דיווח כמו bug-345: ההדר (AppHeader) הציג זהות של אדם אחר, למרות שה-auth_roles/active_role הנוכחיים היו נכונים",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "ה-useEffect שמשחזר session בעליית הרכיב סרק כל מפתח station_session_* שקיים ב-localStorage ובחר אחד שרירותי (Object.keys(localStorage)[...][0]) — לפני שבכלל בדק מי ה-active_role/auth_roles האמיתיים. אותה בעיה גם עבור operator_session (נבדק ונכתב תמיד בלי תלות בתפקיד הפעיל). כתוצאה, session ישן/לא-קשור זכה בעדיפות עיוורת על פני הזהות האמיתית שהתחברה עכשיו.",
+      "fix": "ה-effect נכתב מחדש: הזהות המוצגת נגזרת קודם מהרשומה המתאימה לתפקיד הפעיל בפועל בתוך auth_roles (מקור אמת יחיד, תמיד טרי מתגובת ההתחברות/switchToRole), ורק אז נקרא מפתח ה-session הספציפי היחיד שאותו תפקיד מרמז עליו (למשל station_session_{station_id של אותו תפקיד עצמו}) — לעולם לא מפתח שרירותי. נתיב fallback ישן (לסשנים שקדמו למנגנון auth_roles) נשמר ללא שינוי. גם handleLogout הורחב לנקות wheels_admin_auth/active_sub_role שהיו חסרים שם. אומת חי (Playwright, session מזויף+session אמיתי יחד) שהזהות הנכונה מוצגת, ובנוסף 4 בדיקות רגרסיה (תפקיד יחיד, מעבר בין תפקידים, fallback ישן, דפדפן ריק) עברו כולן.",
+      "tags": [
+        "session-bleed",
+        "identity",
+        "AppHeader",
+        "localStorage",
+        "multi-role",
+        "district-manager"
+      ],
+      "related_bugs": [
+        "bug-345"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T00:00:00.000Z"
+    },
+    {
+      "id": "bug-347",
+      "timestamp": "2026-08-28T00:00:00.000Z",
+      "error_message": "באייפון (PWA מותקן), כל החלק העליון של ההדר נחתך ונעלם - אי אפשר להגיע לאוואטר או למעבר תפקיד",
+      "file": "src/app/globals.css, src/components/AppHeader.tsx",
+      "root_cause": "שני stylesheets שונים הוסיפו padding-top בשביל safe-area-inset-top במצב PWA standalone, אבל לשני רכיבים שונים: AppHeader.tsx (ה-<style> הפנימי שלו) על .app-header-wrap (העטיפה החיצונית, ללא גובה קבוע), ו-globals.css על .app-header (ה-<header> הפנימי, עם height:'54px' קבוע inline). באייפון עם notch, env(safe-area-inset-top) הוא ~47-59px - הוספתו כ-padding נוסף מעל תיבה עם גובה קבוע (border-box, Tailwind preflight) השאירה כמעט אפס מקום לתוכן ה-flex (אוואטר, צ'יפ תפקיד, כפתורים), שנדחס לפס דק בתחתית הפאנל. קורה רק תחת @media (display-mode: standalone), כלומר רק PWA מותקן - תואם לתצפית המשתמש שהסרת ההתקנה שיפרה מעט.",
+      "fix": "הוסר הכלל הכפול .app-header{padding-top:...} מ-globals.css (נשאר רק הכלל התקין על .app-header-wrap ב-AppHeader.tsx). שונה height:'54px' ל-minHeight:'54px' ב-styles.header כרשת ביטחון. אומת בפועל (לא רק בהיגיון) עם דף השוואה מבודד ב-Playwright: ב-inset=0 (אנדרואיד טיפוסי) הישן והחדש זהים ב-100% (0px padding, גובה 54px, אין חריגה) - התיקון לא משנה שם כלום. ב-inset=59px (אייפון עם notch) הישן שובר בפועל (תחתית האוואטר יוצאת 17px מתחת לתחתית ה-header), והחדש לא (גובה נשאר 54px, האוואטר בפנים בנוחות).",
+      "tags": [
+        "css",
+        "safe-area",
+        "ios",
+        "pwa",
+        "standalone",
+        "AppHeader",
+        "layout"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T00:00:00.000Z"
+    },
+    {
+      "id": "bug-348",
+      "timestamp": "2026-08-28T06:45:59.110Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/stations/page.tsx",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 9→10 lines (2 removed) | Also: // Check if user is authenticated (station manager; if (!hasStationSession && !hasOperatorSession) {",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-28T06:46:37.049Z"
+    },
+    {
+      "id": "bug-349",
+      "timestamp": "2026-08-28T06:48:19.864Z",
+      "error_message": "Missing guard clause",
+      "file": "src/hooks/useRoleSwitch.ts",
+      "root_cause": "No early return/throw for edge case: r.role !== activeRole",
+      "fix": "Added guard clause: if (r.role !== activeRole)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T06:48:19.864Z"
+    },
+    {
+      "id": "bug-350",
+      "timestamp": "2026-08-28T06:49:09.818Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/hooks/useRoleSwitch.ts",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 10→6 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T06:49:09.818Z"
+    },
+    {
+      "id": "bug-351",
+      "timestamp": "2026-08-28T06:52:48.271Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/__tests__/useRoleSwitch.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T06:52:48.271Z"
+    },
+    {
+      "id": "bug-352",
+      "timestamp": "2026-08-28T00:00:00.000Z",
+      "error_message": "מנהל מחוז \"טהור\" (בלי תפקיד מנהל תחנה משלו) מקבל הפניה אוטומטית ל-/login כשהוא מנסה להיכנס ל-/stations או /search",
+      "file": "src/app/stations/page.tsx, src/app/search/page.tsx",
+      "root_cause": "בדיקת ההרשאה בעליית שני הדפים בדקה רק station_session_* ו-operator_session (העתק-הדבק זהה בשני הקבצים) - ולא super_manager_session בכלל. מנהל מחוז שאין לו תפקיד מנהל תחנה נחשב 'לא מחובר' ונזרק ל-/login למרות שהוא מחובר כדין.",
+      "fix": "נוסף hasSuperManagerSession = localStorage.getItem('super_manager_session') לתנאי הבדיקה בשני הקבצים - מנהל מחוז נחשב עכשיו מחובר ונשאר בדף, בדיוק כמו מנהל תחנה/מוקדן. אומת חי עם Playwright בשני הדפים.",
+      "tags": [
+        "access-control",
+        "district-manager",
+        "super_manager_session",
+        "stations-page",
+        "search-page"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T00:00:00.000Z"
+    },
+    {
+      "id": "bug-353",
+      "timestamp": "2026-08-28T00:00:00.000Z",
+      "error_message": "מנהל של 2+ תחנות עלול לראות בהדר את פרטי התחנה הלא-נכונה מבין התחנות שלו עצמו, אחרי מעבר תפקיד",
+      "file": "src/hooks/useRoleSwitch.ts, src/components/AppHeader.tsx",
+      "root_cause": "activeRoleEntry (גם ב-useRoleSwitch וגם בעותק כפול ב-AppHeader) התאים רשומה פעילה לפי role בלבד (ו-sub_role למוקדנים) - אבל למנהל של 2+ תחנות יש כמה רשומות station_manager עם אותו role בדיוק, ואין דרך לדעת איזו מהן נבחרה לאחרונה. שונה מהבאג של זליגת זהות (bug-345/346) - זה לעולם לא מציג אדם אחר, רק תחנה לא-נכונה מבין התחנות של אותו משתמש עצמו.",
+      "fix": "נוסף active_station_id ל-localStorage (נכתב/מנוקה ב-switchToRole בדיוק כמו active_sub_role הקיים), ופונקציה משותפת חדשה resolveActiveRoleEntry() ב-useRoleSwitch.ts שמשמשת גם את ה-hook עצמו וגם את AppHeader.tsx (שתי מקומות שהיה בהם עותק כמעט-זהה של אותה לוגיקת התאמה) - כדי למנוע עוד כפילות מהסוג שגרם ל-bug-189..192 בעבר. נוספו 4 בדיקות unit חדשות ל-useRoleSwitch.test.ts, ואומת חי עם Playwright (session מזויף עם 2 תחנות, station_session ישן לתחנה הלא-פעילה עדיין קיים ב-localStorage ולא זכה).",
+      "tags": [
+        "role-switch",
+        "multi-station",
+        "AppHeader",
+        "useRoleSwitch",
+        "duplication"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T00:00:00.000Z"
     }
   ]
 }

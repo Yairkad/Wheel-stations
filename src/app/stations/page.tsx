@@ -124,11 +124,12 @@ export default function WheelStationsPage() {
   const [errorReportLoading, setErrorReportLoading] = useState(false)
 
   useEffect(() => {
-    // Check if user is authenticated (station manager or operator)
+    // Check if user is authenticated (station manager, operator, or district manager)
     const hasStationSession = Object.keys(localStorage).some(key => key.startsWith('station_session_'))
     const hasOperatorSession = localStorage.getItem('operator_session')
+    const hasSuperManagerSession = localStorage.getItem('super_manager_session')
 
-    if (!hasStationSession && !hasOperatorSession) {
+    if (!hasStationSession && !hasOperatorSession && !hasSuperManagerSession) {
       // Not logged in - redirect to login
       window.location.href = '/login'
       return

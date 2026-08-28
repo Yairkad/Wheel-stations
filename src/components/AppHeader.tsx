@@ -6,7 +6,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import type { RoleResult } from '@/lib/types'
-import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
+import { useRoleSwitch, roleKey, resolveActiveRoleEntry } from '@/hooks/useRoleSwitch'
 
 interface UserSession {
   manager: {
@@ -85,7 +85,17 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     const forceLogout = (reason: string) => {
       console.log(`Force logout: ${reason}`)
       Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('station_session_') || key === 'operator_session') {
+        if (
+          key.startsWith('station_session_') ||
+          key === 'operator_session' ||
+          key === 'super_manager_session' ||
+          key === 'puncture_manager_auth' ||
+          key === 'wheels_admin_auth' ||
+          key === 'auth_roles' ||
+          key === 'active_role' ||
+          key === 'active_sub_role' ||
+          key === 'active_station_id'
+        ) {
           localStorage.removeItem(key)
         }
       })
@@ -94,66 +104,110 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
       }
     }
 
-    const sessionKeys = Object.keys(localStorage).filter(key => key.startsWith('station_session_'))
-    if (sessionKeys.length > 0) {
-      try {
-        const session = JSON.parse(localStorage.getItem(sessionKeys[0]) || '{}')
-        if (!session.version || session.version < SESSION_VERSION) {
-          forceLogout('Session version outdated')
-          return
-        }
-        if (session.manager) {
-          const stationIdFromKey = sessionKeys[0].replace('station_session_', '')
-          setUserSession({
-            ...session,
-            stationId: session.stationId || session.manager.station_id || stationIdFromKey,
-            manager: {
-              ...session.manager,
-              station_id: session.manager.station_id || stationIdFromKey
-            }
-          })
-        }
-      } catch {
-        forceLogout('Invalid session data')
-        return
-      }
-    }
-
-    const operatorSession = localStorage.getItem('operator_session')
-    if (operatorSession) {
-      try {
-        const session = JSON.parse(operatorSession)
-        if (!session.version || session.version < SESSION_VERSION) {
-          forceLogout('Operator session version outdated')
-          return
-        }
-        if (session.operator) {
-          setUserSession({
-            manager: {
-              id: session.operator.id,
-              full_name: session.operator.full_name,
-              phone: session.operator.phone,
-              role: 'operator',
-              station_id: session.stationId,
-              station_name: session.stationName || ''
-            },
-            stationId: session.stationId,
-            stationName: session.stationName || ''
-          })
-        }
-      } catch {
-        forceLogout('Invalid operator session data')
-        return
-      }
-    }
-
     try {
       const storedRoles = localStorage.getItem('auth_roles')
       const storedActiveRole = localStorage.getItem('active_role')
-      if (storedRoles) {
-        setAuthRoles(JSON.parse(storedRoles))
-        if (storedActiveRole) setActiveRole(storedActiveRole)
+      const storedActiveSubRole = localStorage.getItem('active_sub_role')
+      const storedActiveStationId = localStorage.getItem('active_station_id')
+
+      if (storedRoles && storedActiveRole) {
+        const parsedRoles: RoleResult[] = JSON.parse(storedRoles)
+        setAuthRoles(parsedRoles)
+        setActiveRole(storedActiveRole)
+
+        // The identity shown in the header is derived from the CURRENTLY ACTIVE
+        // role's own freshly-authenticated data (auth_roles), never by scanning
+        // whichever per-role session key happens to exist in localStorage — a
+        // leftover key from an earlier login/role-switch on this same browser
+        // (a different real person who never explicitly logged out, or an old
+        // test session) must not bleed into who the header shows as "you".
+        // A district manager once saw a station manager's name/avatar
+        // in the header after logging in on a device that still had that other
+        // manager's stale station_session_* lying around. resolveActiveRoleEntry
+        // also disambiguates a manager of 2+ stations by active_station_id, so
+        // the wrong-but-still-their-own station can't be shown after a switch.
+        const activeEntry = resolveActiveRoleEntry(parsedRoles, storedActiveRole, storedActiveSubRole, storedActiveStationId)
+
+        if (activeEntry) {
+          const d = activeEntry.data as Record<string, unknown>
+
+          if (activeEntry.role === 'station_manager') {
+            const key = `station_session_${d.station_id as string}`
+            const raw = localStorage.getItem(key)
+            if (!raw) { forceLogout('Missing session for active role'); return }
+            const session = JSON.parse(raw)
+            if (!session.version || session.version < SESSION_VERSION) {
+              forceLogout('Session version outdated')
+              return
+            }
+            if (session.manager) {
+              setUserSession({
+                ...session,
+                stationId: session.stationId || (d.station_id as string),
+                manager: { ...session.manager, station_id: session.manager.station_id || (d.station_id as string) }
+              })
+            }
+          } else if (activeEntry.role === 'operator') {
+            const raw = localStorage.getItem('operator_session')
+            if (!raw) { forceLogout('Missing session for active role'); return }
+            const session = JSON.parse(raw)
+            if (!session.version || session.version < SESSION_VERSION) {
+              forceLogout('Operator session version outdated')
+              return
+            }
+            if (session.user) {
+              setUserSession({
+                manager: {
+                  id: session.user.id,
+                  full_name: session.user.full_name,
+                  phone: session.user.phone,
+                  role: 'operator',
+                  station_id: '',
+                  station_name: session.callCenterName || ''
+                },
+                stationId: '',
+                stationName: session.callCenterName || ''
+              })
+            }
+          } else if (activeEntry.role === 'district_manager') {
+            const raw = localStorage.getItem('super_manager_session')
+            if (!raw) { forceLogout('Missing session for active role'); return }
+            const session = JSON.parse(raw)
+            if (!session.version || session.version < SESSION_VERSION) {
+              forceLogout('Session version outdated')
+              return
+            }
+            if (session.superManager) {
+              setUserSession({
+                manager: {
+                  id: session.superManager.id,
+                  full_name: session.superManager.full_name,
+                  phone: session.superManager.phone,
+                  role: 'district_manager',
+                  station_id: '',
+                  station_name: '',
+                },
+                stationId: '',
+                stationName: 'מנהל מחוז',
+                version: session.version,
+              })
+            }
+          } else if (activeEntry.role === 'editor') {
+            setUserSession({
+              manager: { id: (d.id as string) || '', full_name: d.full_name as string, phone: (d.phone as string) || '', role: 'editor', station_id: '', station_name: '' },
+              stationId: '',
+              stationName: 'עורך',
+            })
+          } else if (activeEntry.role === 'admin') {
+            setUserSession({
+              manager: { id: '', full_name: d.full_name as string, phone: '', role: 'admin', station_id: '', station_name: '' },
+              stationId: '',
+              stationName: 'ניהול מערכת',
+            })
+          }
+        }
       } else {
+        // Legacy fallback for sessions written before auth_roles existed.
         const stationKey = Object.keys(localStorage).find(k => k.startsWith('station_session_'))
         const operatorRaw = localStorage.getItem('operator_session')
         const superRaw = localStorage.getItem('super_manager_session')
@@ -164,6 +218,12 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
           if (s.manager) {
             setAuthRoles([{ role: 'station_manager', label: 'מנהל תחנה', data: s.manager }])
             setActiveRole('station_manager')
+            const stationIdFromKey = stationKey.replace('station_session_', '')
+            setUserSession({
+              ...s,
+              stationId: s.stationId || s.manager.station_id || stationIdFromKey,
+              manager: { ...s.manager, station_id: s.manager.station_id || stationIdFromKey }
+            })
           }
         } else if (operatorRaw) {
           const s = JSON.parse(operatorRaw)
@@ -172,6 +232,18 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
             const isManager = s.role === 'manager'
             setAuthRoles([{ role: 'operator', label: isManager ? 'מנהל מוקד' : 'מוקדן', data: { ...userData, sub_role: isManager ? 'manager' : 'operator' } }])
             setActiveRole('operator')
+            setUserSession({
+              manager: {
+                id: userData.id,
+                full_name: userData.full_name,
+                phone: userData.phone,
+                role: 'operator',
+                station_id: '',
+                station_name: s.callCenterName || s.stationName || ''
+              },
+              stationId: '',
+              stationName: s.callCenterName || s.stationName || ''
+            })
           }
         } else if (superRaw) {
           const s = JSON.parse(superRaw)
@@ -205,8 +277,11 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         const hasSession =
+          !!localStorage.getItem('auth_roles') ||
           Object.keys(localStorage).some(k => k.startsWith('station_session_')) ||
-          !!localStorage.getItem('operator_session')
+          !!localStorage.getItem('operator_session') ||
+          !!localStorage.getItem('super_manager_session') ||
+          !!localStorage.getItem('puncture_manager_auth')
         if (!hasSession) {
           window.location.replace('/login')
         }
@@ -236,8 +311,11 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
         key === 'operator_session' ||
         key === 'super_manager_session' ||
         key === 'puncture_manager_auth' ||
+        key === 'wheels_admin_auth' ||
         key === 'auth_roles' ||
         key === 'active_role' ||
+        key === 'active_sub_role' ||
+        key === 'active_station_id' ||
         key === 'auth_password'
       ) {
         localStorage.removeItem(key)
@@ -305,11 +383,8 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   }
 
   const activeSubRole = typeof window !== 'undefined' ? localStorage.getItem('active_sub_role') : null
-  const activeRoleEntry = authRoles.find(r => {
-    if (r.role !== activeRole) return false
-    if (activeSubRole && r.data?.sub_role) return r.data.sub_role === activeSubRole
-    return !activeSubRole
-  }) ?? authRoles.find(r => r.role === activeRole) ?? authRoles[0]
+  const activeStationId = typeof window !== 'undefined' ? localStorage.getItem('active_station_id') : null
+  const activeRoleEntry = resolveActiveRoleEntry(authRoles, activeRole ?? '', activeSubRole, activeStationId)
   const currentRoleLabel = activeRoleEntry ? getRoleDisplay(activeRoleEntry.role, activeRoleEntry.label) : undefined
 
   if (isLoading || !userSession) return null
@@ -759,7 +834,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 4px 20px rgba(37,99,235,0.08), 0 1px 4px rgba(0,0,0,0.04)',
     borderRadius: '16px',
     padding: '0 14px',
-    height: '54px',
+    minHeight: '54px',
     display: 'flex',
     alignItems: 'center',
     gap: '0',

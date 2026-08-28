@@ -240,17 +240,13 @@ button.btn-sm,
   z-index: 1;
 }
 
-/* Safe area for mobile notch/status bar */
-/* Fixed header safe area - pushes content below iOS status bar in PWA standalone mode only */
-@media all and (display-mode: standalone) {
-  .app-header {
-    padding-top: env(safe-area-inset-top, 12px) !important;
-  }
-
-  .app-header-spacer {
-    height: calc(70px + env(safe-area-inset-top, 0px)) !important;
-  }
-}
+/* Safe area for mobile notch/status bar in PWA standalone mode is handled by
+   AppHeader.tsx's own scoped <style> tag (targets .app-header-wrap, the fixed
+   outer wrapper) — do NOT also add padding-top to .app-header here. That inner
+   element has a hard-coded height (54px) for its flex content; stacking a second,
+   independent safe-area padding-top on top of it (on notched iPhones, ~47-59px)
+   left almost no room for the avatar/role-switcher buttons, making the header
+   appear to "disappear" and its controls unreachable. */
 
 .pt-safe {
   padding-top: env(safe-area-inset-top, 1rem);

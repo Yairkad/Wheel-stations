@@ -1989,3 +1989,128 @@
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+| 07:58 | Created src/__tests__/useRoleSwitch.test.ts | — | ~1954 |
+| 07:58 | Created src/__tests__/StationFilterCombobox.test.tsx | — | ~1038 |
+| 07:58 | Created src/__tests__/useClickOutside.test.tsx | — | ~544 |
+| 07:58 | Created src/__tests__/AccessibilityWidget.test.tsx | — | ~1924 |
+| 08:02 | Edited src/__tests__/useClickOutside.test.tsx | 7→7 lines | ~86 |
+| 08:05 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/d9ca057f-7771-4ec9-87ae-37f7b670441f/scratchpad/live-qa.mjs | — | ~1958 |
+| 08:06 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/d9ca057f-7771-4ec9-87ae-37f7b670441f/scratchpad/debug-operator.mjs | — | ~302 |
+| 08:10 | Edited src/app/api/vehicle-models/route.ts | inline fix | ~61 |
+| 08:10 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~56 |
+| 08:11 | Edited src/app/admin/vehicles/page.tsx | inline fix | ~28 |
+| 08:27 | Edited src/app/[stationId]/page.tsx | added 2 condition(s) | ~191 |
+| 08:27 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~32 |
+| 08:28 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~59 |
+| 08:28 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~66 |
+| 08:29 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~100 |
+| 08:29 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~105 |
+| 08:29 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~31 |
+| 08:30 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~30 |
+| 08:30 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~41 |
+| 08:31 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~44 |
+| 08:31 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~48 |
+| 08:32 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~126 |
+| 08:32 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~140 |
+| 08:32 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~83 |
+| 08:40 | Session end: 24 writes across 8 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 40 reads | ~257068 tok |
+| 08:43 | Session end: 24 writes across 8 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 40 reads | ~257068 tok |
+| 08:55 | Session end: 24 writes across 8 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 40 reads | ~257068 tok |
+| 08:56 | Session end: 24 writes across 8 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 40 reads | ~257068 tok |
+| 08:57 | Session end: 24 writes across 8 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 40 reads | ~257068 tok |
+| 08:59 | Session end: 24 writes across 8 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 40 reads | ~257068 tok |
+| 09:04 | Edited src/lib/version.ts | "18.5.8" → "18.9.9" | ~9 |
+| 09:05 | Session end: 25 writes across 9 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 43 reads | ~257077 tok |
+| 09:13 | Edited src/app/login/page.tsx | added 1 import(s) | ~27 |
+| 09:13 | Edited src/app/login/page.tsx | reduced (-7 lines) | ~64 |
+| 09:14 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/d9ca057f-7771-4ec9-87ae-37f7b670441f/scratchpad/shot-fingerprint-btn.mjs | — | ~315 |
+| 09:16 | Session end: 28 writes across 10 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 45 reads | ~268546 tok |
+| 09:16 | Session end: 28 writes across 10 files (useRoleSwitch.test.ts, StationFilterCombobox.test.tsx, useClickOutside.test.tsx, AccessibilityWidget.test.tsx, live-qa.mjs) | 45 reads | ~268546 tok |
+
+## Session: 2026-08-27 23:40
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-27 23:40
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-27 23:48
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-27 23:48
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-27 23:48
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-27 23:48
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-08-27 23:48
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:04 | Edited src/app/login/page.tsx | added 1 condition(s) | ~238 |
+| 00:05 | Edited src/app/login/page.tsx | 4→4 lines | ~93 |
+| 00:05 | Edited src/app/login/page.tsx | modified catch() | ~106 |
+| 00:05 | Edited src/app/login/page.tsx | 3→4 lines | ~60 |
+| 00:05 | Edited src/components/AppHeader.tsx | 14→16 lines | ~141 |
+| 00:07 | Edited src/components/AppHeader.tsx | added optional chaining | ~2576 |
+| 00:07 | Edited src/app/globals.css | 13→9 lines | ~160 |
+| 00:07 | Edited src/components/AppHeader.tsx | CSS: minHeight | ~27 |
+| 00:10 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/b244a881-ae8f-4093-9166-a4a1cab08e37/scratchpad/verify-identity-fix.mjs | — | ~676 |
+| 00:11 | Created tmp-verify-identity-fix.mjs | — | ~676 |
+| 00:14 | Created ../../../.claude/plans/groovy-finding-otter.md | — | ~2266 |
+| 00:15 | Edited ../../../.claude/plans/groovy-finding-otter.md | expanded (+9 lines) | ~369 |
+| 00:15 | Edited ../../../.claude/plans/groovy-finding-otter.md | modified Android() | ~455 |
+| 00:15 | Edited ../../../.claude/plans/groovy-finding-otter.md | modified server() | ~508 |
+| 00:15 | Edited ../../../.claude/plans/groovy-finding-otter.md | 3→4 lines | ~70 |
+| 00:20 | Session end: 15 writes across 6 files (page.tsx, AppHeader.tsx, globals.css, verify-identity-fix.mjs, tmp-verify-identity-fix.mjs) | 9 reads | ~139175 tok |
+| 07:59 | Created tmp-verify-header-safe-area.html | — | ~602 |
+| 08:03 | Created tmp-verify-header-safe-area.mjs | — | ~896 |
+| 08:09 | Edited tmp-verify-header-safe-area.html | expanded (+32 lines) | ~732 |
+| 08:10 | Edited tmp-verify-header-safe-area.mjs | expanded (+18 lines) | ~456 |
+| 08:18 | Edited tmp-verify-header-safe-area.mjs | removed 46 lines | ~67 |
+| 08:19 | Edited ../../../.claude/plans/groovy-finding-otter.md | expanded (+11 lines) | ~500 |
+| 08:19 | Edited ../../../.claude/plans/groovy-finding-otter.md | inline fix | ~88 |
+| 08:47 | Created ../../../.claude/plans/groovy-finding-otter.md | — | ~2441 |
+| 09:25 | Edited ../../../.claude/plans/groovy-finding-otter.md | expanded (+13 lines) | ~319 |
+| 09:27 | Edited ../../../.claude/plans/groovy-finding-otter.md | expanded (+10 lines) | ~260 |
+| 09:32 | Created tmp-verify-login-regression.mjs | — | ~1798 |
+| 09:35 | Edited src/app/login/page.tsx | 335 → 343 | ~24 |
+| 09:35 | Edited src/components/AppHeader.tsx | inline fix | ~23 |
+| 09:35 | Edited src/app/globals.css | 337 → 345 | ~19 |
+| 09:37 | Edited src/app/login/page.tsx | inline fix | ~20 |
+| 09:37 | Edited src/components/AppHeader.tsx | inline fix | ~20 |
+| 09:38 | Edited src/app/globals.css | inline fix | ~17 |
+| 09:45 | Fixed 2 real bugs reported by a district-manager user: iOS PWA header CSS double-padding (globals.css + AppHeader.tsx), and login/AppHeader session-identity bleed (stale localStorage session from a different user winning over the real logged-in identity) | src/app/login/page.tsx, src/components/AppHeader.tsx, src/app/globals.css | fixed + verified live (Playwright: identity fix + Android/iOS CSS comparison + 4 login regression checks), logged as bug-345/346/347 | ~large (multi-hour investigation) |
+| 09:43 | Session end: 32 writes across 9 files (page.tsx, AppHeader.tsx, globals.css, verify-identity-fix.mjs, tmp-verify-identity-fix.mjs) | 9 reads | ~149207 tok |
+| 09:44 | Session end: 32 writes across 9 files (page.tsx, AppHeader.tsx, globals.css, verify-identity-fix.mjs, tmp-verify-identity-fix.mjs) | 9 reads | ~149207 tok |
+| 09:45 | Edited src/app/stations/page.tsx | modified if() | ~150 |
+| 09:46 | Edited src/app/search/page.tsx | modified if() | ~150 |
+| 09:48 | Edited src/hooks/useRoleSwitch.ts | added 3 condition(s) | ~370 |
+| 09:48 | Edited src/hooks/useRoleSwitch.ts | added 1 condition(s) | ~456 |
+| 09:49 | Edited src/hooks/useRoleSwitch.ts | find() → resolveActiveRoleEntry() | ~109 |
+| 09:49 | Edited src/app/login/page.tsx | 4→5 lines | ~44 |
+| 09:49 | Edited src/components/AppHeader.tsx | inline fix | ~25 |
+| 09:50 | Edited src/components/AppHeader.tsx | find() → resolveActiveRoleEntry() | ~514 |
+| 09:50 | Edited src/components/AppHeader.tsx | 3→4 lines | ~40 |
+| 09:51 | Edited src/components/AppHeader.tsx | find() → resolveActiveRoleEntry() | ~125 |
+| 09:52 | Edited src/__tests__/useRoleSwitch.test.ts | inline fix | ~25 |
+| 09:52 | Edited src/__tests__/useRoleSwitch.test.ts | added optional chaining | ~727 |
+| 09:54 | Created tmp-verify-gaps-fix.mjs | — | ~1147 |
+| 09:54 | Edited tmp-verify-gaps-fix.mjs | 1→2 lines | ~31 |
+| 09:55 | Created tmp-verify-gaps-fix.mjs | — | ~1309 |
+| 09:58 | Fixed 2 additional gaps found during the session-identity investigation, at user's request ("both"): district managers were bounced out of /stations and /search (missing super_manager_session check), and a manager of 2+ stations could show the wrong own-station identity after a switch (no active_station_id disambiguator) | src/app/stations/page.tsx, src/app/search/page.tsx, src/hooks/useRoleSwitch.ts, src/components/AppHeader.tsx, src/__tests__/useRoleSwitch.test.ts | fixed + verified (Playwright live checks + 4 new unit tests + full vitest suite 191 passing), logged as bug-352/353 | ~medium |
+| 09:59 | Session end: 47 writes across 12 files (page.tsx, AppHeader.tsx, globals.css, verify-identity-fix.mjs, tmp-verify-identity-fix.mjs) | 12 reads | ~242097 tok |

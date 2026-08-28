@@ -38,6 +38,28 @@ export function roleKey(r: RoleResult): string {
   return `${r.role}:${disambiguator}`
 }
 
+// Resolves which specific auth_roles entry is "the active one," given the raw
+// role/sub-role/station disambiguators as stored in localStorage. Shared by
+// useRoleSwitch() itself and by AppHeader.tsx's own session-restore logic, so a
+// manager of 2+ stations (or an operator at 2+ call centers) is disambiguated
+// the same way everywhere instead of drifting into a second near-duplicate copy
+// of this matching logic — exactly the pattern that caused bug-189..192.
+export function resolveActiveRoleEntry(
+  authRoles: RoleResult[],
+  activeRole: string,
+  activeSubRole: string | null,
+  activeStationId?: string | null
+): RoleResult | undefined {
+  const exact = authRoles.find(r => {
+    if (r.role !== activeRole) return false
+    const d = r.data as Record<string, unknown>
+    if (activeSubRole && d.sub_role) return d.sub_role === activeSubRole
+    if (activeStationId && d.station_id) return d.station_id === activeStationId
+    return !activeSubRole && !activeStationId
+  })
+  return exact ?? authRoles.find(r => r.role === activeRole) ?? authRoles[0]
+}
+
 // Reads a person's roles + currently-active one from localStorage, and provides
 // switchToRole() to persist a new session and navigate there. Single source of
 // truth for what used to be 5 near-identical copies (AppHeader, operator page,
@@ -46,6 +68,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
   const [authRoles, setAuthRoles] = useState<RoleResult[]>([])
   const [activeRole, setActiveRole] = useState('')
   const [activeSubRole, setActiveSubRole] = useState<string | null>(null)
+  const [activeStationId, setActiveStationId] = useState<string | null>(null)
   const [switchingToKey, setSwitchingToKey] = useState<string | null>(null)
 
   useEffect(() => {
@@ -55,6 +78,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
     } catch { /* ignore */ }
     setActiveRole(localStorage.getItem('active_role') || '')
     setActiveSubRole(localStorage.getItem('active_sub_role'))
+    setActiveStationId(localStorage.getItem('active_station_id'))
   }, [])
 
   const switchToRole = useCallback((r: RoleResult) => {
@@ -62,8 +86,14 @@ export function useRoleSwitch(): UseRoleSwitchResult {
     localStorage.setItem('active_role', r.role)
     if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
     else localStorage.removeItem('active_sub_role')
+    // A manager of 2+ stations has multiple `station_manager` entries sharing
+    // the same `role` — persist WHICH station was actually chosen so it isn't
+    // lost the moment activeRoleEntry is recomputed from just `role` alone.
+    if (r.role === 'station_manager' && r.data?.station_id) localStorage.setItem('active_station_id', r.data.station_id as string)
+    else localStorage.removeItem('active_station_id')
     setActiveRole(r.role)
     setActiveSubRole((r.data?.sub_role as string) || null)
+    setActiveStationId(r.role === 'station_manager' ? (r.data?.station_id as string) || null : null)
 
     const d = r.data
     const pwd = localStorage.getItem('auth_password') || ''
@@ -130,11 +160,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
     }
   }, [])
 
-  const activeRoleEntry = authRoles.find(r => {
-    if (r.role !== activeRole) return false
-    if (activeSubRole && r.data?.sub_role) return r.data.sub_role === activeSubRole
-    return !activeSubRole
-  }) ?? authRoles.find(r => r.role === activeRole) ?? authRoles[0]
+  const activeRoleEntry = resolveActiveRoleEntry(authRoles, activeRole, activeSubRole, activeStationId)
 
   const currentRoleLabel = activeRoleEntry ? getRoleDisplay(activeRoleEntry.role, activeRoleEntry.label) : undefined
 

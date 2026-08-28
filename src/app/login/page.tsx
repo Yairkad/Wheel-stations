@@ -8,6 +8,27 @@ import { VERSION } from '@/lib/version'
 import type { RoleResult } from '@/lib/types'
 import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
+import { Fingerprint } from 'lucide-react'
+
+// A fresh login must start from a clean slate — otherwise a stale session left
+// behind by a PREVIOUS person/role on this same browser (closed the tab instead
+// of logging out, or an old test login) can outlive the new login and get picked
+// up by AppHeader as if it belonged to the newly authenticated user.
+function clearStaleSessions() {
+  Object.keys(localStorage).forEach(key => {
+    if (
+      key.startsWith('station_session_') ||
+      key === 'operator_session' ||
+      key === 'super_manager_session' ||
+      key === 'puncture_manager_auth' ||
+      key === 'wheels_admin_auth' ||
+      key === 'active_sub_role' ||
+      key === 'active_station_id'
+    ) {
+      localStorage.removeItem(key)
+    }
+  })
+}
 
 export default function LoginPage() {
   const { switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
@@ -121,6 +142,7 @@ export default function LoginPage() {
       if (!completeRes.ok) { setError(data.error || 'שגיאה בכניסה ביומטרית'); return }
 
       const foundRoles: RoleResult[] = data.roles
+      clearStaleSessions()
       localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
       localStorage.setItem('auth_password', '')
       localStorage.setItem('saved_phone', phone)
@@ -277,6 +299,7 @@ export default function LoginPage() {
 
       const foundRoles: RoleResult[] = data.roles
       // Store all roles + password for the header role switcher
+      clearStaleSessions()
       localStorage.setItem('auth_roles', JSON.stringify(foundRoles))
       localStorage.setItem('auth_password', password)
       localStorage.setItem('saved_phone', phone)
@@ -506,15 +529,8 @@ export default function LoginPage() {
             >
               {biometricLoading ? <LoadingSpin text="מאמת..." /> : (
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 11c0 3.5-1.5 6.5-3 8.5"/>
-                    <path d="M8.5 20a17.2 17.2 0 0 0 2.5-8.5c0-1.1.9-2 2-2s2 .9 2 2"/>
-                    <path d="M17 20.5a20.9 20.9 0 0 0 1.5-9.5"/>
-                    <path d="M4.5 11a7.5 7.5 0 0 1 15 0"/>
-                    <path d="M2.5 11a9.5 9.5 0 0 1 4-7.7"/>
-                    <path d="M20 6.5A9.5 9.5 0 0 1 21.5 11"/>
-                  </svg>
-                  כניסה עם טביעת אצבע / פנים
+                  <Fingerprint size={17} />
+                  כניסה עם טביעת אצבע
                 </span>
               )}
             </button>
