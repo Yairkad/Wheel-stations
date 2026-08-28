@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Footer from '@/components/Footer';
 
 type GuideType = 'public' | 'operator' | 'manager' | 'call_center_manager';
 
@@ -91,6 +92,7 @@ function GuideContent() {
           {activeGuide === 'call_center_manager' && <CallCenterManagerGuide />}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

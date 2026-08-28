@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { VERSION } from '@/lib/version'
+import Footer from '@/components/Footer'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
 import LoadingSpin from '@/components/LoadingSpin'
@@ -489,10 +489,7 @@ export default function CallCentersAdminPage() {
       )}
 
 
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <span style={styles.footerVersion}>גרסה {VERSION}</span>
-      </footer>
+      <Footer />
     </div>
     </AdminShell>
   )
@@ -934,15 +931,5 @@ const styles: { [key: string]: React.CSSProperties } = {
   loadingSpinner: {
     fontSize: '3rem',
     marginBottom: '16px',
-  },
-  footer: {
-    padding: '20px',
-    textAlign: 'center',
-    borderTop: '1px solid #e2e8f0',
-    marginTop: '20px',
-  },
-  footerVersion: {
-    color: '#64748b',
-    fontSize: '0.8rem',
   },
 }

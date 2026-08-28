@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
-import { VERSION } from '@/lib/version'
+import Footer from '@/components/Footer'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, extractRimSize, checkVehicleRimFit, RimFitStatus } from '@/lib/vehicle-mappings'
 
 interface VehicleResult {
@@ -1014,15 +1014,13 @@ export default function ReverseSearchPage() {
         </div>
       )}
 
-      {/* Footer */}
-      <div style={styles.footer}>
-        <p style={styles.footerText}>
-          <Link href="/login" style={{ color: '#93c5fd', textDecoration: 'none' }}>
-            כניסה למערכת
-          </Link>
-        </p>
-        <p style={styles.footerVersion}>v{VERSION}</p>
-      </div>
+      {/* Staff login link — specific to this public tool, on top of the standard footer below */}
+      <p style={{ textAlign: 'center', marginTop: '40px', marginBottom: 0 }}>
+        <Link href="/login" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.8rem' }}>
+          כניסה למערכת
+        </Link>
+      </p>
+      <Footer />
     </div>
   )
 }
@@ -1285,22 +1283,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.75rem',
     fontWeight: 600,
     marginRight: 'auto',
-  },
-  footer: {
-    textAlign: 'center' as const,
-    marginTop: 'auto',
-    paddingTop: '40px',
-    paddingBottom: '20px',
-    borderTop: '1px solid #e2e8f0',
-  },
-  footerText: {
-    color: '#94a3b8',
-    fontSize: '0.8rem',
-    margin: '0 0 4px 0',
-  },
-  footerVersion: {
-    color: '#94a3b8',
-    fontSize: '0.65rem',
-    margin: 0,
   },
 }

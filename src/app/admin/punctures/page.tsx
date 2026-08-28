@@ -5,6 +5,7 @@ import { usePunctureAdminAuth } from '@/hooks/usePunctureAdminAuth'
 import { HoursFields, HoursState, emptyHours, parseHoursState, hoursToString } from '@/components/punctures/HoursFields'
 import { AdminShell } from '@/components/admin/AdminShell'
 import LoadingSpin from '@/components/LoadingSpin'
+import Footer from '@/components/Footer'
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
@@ -696,6 +697,7 @@ export default function PuncturesAdminPage() {
           onClose={() => setAddingShop(false)}
         />
       )}
+      <Footer />
     </div>
     </AdminShell>
   )

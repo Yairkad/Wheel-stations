@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
-import { VERSION } from '@/lib/version'
+import Footer from '@/components/Footer'
 import { Station, Manager, SearchResult, FilterOptions } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit, getDiameterDiffPct } from '@/lib/vehicle-mappings'
 import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModal'
@@ -1072,30 +1072,7 @@ export default function WheelStationsPage() {
         </div>
       )}
 
-      <footer style={styles.footer}>
-        <div style={styles.footerInfo}>
-          <p style={styles.footerText}>
-            מערכת גלגלים ידידים •{' '}
-            <Link href="/feedback" style={styles.feedbackLink}>
-              דווח על בעיה או הצע שיפור
-            </Link>
-          </p>
-          <p style={styles.legalLinks}>
-            <Link href="/guide" style={styles.legalLink}>
-              מדריך למשתמש
-            </Link>
-            {' • '}
-            <Link href="/privacy" style={styles.legalLink}>
-              מדיניות פרטיות
-            </Link>
-            {' • '}
-            <Link href="/accessibility" style={styles.legalLink}>
-              הצהרת נגישות
-            </Link>
-          </p>
-          <p style={styles.versionText}>גירסה {VERSION}</p>
-        </div>
-      </footer>
+      <Footer showFeedback />
 
       {/* Search Modal */}
       {showSearchModal && (
@@ -2528,39 +2505,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: '700',
     letterSpacing: '1px',
     boxShadow: '0 2px 8px rgba(245,158,11,0.35)',
-  },
-  footer: {
-    textAlign: 'center',
-    marginTop: '40px',
-    paddingTop: '20px',
-    borderTop: '1px solid #e2e8f0',
-  },
-  footerInfo: {
-    marginTop: '0',
-  },
-  footerText: {
-    color: '#94a3b8',
-    fontSize: '0.75rem',
-    margin: 0,
-  },
-  feedbackLink: {
-    color: '#2563eb',
-    textDecoration: 'none',
-  },
-  legalLinks: {
-    color: '#94a3b8',
-    fontSize: '0.7rem',
-    marginTop: '8px',
-    margin: 0,
-  },
-  legalLink: {
-    color: '#94a3b8',
-    textDecoration: 'none',
-  },
-  versionText: {
-    color: '#94a3b8',
-    fontSize: '0.65rem',
-    marginTop: '8px',
   },
   // Modal styles
   modalOverlay: {

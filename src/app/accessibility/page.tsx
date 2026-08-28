@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Footer from '@/components/Footer';
 
 export default function AccessibilityPage() {
   const router = useRouter();
@@ -118,6 +119,7 @@ export default function AccessibilityPage() {
           </section>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

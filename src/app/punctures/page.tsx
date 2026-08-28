@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import type { PunctureShop } from '@/components/punctures/MapView'
 import { HoursFields, HoursState, emptyHours, hoursToString } from '@/components/punctures/HoursFields'
 import LoadingSpin from '@/components/LoadingSpin'
+import { VERSION } from '@/lib/version'
 
 const MapView = dynamic(() => import('@/components/punctures/MapView'), {
   ssr: false,
@@ -554,9 +555,13 @@ export default function PuncturesPage() {
         {/* Footer links — 2 centered rows */}
         <div className="w-full text-center border-t border-gray-100 pt-0.5 pb-1 leading-none">
           <div className="text-[10px] text-gray-400">
+            <a href="/guide"          className="hover:text-gray-600">מדריך</a>
+            {' · '}
             <a href="/privacy"        className="hover:text-gray-600">פרטיות</a>
             {' · '}
             <a href="/accessibility"  className="hover:text-gray-600">נגישות</a>
+            {' · '}
+            <span>גרסה {VERSION}</span>
           </div>
           <button onClick={() => setShowSuggest(true)}
             className="text-[10px] text-blue-500 hover:text-blue-700 mt-0.5">+ הצע מקום חדש</button>
@@ -569,9 +574,13 @@ export default function PuncturesPage() {
         <button onClick={() => setShowSuggest(true)}
           className="text-blue-500 hover:text-blue-700 hover:underline">+ הצע מקום חדש</button>
         <span>·</span>
+        <a href="/guide"          className="hover:text-gray-600 hover:underline">מדריך למשתמש</a>
+        <span>·</span>
         <a href="/privacy"       className="hover:text-gray-600 hover:underline">פרטיות</a>
         <span>·</span>
         <a href="/accessibility" className="hover:text-gray-600 hover:underline">נגישות</a>
+        <span>·</span>
+        <span>גרסה {VERSION}</span>
       </footer>
 
       {showSuggest && <SuggestModal onClose={() => setShowSuggest(false)} />}

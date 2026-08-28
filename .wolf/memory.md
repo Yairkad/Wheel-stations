@@ -2114,3 +2114,74 @@
 | 09:55 | Created tmp-verify-gaps-fix.mjs | — | ~1309 |
 | 09:58 | Fixed 2 additional gaps found during the session-identity investigation, at user's request ("both"): district managers were bounced out of /stations and /search (missing super_manager_session check), and a manager of 2+ stations could show the wrong own-station identity after a switch (no active_station_id disambiguator) | src/app/stations/page.tsx, src/app/search/page.tsx, src/hooks/useRoleSwitch.ts, src/components/AppHeader.tsx, src/__tests__/useRoleSwitch.test.ts | fixed + verified (Playwright live checks + 4 new unit tests + full vitest suite 191 passing), logged as bug-352/353 | ~medium |
 | 09:59 | Session end: 47 writes across 12 files (page.tsx, AppHeader.tsx, globals.css, verify-identity-fix.mjs, tmp-verify-identity-fix.mjs) | 12 reads | ~242097 tok |
+| 10:06 | Session end: 47 writes across 12 files (page.tsx, AppHeader.tsx, globals.css, verify-identity-fix.mjs, tmp-verify-identity-fix.mjs) | 12 reads | ~242097 tok |
+| 10:25 | Created src/components/Footer.tsx | — | ~511 |
+| 10:25 | Edited src/app/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:26 | Edited src/app/page.tsx | removed 13 lines | ~9 |
+| 10:26 | Edited src/app/page.tsx | removed 29 lines | ~1 |
+| 10:27 | Edited src/app/login/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:27 | Edited src/app/login/page.tsx | removed 12 lines | ~9 |
+| 10:28 | Edited src/app/login/page.tsx | removed 18 lines | ~1 |
+| 10:29 | Edited src/app/stations/page.tsx | removed 24 lines | ~9 |
+| 10:29 | Edited src/app/stations/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:30 | Edited src/app/stations/page.tsx | removed 35 lines | ~10 |
+| 10:30 | Edited src/app/search/page.tsx | removed 24 lines | ~9 |
+| 10:31 | Edited src/app/search/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:31 | Edited src/app/search/page.tsx | removed 36 lines | ~10 |
+| 10:32 | Edited src/components/Footer.tsx | CSS: minHeight | ~118 |
+| 10:33 | Edited src/components/Footer.tsx | 10→6 lines | ~35 |
+| 10:33 | Edited src/app/super-manager/page.tsx | removed 13 lines | ~9 |
+| 10:34 | Edited src/app/super-manager/page.tsx | added 1 import(s) | ~39 |
+| 10:34 | Edited src/app/admin/page.tsx | 8→5 lines | ~15 |
+| 10:35 | Edited src/app/admin/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:35 | Edited src/app/admin/page.tsx | removed 11 lines | ~1 |
+| 10:36 | Edited src/app/admin/call-centers/page.tsx | 8→5 lines | ~15 |
+| 10:36 | Edited src/app/admin/call-centers/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:36 | Edited src/app/admin/call-centers/page.tsx | removed 11 lines | ~1 |
+| 10:37 | Edited src/app/admin/reports/page.tsx | 6→3 lines | ~13 |
+| 10:37 | Edited src/app/admin/reports/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:38 | Edited src/app/admin/reports/page.tsx | removed 11 lines | ~1 |
+| 10:38 | Edited src/app/admin/vehicles/page.tsx | 6→3 lines | ~15 |
+| 10:39 | Edited src/app/admin/vehicles/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:39 | Edited src/app/admin/vehicles/page.tsx | removed 11 lines | ~5 |
+| 10:40 | Edited src/app/reverse-search/page.tsx | 11→9 lines | ~103 |
+| 10:40 | Edited src/app/reverse-search/page.tsx | "@/lib/version" → "@/components/Footer" | ~12 |
+| 10:41 | Edited src/app/reverse-search/page.tsx | removed 18 lines | ~1 |
+| 10:42 | Edited src/app/operator/page.tsx | removed 25 lines | ~21 |
+| 10:42 | Edited src/app/operator/page.tsx | 8→5 lines | ~40 |
+| 10:43 | Edited src/app/operator/page.tsx | removed 25 lines | ~1 |
+| 10:43 | Edited src/app/operator/page.tsx | added 1 import(s) | ~53 |
+| 10:44 | Edited src/app/call-center/page.tsx | removed 14 lines | ~21 |
+| 10:44 | Edited src/app/call-center/page.tsx | added 1 import(s) | ~43 |
+| 10:45 | Edited src/app/admin/analytics/page.tsx | 7→8 lines | ~29 |
+| 10:46 | Edited src/app/admin/analytics/page.tsx | added 1 import(s) | ~29 |
+| 10:46 | Edited src/app/admin/login-report/page.tsx | 5→6 lines | ~19 |
+| 10:47 | Edited src/app/admin/login-report/page.tsx | added 1 import(s) | ~29 |
+| 10:47 | Edited src/app/admin/trusted-matches/page.tsx | added 1 import(s) | ~43 |
+| 10:47 | Edited src/app/admin/trusted-matches/page.tsx | 5→6 lines | ~19 |
+| 10:50 | Edited src/app/admin/users/page.tsx | 6→7 lines | ~42 |
+| 10:50 | Edited src/app/admin/users/page.tsx | added 1 import(s) | ~43 |
+| 10:51 | Edited src/app/admin/punctures/page.tsx | 8→9 lines | ~67 |
+| 10:51 | Edited src/app/admin/punctures/page.tsx | added 1 import(s) | ~43 |
+| 10:51 | Edited src/app/admin/punctures/login/page.tsx | added 1 import(s) | ~26 |
+| 10:52 | Edited src/app/admin/punctures/login/page.tsx | CSS: flexDirection | ~114 |
+| 10:53 | Edited src/app/feedback/page.tsx | added 1 import(s) | ~22 |
+| 10:53 | Edited src/app/feedback/page.tsx | 7→8 lines | ~197 |
+| 10:54 | Edited src/app/guide/page.tsx | modified GuidePage() | ~29 |
+| 10:54 | Edited src/app/guide/page.tsx | added 1 import(s) | ~30 |
+| 10:55 | Edited src/app/privacy/page.tsx | added 1 import(s) | ~25 |
+| 10:55 | Edited src/app/privacy/page.tsx | 8→9 lines | ~56 |
+| 10:56 | Edited src/app/accessibility/page.tsx | added 1 import(s) | ~25 |
+| 10:56 | Edited src/app/accessibility/page.tsx | 9→10 lines | ~66 |
+| 10:57 | Edited src/app/[stationId]/page.tsx | 9→10 lines | ~36 |
+| 10:58 | Edited src/app/[stationId]/page.tsx | added 1 import(s) | ~40 |
+| 10:59 | Edited src/app/punctures/page.tsx | added 1 import(s) | ~26 |
+| 10:59 | Edited src/app/punctures/page.tsx | 9→13 lines | ~220 |
+| 11:00 | Edited src/app/punctures/page.tsx | 5→9 lines | ~118 |
+| 11:02 | Edited src/app/super-manager/page.tsx | 3→2 lines | ~19 |
+| 11:03 | Edited src/app/operator/page.tsx | 3→2 lines | ~25 |
+| 11:03 | Edited src/app/call-center/page.tsx | 3→2 lines | ~25 |
+| 11:06 | Created tmp-verify-footer-rollout.mjs | — | ~1185 |
+| 11:10 | Created tmp-verify-footer-retry.mjs | — | ~867 |
+| 11:14 | Built shared src/components/Footer.tsx (version + guide/privacy/accessibility links) and rolled it out to 24/27 page routes, replacing every drifted ad-hoc footer copy, per user request ("version on every screen, the whole footer") | src/components/Footer.tsx (new) + 24 page.tsx files | done + verified (tsc clean, vitest 191 passing, live Playwright across 10 pages incl. 2 authenticated); excluded sign/[stationId], forms/[formId], lookup per user decision | ~large |
+| 11:15 | Session end: 115 writes across 15 files (page.tsx, AppHeader.tsx, globals.css, verify-identity-fix.mjs, tmp-verify-identity-fix.mjs) | 39 reads | ~503840 tok |

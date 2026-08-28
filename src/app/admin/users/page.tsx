@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
 import LoadingSpin from '@/components/LoadingSpin'
+import Footer from '@/components/Footer'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -620,6 +621,7 @@ function UsersPageInner() {
             ))
           )}
         </div>
+        <Footer />
       </div>
 
       {/* ── Edit modal ── */}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
-import { VERSION } from '@/lib/version'
+import Footer from '@/components/Footer'
 import type { RoleResult } from '@/lib/types'
 import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
@@ -663,16 +663,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      <footer style={styles.footer}>
-        <p style={styles.footerLinks}>
-          <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
-          {' • '}
-          <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
-          {' • '}
-          <Link href="/accessibility" style={styles.footerLink}>הצהרת נגישות</Link>
-        </p>
-        <p style={styles.versionText}>גרסה {VERSION}</p>
-      </footer>
+      <Footer />
     </div>
   )
 }
@@ -814,22 +805,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'opacity 0.2s, transform 0.15s',
     fontFamily: 'inherit',
     boxShadow: '0 4px 14px rgba(37,99,235,0.30)',
-  },
-  footer: {
-    marginTop: '32px',
-    textAlign: 'center',
-  },
-  footerLinks: {
-    color: '#94a3b8',
-    fontSize: '0.8rem',
-    margin: '0 0 4px',
-  },
-  footerLink: {
-    color: '#64748b',
-    textDecoration: 'none',
-  },
-  versionText: {
-    color: '#94a3b8',
-    fontSize: '0.75rem',
   },
 }

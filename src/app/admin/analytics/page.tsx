@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
+import Footer from '@/components/Footer'
 
 interface Kpis {
   stations_active: number
@@ -465,6 +466,7 @@ export default function AnalyticsPage() {
 
           </div>
         )}
+        <Footer />
       </div>
     </AdminShell>
   )

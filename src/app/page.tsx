@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { VERSION } from '@/lib/version'
+import Footer from '@/components/Footer'
 
 export default function PublicHomePage() {
   const router = useRouter()
@@ -87,17 +87,7 @@ export default function PublicHomePage() {
 
       </div>
 
-      {/* Footer */}
-      <footer style={styles.footer} className="home-footer">
-        <div style={styles.footerLinks}>
-          <Link href="/guide" style={styles.footerLink}>מדריך למשתמש</Link>
-          <span style={styles.footerDot}>•</span>
-          <Link href="/privacy" style={styles.footerLink}>מדיניות פרטיות</Link>
-          <span style={styles.footerDot}>•</span>
-          <Link href="/accessibility" style={styles.footerLink}>נגישות</Link>
-        </div>
-        <p style={styles.footerVersion}>גרסה {VERSION}</p>
-      </footer>
+      <Footer />
     </div>
   )
 }
@@ -214,33 +204,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     WebkitBackdropFilter: 'blur(10px)',
     zIndex: 100,
     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-  },
-  footer: {
-    marginTop: '40px',
-    textAlign: 'center',
-    paddingBottom: '8px',
-  },
-  footerLinks: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    flexWrap: 'wrap',
-    marginBottom: '6px',
-  },
-  footerLink: {
-    color: '#64748b',
-    fontSize: '12px',
-    textDecoration: 'none',
-    fontWeight: 500,
-  },
-  footerDot: {
-    color: '#cbd5e1',
-    fontSize: '12px',
-  },
-  footerVersion: {
-    color: '#94a3b8',
-    fontSize: '11px',
-    margin: 0,
   },
 }

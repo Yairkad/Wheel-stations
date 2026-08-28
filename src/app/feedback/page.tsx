@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
+import Footer from '@/components/Footer'
 
 type FeedbackType = 'bug' | 'suggestion' | 'other'
 
@@ -428,6 +429,7 @@ export default function FeedbackPage() {
           </p>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

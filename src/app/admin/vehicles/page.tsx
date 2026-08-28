@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { VERSION } from '@/lib/version'
+import Footer from '@/components/Footer'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
 import LoadingSpin from '@/components/LoadingSpin'
@@ -2787,10 +2787,7 @@ function VehiclesAdminPage() {
         </div>
       )}
 
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <span style={styles.footerVersion}>גרסה {VERSION}</span>
-      </footer>
+      <Footer />
 
       {/* Scroll to Top Button */}
       {showScrollTop && (
@@ -3622,16 +3619,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     fontSize: '0.9rem',
     fontWeight: 700,
-  } as React.CSSProperties,
-  footer: {
-    padding: '20px',
-    textAlign: 'center',
-    borderTop: '1px solid #e2e8f0',
-    marginTop: '20px',
-  } as React.CSSProperties,
-  footerVersion: {
-    color: '#64748b',
-    fontSize: '0.8rem',
   } as React.CSSProperties,
   scrollTopBtn: {
     position: 'fixed',

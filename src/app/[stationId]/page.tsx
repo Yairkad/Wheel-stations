@@ -10,6 +10,7 @@ import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib
 import { findSimilarFailedMount, WheelHistoryEntry } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 import LoadingSpin from '@/components/LoadingSpin'
+import Footer from '@/components/Footer'
 import { SESSION_VERSION } from '@/lib/version'
 
 const DEFAULT_WHATSAPP_TEMPLATE = `שלום רב 👋
@@ -5923,6 +5924,7 @@ ${signFormUrl}
         </div>
       )}
 
+      <Footer />
     </div>
     </>
   )

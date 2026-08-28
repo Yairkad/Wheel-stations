@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import LoadingSpin from '@/components/LoadingSpin'
+import Footer from '@/components/Footer'
 
 export default function PunctureManagerLoginPage() {
   const router = useRouter()
@@ -85,6 +86,7 @@ export default function PunctureManagerLoginPage() {
         </button>
         <a href="/punctures" style={s.back}>← חזרה לרשימת הפנצ׳ריות</a>
       </div>
+      <Footer />
     </div>
   )
 }
@@ -92,7 +94,7 @@ export default function PunctureManagerLoginPage() {
 const s: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh', background: '#f1f5f9',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
     padding: 20, fontFamily: "'Segoe UI', sans-serif", direction: 'rtl',
   },
   box: {

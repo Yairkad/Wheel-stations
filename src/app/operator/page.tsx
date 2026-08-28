@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import { VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
 import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import LoadingSpin from '@/components/LoadingSpin'
+import Footer from '@/components/Footer'
 import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
 import { useClickOutside } from '@/hooks/useClickOutside'
 
@@ -1237,9 +1237,6 @@ ${contact?.phone || ''}
             max-width: calc(100% - 30px) !important;
             padding: 15px !important;
           }
-          .operator-footer-text {
-            font-size: 0.7rem !important;
-          }
         }
       `}</style>
       {/* Glass header */}
@@ -2140,30 +2137,7 @@ ${contact?.phone || ''}
         </div>
       )}
 
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <div style={styles.footerInfo}>
-          <p style={styles.footerText} className="operator-footer-text">
-            מערכת גלגלים ידידים •{' '}
-            <Link href="/feedback" style={styles.footerLink}>
-              דווח על בעיה או הצע שיפור
-            </Link>
-          </p>
-          <p style={styles.legalLinks}>
-            <Link href="/guide?tab=operator" style={styles.footerLink}>
-              מדריך למשתמש
-            </Link>
-            {' • '}
-            <Link href="/privacy" style={styles.footerLink}>
-              מדיניות פרטיות
-            </Link>
-            {' • '}
-            <Link href="/accessibility" style={styles.footerLink}>
-              הצהרת נגישות
-            </Link>
-          </p>
-        </div>
-      </footer>
+      <Footer showFeedback guideHref="/guide?tab=operator" />
     </div>
   )
 }
@@ -2804,29 +2778,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#10b981',
     fontSize: '0.95rem',
     fontWeight: 500,
-  },
-  footer: {
-    textAlign: 'center',
-    marginTop: 'auto',
-    paddingTop: '40px',
-    paddingBottom: '20px',
-    borderTop: '1px solid #e2e8f0',
-  },
-  footerInfo: {
-    marginTop: '0',
-  },
-  footerText: {
-    color: '#94a3b8',
-    fontSize: '0.75rem',
-    margin: 0,
-  },
-  footerLink: {
-    color: '#16a34a',
-    textDecoration: 'none',
-  },
-  legalLinks: {
-    color: '#94a3b8',
-    fontSize: '0.7rem',
-    marginTop: '8px',
   },
 }

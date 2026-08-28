@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
 import LoadingSpin from '@/components/LoadingSpin'
+import Footer from '@/components/Footer'
 
 interface TrustedMatch {
   id: string
@@ -155,6 +156,7 @@ export default function TrustedMatchesPage() {
             ))}
           </div>
         )}
+        <Footer />
       </div>
     </AdminShell>
   )

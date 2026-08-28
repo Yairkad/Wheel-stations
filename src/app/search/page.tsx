@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { getDistricts, District } from '@/lib/districts'
-import { VERSION } from '@/lib/version'
+import Footer from '@/components/Footer'
 import { Station, Manager, SearchResult, FilterOptions, VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit, getDiameterDiffPct } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
@@ -1306,30 +1306,7 @@ function SearchPageContent() {
         onChange={e => { const f = e.target.files?.[0]; if (f) handleOcrUpload(f); e.target.value = '' }}
       />
 
-      <footer style={styles.footer}>
-        <div style={styles.footerInfo}>
-          <p style={styles.footerText}>
-            מערכת גלגלים ידידים •{' '}
-            <Link href="/feedback" style={styles.feedbackLink}>
-              דווח על בעיה או הצע שיפור
-            </Link>
-          </p>
-          <p style={styles.legalLinks}>
-            <Link href="/guide" style={styles.legalLink}>
-              מדריך למשתמש
-            </Link>
-            {' • '}
-            <Link href="/privacy" style={styles.legalLink}>
-              מדיניות פרטיות
-            </Link>
-            {' • '}
-            <Link href="/accessibility" style={styles.legalLink}>
-              הצהרת נגישות
-            </Link>
-          </p>
-          <p style={styles.versionText}>גירסה {VERSION}</p>
-        </div>
-      </footer>
+      <Footer showFeedback />
 
       {/* Search Modal */}
       {showSearchModal && (
@@ -3166,40 +3143,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
     color: '#64748b',
     fontSize: '0.9rem',
-  },
-  footer: {
-    textAlign: 'center',
-    marginTop: 'auto',
-    paddingTop: '40px',
-    paddingBottom: '20px',
-    borderTop: '1px solid #e2e8f0',
-  },
-  footerInfo: {
-    marginTop: '0',
-  },
-  footerText: {
-    color: '#94a3b8',
-    fontSize: '0.75rem',
-    margin: 0,
-  },
-  feedbackLink: {
-    color: '#2563eb',
-    textDecoration: 'none',
-  },
-  legalLinks: {
-    color: '#94a3b8',
-    fontSize: '0.7rem',
-    marginTop: '8px',
-    margin: 0,
-  },
-  legalLink: {
-    color: '#94a3b8',
-    textDecoration: 'none',
-  },
-  versionText: {
-    color: '#94a3b8',
-    fontSize: '0.65rem',
-    marginTop: '8px',
   },
   // Modal styles
   modalOverlay: {

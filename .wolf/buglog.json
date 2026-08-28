@@ -5766,6 +5766,118 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-08-28T00:00:00.000Z"
+    },
+    {
+      "id": "bug-354",
+      "timestamp": "2026-08-28T07:25:53.799Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/page.tsx",
+      "root_cause": "Had '@/lib/version'",
+      "fix": "Changed to '@/components/Footer'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 11,
+      "last_seen": "2026-08-28T07:44:34.997Z"
+    },
+    {
+      "id": "bug-355",
+      "timestamp": "2026-08-28T07:26:20.645Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/page.tsx",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 13→3 lines (10 removed) | Also: <footer style={styles.footer}>; <p style={styles.footerLinks}>",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-28T07:27:50.097Z"
+    },
+    {
+      "id": "bug-356",
+      "timestamp": "2026-08-28T07:32:35.016Z",
+      "error_message": "CSS fix: marginTop",
+      "file": "src/components/Footer.tsx",
+      "root_cause": "marginTop: '20px', → 'auto',",
+      "fix": "Changed marginTop: '20px', → 'auto',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-28T07:33:20.537Z"
+    },
+    {
+      "id": "bug-357",
+      "timestamp": "2026-08-28T07:33:52.807Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/super-manager/page.tsx",
+      "root_cause": "11 lines replaced/restructured",
+      "fix": "Rewrote 13→3 lines (11 removed) | Also: {/* Footer */}; <footer style={styles.footer}> | Also: .operator-footer-text {; font-size: 0.7rem !important;",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 6,
+      "last_seen": "2026-08-28T07:42:41.226Z"
+    },
+    {
+      "id": "bug-358",
+      "timestamp": "2026-08-28T07:40:34.640Z",
+      "error_message": "CSS fix: color",
+      "file": "src/app/reverse-search/page.tsx",
+      "root_cause": "color: '#93c5fd', textDecoration: 'none' → '#2563eb', textDecoration: 'none', fontSize: '0.8rem'",
+      "fix": "Changed color: '#93c5fd', textDecoration: 'none' → '#2563eb', textDecoration: 'none', fontSize: '0.8rem'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T07:40:34.640Z"
+    },
+    {
+      "id": "bug-359",
+      "timestamp": "2026-08-28T07:52:15.715Z",
+      "error_message": "CSS fix: display",
+      "file": "src/app/admin/punctures/login/page.tsx",
+      "root_cause": "display: 'flex', alignItems: 'center', justifyContent: 'center', → 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',",
+      "fix": "Changed display: 'flex', alignItems: 'center', justifyContent: 'center', → 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-28T07:52:15.715Z"
+    },
+    {
+      "id": "bug-360",
+      "timestamp": "2026-08-28T08:02:48.691Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/super-manager/page.tsx",
+      "root_cause": "Had 'next/link'",
+      "fix": "Changed to 'xlsx'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-08-28T08:03:58.117Z"
     }
   ]
 }
