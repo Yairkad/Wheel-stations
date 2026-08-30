@@ -314,6 +314,53 @@ async function scrapeWheelfitmentForLookup(make: string, model: string, year: nu
   }
 }
 
+// Scrape PCD data from wheel-size.com — second-choice fallback when
+// wheelfitment.eu has no match (mirrors scrapeWheelSize in
+// api/vehicle-models/scrape/route.ts, kept as a separate copy since that
+// route's ScrapeResult shape carries extra fields this lookup path doesn't use)
+async function scrapeWheelSizeForLookup(make: string, model: string, year: number): Promise<{
+  bolt_count: number
+  bolt_spacing: number
+  center_bore: number | null
+  source_url: string
+} | null> {
+  try {
+    const makeSlug = make.toLowerCase().replace(/\s+/g, '-')
+    const modelSlug = model.toLowerCase().replace(/\s+/g, '-')
+    const url = `https://www.wheel-size.com/size/${makeSlug}/${modelSlug}/${year}/`
+
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+    })
+
+    if (!response.ok) return null
+
+    const html = await response.text()
+
+    const pcdRegex = /\b([3-6])x(1[0-9]{2}(?:\.[0-9]+)?)\b/g
+    const pcdMatches = [...html.matchAll(pcdRegex)]
+    if (pcdMatches.length === 0) return null
+
+    const [, boltCountStr, boltSpacingStr] = pcdMatches[0]
+    const boltCount = parseInt(boltCountStr)
+    const boltSpacing = parseFloat(boltSpacingStr)
+    if (!boltCount || !boltSpacing) return null
+
+    const centerBoreMatch = html.match(/(?:CB|Center\s*Bore|hub\s*bore)[:\s]+?([\d.]+)/i)
+    const centerBore = centerBoreMatch ? parseFloat(centerBoreMatch[1]) : null
+
+    return {
+      bolt_count: boltCount,
+      bolt_spacing: boltSpacing,
+      center_bore: centerBore,
+      source_url: url
+    }
+  } catch (error) {
+    console.error('wheel-size.com scrape error:', error)
+    return null
+  }
+}
+
 // Helper function to search for PCD data in our database
 // If found without source_url (not verified), also checks wheelfitment and updates DB
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -414,24 +461,30 @@ async function findPcdData(
     return dbResult
   }
 
-  // Step 3: Not verified or not found - try wheelfitment
-  const wheelfitmentData = await scrapeWheelfitmentForLookup(makeHebrew, modelName, year)
+  // Step 3: Not verified or not found - try wheelfitment.eu, then wheel-size.com
+  let pcdData = await scrapeWheelfitmentForLookup(makeHebrew, modelName, year)
+  let sourceLabel = 'wheelfitment.eu'
 
-  if (wheelfitmentData) {
+  if (!pcdData) {
+    pcdData = await scrapeWheelSizeForLookup(makeEnglish || makeHebrewFirstWord, modelName, year)
+    sourceLabel = 'wheel-size.com'
+  }
+
+  if (pcdData) {
     if (dbResult) {
       // Update existing record with verified data
       await supabase
         .from('vehicle_models')
         .update({
-          bolt_count: wheelfitmentData.bolt_count,
-          bolt_spacing: wheelfitmentData.bolt_spacing,
-          center_bore: wheelfitmentData.center_bore,
-          source_url: wheelfitmentData.source_url,
-          source: 'wheelfitment.eu'
+          bolt_count: pcdData.bolt_count,
+          bolt_spacing: pcdData.bolt_spacing,
+          center_bore: pcdData.center_bore,
+          source_url: pcdData.source_url,
+          source: sourceLabel
         })
         .eq('id', dbResult.id)
 
-      return { ...dbResult, ...wheelfitmentData }
+      return { ...dbResult, ...pcdData }
     } else {
       // Create new record
       const { data: newRecord } = await supabase
@@ -442,20 +495,20 @@ async function findPcdData(
           model: modelName.toLowerCase(),
           year_from: year,
           year_to: null,
-          bolt_count: wheelfitmentData.bolt_count,
-          bolt_spacing: wheelfitmentData.bolt_spacing,
-          center_bore: wheelfitmentData.center_bore,
-          source_url: wheelfitmentData.source_url,
-          source: 'wheelfitment.eu',
+          bolt_count: pcdData.bolt_count,
+          bolt_spacing: pcdData.bolt_spacing,
+          center_bore: pcdData.center_bore,
+          source_url: pcdData.source_url,
+          source: sourceLabel,
           added_by: 'auto-lookup'
         }])
         .select()
 
-      return newRecord?.[0] || wheelfitmentData
+      return newRecord?.[0] || pcdData
     }
   }
 
-  // Step 4: Wheelfitment failed - return DB result if exists (even unverified)
+  // Step 4: Both scrapers failed - return DB result if exists (even unverified)
   return dbResult
 }
 

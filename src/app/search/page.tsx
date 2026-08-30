@@ -19,6 +19,7 @@ const MAX_HISTORY_ITEMS = 30
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const fromStationId = searchParams.get('from')
+  const sharedPlate = searchParams.get('plate')
   const { activeRoleEntry } = useRoleSwitch()
 
   const [stations, setStations] = useState<Station[]>([])
@@ -537,6 +538,18 @@ function SearchPageContent() {
       setVehicleLoading(false)
     }
   }
+
+  // Deep-link from a shared "שיתוף" WhatsApp message (?plate=...): reopen the
+  // vehicle modal and rerun the same lookup live, so the recipient sees a fresh
+  // result rather than a stale snapshot. Waits for isAuthenticated so it doesn't
+  // race the login-redirect check above.
+  useEffect(() => {
+    if (!sharedPlate || !isAuthenticated) return
+    openVehicleModal()
+    setVehiclePlate(sharedPlate)
+    handleVehicleLookup(sharedPlate)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedPlate, isAuthenticated])
 
   // Search by make/model/year using wheel-size.com scraper
   const handleModelSearch = async (overrides?: { make?: string; model?: string; year?: string }) => {
@@ -2164,7 +2177,10 @@ function SearchPageContent() {
                           const rim = extractRimSize(vehicleResult.vehicle.front_tire) || manualRimSize
                           if (rim) specParts.push(`חישוק ${rim}"`)
                           const vehicleLine = [vehicleResult.vehicle.manufacturer, vehicleResult.vehicle.model, vehicleResult.vehicle.year].filter(Boolean).join(' ')
-                          const message = `🚗 ${vehicleLine}${vehiclePlate ? ` (${vehiclePlate})` : ''}${specParts.length ? `\nמפרט גלגל: ${specParts.join(' · ')}` : ''}`
+                          const shareUrl = vehiclePlate.trim()
+                            ? `${window.location.origin}/search?plate=${encodeURIComponent(vehiclePlate.trim())}`
+                            : null
+                          const message = `🚗 ${vehicleLine}${vehiclePlate ? ` (${vehiclePlate})` : ''}${specParts.length ? `\nמפרט גלגל: ${specParts.join(' · ')}` : ''}${shareUrl ? `\n📍 צפייה בתוצאה באפליקציה: ${shareUrl}` : ''}`
                           window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
                         }}
                         style={styles.pillActionBtn}
@@ -2173,7 +2189,7 @@ function SearchPageContent() {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                         שיתוף
                       </button>
-                      {vehicleResult.wheel_fitment.source_url && (
+                      {vehicleResult.wheel_fitment.source_url ? (
                         <a
                           href={vehicleResult.wheel_fitment.source_url}
                           target="_blank"
@@ -2184,6 +2200,10 @@ function SearchPageContent() {
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                           אימות מידות
                         </a>
+                      ) : (
+                        <span style={styles.noSourceNote} title="הסקרייפר האוטומטי לא הצליח למצוא מקור חיצוני מאומת לרכב הזה">
+                          לא נמצא מקור חיצוני לאימות המידות
+                        </span>
                       )}
                     </div>
 
@@ -3581,6 +3601,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     textDecoration: 'underline',
     padding: '4px',
+  },
+  noSourceNote: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    color: '#94a3b8',
+    fontSize: '0.8rem',
+    padding: '10px 4px',
+    cursor: 'help',
   },
   rimSizeSelect: {
     padding: '8px 12px',

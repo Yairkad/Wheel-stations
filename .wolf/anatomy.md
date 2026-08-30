@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-26T04:45:25.189Z
-> Files: 154 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-30T14:13:19.681Z
+> Files: 177 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -45,11 +45,21 @@
 - `filter-drawer-checkbox.html` — סינון — מגירה + תיבות סימון מרובות (~3491 tok)
 - `verify-filter-drawer.mjs` — Declares shotDir (~372 tok)
 
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/b244a881-ae8f-4093-9166-a4a1cab08e37/scratchpad/
+
+- `verify-identity-fix.mjs` — Declares BASE (~676 tok)
+
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/
 
 - `append_bug.py` (~408 tok)
 - `append_bug2.py` (~650 tok)
 - `verify-calc.mjs` — Declares shotDir (~400 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/d9ca057f-7771-4ec9-87ae-37f7b670441f/scratchpad/
+
+- `debug-operator.mjs` — Declares browser (~302 tok)
+- `live-qa.mjs` — BASE: log, freshPage (~1958 tok)
+- `shot-fingerprint-btn.mjs` — Declares browser (~315 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/de0847df-c6b9-4343-920c-e2446045ac78/scratchpad/
 
@@ -71,6 +81,8 @@
 - `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
 - `giggly-wondering-stroustrup.md` — תיקון נפרד וקטן: נוסח התקנון (`sign/[stationId]/page.tsx`) (~5076 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
+- `groovy-finding-otter.md` — תיקון: ההדר נחתך באייפון + זליגת זהות במעבר תפקיד (~2708 tok)
+- `sonata-agile-sun.md` — תיקון משוב משתמש: חיפוש לפי רכב — קישור אימות מידות + שיתוף (~2016 tok)
 - `splendid-dreaming-ullman.md` — צמצום תפריט האוואטר (AppHeader.tsx) (~689 tok)
 - `station-page-refactor.md` — פירוק `[stationId]/page.tsx` לרכיבי-משנה (~1777 tok)
 - `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
@@ -118,9 +130,16 @@
 - `tmp-verify-clear.mjs` — Declares BASE (~546 tok)
 - `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
 - `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
+- `tmp-verify-footer-retry.mjs` — Declares BASE (~867 tok)
+- `tmp-verify-footer-rollout.mjs` — Declares BASE (~1185 tok)
 - `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
+- `tmp-verify-gaps-fix.mjs` — Declares BASE (~1309 tok)
+- `tmp-verify-header-safe-area.html` (~1085 tok)
+- `tmp-verify-header-safe-area.mjs` — Declares __dirname (~738 tok)
 - `tmp-verify-icon.mjs` — Declares BASE (~468 tok)
+- `tmp-verify-identity-fix.mjs` — Declares BASE (~676 tok)
 - `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
+- `tmp-verify-login-regression.mjs` — Declares BASE (~1798 tok)
 - `tmp-verify-operator.mjs` — Declares BASE (~666 tok)
 - `tmp-verify-pagination.mjs` — Declares BASE (~603 tok)
 - `tmp-verify-redesign.mjs` — Declares BASE (~380 tok)
@@ -158,59 +177,65 @@
 
 ## src/__tests__/
 
+- `AccessibilityWidget.test.tsx` — AccessibilityWidget (~1924 tok)
+- `StationFilterCombobox.test.tsx` — StationFilterCombobox / filterByStation (~1038 tok)
+- `useClickOutside.test.tsx` — TestHarness (~535 tok)
+- `useRoleSwitch.test.ts` — roleKey + useRoleSwitch (~2562 tok)
 - `vehicle-mappings.test.ts` — Vehicle Mappings Tests (~3984 tok)
 
 ## src/app/
 
-- `globals.css` — global styles; includes data-a11y-* driven rules for the accessibility widget (font-size/contrast/grayscale/invert via composable CSS vars, link-highlight, readable-font, stop-motion) (~2042 tok)
+- `globals.css` — Styles: 19 rules, 4 vars (~2092 tok)
 - `layout.tsx` — RootLayout: font, metadata, mounts ToastProvider + AccessibilityWidget globally (~470 tok)
+- `page.tsx` — PublicHomePage (~1992 tok)
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98571 tok)
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98891 tok)
 
 ## src/app/accessibility/
 
-- `page.tsx` — AccessibilityPage (~1450 tok)
+- `page.tsx` — AccessibilityPage (~1467 tok)
 
 ## src/app/admin/
 
-- `page.tsx` — WheelsAdminPage (~18868 tok)
+- `page.tsx` — WheelsAdminPage (~18775 tok)
 
 ## src/app/admin/analytics/
 
-- `page.tsx` — AUDIT_COLORS (~7712 tok)
+- `page.tsx` — AUDIT_COLORS (~7729 tok)
 
 ## src/app/admin/call-centers/
 
-- `page.tsx` — CallCentersAdminPage (~9436 tok)
+- `page.tsx` — CallCentersAdminPage (~9346 tok)
 
 ## src/app/admin/login-report/
 
+- `page.tsx` — ROLE_LABELS — renders table (~3124 tok)
 
 ## src/app/admin/punctures/
 
-- `page.tsx` — parseLatLngFromUrl (~10559 tok)
+- `page.tsx` — parseLatLngFromUrl (~10576 tok)
 
 ## src/app/admin/punctures/login/
 
-- `page.tsx` — PunctureManagerLoginPage (~1368 tok)
+- `page.tsx` — PunctureManagerLoginPage (~1392 tok)
 
 ## src/app/admin/reports/
 
-- `page.tsx` — ErrorReportsPage (~16586 tok)
+- `page.tsx` — ErrorReportsPage (~16496 tok)
 
 ## src/app/admin/trusted-matches/
 
-- `page.tsx` — emptyForm (~2268 tok)
+- `page.tsx` — emptyForm (~2334 tok)
 
 ## src/app/admin/users/
 
-- `page.tsx` — ROLE_LABELS (~15214 tok)
+- `page.tsx` — ROLE_LABELS (~15232 tok)
 
 ## src/app/admin/vehicles/
 
-- `page.tsx` — VehiclesAdminPageWrapper (~44154 tok)
+- `page.tsx` — VehiclesAdminPageWrapper (~44354 tok)
 
 ## src/app/api/admin/analytics/
 
@@ -388,7 +413,7 @@
 
 ## src/app/api/vehicle-models/
 
-- `route.ts` — Next.js API route: GET, POST (~2964 tok)
+- `route.ts` — Next.js API route: GET, POST (~2967 tok)
 
 ## src/app/api/vehicle-models/[id]/
 
@@ -409,7 +434,7 @@
 
 ## src/app/api/vehicle/lookup/
 
-- `route.ts` — Vehicle Lookup API (~7232 tok)
+- `route.ts` — Vehicle Lookup API (~7742 tok)
 
 ## src/app/api/vehicle/ocr/
 
@@ -505,11 +530,11 @@
 
 ## src/app/call-center/
 
-- `page.tsx` — CallCenterPage (~16618 tok)
+- `page.tsx` — CallCenterPage (~16842 tok)
 
 ## src/app/feedback/
 
-- `page.tsx` — FeedbackPage — renders form (~5953 tok)
+- `page.tsx` — FeedbackPage — renders form (~5970 tok)
 
 ## src/app/forms/[formId]/
 
@@ -517,10 +542,11 @@
 
 ## src/app/guide/
 
+- `page.tsx` — GuideContent (~15304 tok)
 
 ## src/app/login/
 
-- `page.tsx` — LoginPage (~10950 tok)
+- `page.tsx` — clearStaleSessions (~11056 tok)
 
 ## src/app/lookup/
 
@@ -531,22 +557,23 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~34557 tok)
+- `page.tsx` — OperatorPage (~34181 tok)
 
 ## src/app/privacy/
 
+- `page.tsx` — PrivacyPage (~1519 tok)
 
 ## src/app/punctures/
 
-- `page.tsx` — MapView (~8912 tok)
+- `page.tsx` — MapView (~9021 tok)
 
 ## src/app/reverse-search/
 
-- `page.tsx` — ReverseSearchPage (~17837 tok)
+- `page.tsx` — ReverseSearchPage (~17748 tok)
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~46943 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~48279 tok)
 
 ## src/app/sign/[stationId]/
 
@@ -554,11 +581,11 @@
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~38011 tok)
+- `page.tsx` — WheelStationsPage (~37760 tok)
 
 ## src/app/super-manager/
 
-- `page.tsx` — SESSION_EXPIRY_MS (~18024 tok)
+- `page.tsx` — SESSION_EXPIRY_MS (~17828 tok)
 
 ## src/app/tmp-calc-test/
 
@@ -567,7 +594,8 @@
 ## src/components/
 
 - `AccessibilityWidget.tsx` — DEFAULT_PREFS (~2293 tok)
-- `AppHeader.tsx` — AppHeader (~13832 tok)
+- `AppHeader.tsx` — AppHeader (~15059 tok)
+- `Footer.tsx` — Footer (~511 tok)
 - `LoadingSpin.tsx` — LoadingSpin (~198 tok)
 - `StationFilterCombobox.tsx` — shared typeahead station picker (replaces DistrictFilterChips, deleted) + filterByStation() helper; used by search/page.tsx + operator/page.tsx (~1120 tok)
 - `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
@@ -582,12 +610,13 @@
 ## src/hooks/
 
 - `useClickOutside.ts` — Exports useClickOutside (~204 tok)
-- `useRoleSwitch.ts` — Exports roleKey, useRoleSwitch (~1683 tok)
+- `useRoleSwitch.ts` — Exports roleKey, resolveActiveRoleEntry, useRoleSwitch (~2179 tok)
 
 ## src/lib/
 
 - `types.ts` — Shared TypeScript interfaces used across pages (~812 tok)
 - `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3437 tok)
+- `version.ts` — App version - displayed in footer (~74 tok)
 - `wheel-stats.ts` — computeWheelStats: shared available/taken/inactive wheel counts used by all wheel-stations API routes (~200 tok)
 
 ## src/stories/mocks/

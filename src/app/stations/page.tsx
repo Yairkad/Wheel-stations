@@ -1658,7 +1658,7 @@ export default function WheelStationsPage() {
                           ))}
                         </select>
                       )}
-                      {vehicleResult.wheel_fitment.source_url && (
+                      {vehicleResult.wheel_fitment.source_url ? (
                         <a
                           href={vehicleResult.wheel_fitment.source_url}
                           target="_blank"
@@ -1668,6 +1668,10 @@ export default function WheelStationsPage() {
                         >
                           <span style={{display:'inline-flex',alignItems:'center',gap:'3px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> אמת מידות</span>
                         </a>
+                      ) : (
+                        <span style={styles.noSourceNote} title="הסקרייפר האוטומטי לא הצליח למצוא מקור חיצוני מאומת לרכב הזה">
+                          לא נמצא מקור לאימות
+                        </span>
                       )}
                       <button
                         onClick={() => handleOpenErrorReport(vehicleResult.vehicle, vehicleResult.wheel_fitment)}
@@ -3056,5 +3060,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '0.85rem',
+  },
+  noSourceNote: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    color: '#94a3b8',
+    fontSize: '0.8rem',
+    padding: '8px 4px',
+    cursor: 'help',
   },
 }

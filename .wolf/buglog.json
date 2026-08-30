@@ -5878,6 +5878,140 @@
       "related_bugs": [],
       "occurrences": 3,
       "last_seen": "2026-08-28T08:03:58.117Z"
+    },
+    {
+      "id": "bug-361",
+      "timestamp": "2026-08-30T14:07:48.056Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "No early return/throw for edge case: !sharedPlate || !isAuthenticated",
+      "fix": "Added guard clause: if (!sharedPlate || !isAuthenticated)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-30T14:07:48.056Z"
+    },
+    {
+      "id": "bug-362",
+      "timestamp": "2026-08-30T14:08:43.438Z",
+      "error_message": "CSS fix: fontSize, cursor, padding",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "fontSize: '0.75rem', → '0.8rem',; cursor: 'pointer', → 'help',; padding: '4px', → '10px 4px',",
+      "fix": "Changed fontSize: '0.75rem', → '0.8rem',; cursor: 'pointer', → 'help',; padding: '4px', → '10px 4px',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-08-30T14:13:19.877Z"
+    },
+    {
+      "id": "bug-363",
+      "timestamp": "2026-08-30T14:10:26.906Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "No early return/throw for edge case: !response.ok",
+      "fix": "Added guard clause: if (!response.ok)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-30T14:10:26.906Z"
+    },
+    {
+      "id": "bug-364",
+      "timestamp": "2026-08-30T14:12:36.682Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "Had 'next/navigation'",
+      "fix": "Changed to 'react-dom'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-30T14:12:36.682Z"
+    },
+    {
+      "id": "bug-365",
+      "timestamp": "2026-08-30T14:12:55.782Z",
+      "error_message": "Type error",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-30T14:12:55.782Z"
+    },
+    {
+      "id": "bug-366",
+      "timestamp": "2026-08-30T14:20:00.000Z",
+      "error_message": "משתמש ציפה שכפתור \"שיתוף\" במודל \"חיפוש לפי רכב\" ישלח קישור לתוצאת החיפוש באפליקציה - קיבל רק הודעת טקסט ל-WhatsApp",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "כפתור השיתוף (שורות 2159-2175 לפני התיקון) בנה טקסט מסכם (שם רכב+מפרט) ופתח wa.me בלבד - ללא שום URL חזרה לאפליקציה, וללא מאומנות בצד הקליינט לטעון אותה תוצאה מחדש",
+      "fix": "הוסף קריאת פרמטר URL ?plate=... (searchParams.get('plate') כ-sharedPlate), useEffect חדש שפותח את מודל הרכב ומריץ handleVehicleLookup(sharedPlate) כשהפרמטר קיים (מוגבל על-isAuthenticated כדי לא להתנגש בהפניית /login), ועדכון ה-handler של כפתור השיתוף לצרף שורת window.location.origin + /search?plate=... להודעת ה-WhatsApp",
+      "tags": [
+        "user-reported",
+        "share-feature",
+        "deep-link",
+        "search-page"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-30T14:20:00.000Z"
+    },
+    {
+      "id": "bug-367",
+      "timestamp": "2026-08-30T14:20:00.000Z",
+      "error_message": "ב-/admin/vehicles, לחיצה על כפתור \"⋮\" בעמודת \"פעולות\" פתחה תפריט שנחתך/נעלם מתחת למסגרת הטבלה - משתמש דיווח עם צילום מסך וחץ מצביע על הכפתור החתוך",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "styles.tableContainer מוגדר עם overflowX:'auto' (לגלילה אופקית של הטבלה הרחבה, minWidth:800px) - לפי מפרט ה-CSS זה אוכף גם overflow-y ל-auto/נחתך, כך שתפריט styles.actionMenu (position:absolute) שנפתח מתוך עמודת \"פעולות\" האחרונה נחתך על ידי גבול הקונטיינר החיצוני",
+      "fix": "שוכפל רק בטבלת הדסקטופ (מובייל לא נפגע, אין שם overflow על styles.cardList) להשתמש ב-createPortal(..., document.body) עם מיקום מחושב מ-getBoundingClientRect() של כפתור \"⋮\" בזמן הלחיצה (actionMenuPos state חדש), כך שהתפריט יוצא מה-DOM subtree החתוך ולא נחתך יותר",
+      "tags": [
+        "user-reported",
+        "css-clipping",
+        "overflow",
+        "admin-vehicles",
+        "dropdown-menu"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-30T14:20:00.000Z"
+    },
+    {
+      "id": "bug-368",
+      "timestamp": "2026-08-30T14:20:00.000Z",
+      "error_message": "משתמש דיווח על כך שכפתור \"אימות מידות\" לא מופיע בחיפוש לפי רכב עבור רכב שלא נמצא ב-wheelfitment.eu",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "findPcdData בנתיב החי (GET /api/vehicle/lookup) ניסה רק את scrapeWheelfitmentForLookup (wheelfitment.eu בלבד) וויתר אם זה נכשל - לעומת ש-/api/vehicle-models/scrape (המשמש את מסך admin/vehicles) כבר הכיל עבורו עצם fallback שני ל-wheel-size.com שלא היה מחובר לנתיב החי",
+      "fix": "הוסף scrapeWheelSizeForLookup() חדשה ב-route.ts (מעתיק את לוגיקת scrapeWheelSize מ-scrape/route.ts) וחיבר אותה כ-fallback שני ב-findPcdData אחרי wheelfitment.eu. אומת בפועל שעבור הסונטה היבריד 2018 שנבדקה באותה סשן, גם wheelfitment.eu וגם wheel-size.com נכשלו (404 מ-/api/vehicle-models/scrape) - התיקון משפר סיכוי כללי אבל לא פותר את המקרה הספציפי הזה",
+      "tags": [
+        "gap-fix",
+        "scraper-fallback",
+        "vehicle-lookup",
+        "wheel-size.com"
+      ],
+      "related_bugs": [
+        "bug-367"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-30T14:20:00.000Z"
     }
   ]
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import Footer from '@/components/Footer'
@@ -212,6 +213,9 @@ function VehiclesAdminPage() {
 
   // Action menu for single edit/delete button
   const [actionMenuVehicleId, setActionMenuVehicleId] = useState<string | null>(null)
+  // Desktop table's menu is portaled to <body> (see render site) so it isn't
+  // clipped by tableContainer's overflowX:auto — this tracks where to place it
+  const [actionMenuPos, setActionMenuPos] = useState<{ top: number; left: number } | null>(null)
 
   // Get filtered suggestions based on current input
   const getMakeSuggestionsForFilter = () => {
@@ -1648,11 +1652,23 @@ function VehiclesAdminPage() {
                         </td>
                         <td style={styles.td}>
                           <div style={{position:'relative'}}>
-                            <button style={styles.btnActionMenu} onClick={() => setActionMenuVehicleId(actionMenuVehicleId === v.id ? null : v.id)}>
+                            <button
+                              style={styles.btnActionMenu}
+                              onClick={(e) => {
+                                if (actionMenuVehicleId === v.id) {
+                                  setActionMenuVehicleId(null)
+                                  setActionMenuPos(null)
+                                  return
+                                }
+                                const rect = e.currentTarget.getBoundingClientRect()
+                                setActionMenuPos({ top: rect.bottom + 4, left: rect.left })
+                                setActionMenuVehicleId(v.id)
+                              }}
+                            >
                               <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
                             </button>
-                            {actionMenuVehicleId === v.id && (
-                              <div style={styles.actionMenu}>
+                            {actionMenuVehicleId === v.id && actionMenuPos && typeof document !== 'undefined' && createPortal(
+                              <div style={{...styles.actionMenu, position: 'fixed', top: actionMenuPos.top, left: actionMenuPos.left}}>
                                 {isPending(v) && (
                                   <button style={styles.actionMenuItem} onClick={() => { handleVerify(v.id); setActionMenuVehicleId(null) }}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -1667,7 +1683,8 @@ function VehiclesAdminPage() {
                                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                                   מחק
                                 </button>
-                              </div>
+                              </div>,
+                              document.body
                             )}
                           </div>
                         </td>
