@@ -1,5 +1,5 @@
 // App version - displayed in footer
-export const VERSION = '19.0.4'
+export const VERSION = '19.0.5'
 
 // Session version - increment this to force all users to re-login
 // When you change this, users with old sessions will be logged out automatically

@@ -106,16 +106,23 @@ function SearchPageContent() {
     setShowVehicleModal(false)  // close while searching behind the scenes
     setOcrAutoSearch(true)
 
-    const canModelSearch = ocr.manufacturer && ocr.model && ocr.year
+    const canModelSearch = !!(ocr.manufacturer && ocr.model)
     if (canModelSearch) {
       setModelSearchMake(ocr.manufacturer!)
       setModelSearchModel(ocr.model!)
-      setModelSearchYear(ocr.year!)
+      setModelSearchYear(ocr.year ?? '')
       if (ocr.rimSize) setSearchFilters(prev => ({ ...prev, rim_size: String(ocr.rimSize) }))
       setVehicleSearchTab('model')
-      await handleModelSearch({ make: ocr.manufacturer!, model: ocr.model!, year: ocr.year! })
+      const result = await handleModelSearch({
+        make: ocr.manufacturer!,
+        model: ocr.model!,
+        year: ocr.year ?? '',
+        allowMissingYear: !ocr.year,
+      })
       setOcrAutoSearch(false)
-      setShowVehicleModal(true)  // reopen only after results are ready
+      // When ambiguous, the Model Selection Modal is already visible on its own —
+      // handleVehicleModelSelect reopens the vehicle modal once the user picks a spec.
+      if (result !== 'ambiguous') setShowVehicleModal(true)  // reopen only after results are ready
     } else if (ocr.plate) {
       setVehiclePlate(ocr.plate)
       setVehicleSearchTab('plate')
@@ -127,6 +134,11 @@ function SearchPageContent() {
       if (ocr.model) setModelSearchModel(ocr.model)
       if (ocr.year) setModelSearchYear(ocr.year ?? '')
       setVehicleSearchTab('model')
+      setOcrAutoSearch(false)
+      setShowVehicleModal(true)
+    } else {
+      // Nothing usable to auto-search with (e.g. only tireSizes) — don't leave the
+      // user stranded behind the loading overlay forever.
       setOcrAutoSearch(false)
       setShowVehicleModal(true)
     }
@@ -552,7 +564,7 @@ function SearchPageContent() {
   }, [sharedPlate, isAuthenticated])
 
   // Search by make/model/year using wheel-size.com scraper
-  const handleModelSearch = async (overrides?: { make?: string; model?: string; year?: string }) => {
+  const handleModelSearch = async (overrides?: { make?: string; model?: string; year?: string; allowMissingYear?: boolean }): Promise<'done' | 'ambiguous' | 'validation-error' | 'error'> => {
     const make = overrides?.make ?? modelSearchMake
     const model = overrides?.model ?? modelSearchModel
     const year = overrides?.year ?? modelSearchYear
@@ -560,13 +572,13 @@ function SearchPageContent() {
     const errors = {
       make: !make.trim(),
       model: !model.trim(),
-      year: !year.trim()
+      year: !overrides?.allowMissingYear && !year.trim()
     }
     setModelSearchErrors(errors)
 
     if (errors.make || errors.model || errors.year) {
       toast.error('נא למלא יצרן, דגם ושנה', { id: 'model-search-validation' })
-      return
+      return 'validation-error'
     }
 
     setModelSearchLoading(true)
@@ -585,7 +597,7 @@ function SearchPageContent() {
     try {
       // First try local DB
       const localResponse = await fetch(
-        `/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}&year=${modelSearchYear}`
+        `/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}&year=${encodeURIComponent(year)}`
       )
       const localData = await localResponse.json()
 
@@ -608,7 +620,7 @@ function SearchPageContent() {
           setMatchingModels(Array.from(uniqueSpecs.values()))
           setShowModelSelectionModal(true)
           setModelSearchLoading(false)
-          return
+          return 'ambiguous'
         }
 
         // Found in local DB - single result
@@ -624,7 +636,7 @@ function SearchPageContent() {
           vehicle: {
             manufacturer: model.make,
             model: model.model,
-            year: parseInt(year),
+            year: parseInt(year) || model.year_from || 0,
             color: '',
             front_tire: model.tire_size_front || ''
           },
@@ -648,8 +660,10 @@ function SearchPageContent() {
       } else {
         setVehicleError('לא נמצאו מידות גלגל לדגם זה. נסה לחפש באתר wheel-size.com')
       }
+      return 'done'
     } catch {
       setVehicleError('שגיאה בחיפוש')
+      return 'error'
     } finally {
       setModelSearchLoading(false)
     }
@@ -697,6 +711,7 @@ function SearchPageContent() {
       setVehicleError('שגיאה בחיפוש')
     } finally {
       setModelSearchLoading(false)
+      setShowVehicleModal(true)  // reveal results — no-op if already open (manual-flow case)
     }
   }
 
@@ -1599,30 +1614,48 @@ function SearchPageContent() {
               פרטים שנמצאו ברישיון
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '22px' }}>
-              {ocrResultData.plate && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontWeight: 600, color: '#1e293b', direction: 'ltr', letterSpacing: 2 }}>{ocrResultData.plate}</span>
-                  <span style={{ color: '#64748b', fontSize: '13px' }}>מספר רכב</span>
-                </div>
-              )}
-              {ocrResultData.manufacturer && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{ocrResultData.manufacturer}</span>
-                  <span style={{ color: '#64748b', fontSize: '13px' }}>יצרן</span>
-                </div>
-              )}
-              {ocrResultData.model && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{ocrResultData.model}</span>
-                  <span style={{ color: '#64748b', fontSize: '13px' }}>דגם</span>
-                </div>
-              )}
-              {ocrResultData.year && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontWeight: 600, color: '#1e293b' }}>{ocrResultData.year}</span>
-                  <span style={{ color: '#64748b', fontSize: '13px' }}>שנה</span>
-                </div>
-              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={ocrResultData.plate ?? ''}
+                  onChange={e => setOcrResultData(prev => prev ? { ...prev, plate: e.target.value.replace(/\D/g, '').slice(0, 8) } : prev)}
+                  placeholder="לא זוהה — הקלד ידנית"
+                  style={{ fontWeight: 600, color: '#1e293b', direction: 'ltr', letterSpacing: 2, border: 'none', background: 'transparent', outline: 'none', flex: 1, fontSize: '1rem', minWidth: 0 }}
+                />
+                <span style={{ color: '#64748b', fontSize: '13px', whiteSpace: 'nowrap', marginRight: '10px' }}>מספר רכב</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <input
+                  type="text"
+                  value={ocrResultData.manufacturer ?? ''}
+                  onChange={e => setOcrResultData(prev => prev ? { ...prev, manufacturer: e.target.value } : prev)}
+                  placeholder="לא זוהה — הקלד ידנית"
+                  style={{ fontWeight: 600, color: '#1e293b', border: 'none', background: 'transparent', outline: 'none', flex: 1, fontSize: '1rem', minWidth: 0 }}
+                />
+                <span style={{ color: '#64748b', fontSize: '13px', whiteSpace: 'nowrap', marginRight: '10px' }}>יצרן</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <input
+                  type="text"
+                  value={ocrResultData.model ?? ''}
+                  onChange={e => setOcrResultData(prev => prev ? { ...prev, model: e.target.value } : prev)}
+                  placeholder="לא זוהה — הקלד ידנית"
+                  style={{ fontWeight: 600, color: '#1e293b', border: 'none', background: 'transparent', outline: 'none', flex: 1, fontSize: '1rem', minWidth: 0 }}
+                />
+                <span style={{ color: '#64748b', fontSize: '13px', whiteSpace: 'nowrap', marginRight: '10px' }}>דגם</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={ocrResultData.year ?? ''}
+                  onChange={e => setOcrResultData(prev => prev ? { ...prev, year: e.target.value.replace(/\D/g, '').slice(0, 4) } : prev)}
+                  placeholder="לא זוהה — הקלד ידנית"
+                  style={{ fontWeight: 600, color: '#1e293b', border: 'none', background: 'transparent', outline: 'none', flex: 1, fontSize: '1rem', minWidth: 0 }}
+                />
+                <span style={{ color: '#64748b', fontSize: '13px', whiteSpace: 'nowrap', marginRight: '10px' }}>שנה</span>
+              </div>
               {ocrResultData.tireSizes.length > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
                   <span style={{ fontWeight: 600, color: '#166534', direction: 'ltr' }}>{ocrResultData.tireSizes.join(', ')}</span>
