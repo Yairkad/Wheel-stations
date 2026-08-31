@@ -993,6 +993,10 @@ interface UserCardProps {
 
 function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive, onAddRole, onMerge, onDelete, onRemoveRole, onTogglePrimary, onToggleCanEdit }: UserCardProps) {
   const [showPass, setShowPass] = useState(false)
+  // Removed roles (is_active:false) are a soft-delete on the backend so
+  // re-adding the same role reactivates it instead of duplicating, but
+  // there's no reason to show a removed role in the UI at all
+  const activeRoles = user.roles.filter(r => r.is_active)
   const menuItems: MenuItem[] = [
     { label: 'עריכת פרטים', onClick: onEdit },
     { label: 'הוספת תפקיד', onClick: onAddRole },
@@ -1028,7 +1032,7 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
           <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{user.phone}</div>
           {/* Mobile: badges under the name */}
           <div className="user-badges-inline" style={{ display: 'none', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
-            {user.roles.filter(r => r.is_active).map(r => (
+            {activeRoles.map(r => (
               <span key={r.id} style={{
                 padding: '2px 8px', borderRadius: 12, fontSize: '0.7rem', fontWeight: 700,
                 background: ROLE_COLORS[r.role] + '18', color: ROLE_COLORS[r.role],
@@ -1079,21 +1083,21 @@ function UserCard({ user, expanded, busy, onToggleExpand, onEdit, onToggleActive
       {/* Expanded — roles */}
       {expanded && (
         <div style={{ borderTop: '1px solid #f1f5f9', padding: '16px' }}>
-          {user.roles.length === 0 ? (
+          {activeRoles.length === 0 ? (
             <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>אין תפקידים</div>
           ) : (
             <>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 תפקידים
               </div>
-              {user.roles.map(role => (
+              {activeRoles.map(role => (
                 <div key={role.id} style={{
                   display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
                   background: '#f8fafc', borderRadius: 8, marginBottom: 4,
                 }}>
                   <span style={{
                     width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-                    background: role.is_active ? ROLE_COLORS[role.role] : '#cbd5e1',
+                    background: ROLE_COLORS[role.role],
                   }} />
                   <span style={{ fontSize: '0.85rem', fontWeight: 600, flex: 1 }}>
                     {ROLE_LABELS[role.role]}

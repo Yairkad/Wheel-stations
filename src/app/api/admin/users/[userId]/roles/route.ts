@@ -22,13 +22,39 @@ export async function POST(
     }
     if (!role) return NextResponse.json({ error: 'תפקיד חובה' }, { status: 400 })
 
-    const roleRow: Record<string, unknown> = { user_id: userId, role, is_active: true, is_primary: false }
-    if (station_id)        roleRow.station_id        = station_id
-    if (call_center_id)    roleRow.call_center_id    = call_center_id
-    if (operator_code)     roleRow.operator_code     = operator_code
-    if (title)             roleRow.title             = title
-    if (allowed_districts) roleRow.allowed_districts = allowed_districts
-    if (role === 'super_manager') roleRow.can_edit   = can_edit ?? false
+    // Reactivate a matching existing row (active or previously removed)
+    // instead of inserting a duplicate — scoped by station/call-center so
+    // roles that legitimately repeat there (e.g. station_manager at two
+    // different stations) still get their own row, while singleton roles
+    // (super_manager, puncture_manager, admin) never end up duplicated.
+    let existingQuery = supabase
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('role', role)
+    existingQuery = station_id
+      ? existingQuery.eq('station_id', station_id)
+      : existingQuery.is('station_id', null)
+    existingQuery = call_center_id
+      ? existingQuery.eq('call_center_id', call_center_id)
+      : existingQuery.is('call_center_id', null)
+    const { data: existing } = await existingQuery.maybeSingle()
+
+    const sharedFields: Record<string, unknown> = { is_active: true }
+    if (operator_code)     sharedFields.operator_code     = operator_code
+    if (title)              sharedFields.title             = title
+    if (allowed_districts)  sharedFields.allowed_districts = allowed_districts
+    if (role === 'super_manager') sharedFields.can_edit   = can_edit ?? false
+
+    if (existing) {
+      const { error } = await supabase.from('user_roles').update(sharedFields).eq('id', existing.id)
+      if (error) throw error
+      return NextResponse.json({ success: true })
+    }
+
+    const roleRow: Record<string, unknown> = { user_id: userId, role, is_primary: false, ...sharedFields }
+    if (station_id)     roleRow.station_id     = station_id
+    if (call_center_id) roleRow.call_center_id = call_center_id
 
     const { error } = await supabase.from('user_roles').insert(roleRow)
     if (error) throw error

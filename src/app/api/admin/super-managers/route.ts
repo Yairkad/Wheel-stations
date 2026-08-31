@@ -162,6 +162,7 @@ export async function PUT(request: NextRequest) {
         .update(roleUpdate)
         .eq('user_id', id)
         .eq('role', 'super_manager')
+        .eq('is_active', true)
       if (rErr) return NextResponse.json({ error: 'Failed to update role' }, { status: 500 })
     }
 
