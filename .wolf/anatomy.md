@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-30T14:13:19.681Z
-> Files: 177 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T06:30:26.821Z
+> Files: 188 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -40,6 +40,10 @@
 - `find-multirole-user.mjs` — Declares env (~388 tok)
 - `repro-roleswitch.mjs` — Declares BASE (~868 tok)
 
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/5d52913a-983a-4cc1-a3ce-a270883fa0cd/scratchpad/
+
+- `inspect-yaakov-roles.mjs` — Declares lines (~258 tok)
+
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
 - `filter-drawer-checkbox.html` — סינון — מגירה + תיבות סימון מרובות (~3491 tok)
@@ -54,6 +58,10 @@
 - `append_bug.py` (~408 tok)
 - `append_bug2.py` (~650 tok)
 - `verify-calc.mjs` — Declares shotDir (~400 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cfbe62ec-716e-4713-898b-41f707eaf37d/scratchpad/
+
+- `ocr_flow_test.mjs` — Playwright verification script for the OCR search-flow fix in src/app/search/page.tsx. (~1247 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/d9ca057f-7771-4ec9-87ae-37f7b670441f/scratchpad/
 
@@ -82,6 +90,7 @@
 - `giggly-wondering-stroustrup.md` — תיקון נפרד וקטן: נוסח התקנון (`sign/[stationId]/page.tsx`) (~5076 tok)
 - `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
 - `groovy-finding-otter.md` — תיקון: ההדר נחתך באייפון + זליגת זהות במעבר תפקיד (~2708 tok)
+- `purrfect-wondering-flame.md` — תיקון זרימת החיפוש לפי תמונת רישיון (OCR) — search/page.tsx (~1852 tok)
 - `sonata-agile-sun.md` — תיקון משוב משתמש: חיפוש לפי רכב — קישור אימות מידות + שיתוף (~2016 tok)
 - `splendid-dreaming-ullman.md` — צמצום תפריט האוואטר (AppHeader.tsx) (~689 tok)
 - `station-page-refactor.md` — פירוק `[stationId]/page.tsx` לרכיבי-משנה (~1777 tok)
@@ -92,8 +101,9 @@
 
 ## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
 
-- `feedback_hebrew_only.md` (~347 tok)
-- `MEMORY.md` (~125 tok)
+- `feedback_hebrew_only.md` (~450 tok)
+- `MEMORY.md` (~185 tok)
+- `project_concurrent_claude_sessions.md` (~663 tok)
 - `project_forgot_password_whatsapp_idea.md` (~492 tok)
 - `webauthn_biometric_login_paused.md` (~1043 tok)
 
@@ -107,6 +117,9 @@
 
 ## ./
 
+- `_ocr_test_b.mjs` — Scenario B: OCR reads manufacturer+model but NOT year; make+model has multiple (~1569 tok)
+- `_ocr_test_ce.mjs` — Scenario C: OCR gives manufacturer+model, no year, but make+model has only ONE (~1521 tok)
+- `_ocr_test.mjs` — Playwright verification script for the OCR search-flow fix in src/app/search/page.tsx. (~1034 tok)
 - `DEV_NOTES.md` — הערות למפתחים (~194 tok)
 - `test-deposit.tmp.js` — Declares STATION_ID (~963 tok)
 - `test-diag.tmp.js` — Declares STATION_ID (~298 tok)
@@ -119,7 +132,9 @@
 - `test-whatsapp-forgot.tmp.js` — API routes: GET (1 endpoints) (~872 tok)
 - `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
 - `tmp-check-scale.mjs` — Declares envText (~241 tok)
+- `tmp-cleanup-yaakov-roles.mjs` — Declares lines (~439 tok)
 - `tmp-crop.mjs` — Declares shotDir (~149 tok)
+- `tmp-inspect-yaakov-roles.mjs` — Declares lines (~246 tok)
 - `tmp-log-bug.mjs` — Declares path (~387 tok)
 - `tmp-repro-loading-icon.mjs` — Declares shotDir (~208 tok)
 - `tmp-repro-roleswitch.mjs` — Declares BASE (~1019 tok)
@@ -231,7 +246,7 @@
 
 ## src/app/admin/users/
 
-- `page.tsx` — ROLE_LABELS (~15232 tok)
+- `page.tsx` — ROLE_LABELS (~15295 tok)
 
 ## src/app/admin/vehicles/
 
@@ -282,6 +297,7 @@
 
 ## src/app/api/admin/super-managers/
 
+- `route.ts` — Super Managers Admin API (~2257 tok)
 
 ## src/app/api/admin/trusted-matches/
 
@@ -299,6 +315,7 @@
 
 ## src/app/api/admin/users/[userId]/roles/
 
+- `route.ts` — Next.js API route: POST (~809 tok)
 
 ## src/app/api/admin/users/[userId]/roles/[roleId]/
 
@@ -573,7 +590,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~48279 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~48966 tok)
 
 ## src/app/sign/[stationId]/
 

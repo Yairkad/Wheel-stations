@@ -2212,3 +2212,40 @@
 | 17:13 | Edited src/app/admin/vehicles/page.tsx | added 1 condition(s) | ~892 |
 | 17:20 | Implemented plan sonata-agile-sun.md: (1) deep-link share via ?plate= param + auto-reload useEffect, (2) wheel-size.com fallback wired into live findPcdData (was admin-only before), (3) "לא נמצא מקור לאימות" fallback note when source_url missing, (4) admin/vehicles desktop action-menu portaled to document.body to fix overflow-clipping. Logged as bug-366/367/368 | src/app/search/page.tsx, src/app/stations/page.tsx, src/app/api/vehicle/lookup/route.ts, src/app/admin/vehicles/page.tsx | done - tsc clean, vitest 191/191 passing (4 unrelated storybook suites pre-existing 0-test failures) | ~large |
 | 17:33 | Session end: 17 writes across 3 files (sonata-agile-sun.md, page.tsx, route.ts) | 11 reads | ~254494 tok |
+| 17:39 | Session end: 17 writes across 3 files (sonata-agile-sun.md, page.tsx, route.ts) | 11 reads | ~254494 tok |
+
+## Session: 2026-08-31 08:02
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 08:17 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/5d52913a-983a-4cc1-a3ce-a270883fa0cd/scratchpad/inspect-yaakov-roles.mjs | — | ~258 |
+| 08:18 | Created ../../../.claude/plans/purrfect-wondering-flame.md | — | ~2337 |
+| 08:18 | Edited src/app/admin/users/page.tsx | CSS: is_active | ~151 |
+| 08:18 | Edited src/app/admin/users/page.tsx | inline fix | ~10 |
+| 08:18 | Edited src/app/admin/users/page.tsx | 8→8 lines | ~114 |
+| 08:22 | Edited src/app/admin/users/page.tsx | 4→4 lines | ~55 |
+| 08:23 | Edited src/app/api/admin/users/[userId]/roles/route.ts | added 2 condition(s) | ~572 |
+| 08:23 | Edited src/app/api/admin/super-managers/route.ts | 6→7 lines | ~83 |
+| 08:23 | Created ../../../.claude/plans/purrfect-wondering-flame.md | — | ~1976 |
+| 08:24 | Edited ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/feedback_hebrew_only.md | 12→12 lines | ~447 |
+| 08:26 | Edited src/app/search/page.tsx | CSS: allowMissingYear | ~520 |
+| 08:26 | Created tmp-inspect-yaakov-roles.mjs | — | ~246 |
+| 08:27 | Edited src/app/search/page.tsx | modified async() | ~199 |
+| 08:27 | Edited src/app/search/page.tsx | 3→3 lines | ~56 |
+| 08:27 | Edited src/app/search/page.tsx | modified if() | ~63 |
+| 08:27 | Edited src/app/search/page.tsx | modified if() | ~339 |
+| 08:27 | Edited src/app/search/page.tsx | 8→9 lines | ~73 |
+| 08:28 | Created tmp-cleanup-yaakov-roles.mjs | — | ~439 |
+| 08:28 | Edited src/app/search/page.tsx | added nullish coalescing | ~1006 |
+| 08:32 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cfbe62ec-716e-4713-898b-41f707eaf37d/scratchpad/ocr_flow_test.mjs | — | ~1247 |
+| 08:33 | Created _ocr_test.mjs | — | ~1089 |
+| 08:35 | Fixed admin/users duplicate-role bug reported by user (יעקב טופיק showing 2 grayed "מנהל מחוז" rows): POST roles route now reactivates an existing row (scoped by station/call-center where relevant) instead of blind-inserting a duplicate; super-managers PUT now filters by is_active when updating can_edit; UserCard no longer displays is_active:false roles at all (activeRoles filter). Cleaned up Yaakov's 2 dead super_manager rows via one-off script against live DB. Logged as bug-374. Note: src/app/search/page.tsx has unrelated concurrent edits from another session (OCR flow) — left untouched, not part of this commit | src/app/admin/users/page.tsx, src/app/api/admin/users/[userId]/roles/route.ts, src/app/api/admin/super-managers/route.ts | done - tsc clean, vitest 191/191 passing | ~large |
+| 08:34 | Edited _ocr_test.mjs | 5→1 lines | ~22 |
+| 08:35 | Session end: 22 writes across 9 files (inspect-yaakov-roles.mjs, purrfect-wondering-flame.md, page.tsx, route.ts, feedback_hebrew_only.md) | 15 reads | ~79186 tok |
+| 08:36 | Created _ocr_test_b.mjs | — | ~1569 |
+| 08:45 | Created _ocr_test_ce.mjs | — | ~1521 |
+| 09:29 | Fixed OCR search-flow bugs (bug-375): stale modelSearchYear caused OCR searches to silently drop the year filter; added year-optional fallback + editable OCR confirm modal; fixed a modal z-index conflict found while designing the fix. Verified live via Playwright (mocked /api/ocr, /api/vehicle-models) across 4 scenarios + manual-search regression, all passed | src/app/search/page.tsx | done - tsc clean, live-verified | ~large |
+| 09:30 | Created ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/project_concurrent_claude_sessions.md | — | ~687 |
+| 09:30 | Edited ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/MEMORY.md | 1→2 lines | ~99 |
+| 09:31 | Session end: 26 writes across 13 files (inspect-yaakov-roles.mjs, purrfect-wondering-flame.md, page.tsx, route.ts, feedback_hebrew_only.md) | 21 reads | ~83339 tok |
+| 09:40 | Session end: 26 writes across 13 files (inspect-yaakov-roles.mjs, purrfect-wondering-flame.md, page.tsx, route.ts, feedback_hebrew_only.md) | 21 reads | ~83339 tok |

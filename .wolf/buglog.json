@@ -6012,6 +6012,125 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-30T14:20:00.000Z"
+    },
+    {
+      "id": "bug-369",
+      "timestamp": "2026-08-31T05:22:40.683Z",
+      "error_message": "CSS fix: background",
+      "file": "src/app/admin/users/page.tsx",
+      "root_cause": "background: role.is_active ? ROLE_COLORS[role.role] : '#cbd5e1', → ROLE_COLORS[role.role],",
+      "fix": "Changed background: role.is_active ? ROLE_COLORS[role.role] : '#cbd5e1', → ROLE_COLORS[role.role],",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-08-31T05:27:52.472Z"
+    },
+    {
+      "id": "bug-370",
+      "timestamp": "2026-08-31T05:23:21.319Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/admin/users/[userId]/roles/route.ts",
+      "root_cause": "7 lines replaced/restructured",
+      "fix": "Rewrote 17→43 lines (7 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T05:23:21.319Z"
+    },
+    {
+      "id": "bug-371",
+      "timestamp": "2026-08-31T05:24:12.778Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/feedback_hebrew_only.md",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 12→12 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T05:24:12.778Z"
+    },
+    {
+      "id": "bug-372",
+      "timestamp": "2026-08-31T05:27:35.074Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Had `/api/vehicle-models?make=${encodeURIComponent(eng",
+      "fix": "Changed to `/api/vehicle-models?make=${encodeURIComponent(eng",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T05:27:35.074Z"
+    },
+    {
+      "id": "bug-373",
+      "timestamp": "2026-08-31T05:28:44.657Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T05:28:44.658Z"
+    },
+    {
+      "id": "bug-374",
+      "timestamp": "2026-08-31T06:15:00.000Z",
+      "error_message": "משתמש דיווח: הסרתי הרשאת מנהל מחוז ליעקב טופיק ועדיין הוא מוצג באפור - וברשומה נמצאו שתי שורות \"מנהל מחוז\" כפולות, שתיהן לא-פעילות",
+      "file": "src/app/api/admin/users/[userId]/roles/route.ts",
+      "root_cause": "POST (הוספת תפקיד קיים למשתמש) תמיד עשה insert לשורה חדשה ב-user_roles בלי לבדוק אם כבר קיימת שורה (אפילו לא-פעילה) מאותו role לאותו user_id. הוספה→הסרה→הוספה חוזרת של אותו תפקיד יצרה שורת-רפאים כפולה בכל פעם, במיוחד בעייתי לתפקידים singleton כמו super_manager/puncture_manager/admin שאין להם station_id/call_center_id שמייחד ביניהם. אומת בפועל מול ה-DB החי: user_id 28ac62f6-38c6-47a0-aed9-4ee5939cb9a4 (יעקב טופיק) - 2 שורות super_manager, שתיהן is_active:false, created_at שונה ב-13 שעות",
+      "fix": "לפני insert, שאילתה שבודקת שורה קיימת (פעילה או לא) לפי user_id+role, מסוננת גם לפי station_id/call_center_id כשרלוונטי (כדי לא לפגוע במנהלי כמה תחנות/מוקדים שצריכים כמה שורות באמת) - אם נמצאה, מפעילים אותה מחדש (is_active:true + עדכון שדות) במקום insert חדש. גם תוקן api/admin/super-managers/route.ts PUT שעדכן can_edit על כל שורות ה-super_manager של המשתמש בלי סינון is_active (הוסף .eq('is_active', true)). נוקו ידנית שתי השורות הכפולות הלא-פעילות של יעקב טופיק דרך סקריפט חד-פעמי מול ה-DB",
+      "tags": [
+        "user-reported",
+        "duplicate-rows",
+        "user-roles",
+        "admin-users"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T06:15:00.000Z"
+    },
+    {
+      "id": "bug-375",
+      "timestamp": "2026-08-31T00:00:00.000Z",
+      "error_message": "משתמשים דיווחו: זיהוי תמונה (חיפוש לפי צילום רישיון) לא עובד טוב",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "שתי בעיות ב-handleModelSearch/handleOcrSearch: (1) handleModelSearch נקרא מ-handleOcrSearch עם overrides.year שכבר נפתר נכון, אבל בניית ה-URL לשאילתת /api/vehicle-models השתמשה במשתנה ה-state modelSearchYear במקום במשתנה year המקומי - וה-state עדיין לא התעדכן באותו tick סינכרוני (setModelSearchYear נקרא ממש לפני ה-await), כך שכל חיפוש שמגיע מ-OCR נשלח עם פילטר שנה ריק, מה שגרם ל-DB להחזיר את כל השנים של יצרן+דגם ולעיתים קרובות להפעיל בטעות את חלון בחירת המפרט (uniqueSpecs.size>1) גם כשה-OCR זיהה שנה נכונה. קשור ישירות ל-bug-123 (2026-07-26) שתיקן אז רק את תסמין ה-UI התקוע, לא את הסיבה הזו. (2) canModelSearch דרש manufacturer&&model&&year יחד - כש-OCR נכשל לקרוא שנה (שדה קטן ברישיון, קורה הרבה) המערכת נפלה לחיפוש לפי מספר רכב במקום זה, גם כשיצרן+דגם זוהו נכון ואושרו על ידי המשתמש.",
+      "fix": "1) תוקן שימוש ב-year (המשתנה הנכון) במקום modelSearchYear בבניית ה-URL. 2) canModelSearch כבר לא דורש year (רק manufacturer&&model); handleModelSearch מקבל allowMissingYear (מוגדר רק מהקריאה מ-OCR, לא מכפתור החיפוש הידני) ומדלג על ולידציית השנה - וכשיש כמה מפרטים אפשריים לדגם על פני שנים שונות, נעשה שימוש בחלון בחירת המפרט הקיים. 3) בעת התכנון התגלה עוד באג: חלון בחירת המפרט וחלון הרכב חולקים zIndex זהה (modalOverlay) ויכלו להיות מוצגים בו-זמנית, כשחלון הרכב (מאוחר יותר ב-DOM) מסתיר את חלון הבחירה - תוקן על ידי שינוי ערך ההחזרה של handleModelSearch ל-'done'|'ambiguous'|'validation-error'|'error', ו-handleOcrSearch פותח מחדש את חלון הרכב רק כשהתוצאה אינה 'ambiguous'; handleVehicleModelSelect פותח את חלון הרכב בעצמו אחרי שהמשתמש בוחר מפרט. 4) תוקן גם תצוגת NaN בשדה השנה כש-year ריק (parseInt(year) || model.year_from || 0). 5) חלון אישור ה-OCR הפך משדות read-only מותנים לשדות input עריכים תמיד-מוצגים (plate/manufacturer/model/year), כדי שמשתמש יוכל לתקן/למלא שדה בודד שגוי בלי לזרוק זיהוי שברובו נכון. אומת חי דרך Playwright עם מוקים ל-/api/ocr ו-/api/vehicle-models (אין תמונת רישיון אמיתית זמינה) - 4 תרחישים + רגרסיה על החיפוש הידני, כולל בדיקה חזותית שחלון הבחירה אכן גלוי ולחיץ.",
+      "tags": [
+        "user-reported",
+        "ocr",
+        "vehicle-search",
+        "stale-state",
+        "search-page",
+        "modal-zindex"
+      ],
+      "related_bugs": [
+        "bug-123",
+        "bug-120"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-08-31T00:00:00.000Z"
     }
   ]
 }
