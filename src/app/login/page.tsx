@@ -44,6 +44,10 @@ export default function LoginPage() {
     setSavedPreferredRole(localStorage.getItem('preferred_role'))
     const saved = localStorage.getItem('saved_phone')
     if (saved) setPhone(saved)
+    if (saved && localStorage.getItem('biometric_enabled') === 'true') {
+      setBiometricOnlyMode(true)
+    }
+    setCheckingBiometricPreference(false)
   }, [])
 
   // Forgot password state
@@ -85,6 +89,11 @@ export default function LoginPage() {
   const [hasPasskey, setHasPasskey] = useState(false)
   const [biometricLoading, setBiometricLoading] = useState(false)
   const [enrollLoading, setEnrollLoading] = useState(false)
+  // Whether this device already completed biometric enrollment — if so, the
+  // login screen opens straight into the fingerprint-only view instead of the
+  // phone/password form, per the saved `biometric_enabled` flag below.
+  const [biometricOnlyMode, setBiometricOnlyMode] = useState(false)
+  const [checkingBiometricPreference, setCheckingBiometricPreference] = useState(true)
 
   useEffect(() => {
     import('@simplewebauthn/browser').then(({ browserSupportsWebAuthn }) => {
@@ -102,6 +111,13 @@ export default function LoginPage() {
         const res = await fetch(`/api/auth/webauthn/status?phone=${encodeURIComponent(cleanPhone)}`)
         const data = await res.json()
         setHasPasskey(!!data.hasPasskey)
+        // The saved passkey was revoked/removed server-side since the local flag
+        // was set — fall back to the normal form instead of stranding the user
+        // on a fingerprint button that can never succeed.
+        if (!data.hasPasskey) {
+          localStorage.removeItem('biometric_enabled')
+          setBiometricOnlyMode(false)
+        }
       } catch {
         setHasPasskey(false)
       }
@@ -182,6 +198,7 @@ export default function LoginPage() {
 
       toast.success('כניסה ביומטרית הופעלה במכשיר זה!')
       setHasPasskey(true)
+      localStorage.setItem('biometric_enabled', 'true')
     } catch (err) {
       if (!isWebauthnCancellation(err)) setError('הפעלת כניסה ביומטרית נכשלה')
     } finally {
@@ -338,6 +355,70 @@ export default function LoginPage() {
       .form-input { font-size: 15px !important; }
     }
   `
+
+  // Avoid a flash of the full phone/password form before we've had a chance
+  // to read the saved biometric preference from localStorage.
+  if (checkingBiometricPreference) {
+    return (
+      <div style={styles.container}>
+        <div style={{ ...styles.formCard, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '160px' }} className="form-card">
+          <LoadingSpin text="טוען..." />
+        </div>
+      </div>
+    )
+  }
+
+  // Fingerprint-only screen — shown by default once biometric login has been
+  // enabled on this device, with a small link to fall back to the normal form.
+  if (biometricOnlyMode) {
+    return (
+      <div style={styles.container}>
+        <style>{responsiveStyles}</style>
+
+        <Link href="/" style={styles.backHomeBtn}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          דף הבית
+        </Link>
+
+        <div style={styles.formCard} className="form-card">
+          <div style={styles.formLogo} className="form-logo">
+            <Image src="/logo.wheels.png" alt="לוגו מערכת גלגלים" width={80} height={80} style={{ objectFit: 'contain' }} />
+          </div>
+          <h1 style={styles.formTitle} className="form-title">כניסה למערכת</h1>
+          <p style={styles.formSubtitle}>כניסה עם טביעת אצבע</p>
+
+          {error && <div style={{ ...styles.error, marginBottom: '14px' }}>{error}</div>}
+
+          <button
+            type="button"
+            onClick={handleBiometricLogin}
+            disabled={biometricLoading}
+            style={styles.formSubmit}
+            className="form-submit"
+          >
+            {biometricLoading ? <LoadingSpin text="מאמת..." /> : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Fingerprint size={19} />
+                כניסה עם טביעת אצבע
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setError(''); setBiometricOnlyMode(false) }}
+            style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '16px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' }}
+          >
+            כניסה עם שם משתמש וסיסמה
+          </button>
+        </div>
+
+        <Footer />
+      </div>
+    )
+  }
 
   // Role picker (multiple roles found)
   if (roles) {
