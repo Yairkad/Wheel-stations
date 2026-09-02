@@ -402,59 +402,9 @@ export default function LoginPage() {
     )
   }
 
-  // Fingerprint-only screen — shown by default once biometric login has been
-  // enabled on this device, with a small link to fall back to the normal form.
-  if (biometricOnlyMode) {
-    return (
-      <div style={styles.container}>
-        <style>{responsiveStyles}</style>
-
-        <Link href="/" style={styles.backHomeBtn}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
-          דף הבית
-        </Link>
-
-        <div style={styles.formCard} className="form-card">
-          <div style={styles.formLogo} className="form-logo">
-            <Image src="/logo.wheels.png" alt="לוגו מערכת גלגלים" width={80} height={80} style={{ objectFit: 'contain' }} />
-          </div>
-          <h1 style={styles.formTitle} className="form-title">כניסה למערכת</h1>
-          <p style={styles.formSubtitle}>כניסה עם טביעת אצבע</p>
-
-          {error && <div style={{ ...styles.error, marginBottom: '14px' }}>{error}</div>}
-
-          <button
-            type="button"
-            onClick={handleBiometricLogin}
-            disabled={biometricLoading}
-            style={styles.formSubmit}
-            className="form-submit"
-          >
-            {biometricLoading ? <LoadingSpin text="מאמת..." /> : (
-              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <Fingerprint size={19} />
-                כניסה עם טביעת אצבע
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => { setError(''); fallbackChosenRef.current = true; setBiometricOnlyMode(false) }}
-            style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '16px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' }}
-          >
-            כניסה עם שם משתמש וסיסמה
-          </button>
-        </div>
-
-        <Footer />
-      </div>
-    )
-  }
-
-  // Role picker (multiple roles found)
+  // Role picker (multiple roles found) — checked before biometricOnlyMode so a
+  // successful biometric login with several roles can actually show this
+  // screen instead of being masked by the fingerprint-only view below.
   if (roles) {
     const roleConfig: Record<string, { color: string; bg: string; border: string; icon: React.ReactNode }> = {
       station_manager: {
@@ -550,6 +500,60 @@ export default function LoginPage() {
             זכור את הבחירה שלי ותמיד כנס לתפקיד זה
           </label>
         </div>
+      </div>
+    )
+  }
+
+  // Fingerprint-only screen — shown by default once biometric login has been
+  // enabled on this device, with a small link to fall back to the normal form.
+  if (biometricOnlyMode) {
+    return (
+      <div style={styles.container}>
+        <style>{responsiveStyles}</style>
+
+        <Link href="/" style={styles.backHomeBtn}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          דף הבית
+        </Link>
+
+        <div style={styles.formCard} className="form-card">
+          <div style={styles.formLogo} className="form-logo">
+            <Image src="/logo.wheels.png" alt="לוגו מערכת גלגלים" width={80} height={80} style={{ objectFit: 'contain' }} />
+          </div>
+          <h1 style={styles.formTitle} className="form-title">כניסה למערכת</h1>
+          <p style={styles.formSubtitle}>כניסה עם טביעת אצבע</p>
+
+          <div style={styles.form}>
+            {error && <div style={styles.error}>{error}</div>}
+
+            <button
+              type="button"
+              onClick={handleBiometricLogin}
+              disabled={biometricLoading}
+              style={styles.formSubmit}
+              className="form-submit"
+            >
+              {biometricLoading ? <LoadingSpin text="מאמת..." /> : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Fingerprint size={19} />
+                  כניסה עם טביעת אצבע
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setError(''); fallbackChosenRef.current = true; setBiometricOnlyMode(false) }}
+              style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' }}
+            >
+              כניסה עם שם משתמש וסיסמה
+            </button>
+          </div>
+        </div>
+
+        <Footer />
       </div>
     )
   }
