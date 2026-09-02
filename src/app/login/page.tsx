@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
@@ -43,11 +43,16 @@ export default function LoginPage() {
   useEffect(() => {
     setSavedPreferredRole(localStorage.getItem('preferred_role'))
     const saved = localStorage.getItem('saved_phone')
-    if (saved) setPhone(saved)
-    if (saved && localStorage.getItem('biometric_enabled') === 'true') {
+    if (!saved) { setCheckingBiometricPreference(false); return }
+    setPhone(saved)
+    enrolledPhoneDigitsRef.current = saved.replace(/\D/g, '')
+    if (localStorage.getItem('biometric_enabled') === 'true') {
       setBiometricOnlyMode(true)
+      setCheckingBiometricPreference(false)
     }
-    setCheckingBiometricPreference(false)
+    // Else: the flag is missing (e.g. this device enrolled before the flag
+    // existed) — leave checkingBiometricPreference on until the passkey-status
+    // effect below confirms server-side whether `saved` actually has one.
   }, [])
 
   // Forgot password state
@@ -85,7 +90,7 @@ export default function LoginPage() {
   }
 
   // Biometric (WebAuthn) login state
-  const [webauthnSupported, setWebauthnSupported] = useState(false)
+  const [webauthnSupported, setWebauthnSupported] = useState<boolean | null>(null)
   const [hasPasskey, setHasPasskey] = useState(false)
   const [biometricLoading, setBiometricLoading] = useState(false)
   const [enrollLoading, setEnrollLoading] = useState(false)
@@ -94,6 +99,15 @@ export default function LoginPage() {
   // phone/password form, per the saved `biometric_enabled` flag below.
   const [biometricOnlyMode, setBiometricOnlyMode] = useState(false)
   const [checkingBiometricPreference, setCheckingBiometricPreference] = useState(true)
+  // Digits of the phone this device is enrolled/saved under. The passkey-status
+  // check below only switches the full screen (and writes `biometric_enabled`)
+  // when it's checking THIS phone — typing some other phone into the fallback
+  // form should only toggle that form's own fingerprint button, never yank the
+  // user into the fingerprint-only screen for a number that isn't theirs.
+  const enrolledPhoneDigitsRef = useRef<string | null>(null)
+  // Once the user explicitly chooses the fallback form, don't switch them back
+  // to the fingerprint-only screen for the rest of this page load.
+  const fallbackChosenRef = useRef(false)
 
   useEffect(() => {
     import('@simplewebauthn/browser').then(({ browserSupportsWebAuthn }) => {
@@ -103,23 +117,42 @@ export default function LoginPage() {
 
   // Debounced check of whether this phone already has a registered passkey
   useEffect(() => {
-    if (!webauthnSupported) return
+    if (webauthnSupported === null) return
     const cleanPhone = phone.replace(/\D/g, '')
-    if (cleanPhone.length < 9) { setHasPasskey(false); return }
+    const isEnrolledPhone = !fallbackChosenRef.current && cleanPhone.length > 0 && cleanPhone === enrolledPhoneDigitsRef.current
+
+    if (!webauthnSupported || cleanPhone.length < 9) {
+      setHasPasskey(false)
+      if (isEnrolledPhone) {
+        localStorage.removeItem('biometric_enabled')
+        setBiometricOnlyMode(false)
+        setCheckingBiometricPreference(false)
+      }
+      return
+    }
+
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/auth/webauthn/status?phone=${encodeURIComponent(cleanPhone)}`)
         const data = await res.json()
         setHasPasskey(!!data.hasPasskey)
-        // The saved passkey was revoked/removed server-side since the local flag
-        // was set — fall back to the normal form instead of stranding the user
-        // on a fingerprint button that can never succeed.
-        if (!data.hasPasskey) {
-          localStorage.removeItem('biometric_enabled')
-          setBiometricOnlyMode(false)
+        // Only the enrolled phone's own check may flip the full-screen mode —
+        // this both self-heals devices that enrolled before `biometric_enabled`
+        // existed, and falls back to the normal form if that credential was
+        // later revoked server-side.
+        if (isEnrolledPhone) {
+          if (data.hasPasskey) {
+            localStorage.setItem('biometric_enabled', 'true')
+            setBiometricOnlyMode(true)
+          } else {
+            localStorage.removeItem('biometric_enabled')
+            setBiometricOnlyMode(false)
+          }
+          setCheckingBiometricPreference(false)
         }
       } catch {
         setHasPasskey(false)
+        if (isEnrolledPhone) setCheckingBiometricPreference(false)
       }
     }, 400)
     return () => clearTimeout(timer)
@@ -199,6 +232,7 @@ export default function LoginPage() {
       toast.success('כניסה ביומטרית הופעלה במכשיר זה!')
       setHasPasskey(true)
       localStorage.setItem('biometric_enabled', 'true')
+      enrolledPhoneDigitsRef.current = cleanPhone
     } catch (err) {
       if (!isWebauthnCancellation(err)) setError('הפעלת כניסה ביומטרית נכשלה')
     } finally {
@@ -408,7 +442,7 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={() => { setError(''); setBiometricOnlyMode(false) }}
+            onClick={() => { setError(''); fallbackChosenRef.current = true; setBiometricOnlyMode(false) }}
             style={{ background: 'none', border: 'none', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem', marginTop: '16px', textDecoration: 'underline', width: '100%', textAlign: 'center', fontFamily: 'inherit' }}
           >
             כניסה עם שם משתמש וסיסמה
