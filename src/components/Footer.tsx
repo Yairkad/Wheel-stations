@@ -56,6 +56,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '12px',
   },
   link: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     color: '#64748b',
     textDecoration: 'none',
     fontWeight: 500,
