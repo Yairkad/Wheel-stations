@@ -53,6 +53,11 @@ function SearchPageContent() {
   const [vehicleResult, setVehicleResult] = useState<VehicleSearchResult | null>(null)
   const [vehicleError, setVehicleError] = useState<string | null>(null)
   const [vehicleSearchResults, setVehicleSearchResults] = useState<SearchResult[] | null>(null)
+  // Bumped at the start of every vehicle-search entry point (plate lookup, model search,
+  // model selection, history reload). Fetch callbacks compare their captured value against
+  // the ref before writing to vehicleResult/vehicleSearchResults/vehicleError, so a slower
+  // older search can't overwrite a newer one's results if responses arrive out of order.
+  const vehicleSearchSeqRef = useRef(0)
   const [stationFilterId, setStationFilterId] = useState('')
   const [manualRimSize, setManualRimSize] = useState<number | null>(null)
   const [vehicleHistory, setVehicleHistory] = useState<VehicleHistoryItem[]>([])
@@ -412,6 +417,7 @@ function SearchPageContent() {
 
   // Vehicle lookup functions
   const openVehicleModal = () => {
+    vehicleSearchSeqRef.current++ // invalidate any still in-flight search from before opening
     setShowVehicleModal(true)
     setVehicleResult(null)
     setVehicleError(null)
@@ -426,6 +432,7 @@ function SearchPageContent() {
   }
 
   const closeVehicleModal = () => {
+    vehicleSearchSeqRef.current++ // invalidate any still in-flight search from before closing
     setShowVehicleModal(false)
     setOcrAutoSearch(false)
     setVehicleResult(null)
@@ -480,6 +487,7 @@ function SearchPageContent() {
   }
 
   const loadFromHistory = async (item: VehicleHistoryItem) => {
+    const seq = ++vehicleSearchSeqRef.current
     setVehiclePlate(item.plate)
     setVehicleResult(item.vehicleResult)
     setVehicleError(null)
@@ -495,6 +503,7 @@ function SearchPageContent() {
         const res = await fetch(`/api/wheel-stations/search?${params}`)
         if (res.ok) {
           const data = await res.json()
+          if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
           setStationFilterId('')
           setVehicleSearchResults(data.results)
         }
@@ -510,6 +519,7 @@ function SearchPageContent() {
       return
     }
 
+    const seq = ++vehicleSearchSeqRef.current
     setVehicleLoading(true)
     setVehicleError(null)
     setVehicleResult(null)
@@ -518,6 +528,7 @@ function SearchPageContent() {
     try {
       const response = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(plate)}`)
       const data = await response.json()
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       if (!response.ok) {
         setVehicleError(data.error || 'שגיאה בחיפוש')
@@ -539,15 +550,17 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
+          if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
           setStationFilterId('')
           setVehicleSearchResults(searchData.results)
         }
       }
     } catch (err) {
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
       const errorMessage = err instanceof Error ? err.message : 'בעיה בתקשורת עם השרת'
       setVehicleError(`שגיאה בחיבור לשרת: ${errorMessage}`)
     } finally {
-      setVehicleLoading(false)
+      if (seq === vehicleSearchSeqRef.current) setVehicleLoading(false)
     }
   }
 
@@ -581,6 +594,7 @@ function SearchPageContent() {
       return 'validation-error'
     }
 
+    const seq = ++vehicleSearchSeqRef.current
     setModelSearchLoading(true)
     setVehicleError(null)
     setVehicleResult(null)
@@ -600,6 +614,7 @@ function SearchPageContent() {
         `/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}&year=${encodeURIComponent(year)}`
       )
       const localData = await localResponse.json()
+      if (seq !== vehicleSearchSeqRef.current) return 'done' // a newer search started meanwhile
 
       let wheelFitment = null
 
@@ -654,23 +669,25 @@ function SearchPageContent() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
+          if (seq !== vehicleSearchSeqRef.current) return 'done' // a newer search started meanwhile
           setStationFilterId('')
           setVehicleSearchResults(searchData.results)
         }
-      } else {
+      } else if (seq === vehicleSearchSeqRef.current) {
         setVehicleError('לא נמצאו מידות גלגל לדגם זה. נסה לחפש באתר wheel-size.com')
       }
       return 'done'
     } catch {
-      setVehicleError('שגיאה בחיפוש')
+      if (seq === vehicleSearchSeqRef.current) setVehicleError('שגיאה בחיפוש')
       return 'error'
     } finally {
-      setModelSearchLoading(false)
+      if (seq === vehicleSearchSeqRef.current) setModelSearchLoading(false)
     }
   }
 
   // Handle model selection when multiple models match
   const handleVehicleModelSelect = async (selectedModel: VehicleModelRecord) => {
+    const seq = ++vehicleSearchSeqRef.current
     setShowModelSelectionModal(false)
     setMatchingModels([])
     setModelSearchLoading(true)
@@ -704,14 +721,17 @@ function SearchPageContent() {
       const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
       if (searchResponse.ok) {
         const searchData = await searchResponse.json()
+        if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
         setStationFilterId('')
         setVehicleSearchResults(searchData.results)
       }
     } catch {
-      setVehicleError('שגיאה בחיפוש')
+      if (seq === vehicleSearchSeqRef.current) setVehicleError('שגיאה בחיפוש')
     } finally {
-      setModelSearchLoading(false)
-      setShowVehicleModal(true)  // reveal results — no-op if already open (manual-flow case)
+      if (seq === vehicleSearchSeqRef.current) {
+        setModelSearchLoading(false)
+        setShowVehicleModal(true)  // reveal results — no-op if already open (manual-flow case)
+      }
     }
   }
 
@@ -1704,7 +1724,7 @@ function SearchPageContent() {
             {vehicleSearchTab === 'model' && (
               <button
                 role="tab"
-                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
+                onClick={() => { vehicleSearchSeqRef.current++; setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
                 style={{...styles.searchFallbackBtn, marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px'}}
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" transform="rotate(180 12 12)"/></svg>
@@ -1745,7 +1765,7 @@ function SearchPageContent() {
                     <button
                       role="tab"
                       aria-controls="model-search-panel"
-                      onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
+                      onClick={() => { vehicleSearchSeqRef.current++; setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setStationFilterId(''); setManualRimSize(null); }}
                       style={styles.searchFallbackBtnPrimary}
                     >
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>

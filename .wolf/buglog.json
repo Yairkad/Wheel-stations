@@ -6131,6 +6131,143 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-08-31T00:00:00.000Z"
+    },
+    {
+      "id": "bug-376",
+      "timestamp": "2026-09-02T18:43:06.076Z",
+      "error_message": "Incorrect value in code",
+      "file": ".mcp.json",
+      "root_cause": "Had \"https://mcp.supabase.com/mcp?project_ref=gapeinrt",
+      "fix": "Changed to \"https://mcp.supabase.com/mcp?project_ref=jgkmcsxr",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-02T18:43:06.076Z"
+    },
+    {
+      "id": "bug-377",
+      "timestamp": "2026-09-02T19:09:00.000Z",
+      "error_message": "Supabase Security Advisor WARN: function_search_path_mutable on public.is_manager_of_city and public.get_user_managed_city_ids",
+      "file": "supabase/migrations/20260902_fix_function_search_path.sql",
+      "root_cause": "Both functions were SECURITY DEFINER without SET search_path, unlike every other helper function of the same family (is_super_admin, has_full_access, get_user_city_id, etc) which already had it — these two were missed, likely created directly via SQL editor rather than a tracked migration (schema drift, not present anywhere in supabase/migrations/ before this fix).",
+      "fix": "CREATE OR REPLACE both functions with SET search_path TO 'public' added, applied live via Supabase MCP apply_migration and backfilled into supabase/migrations/. Confirmed fixed via get_advisors re-run. Left the related anon/authenticated SECURITY DEFINER RPC-exposure warnings (9 functions) alone on purpose — all are used inside ~30 RLS policies and either scope to auth.uid() or are trigger-only (error if called directly via RPC), so no live exploit; moving them out of the exposed schema would require rewriting every policy for low marginal benefit.",
+      "tags": [
+        "supabase",
+        "security-advisor",
+        "search_path",
+        "security-definer",
+        "rls",
+        "schema-drift"
+      ],
+      "related_bugs": [
+        "bug-376"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-02T19:09:00.000Z"
+    },
+    {
+      "id": "bug-378",
+      "timestamp": "2026-09-02T20:49:40.803Z",
+      "error_message": "Incorrect value in code",
+      "file": ".mcp.json",
+      "root_cause": "Had \"https://mcp.supabase.com/mcp?project_ref=jgkmcsxr",
+      "fix": "Changed to \"https://mcp.supabase.com/mcp?project_ref=gapeinrt",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-02T20:49:40.803Z"
+    },
+    {
+      "id": "bug-379",
+      "timestamp": "2026-09-02T21:32:36.675Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/5c5a0301-22f1-4b44-83e8-6d55d2855243/scratchpad/repro-pcd-filter.mjs",
+      "root_cause": "Had '../../../../../../../Desktop/projects/WHEELS_APP/",
+      "fix": "Changed to '/.env.local'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "mjs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-02T21:32:36.675Z"
+    },
+    {
+      "id": "bug-380",
+      "timestamp": "2026-09-03T05:07:49.527Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "No early return/throw for edge case: item.vehicleResult.wheel_fitment",
+      "fix": "Added guard clause: if (item.vehicleResult.wheel_fitment)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 8,
+      "last_seen": "2026-09-03T05:11:57.182Z"
+    },
+    {
+      "id": "bug-381",
+      "timestamp": "2026-09-03T05:14:10.481Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "13 lines replaced/restructured",
+      "fix": "Rewrote 23→7 lines (13 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-03T05:14:10.481Z"
+    },
+    {
+      "id": "bug-382",
+      "timestamp": "2026-09-03T05:14:10.481Z",
+      "error_message": "User screenshot: vehicle search for a 2019 Corolla (PCD 5x100) showed wheels A13/A15/#106 in the results, which are real DB rows with bolt_spacing=114.3 — a completely incompatible bolt pattern that should never appear for this car.",
+      "file": "src/app/search/page.tsx, src/app/stations/page.tsx",
+      "root_cause": "Every vehicle-search entry point (handleVehicleLookup, handleModelSearch, handleVehicleModelSelect, loadFromHistory, plate deep-link effect) fires two sequential fetches (vehicle lookup + wheel search) and unconditionally calls setVehicleResult/setVehicleSearchResults whenever each promise resolves, with zero AbortController or sequence token. Verified both matching layers are correct in isolation (checkRimFit simulated with the screenshot's numbers returns 'match'; the API's PCD filter reproduced live against the real DB correctly excludes the 5x114.3 wheels) — the only way the wrong wheels could appear together with the right vehicle card is if an older, slower search's response resolved after a newer one's and overwrote its state.",
+      "fix": "Added a vehicleSearchSeqRef (useRef counter) bumped at the start of every entry point and on every manual clear/tab-switch (openVehicleModal, closeVehicleModal, tab-switch buttons); each async setState after an await now checks the captured seq against the ref's current value and bails out if a newer search has started, in both search/page.tsx and stations/page.tsx (duplicated logic, same fix applied to both).",
+      "tags": [
+        "race-condition",
+        "vehicle-search",
+        "pcd-mismatch",
+        "stale-state",
+        "search",
+        "stations"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-03T05:14:10.481Z"
+    },
+    {
+      "id": "bug-383",
+      "timestamp": "2026-09-03T05:20:00.000Z",
+      "error_message": "User screenshot: wheel card #70 showed two separate 'לא זמין' (unavailable) badges at once — an orange warning badge and a red status pill.",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "The mobile wheel-card view rendered two independent badges for the same temporarily_unavailable flag: a dedicated absolutely-positioned orange badge (added for the maintenance-flag feature) AND the existing cardStatus pill, which already shows 'לא זמין' for temporarily_unavailable per an earlier documented fix (2026-07-26, bug-122-adjacent) that made the pill reflect temporarily_unavailable instead of always showing green 'זמין'. The desktop table view only ever had the single pill, so the duplication was mobile-card-only.",
+      "fix": "Removed the redundant floating orange badge block; the cardStatus pill remains the single source for the availability label on the card image. The manager-only detail box below the card (reason/notes for the maintenance flag) was untouched — that's additive detail, not a duplicate.",
+      "tags": [
+        "ui-duplication",
+        "wheel-card",
+        "temporarily_unavailable",
+        "station-page"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-03T05:20:00.000Z"
     }
   ]
 }

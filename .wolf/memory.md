@@ -2249,3 +2249,125 @@
 | 09:30 | Edited ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/MEMORY.md | 1→2 lines | ~99 |
 | 09:31 | Session end: 26 writes across 13 files (inspect-yaakov-roles.mjs, purrfect-wondering-flame.md, page.tsx, route.ts, feedback_hebrew_only.md) | 21 reads | ~83339 tok |
 | 09:40 | Session end: 26 writes across 13 files (inspect-yaakov-roles.mjs, purrfect-wondering-flame.md, page.tsx, route.ts, feedback_hebrew_only.md) | 21 reads | ~83339 tok |
+| 09:50 | Session end: 26 writes across 13 files (inspect-yaakov-roles.mjs, purrfect-wondering-flame.md, page.tsx, route.ts, feedback_hebrew_only.md) | 21 reads | ~83339 tok |
+
+## Session: 2026-09-02 21:17
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 21:37
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 21:43 | Edited .mcp.json | inline fix | ~22 |
+
+## Session: 2026-09-02 21:44
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 21:44
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 22:00
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 22:00
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 19:05
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 19:05 | Investigated Supabase Security Advisor via MCP (get_advisors + execute_sql on pg_proc/pg_policies) | .mcp.json (fixed wrong project_ref), supabase/migrations/* (read-only) | Found: 2 funcs missing search_path, 9 SECURITY DEFINER funcs (is_super_admin/get_user_managed_city_ids/etc) exposed via anon+authenticated RPC but all used inside ~30 RLS policies across cities/equipment_requests/etc — safe today (auth.uid()-scoped or trigger-only, errors if called directly) but not in migration files (schema drift, created via SQL editor). Also leaked-password-protection disabled, 3 tables RLS-enabled-no-policy. Presented findings, awaiting user decision on fixes | ~15k |
+| 22:08 | Created supabase/migrations/20260902_fix_function_search_path.sql | — | ~395 |
+| 22:10 | Session end: 1 writes across 1 files (20260902_fix_function_search_path.sql) | 0 reads | ~424 tok |
+
+## Session: 2026-09-02 22:12
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:20 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/43b7b536-292e-4cf0-acea-4b38d738b599/scratchpad/wheel-matching-guide.html | — | ~6017 |
+| 22:21 | Session end: 1 writes across 1 files (wheel-matching-guide.html) | 4 reads | ~94276 tok |
+| 22:24 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/43b7b536-292e-4cf0-acea-4b38d738b599/scratchpad/מתי-גלגל-מתאים.txt | — | ~873 |
+| 22:25 | Session end: 2 writes across 2 files (wheel-matching-guide.html, מתי-גלגל-מתאים.txt) | 4 reads | ~95211 tok |
+| 22:30 | Session end: 2 writes across 2 files (wheel-matching-guide.html, מתי-גלגל-מתאים.txt) | 6 reads | ~95211 tok |
+| 22:32 | Session end: 2 writes across 2 files (wheel-matching-guide.html, מתי-גלגל-מתאים.txt) | 6 reads | ~95211 tok |
+
+## Session: 2026-09-02 23:43
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 23:50 | Traced user-reported "קוטר לא תואם" shown on wheels within the ±1" tolerance (screenshots); simulated checkRimFit with exact screenshot values — code returns 'match' correctly, contradicts screenshot | src/lib/vehicle-mappings.ts, src/app/search/page.tsx | Code logic confirmed correct; discrepancy unresolved pending live data check | ~15k |
+| 23:55 | Attempted live DB check via Supabase MCP; discovered MCP is connected to wrong project (jgkmcsxrtovrdiguhwyv, a different app) not this app's real project (gapeinrtjcrjouioowap) | .wolf/cerebrum.md | Logged as Do-Not-Repeat; blocked on user reconnecting MCP to correct project | ~8k |
+| 05:00 | Reconfigured .mcp.json to correct Supabase project; hosted OAuth server failed (non-interactive session), switched to local stdio server with user-provided PAT; hit and fixed a peer-dependency crash (@modelcontextprotocol/server not auto-installed by npx -y) | .mcp.json | Connected successfully to gapeinrtjcrjouioowap | ~20k |
+| 05:10 | Queried live DB for the reported wheels (A13/A15/#106/#17); found they're real 5x114.3 wheels, incompatible with the 5x100 Corolla — ruled out checkRimFit and the API's PCD filter (both verified correct via live reproduction scripts), root-caused to a request race condition with no sequence guarding across all vehicle-search entry points | src/lib/vehicle-mappings.ts, src/app/search/page.tsx, src/app/stations/page.tsx | Root cause confirmed live | ~40k |
+| 05:14 | Fixed the race condition: added vehicleSearchSeqRef guard to every vehicle-search entry point and clear/tab-switch point in both search/page.tsx and stations/page.tsx | src/app/search/page.tsx, src/app/stations/page.tsx | tsc --noEmit clean; logged as bug-382 | ~15k |
+| 05:20 | Fixed user-reported duplicate "לא זמין" badge on the station page's mobile wheel card (temporarily_unavailable rendered twice) | src/app/[stationId]/page.tsx | tsc --noEmit clean; logged as bug-383 | ~5k |
+| 23:49 | Edited .mcp.json | inline fix | ~22 |
+| 23:50 | Session end: 1 writes across 1 files (.mcp.json) | 3 reads | ~65 tok |
+
+## Session: 2026-09-02 23:55
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 23:55
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:03 | Created .mcp.json | — | ~89 |
+| 00:04 | Session end: 1 writes across 1 files (.mcp.json) | 1 reads | ~132 tok |
+
+## Session: 2026-09-02 00:05
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 00:05
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:10 | Edited .mcp.json | 5→9 lines | ~68 |
+| 00:10 | Session end: 1 writes across 1 files (.mcp.json) | 1 reads | ~157 tok |
+
+## Session: 2026-09-02 00:29
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-02 00:29
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:32 | Created ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/5c5a0301-22f1-4b44-83e8-6d55d2855243/scratchpad/repro-pcd-filter.mjs | — | ~484 |
+| 00:32 | Edited ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/5c5a0301-22f1-4b44-83e8-6d55d2855243/scratchpad/repro-pcd-filter.mjs | "../../../../../../../Desk" → "/.env.local" | ~19 |
+| 00:33 | Created tmp-repro-pcd-filter.mjs | — | ~468 |
+| 00:39 | Session end: 3 writes across 2 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs) | 2 reads | ~50006 tok |
+| 08:07 | Edited src/app/search/page.tsx | 2→7 lines | ~160 |
+| 08:07 | Edited src/app/search/page.tsx | added 1 condition(s) | ~287 |
+| 08:08 | Edited src/app/search/page.tsx | added 4 condition(s) | ~585 |
+| 08:08 | Edited src/app/search/page.tsx | added 1 condition(s) | ~288 |
+| 08:09 | Edited src/app/search/page.tsx | added 4 condition(s) | ~294 |
+| 08:09 | Edited src/app/search/page.tsx | 6→7 lines | ~67 |
+| 08:09 | Edited src/app/search/page.tsx | added 3 condition(s) | ~188 |
+| 08:09 | Edited src/app/search/page.tsx | 3→4 lines | ~54 |
+| 08:09 | Edited src/app/search/page.tsx | 2→3 lines | ~46 |
+| 08:10 | Edited src/app/search/page.tsx | inline fix | ~64 |
+| 08:10 | Edited src/app/search/page.tsx | inline fix | ~66 |
+| 08:10 | Edited src/app/stations/page.tsx | inline fix | ~15 |
+| 08:11 | Edited src/app/stations/page.tsx | 2→6 lines | ~144 |
+| 08:11 | Edited src/app/stations/page.tsx | added 4 condition(s) | ~747 |
+| 08:11 | Edited src/app/stations/page.tsx | added 1 condition(s) | ~308 |
+| 08:11 | Edited src/app/stations/page.tsx | added 4 condition(s) | ~193 |
+| 08:12 | Edited src/app/stations/page.tsx | inline fix | ~57 |
+| 08:12 | Edited src/app/stations/page.tsx | inline fix | ~57 |
+| 08:14 | Edited src/app/[stationId]/page.tsx | reduced (-16 lines) | ~120 |
+| 08:16 | Session end: 22 writes across 3 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx) | 4 reads | ~191254 tok |

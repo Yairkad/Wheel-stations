@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
@@ -62,6 +62,10 @@ export default function WheelStationsPage() {
   } | null>(null)
   const [vehicleError, setVehicleError] = useState<string | null>(null)
   const [vehicleSearchResults, setVehicleSearchResults] = useState<SearchResult[] | null>(null)
+  // Bumped at the start of every vehicle-search entry point so a slower, older search's
+  // response can't overwrite a newer one's results if responses arrive out of order —
+  // see the matching comment in search/page.tsx (same duplicated logic).
+  const vehicleSearchSeqRef = useRef(0)
   const [manualRimSize, setManualRimSize] = useState<number | null>(null) // For personal imports without tire info
 
   // Model search state
@@ -255,6 +259,7 @@ export default function WheelStationsPage() {
 
   // Vehicle lookup functions
   const openVehicleModal = () => {
+    vehicleSearchSeqRef.current++ // invalidate any still in-flight search from before opening
     setShowVehicleModal(true)
     setVehicleResult(null)
     setVehicleError(null)
@@ -267,6 +272,7 @@ export default function WheelStationsPage() {
   }
 
   const closeVehicleModal = () => {
+    vehicleSearchSeqRef.current++ // invalidate any still in-flight search from before closing
     setShowVehicleModal(false)
     setVehicleResult(null)
     setVehicleError(null)
@@ -284,6 +290,7 @@ export default function WheelStationsPage() {
       return
     }
 
+    const seq = ++vehicleSearchSeqRef.current
     setVehicleLoading(true)
     setVehicleError(null)
     setVehicleResult(null)
@@ -292,6 +299,7 @@ export default function WheelStationsPage() {
     try {
       const response = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(vehiclePlate)}`)
       const data = await response.json()
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       if (!response.ok) {
         setVehicleError(data.error || 'שגיאה בחיפוש')
@@ -312,14 +320,16 @@ export default function WheelStationsPage() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
+          if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
           setVehicleSearchResults(searchData.results)
         }
       }
     } catch (err) {
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
       const errorMessage = err instanceof Error ? err.message : 'בעיה בתקשורת עם השרת'
       setVehicleError(`שגיאה בחיבור לשרת: ${errorMessage}`)
     } finally {
-      setVehicleLoading(false)
+      if (seq === vehicleSearchSeqRef.current) setVehicleLoading(false)
     }
   }
 
@@ -337,6 +347,7 @@ export default function WheelStationsPage() {
       return
     }
 
+    const seq = ++vehicleSearchSeqRef.current
     setModelSearchLoading(true)
     setVehicleError(null)
     setVehicleResult(null)
@@ -356,6 +367,7 @@ export default function WheelStationsPage() {
         `/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}&year=${modelSearchYear}`
       )
       const localData = await localResponse.json()
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       let wheelFitment = null
 
@@ -391,15 +403,16 @@ export default function WheelStationsPage() {
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
           const searchData = await searchResponse.json()
+          if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
           setVehicleSearchResults(searchData.results)
         }
-      } else {
+      } else if (seq === vehicleSearchSeqRef.current) {
         setVehicleError('לא נמצאו מידות גלגל לדגם זה. נסה לחפש באתר wheel-size.com')
       }
     } catch {
-      setVehicleError('שגיאה בחיפוש')
+      if (seq === vehicleSearchSeqRef.current) setVehicleError('שגיאה בחיפוש')
     } finally {
-      setModelSearchLoading(false)
+      if (seq === vehicleSearchSeqRef.current) setModelSearchLoading(false)
     }
   }
 
@@ -1249,7 +1262,7 @@ export default function WheelStationsPage() {
               marginBottom: '16px',
             }}>
               <button
-                onClick={() => { setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
+                onClick={() => { vehicleSearchSeqRef.current++; setVehicleSearchTab('plate'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
                   width: '100%',
                   padding: '10px 16px',
@@ -1267,7 +1280,7 @@ export default function WheelStationsPage() {
                 <span style={{display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="7" y1="2" x2="7" y2="6"/><line x1="17" y1="2" x2="17" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> מספר רכב</span>
               </button>
               <button
-                onClick={() => { setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
+                onClick={() => { vehicleSearchSeqRef.current++; setVehicleSearchTab('model'); setVehicleResult(null); setVehicleError(null); setVehicleSearchResults(null); setManualRimSize(null); }}
                 style={{
                   width: '100%',
                   padding: '10px 16px',
