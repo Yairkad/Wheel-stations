@@ -20,9 +20,9 @@ export default function Footer({ guideHref = '/guide', showFeedback = false }: F
       )}
       <p style={styles.links}>
         <Link href={guideHref} style={styles.link}>מדריך למשתמש</Link>
-        {' • '}
+        <span style={styles.dot} aria-hidden="true" />
         <Link href="/privacy" style={styles.link}>מדיניות פרטיות</Link>
-        {' • '}
+        <span style={styles.dot} aria-hidden="true" />
         <Link href="/accessibility" style={styles.link}>הצהרת נגישות</Link>
       </p>
       <p style={styles.version}>גרסה {VERSION}</p>
@@ -59,6 +59,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#64748b',
     textDecoration: 'none',
     fontWeight: 500,
+  },
+  dot: {
+    width: '3px',
+    height: '3px',
+    borderRadius: '50%',
+    background: '#94a3b8',
+    flexShrink: 0,
   },
   version: {
     color: '#94a3b8',
