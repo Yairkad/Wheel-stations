@@ -51,7 +51,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '4px',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     margin: '0 0 6px',
     fontSize: '12px',
   },
