@@ -45,7 +45,11 @@ export async function storeChallenge({
   phone?: string
 }) {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
-  await supabase.rpc('cleanup_expired_challenges')
+  // Fire-and-forget: expired-challenge cleanup is housekeeping and shouldn't
+  // add a synchronous round trip to every login/enroll attempt.
+  supabase.rpc('cleanup_expired_challenges').then(({ error }) => {
+    if (error) console.error('cleanup_expired_challenges failed:', error)
+  })
 
   const { error } = await supabase.from('webauthn_challenges').insert({
     challenge,

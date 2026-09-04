@@ -154,7 +154,7 @@ export function useRoleSwitch(): UseRoleSwitchResult {
           expiry: Date.now() + 30 * 24 * 60 * 60 * 1000,
           pwd,
         }))
-        window.location.href = '/admin'
+        window.location.href = '/admin/dashboard'
         break
       }
     }
