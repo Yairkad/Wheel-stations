@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { generateAuthenticationOptions } from '@simplewebauthn/server'
-import { getRpConfig, storeChallenge, getUserCredentials } from '@/lib/webauthn'
+import { generateAuthenticationOptions, type AuthenticatorTransportFuture } from '@simplewebauthn/server'
+import { getRpConfig, storeChallenge } from '@/lib/webauthn'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -29,11 +29,17 @@ export async function POST(request: NextRequest) {
 
       const { data: user } = await supabase
         .from('users')
-        .select('id, is_active')
+        .select('id, is_active, webauthn_credentials(credential_id, transports)')
         .eq('phone', cleanPhone)
-        .single() as { data: { id: string; is_active: boolean } | null }
+        .single() as {
+          data: {
+            id: string
+            is_active: boolean
+            webauthn_credentials: { credential_id: string; transports: AuthenticatorTransportFuture[] | null }[]
+          } | null
+        }
 
-      const credentials = user?.is_active ? await getUserCredentials(user.id) : []
+      const credentials = user?.is_active ? user.webauthn_credentials : []
 
       if (credentials.length === 0) {
         return NextResponse.json(
