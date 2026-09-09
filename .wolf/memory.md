@@ -2371,3 +2371,69 @@
 | 08:12 | Edited src/app/stations/page.tsx | inline fix | ~57 |
 | 08:14 | Edited src/app/[stationId]/page.tsx | reduced (-16 lines) | ~120 |
 | 08:16 | Session end: 22 writes across 3 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx) | 4 reads | ~191254 tok |
+| 16:18 | Session end: 22 writes across 3 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx) | 4 reads | ~191254 tok |
+| 16:20 | Session end: 22 writes across 3 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx) | 4 reads | ~191254 tok |
+| 16:21 | Session end: 22 writes across 3 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx) | 4 reads | ~191254 tok |
+| 16:24 | Session end: 22 writes across 3 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx) | 5 reads | ~191254 tok |
+| 16:28 | Session end: 22 writes across 3 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx) | 5 reads | ~191254 tok |
+| 16:40 | Edited src/components/Footer.tsx | 9→9 lines | ~51 |
+| 16:42 | Created tmp-verify-footer-dots.mjs | — | ~142 |
+| 16:43 | Edited tmp-verify-footer-dots.mjs | 5→4 lines | ~66 |
+| 16:45 | Session end: 25 writes across 5 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx, Footer.tsx, tmp-verify-footer-dots.mjs) | 6 reads | ~191527 tok |
+| 16:48 | Created tmp-verify-footer-dots.mjs | — | ~354 |
+| 16:50 | Edited src/components/Footer.tsx | CSS: display, alignItems, justifyContent | ~49 |
+| 16:52 | Session end: 27 writes across 5 files (repro-pcd-filter.mjs, tmp-repro-pcd-filter.mjs, page.tsx, Footer.tsx, tmp-verify-footer-dots.mjs) | 7 reads | ~192545 tok |
+
+## Session: 2026-09-09 19:57
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-09 19:57
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-09 19:57
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-09 19:57
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-09 20:00
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 20:15 | Investigated user report of wrong wheel-size (PCD) for Toyota Corolla ~2019 | vehicle_models (DB), api/vehicle/lookup/route.ts, api/vehicle-models/route.ts, operator/page.tsx | Found: DB row "corolla" 2007-2018 has bolt 5x114.3/CB60.1 (matches unrelated Corolla Verso, contradicts 3 other Corolla-era rows all 5x100/CB54.1); source_url says "2007-2013" but year_to=2018. Diagnosis only, no fix applied yet | ~35k |
+| 20:45 | User: DB row not touched (he's verifying real spec himself); ported bug-382 seq-guard race-condition fix to operator page | src/app/operator/page.tsx | Added vehicleSearchSeqRef guard to handleSearch/handleModelSelect/loadFromHistory + clear/tab-switch points. tsc --noEmit clean. Logged bug-387 | ~55k |
+| 20:29 | Edited src/app/operator/page.tsx | 2→5 lines | ~95 |
+| 20:29 | Edited src/app/operator/page.tsx | 8→9 lines | ~81 |
+| 20:29 | Edited src/app/operator/page.tsx | 2→3 lines | ~39 |
+| 20:29 | Edited src/app/operator/page.tsx | 7→7 lines | ~133 |
+| 20:30 | Edited src/app/operator/page.tsx | inline fix | ~42 |
+| 20:30 | Edited src/app/operator/page.tsx | modified if() | ~94 |
+| 20:31 | Edited src/app/operator/page.tsx | added 4 condition(s) | ~476 |
+| 20:31 | Edited src/app/operator/page.tsx | 3→4 lines | ~38 |
+| 20:31 | Edited src/app/operator/page.tsx | added 2 condition(s) | ~308 |
+| 20:31 | Edited src/app/operator/page.tsx | added 1 condition(s) | ~89 |
+| 20:31 | Edited src/app/operator/page.tsx | added 1 condition(s) | ~113 |
+| 20:32 | Edited src/app/operator/page.tsx | added 1 condition(s) | ~94 |
+| 20:32 | Edited src/app/operator/page.tsx | added 3 condition(s) | ~392 |
+| 20:32 | Edited src/app/operator/page.tsx | added 2 condition(s) | ~96 |
+| 20:33 | Edited src/app/operator/page.tsx | added 4 condition(s) | ~640 |
+| 20:38 | Session end: 15 writes across 1 files (page.tsx) | 8 reads | ~37488 tok |
+| 21:06 | Session end: 15 writes across 1 files (page.tsx) | 11 reads | ~37488 tok |
+| 21:14 | Session end: 15 writes across 1 files (page.tsx) | 11 reads | ~37488 tok |
+| 21:18 | Session end: 15 writes across 1 files (page.tsx) | 11 reads | ~37488 tok |
+| 21:26 | Session end: 15 writes across 1 files (page.tsx) | 11 reads | ~37488 tok |
+| 21:35 | Resolved Corolla PCD bug with user via live wheel-size.com/wheelfitment.eu verification | vehicle_models (DB) | Fixed both 2019+ rows (corolla, corolla hybrid): 5x100/CB54.1 -> 5x114.3/CB60.1, source upgraded to verified wheelfitment.eu "Corolla EU (2019-)" page. My initial theory (pre-2019 row was the error) was wrong - user corrected it; root cause was actually the 2019+ rows holding US-spec data. Logged bug-388 | ~90k |
+| 21:48 | Session end: 15 writes across 1 files (page.tsx) | 11 reads | ~37488 tok |
+| 22:01 | Session end: 15 writes across 1 files (page.tsx) | 11 reads | ~37488 tok |
+| 22:03 | Edited src/app/admin/reports/page.tsx | inline fix | ~173 |
+| 22:04 | Edited src/app/admin/vehicles/page.tsx | added error handling | ~522 |
+| 22:10 | Fixed "עדכן במאגר" flow: report's vehicle_model_id now passed through and used to auto-open the exact row's edit modal | admin/reports/page.tsx, admin/vehicles/page.tsx | Was relying on ambiguous ILIKE model filter + manual table search; user confirmed to proceed. tsc clean. Logged bug-391 | ~30k |
+| 22:08 | Session end: 17 writes across 1 files (page.tsx) | 12 reads | ~38183 tok |

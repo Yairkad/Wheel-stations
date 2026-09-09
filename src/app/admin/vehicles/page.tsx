@@ -372,8 +372,11 @@ function VehiclesAdminPage() {
     const rimSize = searchParams.get('rim_size')
     const tireSize = searchParams.get('tire_size')
     const plate = searchParams.get('plate')
+    const vehicleModelId = searchParams.get('vehicle_model_id')
 
-    // Set column filters to auto-filter the table
+    // Set column filters to auto-filter the table (kept as a fallback for older
+    // report links created before vehicle_model_id was passed through, and as
+    // helpful context alongside the direct edit-modal open below)
     if (make || model || year) {
       setColumnFilters(prev => ({
         ...prev,
@@ -394,10 +397,21 @@ function VehiclesAdminPage() {
       })
     }
 
+    // Coming from an error report with a known vehicle_model_id: open that exact
+    // row's edit modal directly instead of making the admin find it in a
+    // (possibly ambiguous, substring-matched) filtered table themselves.
+    if (vehicleModelId && isAuthenticated) {
+      fetch(`/api/vehicle-models/${vehicleModelId}`)
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(data => { if (data.model) openEditModal(data.model) })
+        .catch(() => toast.error('לא ניתן היה לטעון את הרכב מהדיווח - חפש אותו ידנית בטבלה'))
+    }
+
     // If plate number is provided, open the add vehicle modal for manual entry
     if (plate && isAuthenticated) {
       setShowAddModal(true)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, isAuthenticated])
 
   // Debounce free-text search before it triggers a server fetch

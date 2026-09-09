@@ -6268,6 +6268,150 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-03T05:20:00.000Z"
+    },
+    {
+      "id": "bug-384",
+      "timestamp": "2026-09-03T13:40:42.089Z",
+      "error_message": "CSS fix: flexWrap",
+      "file": "src/components/Footer.tsx",
+      "root_cause": "flexWrap: 'wrap', → 'nowrap',",
+      "fix": "Changed flexWrap: 'wrap', → 'nowrap',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-03T13:40:42.089Z"
+    },
+    {
+      "id": "bug-384",
+      "timestamp": "2026-09-03T14:10:00.000Z",
+      "error_message": "User screenshot (twice): footer separator dots render visibly below the link text instead of inline between the words, even after the nowrap fix (bug attempt logged just above).",
+      "file": "src/components/Footer.tsx",
+      "root_cause": "globals.css has a global `a, button, [role=\"button\"] { min-height: 44px; min-width: 44px }` touch-target rule that inflates every footer <Link> (renders as <a>) to a 44px box, while the plain 3px <span> dot stays natural size. The flex row's align-items:center centers the dot at the true middle of that 44px box, but the anchor's own text has no internal centering and sits near the top of its inflated box — landing ~20px above where the dot centers.",
+      "fix": "Added display:'inline-flex', alignItems:'center', justifyContent:'center' to .link so the anchor's text centers within its own 44px box, matching the dot's vertical position. Verified visually via Playwright screenshot against the actual running dev server (localhost:3000) before committing, after two earlier guessed fixes (this one and the nowrap one) were reported still wrong by the user.",
+      "tags": [
+        "vertical-alignment",
+        "footer",
+        "touch-target",
+        "flexbox",
+        "min-height"
+      ],
+      "related_bugs": [
+        "bug-383"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-03T14:10:00.000Z"
+    },
+    {
+      "id": "bug-386",
+      "timestamp": "2026-09-09T17:31:04.723Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "No early return/throw for edge case: seq !== vehicleSearchSeqRef.current",
+      "fix": "Added guard clause: if (seq !== vehicleSearchSeqRef.current)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 6,
+      "last_seen": "2026-09-09T17:33:57.523Z"
+    },
+    {
+      "id": "bug-387",
+      "timestamp": "2026-09-09T20:30:00.000Z",
+      "error_message": "User: several users reported the app showing the wrong wheel size/PCD for Toyota Corolla, possibly model year 2019.",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Investigation surfaced two independent candidates. (1) vehicle_models DB row id ffe620d8 ('corolla', 2007-2018, bolt 5x114.3, CB 60.1) disagrees with three other independent Corolla-era rows (2013-2019 'corolla us', 2019+ 'corolla', 2019+ 'corolla us') which all agree on 5x100/CB54.1 - its source_url is literally titled 'Corolla (2007 - 2013)' but year_to was set to 2018 in the DB, and its spec exactly matches the unrelated 'Corolla Verso' MPV row. NOT changed this session - user is verifying the real-world correct spec themselves before any DB edit. (2) operator/page.tsx (the call-center operator search page) never received the bug-382 fix (vehicleSearchSeqRef sequence guard) that search/page.tsx and stations/page.tsx got on 2026-09-03 - it runs its own separate copy of vehicle-search logic (handleSearch, handleModelSelect, loadFromHistory) with zero request-sequencing, so a stale/slower response could overwrite a newer search's vehicle card + wheel list, same failure class as bug-382. This matches a documented recurring pattern in cerebrum.md (operator/page.tsx being missed by fixes applied to search/stations pages).",
+      "fix": "Ported the bug-382 fix to src/app/operator/page.tsx: added vehicleSearchSeqRef (useRef counter), bumped it at the start of every search entry point (handleSearch, handleModelSelect, loadFromHistory) and on every manual clear/tab-switch (handleLogout, handleClearSearch, the 3 tab-switch button onClick handlers), with every setState call after an await guarded by 'if (seq !== vehicleSearchSeqRef.current) return'. Verified with tsc --noEmit (clean, no errors in this file). The DB row issue (root cause 1) was NOT fixed - awaiting user's own verification of the correct real-world PCD before touching vehicle_models data.",
+      "tags": [
+        "race-condition",
+        "vehicle-search",
+        "pcd-mismatch",
+        "operator",
+        "corolla",
+        "vehicle-models-data"
+      ],
+      "related_bugs": [
+        "bug-382"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-09T20:30:00.000Z"
+    },
+    {
+      "id": "bug-388",
+      "timestamp": "2026-09-09T21:15:00.000Z",
+      "error_message": "vehicle_models row 'corolla' (id e384e26a, year_from=2019, year_to=null) held US-spec bolt pattern (5x100/CB54.1) instead of the correct EU/Israel-market spec (5x114.3/CB60.1), even though it has no 'us' in its model name and is the row Israeli plate/model lookups actually match against.",
+      "file": "vehicle_models (Supabase DB)",
+      "root_cause": "The app's matching (findPcdData/searchDb in api/vehicle/lookup/route.ts) does plain text-containment matching (query.includes(dbModel)) with zero awareness of market/region. A separate, correctly-labeled 'corolla us' row (also 2019+) already held the real US spec (5x100/54.1, wheelfitment.eu-verified) - that's fine, it's naturally unreachable for Israeli queries since 'corolla' never contains 'us'. But the PLAIN 'corolla' row (which IS what Israeli plate lookups match, since virtually all Israeli-registered Corollas are official EU-spec imports via Colmobil) was apparently populated with the US numbers by mistake at import time. Confirmed via wheel-size.com: user pasted live trim data for E180 Facelift [2016-2019] showing 5x114.3/CB60.1 for both China (1.2T) and Europe+Russia (1.33 VVT-i) trims - matching the DB's own pre-2019 'corolla' row (2007-2018, 5x114.3/60.1) exactly - and separately confirmed wheelfitment.eu's dedicated 'Corolla US (2019-)' page shows 5x100/54.1, matching only the 'corolla us' row. User's own conclusion: 'רק דגמי ארה\"ב הם 5x100' (only US models are 5x100).",
+      "fix": "Updated both 2019+ vehicle_models rows via direct SQL UPDATE, verified via RETURNING: id=e384e26a (model=corolla) and id=aac53b51 (model='corolla hybrid', variants='קורולה היברידי') both changed bolt_spacing 100->114.3, center_bore 54.1->60.1. Also upgraded both from source='import'/source_url=null to source='wheelfitment.eu', source_url='https://www.wheelfitment.eu/car/Toyota/Corolla%20EU%20(2019%20-%20).html' (a dedicated, live-confirmed wheelfitment.eu page for 'Corolla EU (2019-)' showing exactly 5x114.3/CB60.1, with no separate hybrid split) - so these rows are now properly 'verified' per findPcdData's own definition (row.source_url truthy), not just internally consistent. User separately checked and found no distinct hybrid-specific fitment page/data exists anywhere ('אין משהו להיברידי'), consistent with wheelfitment.eu's own EU page covering all 2019+ trims uniformly. The 'corolla us' row (2019+, already 5x100/54.1) was correct all along and was not touched - confirmed via wheelfitment.eu's separate 'Corolla US (2019-)' page (user-pasted) matching it exactly.",
+      "tags": [
+        "vehicle-models-data",
+        "pcd-mismatch",
+        "corolla",
+        "wheel-size.com",
+        "data-fix",
+        "market-region"
+      ],
+      "related_bugs": [
+        "bug-387"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-09T21:15:00.000Z"
+    },
+    {
+      "id": "bug-389",
+      "timestamp": "2026-09-09T19:03:30.130Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/admin/reports/page.tsx",
+      "root_cause": "Had '}&report=${selectedReport.id}&bolt_count=${select",
+      "fix": "Changed to '}&report=${selectedReport.id}&vehicle_model_id=${",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-09T19:03:30.130Z"
+    },
+    {
+      "id": "bug-390",
+      "timestamp": "2026-09-09T19:04:02.096Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/admin/vehicles/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-09T19:04:02.096Z"
+    },
+    {
+      "id": "bug-391",
+      "timestamp": "2026-09-09T21:45:00.000Z",
+      "error_message": "User: when reporting an error on a vehicle result and clicking 'update in database' from the admin reports page, is it possible the admin ends up editing a DIFFERENT vehicle_models row than the one actually reported?",
+      "file": "src/app/admin/reports/page.tsx, src/app/admin/vehicles/page.tsx",
+      "root_cause": "handleReportError/handleReportVehicleModelError (operator/page.tsx, search/page.tsx) correctly capture and store vehicle_model_id in error_reports at creation time. But the admin/reports 'עדכן במאגר' Link only passed make/model/year/correct_* fields in its query string - vehicle_model_id was dropped. admin/vehicles/page.tsx then only set loose column filters from those params (model filter is UI-labeled 'equals' but implemented server-side as ILIKE %model% substring match; year filter was year_from >= year only, one-sided, no year_to check) and displayed a banner literally instructing the admin to 'find the vehicle in the table and click edit' themselves - no code path auto-selected the specific flagged row. For any model family with multiple overlapping DB rows sharing a base name (confirmed real case this session: Toyota Corolla has 6+ rows - corolla, corolla us, corolla hybrid, corolla verso, corolla cross, gr corolla - all matched by an ILIKE %corolla% filter), an admin could plausibly click edit on the wrong row.",
+      "fix": "Passed vehicle_model_id through in the admin/reports Link href (encoded, falls back to empty string if the report predates this field - bug-389 auto-log). In admin/vehicles/page.tsx's URL-params useEffect (bug-390 auto-log), added a vehicleModelId read: when present and the admin is authenticated, fetches GET /api/vehicle-models/{id} and calls the existing openEditModal(vehicle) directly, opening the exact flagged row's edit form immediately instead of relying on the ambiguous filter + manual table search. The old filter-setting behavior was kept as a fallback for report links created before this fix (their DB row already has vehicle_model_id stored, just not passed through the old URL shape) and as extra context alongside the direct modal open. Verified with tsc --noEmit (clean, no errors in either file).",
+      "tags": [
+        "admin",
+        "error-reports",
+        "vehicle-models-data",
+        "ux",
+        "data-integrity"
+      ],
+      "related_bugs": ["bug-388", "bug-389", "bug-390"],
+      "occurrences": 1,
+      "last_seen": "2026-09-09T21:45:00.000Z"
     }
   ]
 }

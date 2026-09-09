@@ -1,168 +1,68 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-08-31T06:30:26.821Z
-> Files: 188 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-09T19:04:02.087Z
+> Files: 5 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
-- `whats-new.html` — מה חדש בדרך (~3031 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/40a8ef67-7e28-4d68-be4c-2e4f616977e3/scratchpad/
 
-- `shot-admin.mjs` — Declares BASE (~277 tok)
-- `shot-admin2.mjs` — Declares BASE (~342 tok)
-- `shot-header.mjs` — Declares BASE (~533 tok)
-- `shot-station.mjs` — Declares BASE (~256 tok)
-- `test-operator-contact.mjs` — Declares BASE (~1092 tok)
-- `test-tiers.mjs` — Declares BASE (~776 tok)
-- `test-webauthn-fix.mjs` — Declares BASE (~663 tok)
-- `test-webauthn-login.mjs` — Declares BASE (~474 tok)
-- `test-wizard.js` — Declares STATION_ID (~1563 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/43b7b536-292e-4cf0-acea-4b38d738b599/scratchpad/
+
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/
 
-- `check_stations_modal.mjs` — SESSION_VERSION: run (~346 tok)
-- `op-head.tsx` — OperatorPage (~32971 tok)
-- `tm-mine.diff` — TrustedMatch: TrustedMatchesPage (~327 tok)
-- `ux-head.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5853 tok)
-- `ux-head2.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~5918 tok)
-- `ux-head3.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6038 tok)
-- `ux3-mine.diff` (~521 tok)
-- `verify-a11y-widget.mjs` — Declares BASE (~828 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/552c15d0-9778-4dbd-9697-ed344ba2349e/scratchpad/replay/
 
-- `operator_head.tsx` — OperatorPage (~33537 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/59874a58-bf2a-4692-ab9a-8fbe3637d229/scratchpad/
 
-- `append-buglog.mjs` — Declares path (~2025 tok)
-- `find-multirole-user.mjs` — Declares env (~388 tok)
-- `repro-roleswitch.mjs` — Declares BASE (~868 tok)
+
+## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/5c5a0301-22f1-4b44-83e8-6d55d2855243/scratchpad/
+
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/5d52913a-983a-4cc1-a3ce-a270883fa0cd/scratchpad/
 
-- `inspect-yaakov-roles.mjs` — Declares lines (~258 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/7f9d54df-9353-4ebb-94e5-78eac8010305/scratchpad/
 
-- `filter-drawer-checkbox.html` — סינון — מגירה + תיבות סימון מרובות (~3491 tok)
-- `verify-filter-drawer.mjs` — Declares shotDir (~372 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/b244a881-ae8f-4093-9166-a4a1cab08e37/scratchpad/
 
-- `verify-identity-fix.mjs` — Declares BASE (~676 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cf2272dc-6ce6-4dcc-83f4-bc5a812a9257/scratchpad/
 
-- `append_bug.py` (~408 tok)
-- `append_bug2.py` (~650 tok)
-- `verify-calc.mjs` — Declares shotDir (~400 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/cfbe62ec-716e-4713-898b-41f707eaf37d/scratchpad/
 
-- `ocr_flow_test.mjs` — Playwright verification script for the OCR search-flow fix in src/app/search/page.tsx. (~1247 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/d9ca057f-7771-4ec9-87ae-37f7b670441f/scratchpad/
 
-- `debug-operator.mjs` — Declares browser (~302 tok)
-- `live-qa.mjs` — BASE: log, freshPage (~1958 tok)
-- `shot-fingerprint-btn.mjs` — Declares browser (~315 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/de0847df-c6b9-4343-920c-e2446045ac78/scratchpad/
 
-- `shot-operator.mjs` — Declares BASE (~314 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f2855ed1-2611-4f5d-8860-bdc62b26ff12/scratchpad/
 
-- `deploy-checklist.html` — צ'קליסט פריסה — גלגלים ידידים (~11278 tok)
-- `ux-audit-wheels-app.html` — ביקורת UX — גלגלים ידידים (~11880 tok)
-- `ux-audit-wheels-app.html` — דוח ביקורת UI/UX (Artifact) — 8 personas: עובד טוב/בעיות/המלצות + פיצ'רים מוצעים (~9000 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/f3951a1b-38f9-468d-b371-779cd51848c3/scratchpad/
 
-- `wheel-form-layout.html` — 5 פריסות טופס גלגל — לפי רוחב תוכן (~5010 tok)
-- `wheel-form-layouts.html` — 4 פריסות לטופס גלגל (~3592 tok)
 
 ## ../../../.claude/plans/
 
-- `atomic-growing-flask.md` — מעקב הרכבה לפי גלגל (הצליח/נכשל) + התראת רכב דומה (~1860 tok)
-- `giggly-wondering-stroustrup.md` — תיקון נפרד וקטן: נוסח התקנון (`sign/[stationId]/page.tsx`) (~5076 tok)
-- `glistening-tumbling-hopcroft.md` — עדכון תבנית הודעת האיסוף לכונן — "צמיגים" → "גלגלים" + מספר גלגל (~918 tok)
-- `groovy-finding-otter.md` — תיקון: ההדר נחתך באייפון + זליגת זהות במעבר תפקיד (~2708 tok)
-- `purrfect-wondering-flame.md` — תיקון זרימת החיפוש לפי תמונת רישיון (OCR) — search/page.tsx (~1852 tok)
-- `sonata-agile-sun.md` — תיקון משוב משתמש: חיפוש לפי רכב — קישור אימות מידות + שיתוף (~2016 tok)
-- `splendid-dreaming-ullman.md` — צמצום תפריט האוואטר (AppHeader.tsx) (~689 tok)
-- `station-page-refactor.md` — פירוק `[stationId]/page.tsx` לרכיבי-משנה (~1777 tok)
-- `ui-ux-parsed-hartmanis.md` — ביקורת UI/UX מקיפה — WHEELS_APP (לפי סוג משתמש) (~1261 tok)
-- `ui-ux-parsed-hartmanis.md` — תוכנית ביקורת UI/UX מקיפה לפי סוג משתמש (8 personas), ללא צילומי מסך (~1900 tok)
-- `velvet-weaving-planet.md` — Tire-diameter difference calculator (popup) + show exact % in mismatch warnings (~1456 tok)
-- `virtual-wiggling-stardust.md` — תיקון: קישור "אמת מידות" נעלם עבור חלק מהרכבים (למשל הונדה ג'אז) (~1490 tok)
 
 ## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
 
-- `feedback_hebrew_only.md` (~450 tok)
-- `MEMORY.md` (~185 tok)
-- `project_concurrent_claude_sessions.md` (~663 tok)
-- `project_forgot_password_whatsapp_idea.md` (~492 tok)
-- `webauthn_biometric_login_paused.md` (~1043 tok)
 
 ## ../../../.claude/projects/c--Users-----------WHEELS-APP/memory/
 
-- `feedback_git_sync_trigger_phrase.md` (~411 tok)
-- `feedback_user_is_male.md` (~219 tok)
-- `MEMORY.md` — Memory Index (~389 tok)
-- `project_et_offset_misunderstanding.md` (~575 tok)
-- `project_rim_sizes_allowed_removed.md` — Declares of (~641 tok)
 
 ## ./
 
-- `_ocr_test_b.mjs` — Scenario B: OCR reads manufacturer+model but NOT year; make+model has multiple (~1569 tok)
-- `_ocr_test_ce.mjs` — Scenario C: OCR gives manufacturer+model, no year, but make+model has only ONE (~1521 tok)
-- `_ocr_test.mjs` — Playwright verification script for the OCR search-flow fix in src/app/search/page.tsx. (~1034 tok)
-- `DEV_NOTES.md` — הערות למפתחים (~194 tok)
-- `test-deposit.tmp.js` — Declares STATION_ID (~963 tok)
-- `test-diag.tmp.js` — Declares STATION_ID (~298 tok)
-- `test-icons.tmp.js` — Declares STATION_ID (~1239 tok)
-- `test-operator-status.tmp.js` — Declares PHONE (~1011 tok)
-- `test-role-switch.tmp.js` — Declares PHONE (~1826 tok)
-- `test-status-e2e.tmp.js` — Declares PHONE (~2226 tok)
-- `test-submit.tmp.js` — Declares fs (~1348 tok)
-- `test-webauthn.tmp.js` — Declares PHONE (~915 tok)
-- `test-whatsapp-forgot.tmp.js` — API routes: GET (1 endpoints) (~872 tok)
-- `test-wizard.tmp.js` — Declares STATION_ID (~1620 tok)
-- `tmp-check-scale.mjs` — Declares envText (~241 tok)
-- `tmp-cleanup-yaakov-roles.mjs` — Declares lines (~439 tok)
-- `tmp-crop.mjs` — Declares shotDir (~149 tok)
-- `tmp-inspect-yaakov-roles.mjs` — Declares lines (~246 tok)
-- `tmp-log-bug.mjs` — Declares path (~387 tok)
-- `tmp-repro-loading-icon.mjs` — Declares shotDir (~208 tok)
-- `tmp-repro-roleswitch.mjs` — Declares BASE (~1019 tok)
-- `tmp-shot-operator.mjs` — Declares BASE (~321 tok)
-- `tmp-verify-a11y.mjs` — Declares BASE (~791 tok)
-- `tmp-verify-a11y2.mjs` — Declares BASE (~423 tok)
-- `tmp-verify-calc.mjs` — Declares shotDir (~338 tok)
-- `tmp-verify-clear.mjs` — Declares BASE (~546 tok)
-- `tmp-verify-filter.mjs` — Declares shotDir (~546 tok)
-- `tmp-verify-filter2.mjs` — Declares shotDir (~475 tok)
-- `tmp-verify-footer-retry.mjs` — Declares BASE (~867 tok)
-- `tmp-verify-footer-rollout.mjs` — Declares BASE (~1185 tok)
-- `tmp-verify-formlink.mjs` — Declares shotDir (~402 tok)
-- `tmp-verify-gaps-fix.mjs` — Declares BASE (~1309 tok)
-- `tmp-verify-header-safe-area.html` (~1085 tok)
-- `tmp-verify-header-safe-area.mjs` — Declares __dirname (~738 tok)
-- `tmp-verify-icon.mjs` — Declares BASE (~468 tok)
-- `tmp-verify-identity-fix.mjs` — Declares BASE (~676 tok)
-- `tmp-verify-loading.mjs` — Declares BASE (~636 tok)
-- `tmp-verify-login-regression.mjs` — Declares BASE (~1798 tok)
-- `tmp-verify-operator.mjs` — Declares BASE (~666 tok)
-- `tmp-verify-pagination.mjs` — Declares BASE (~603 tok)
-- `tmp-verify-redesign.mjs` — Declares BASE (~380 tok)
-- `tmp-verify-roleswitch.mjs` — Declares BASE (~738 tok)
-- `tmp-verify-search.mjs` — Declares BASE (~981 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות — ביקורת UX (2026-08-19) (~6197 tok)
-- `UX_AUDIT_TODO.md` — סיכום החלטות מביקורת ה-UX, עבר אחד-אחד עם המשתמש: אושר/נדחה/עודכן לכל המלצה + תיקוני דוח + באג אמיתי שנמצא (~2200 tok)
-- `verify_station_filter.mjs` — SESSION_VERSION: testOperator, testSearch, run (~1200 tok)
+- `tmp-verify-footer-dots.mjs` — browser: showFeedbackIndex (~354 tok)
 
 ## .claude/
 
@@ -181,8 +81,6 @@
 
 ## public/
 
-- `guide.html` — מדריך עבודה – מערכת גלגלים ידידים (~4580 tok)
-- `report.html` — מערכת גלגלים ידידים – ניתוח משולב: שדה, נוהל וקוד (~9558 tok)
 
 ## scripts/
 
@@ -192,65 +90,47 @@
 
 ## src/__tests__/
 
-- `AccessibilityWidget.test.tsx` — AccessibilityWidget (~1924 tok)
-- `StationFilterCombobox.test.tsx` — StationFilterCombobox / filterByStation (~1038 tok)
-- `useClickOutside.test.tsx` — TestHarness (~535 tok)
-- `useRoleSwitch.test.ts` — roleKey + useRoleSwitch (~2562 tok)
-- `vehicle-mappings.test.ts` — Vehicle Mappings Tests (~3984 tok)
 
 ## src/app/
 
-- `globals.css` — Styles: 19 rules, 4 vars (~2092 tok)
-- `layout.tsx` — RootLayout: font, metadata, mounts ToastProvider + AccessibilityWidget globally (~470 tok)
-- `page.tsx` — PublicHomePage (~1992 tok)
 
 ## src/app/[stationId]/
 
-- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98891 tok)
 
 ## src/app/accessibility/
 
-- `page.tsx` — AccessibilityPage (~1467 tok)
 
 ## src/app/admin/
 
-- `page.tsx` — WheelsAdminPage (~18775 tok)
 
 ## src/app/admin/analytics/
 
-- `page.tsx` — AUDIT_COLORS (~7729 tok)
 
 ## src/app/admin/call-centers/
 
-- `page.tsx` — CallCentersAdminPage (~9346 tok)
 
 ## src/app/admin/login-report/
 
-- `page.tsx` — ROLE_LABELS — renders table (~3124 tok)
 
 ## src/app/admin/punctures/
 
-- `page.tsx` — parseLatLngFromUrl (~10576 tok)
 
 ## src/app/admin/punctures/login/
 
-- `page.tsx` — PunctureManagerLoginPage (~1392 tok)
 
 ## src/app/admin/reports/
 
-- `page.tsx` — ErrorReportsPage (~16496 tok)
+- `page.tsx` — ErrorReportsPage (~16518 tok)
 
 ## src/app/admin/trusted-matches/
 
-- `page.tsx` — emptyForm (~2334 tok)
 
 ## src/app/admin/users/
 
-- `page.tsx` — ROLE_LABELS (~15295 tok)
 
 ## src/app/admin/vehicles/
 
-- `page.tsx` — VehiclesAdminPageWrapper (~44354 tok)
+- `page.tsx` — VehiclesAdminPageWrapper (~44604 tok)
 
 ## src/app/api/admin/analytics/
 
@@ -290,22 +170,18 @@
 
 ## src/app/api/admin/scrape-wheelfitment/
 
-- `route.ts` — Scrape Wheel Fitment API (~2836 tok)
 
 ## src/app/api/admin/session/
 
 
 ## src/app/api/admin/super-managers/
 
-- `route.ts` — Super Managers Admin API (~2257 tok)
 
 ## src/app/api/admin/trusted-matches/
 
-- `route.ts` — Next.js API route: GET, POST (~839 tok)
 
 ## src/app/api/admin/trusted-matches/[id]/
 
-- `route.ts` — Next.js API route: DELETE (~330 tok)
 
 ## src/app/api/admin/users/
 
@@ -315,7 +191,6 @@
 
 ## src/app/api/admin/users/[userId]/roles/
 
-- `route.ts` — Next.js API route: POST (~809 tok)
 
 ## src/app/api/admin/users/[userId]/roles/[roleId]/
 
@@ -325,7 +200,6 @@
 
 ## src/app/api/auth/login/
 
-- `route.ts` — Next.js API route: POST (~2015 tok)
 
 ## src/app/api/auth/webauthn/authenticate/begin/
 
@@ -341,7 +215,6 @@
 
 ## src/app/api/auth/webauthn/register/begin/
 
-- `route.ts` — Next.js API route: POST (~948 tok)
 
 ## src/app/api/auth/webauthn/register/complete/
 
@@ -396,11 +269,9 @@
 
 ## src/app/api/operator/sent-requests/
 
-- `route.ts` — Next.js API route: POST, GET (~763 tok)
 
 ## src/app/api/operator/sent-requests/[id]/status/
 
-- `route.ts` — Next.js API route: GET (~323 tok)
 
 ## src/app/api/puncture-suggestions/
 
@@ -419,18 +290,15 @@
 
 ## src/app/api/signed-forms/cleanup/
 
-- `route.ts` — Signed Forms Cleanup API (~848 tok)
 
 ## src/app/api/signed-forms/upload/
 
-- `route.ts` — Signed Forms Upload API (~2227 tok)
 
 ## src/app/api/super-manager/auth/
 
 
 ## src/app/api/vehicle-models/
 
-- `route.ts` — Next.js API route: GET, POST (~2967 tok)
 
 ## src/app/api/vehicle-models/[id]/
 
@@ -440,18 +308,15 @@
 
 ## src/app/api/vehicle-models/reverse-search/
 
-- `route.ts` — Next.js API route: GET (~1276 tok)
 
 ## src/app/api/vehicle-models/scrape/
 
 
 ## src/app/api/vehicle-search-history/
 
-- `route.ts` — Next.js API route: GET, POST, PATCH, DELETE (~1081 tok)
 
 ## src/app/api/vehicle/lookup/
 
-- `route.ts` — Vehicle Lookup API (~7742 tok)
 
 ## src/app/api/vehicle/ocr/
 
@@ -461,15 +326,12 @@
 
 ## src/app/api/wheel-stations/[stationId]/
 
-- `route.ts` — Single Wheel Station API (~3375 tok)
 
 ## src/app/api/wheel-stations/[stationId]/auth/
 
-- `route.ts` — Station Manager Authentication API (~3038 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/
 
-- `route.ts` — Wheel Borrows History API (~1223 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/[borrowId]/
 
@@ -485,7 +347,6 @@
 
 ## src/app/api/wheel-stations/[stationId]/public-borrow/
 
-- `route.ts` — Public Wheel Borrow API (~3215 tok)
 
 ## src/app/api/wheel-stations/[stationId]/push/send/
 
@@ -504,11 +365,9 @@
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/
 
-- `route.ts` — Wheel Borrow API (~2511 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/history/
 
-- `route.ts` — Wheel Request History API (~377 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/restore/
 
@@ -530,7 +389,6 @@
 
 ## src/app/api/wheel-stations/managers/
 
-- `route.ts` — Station Managers API (~589 tok)
 
 ## src/app/api/wheel-stations/recovery/
 
@@ -540,105 +398,77 @@
 
 ## src/app/api/wheel-stations/verified-matches/
 
-- `route.ts` — Verified Wheel Matches API (~1245 tok)
 
 ## src/app/api/wheels/[wheelId]/unavailable/
 
 
 ## src/app/call-center/
 
-- `page.tsx` — CallCenterPage (~16842 tok)
 
 ## src/app/feedback/
 
-- `page.tsx` — FeedbackPage — renders form (~5970 tok)
 
 ## src/app/forms/[formId]/
 
-- `page.tsx` — FormViewerPage — renders form (~3036 tok)
 
 ## src/app/guide/
 
-- `page.tsx` — GuideContent (~15304 tok)
 
 ## src/app/login/
 
-- `page.tsx` — clearStaleSessions (~11056 tok)
 
 ## src/app/lookup/
 
-- `page.tsx` — VehicleLookupPage (~241 tok)
 
 ## src/app/ocr-test/
 
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~34181 tok)
+- `page.tsx` — OperatorPage: call-center vehicle/wheel search (plate/model/spec tabs), own independent search logic (not shared with search/stations pages), now has vehicleSearchSeqRef race-guard (bug-387) (~34758 tok)
 
 ## src/app/privacy/
 
-- `page.tsx` — PrivacyPage (~1519 tok)
 
 ## src/app/punctures/
 
-- `page.tsx` — MapView (~9021 tok)
 
 ## src/app/reverse-search/
 
-- `page.tsx` — ReverseSearchPage (~17748 tok)
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~48966 tok)
 
 ## src/app/sign/[stationId]/
 
-- `page.tsx` — STEP_LABELS (~18268 tok)
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~37760 tok)
 
 ## src/app/super-manager/
 
-- `page.tsx` — SESSION_EXPIRY_MS (~17828 tok)
 
 ## src/app/tmp-calc-test/
 
-- `page.tsx` — TmpCalcTest (~500 tok)
 
 ## src/components/
 
-- `AccessibilityWidget.tsx` — DEFAULT_PREFS (~2293 tok)
-- `AppHeader.tsx` — AppHeader (~15059 tok)
-- `Footer.tsx` — Footer (~511 tok)
-- `LoadingSpin.tsx` — LoadingSpin (~198 tok)
-- `StationFilterCombobox.tsx` — shared typeahead station picker (replaces DistrictFilterChips, deleted) + filterByStation() helper; used by search/page.tsx + operator/page.tsx (~1120 tok)
-- `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1743 tok)
+- `Footer.tsx` — Footer (~615 tok)
 
 ## src/components/admin/
 
-- `AdminSidebar.tsx` — icons (~4061 tok)
 
 ## src/components/punctures/
 
 
 ## src/hooks/
 
-- `useClickOutside.ts` — Exports useClickOutside (~204 tok)
-- `useRoleSwitch.ts` — Exports roleKey, resolveActiveRoleEntry, useRoleSwitch (~2179 tok)
 
 ## src/lib/
 
-- `types.ts` — Shared TypeScript interfaces used across pages (~812 tok)
-- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3437 tok)
-- `version.ts` — App version - displayed in footer (~74 tok)
-- `wheel-stats.ts` — computeWheelStats: shared available/taken/inactive wheel counts used by all wheel-stations API routes (~200 tok)
 
 ## src/stories/mocks/
 
-- `utils.tsx` — SESSION_KEYS (~527 tok)
 
 ## src/stories/pages/
 
@@ -675,10 +505,3 @@
 
 ## supabase/migrations/
 
-- `20260726_add_manager_whatsapp_template.sql` — Lets each station manager set their own WhatsApp message wording, (~81 tok)
-- `20260726_add_wheel_mount_feedback.sql` — Lets managers record, at return time, whether a wheel actually mounted on the (~159 tok)
-- `20260821_add_operator_sent_requests.sql` — Tracks each time an operator sends a borrow-request link to a driver/tow-shop, (~370 tok)
-- `20260823_add_deposit_amount_override.sql` — Adds `wheel_borrows.deposit_amount_override`, an optional per-request deposit set by (~19 tok)
-- `20260824_add_trusted_matches_center_bore.sql` — Both the automatic matching (verified_wheel_matches) and the operator-facing (~170 tok)
-- `20260824_add_trusted_vehicle_wheel_matches.sql` — SQL: tables: trusted_vehicle_wheel_matches (~184 tok)
-- `20260825_add_vehicle_search_history.sql` — Shared vehicle search history for /search's plate-lookup tab — replaces the old (~271 tok)

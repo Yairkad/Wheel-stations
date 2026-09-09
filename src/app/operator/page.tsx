@@ -85,6 +85,9 @@ export default function OperatorPage() {
   const [searchLoading, setSearchLoading] = useState(false)
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfo | null>(null)
   const [searchError, setSearchError] = useState('')
+  // Guards against a slower, older search's response overwriting a newer one's
+  // state (bug-382 race-condition class — see search/page.tsx, stations/page.tsx)
+  const vehicleSearchSeqRef = useRef(0)
 
   // Multiple matching models state
   const [matchingModels, setMatchingModels] = useState<VehicleModelRecord[]>([])
@@ -381,6 +384,7 @@ export default function OperatorPage() {
   }
 
   const handleLogout = () => {
+    vehicleSearchSeqRef.current++ // invalidate any still in-flight search
     localStorage.removeItem('operator_session')
     setOperator(null)
     setIsManager(false)
@@ -401,6 +405,7 @@ export default function OperatorPage() {
   )
 
   const handleClearSearch = () => {
+    vehicleSearchSeqRef.current++ // invalidate any still in-flight search
     setSearchTab('plate')
     setPlateNumber('')
     setMake('')
@@ -479,6 +484,7 @@ export default function OperatorPage() {
   // Reload a history entry — reuses the cached vehicle info (no re-lookup of the
   // plate) but re-fetches wheel availability fresh, since that changes constantly
   const loadFromHistory = async (item: VehicleHistoryItem) => {
+    const seq = ++vehicleSearchSeqRef.current
     setPlateNumber(item.plate)
     setSearchTab('plate')
     setSearchError('')
@@ -507,6 +513,7 @@ export default function OperatorPage() {
       })
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
       const wheelsData = await wheelsRes.json()
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
       if (!wheelsRes.ok) { setSearchError('שגיאה בחיפוש גלגלים'); return }
 
       const stationIds = wheelsData.results?.map((r: { station: { id: string } }) => r.station.id) || []
@@ -518,6 +525,7 @@ export default function OperatorPage() {
           managersMap = managersData.managers || {}
         }
       }
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: any) => ({
         station: { ...result.station, managers: managersMap[result.station.id] || [] },
@@ -534,13 +542,14 @@ export default function OperatorPage() {
       }))
       setResults(transformedResults)
     } catch {
-      setSearchError('שגיאה בחיפוש גלגלים')
+      if (seq === vehicleSearchSeqRef.current) setSearchError('שגיאה בחיפוש גלגלים')
     } finally {
-      setSearchLoading(false)
+      if (seq === vehicleSearchSeqRef.current) setSearchLoading(false)
     }
   }
 
   const handleSearch = async () => {
+    const seq = ++vehicleSearchSeqRef.current
     setSearchError('')
     setVehicleInfo(null)
     setResults([])
@@ -583,6 +592,7 @@ export default function OperatorPage() {
 
         const wheelsRes = await fetch(`/api/wheel-stations/search?${params}`)
         const wheelsData = await wheelsRes.json()
+        if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
         if (!wheelsRes.ok) {
           setSearchError('שגיאה בחיפוש גלגלים')
@@ -600,6 +610,7 @@ export default function OperatorPage() {
             managersMap = managersData.managers || {}
           }
         }
+        if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
         // Transform results
         const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
@@ -639,6 +650,7 @@ export default function OperatorPage() {
       if (searchTab === 'plate') {
         const plateRes = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(plateNumber.replace(/-/g, ''))}`)
         const plateData = await plateRes.json()
+        if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
         if (!plateRes.ok || !plateData.success) {
           setSearchError(plateData.error || 'לא נמצא רכב עם מספר זה')
@@ -673,6 +685,7 @@ export default function OperatorPage() {
           `/api/vehicle-models?make=${encodeURIComponent(englishMake)}&model=${encodeURIComponent(englishModel)}${year ? `&year=${year}` : ''}`
         )
         const modelsData = await modelsRes.json()
+        if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
         if (!modelsRes.ok || !modelsData.models?.length) {
           setSearchError('לא נמצא מידע לרכב זה')
@@ -693,9 +706,11 @@ export default function OperatorPage() {
 
         // If more than one unique spec, show selection modal
         if (uniqueSpecs.size > 1) {
-          setMatchingModels(Array.from(uniqueSpecs.values()))
-          setShowModelSelection(true)
-          setSearchLoading(false)
+          if (seq === vehicleSearchSeqRef.current) {
+            setMatchingModels(Array.from(uniqueSpecs.values()))
+            setShowModelSelection(true)
+            setSearchLoading(false)
+          }
           return
         }
 
@@ -714,6 +729,7 @@ export default function OperatorPage() {
       }
 
       if (!pcdInfo) return
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       setVehicleInfo(pcdInfo)
 
@@ -726,6 +742,7 @@ export default function OperatorPage() {
 
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
       const wheelsData = await wheelsRes.json()
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       if (!wheelsRes.ok) {
         setSearchError('שגיאה בחיפוש גלגלים')
@@ -743,6 +760,7 @@ export default function OperatorPage() {
           managersMap = managersData.managers || {}
         }
       }
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       // Transform results to our format
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
@@ -783,15 +801,17 @@ export default function OperatorPage() {
         toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
       }
     } catch (error) {
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
       console.error('Search error:', error)
       setSearchError('שגיאה בחיפוש')
     } finally {
-      setSearchLoading(false)
+      if (seq === vehicleSearchSeqRef.current) setSearchLoading(false)
     }
   }
 
   // Handle model selection when multiple models match
   const handleModelSelect = async (selectedModel: VehicleModelRecord) => {
+    const seq = ++vehicleSearchSeqRef.current
     setShowModelSelection(false)
     setMatchingModels([])
     setSearchLoading(true)
@@ -819,6 +839,7 @@ export default function OperatorPage() {
 
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
       const wheelsData = await wheelsRes.json()
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       if (!wheelsRes.ok) {
         setSearchError('שגיאה בחיפוש גלגלים')
@@ -836,6 +857,7 @@ export default function OperatorPage() {
           managersMap = managersData.managers || {}
         }
       }
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
 
       // Transform results
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
@@ -867,10 +889,11 @@ export default function OperatorPage() {
         toast.success(`נמצאו ${totalAvailable} גלגלים זמינים ב-${transformedResults.length} תחנות`)
       }
     } catch (error) {
+      if (seq !== vehicleSearchSeqRef.current) return // a newer search started meanwhile
       console.error('Search error:', error)
       setSearchError('שגיאה בחיפוש')
     } finally {
-      setSearchLoading(false)
+      if (seq === vehicleSearchSeqRef.current) setSearchLoading(false)
     }
   }
 
@@ -1369,13 +1392,13 @@ ${contact?.phone || ''}
                 <div style={{fontSize: '0.78rem', color: '#9ca3af', marginBottom: '6px'}}>לא נמצא?</div>
                 <div style={{display: 'flex', gap: '8px', justifyContent: 'center'}}>
                   <button
-                    onClick={() => { setSearchTab('model'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
+                    onClick={() => { vehicleSearchSeqRef.current++; setSearchTab('model'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
                     style={styles.searchFallbackBtn}
                   >
                     לפי יצרן ודגם
                   </button>
                   <button
-                    onClick={() => { setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
+                    onClick={() => { vehicleSearchSeqRef.current++; setSearchTab('spec'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
                     style={styles.searchFallbackBtn}
                   >
                     לפי מפרט
@@ -1443,7 +1466,7 @@ ${contact?.phone || ''}
             </>
           ) : (
             <button
-              onClick={() => { setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
+              onClick={() => { vehicleSearchSeqRef.current++; setSearchTab('plate'); setSearchError(''); setVehicleInfo(null); setResults([]); }}
               style={{...styles.searchFallbackBtn, marginBottom: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px'}}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" transform="rotate(180 12 12)"/></svg>
