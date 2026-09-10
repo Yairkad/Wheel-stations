@@ -891,10 +891,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       toast.error('לא מחובר כמנהל')
       return
     }
-    if (!sessionPassword) {
-      toast.error('סיסמה לא נמצאה. נא להתנתק ולהתחבר מחדש')
-      return
-    }
+    if (!(await requirePassword())) return
     setApprovalLoading(borrowId)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/borrows/${borrowId}`, {
@@ -1018,7 +1015,8 @@ ${signFormUrl}
   }
 
   const handleRestoreWheel = async (wheelId: string) => {
-    if (!currentManager || !sessionPassword) return
+    if (!currentManager) return
+    if (!(await requirePassword())) return
     setRestoringWheel(wheelId)
     try {
       const res = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheelId}/restore`, {
@@ -1160,7 +1158,8 @@ ${signFormUrl}
 
   // Save own WhatsApp message wording (used automatically whenever this manager sends a form link)
   const handleSaveWhatsAppTemplate = async () => {
-    if (!currentManager || !sessionPassword) return
+    if (!currentManager) return
+    if (!(await requirePassword())) return
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/auth`, {

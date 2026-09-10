@@ -63,6 +63,11 @@ function SignFormContent({ stationId }: { stationId: string }) {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  // True when this exact personalized link (identified by `sr`) already has a
+  // submitted request — re-opening the same link (e.g. from WhatsApp) after
+  // submitting must not show the empty form again.
+  const [alreadySubmitted, setAlreadySubmitted] = useState(false)
+  const [alreadySubmittedName, setAlreadySubmittedName] = useState<string | null>(null)
 
   // Wizard step
   const [currentStep, setCurrentStep] = useState<WizardStep>(1)
@@ -217,6 +222,23 @@ function SignFormContent({ stationId }: { stationId: string }) {
 
   const fetchStationData = async () => {
     try {
+      if (operatorSendRequestId) {
+        try {
+          const statusRes = await fetch(`/api/operator/sent-requests/${operatorSendRequestId}/status`)
+          if (statusRes.ok) {
+            const statusData = await statusRes.json()
+            if (statusData.status && statusData.status !== 'not_submitted') {
+              setAlreadySubmittedName(statusData.borrower_name || null)
+              setAlreadySubmitted(true)
+              setLoading(false)
+              return
+            }
+          }
+        } catch {
+          // Non-fatal — if the status check itself fails, fall through and show the normal form
+        }
+      }
+
       const response = await fetch(`/api/wheel-stations/${stationId}`)
       if (!response.ok) throw new Error('Failed to fetch station')
       const data = await response.json()
@@ -431,6 +453,26 @@ function SignFormContent({ stationId }: { stationId: string }) {
         <div style={styles.loading}>
           <div style={styles.spinnerEmoji}><svg className="spinning-wheel" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
           <p>טוען טופס...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (alreadySubmitted) {
+    return (
+      <div style={styles.successContainer}>
+        <div style={styles.successScreen}>
+          <div style={styles.successIconAnimated}>
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="36" fill="#10b981" />
+              <path d="M24 42 L34 52 L56 28" fill="none" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <h2 style={styles.successTitle}>הטופס כבר נשלח בהצלחה</h2>
+          <p style={styles.successText}>
+            {alreadySubmittedName ? `הבקשה של ${alreadySubmittedName} כבר נקלטה במערכת.` : 'בקשה זו כבר נקלטה במערכת בעבר.'}<br />
+            אין צורך למלא את הטופס פעם נוספת — מנהל התחנה יטפל בבקשה.
+          </p>
         </div>
       </div>
     )
