@@ -6,6 +6,9 @@ import { SESSION_VERSION } from '@/lib/version'
 import { VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/lib/types'
 import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
 import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
+import { useBackGuard } from '@/hooks/useBackGuard'
+import { usePreviousRoleEntry } from '@/hooks/usePreviousRoleEntry'
+import ExitConfirmDialog from '@/components/ExitConfirmDialog'
 import LoadingSpin from '@/components/LoadingSpin'
 import Footer from '@/components/Footer'
 import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
@@ -71,6 +74,8 @@ export default function OperatorPage() {
   const { authRoles, activeRole, currentRoleLabel, switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+  const previousRoleEntry = usePreviousRoleEntry(authRoles, activeRole)
   const [phone, setPhone] = useState('')
   const [code, setCode] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
@@ -392,6 +397,21 @@ export default function OperatorPage() {
     setResults([])
     window.location.href = '/login'
   }
+
+  const handleSwitchBackToPrevious = () => {
+    if (previousRoleEntry) switchToRole(previousRoleEntry)
+    setShowExitConfirm(false)
+  }
+
+  // A bare back press should always land here (this page IS the operator's home
+  // screen) rather than falling through into an inconsistent logged-out state —
+  // a second back from here asks explicitly what the user wants to do.
+  useBackGuard({
+    enabled: !!operator,
+    isHome: true,
+    homeHref: '/operator',
+    onExitRequest: () => setShowExitConfirm(true),
+  })
 
   // Navigate back to manager dashboard (only for managers)
   const handleBackToManagement = () => {
@@ -1286,7 +1306,7 @@ ${contact?.phone || ''}
                     חזרה לניהול
                   </button>
                 )}
-                <button style={{...styles.profileItem, color:'#ef4444'}} onClick={handleLogout}>
+                <button style={{...styles.profileItem, color:'#ef4444'}} onClick={() => { setShowProfileMenu(false); setShowExitConfirm(true) }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                   יציאה
                 </button>
@@ -2159,6 +2179,14 @@ ${contact?.phone || ''}
           </div>
         </div>
       )}
+
+      <ExitConfirmDialog
+        open={showExitConfirm}
+        onCancel={() => setShowExitConfirm(false)}
+        onExit={() => { setShowExitConfirm(false); handleLogout() }}
+        onSwitchBack={handleSwitchBackToPrevious}
+        previousRoleEntry={previousRoleEntry}
+      />
 
       <Footer showFeedback guideHref="/guide?tab=operator" />
     </div>

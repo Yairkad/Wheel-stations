@@ -160,6 +160,11 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [loginError, setLoginError] = useState('')
   const [currentManager, setCurrentManager] = useState<Manager | null>(null)
   const [sessionPassword, setSessionPassword] = useState('')
+  // A biometric-only (WebAuthn) login never captures a real password, so requirePassword()
+  // below opens this modal to get one on-demand instead of just failing the action.
+  const [showReauthModal, setShowReauthModal] = useState(false)
+  const [reauthPasswordInput, setReauthPasswordInput] = useState('')
+  const reauthResolveRef = useRef<((value: boolean) => void) | null>(null)
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
   const [whatsappTemplateForm, setWhatsappTemplateForm] = useState('')
@@ -323,7 +328,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
 
   // Manual borrow modal
   const [showManualBorrowModal, setShowManualBorrowModal] = useState(false)
-  const [manualBorrowWheel, setManualBorrowWheel] = useState<Wheel | null>(null)
+  // Multiple wheels can be borrowed together by one borrower in a single manual-loan entry
+  const [manualBorrowWheels, setManualBorrowWheels] = useState<Wheel[]>([])
   const [manualBorrowForm, setManualBorrowForm] = useState({
     borrower_name: '',
     borrower_phone: '',
@@ -710,6 +716,11 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           // Trigger push notification toggle
           handleTogglePush()
           break
+        case 'manualBorrow':
+          // Borrower-first manual loan: no wheel preset, manager picks from the checklist
+          setManualBorrowWheels([])
+          setShowManualBorrowModal(true)
+          break
       }
     }
   }, [searchParams, isManager, stationId, station, router])
@@ -738,18 +749,46 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
 
   // A biometric-only (WebAuthn) login has no real password to store, so sessionPassword
   // can legitimately be '' for a fully valid, logged-in manager. Every action below that
-  // sends manager_password/current_password to the server needs this guard — otherwise it
-  // silently sends an empty password and gets a confusing generic failure back.
-  const requirePassword = () => {
+  // sends manager_password/current_password to the server needs this guard — instead of
+  // just failing with a confusing "log in again" message, it prompts once for the password
+  // (via showReauthModal), caches it for the rest of this session, and lets the action
+  // proceed — the server still validates the password for real when the request lands.
+  const requirePassword = async (): Promise<boolean> => {
     if (sessionPassword) return true
-    toast.error('סיסמה לא נמצאה. נא להתנתק ולהתחבר מחדש')
-    return false
+    setReauthPasswordInput('')
+    setShowReauthModal(true)
+    const entered = await new Promise<boolean>(resolve => { reauthResolveRef.current = resolve })
+    return entered
+  }
+
+  const submitReauthModal = () => {
+    const pwd = reauthPasswordInput.trim()
+    if (!pwd) return
+    setSessionPassword(pwd)
+    try {
+      const key = `station_session_${stationId}`
+      const raw = localStorage.getItem(key)
+      if (raw) {
+        const session = JSON.parse(raw)
+        session.password = pwd
+        localStorage.setItem(key, JSON.stringify(session))
+      }
+    } catch { /* best-effort cache only */ }
+    setShowReauthModal(false)
+    reauthResolveRef.current?.(true)
+    reauthResolveRef.current = null
+  }
+
+  const cancelReauthModal = () => {
+    setShowReauthModal(false)
+    reauthResolveRef.current?.(false)
+    reauthResolveRef.current = null
   }
 
   // Toggle push notifications
   const handleTogglePush = async () => {
     if (!currentManager) return
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
     setEnablingPush(true)
 
     try {
@@ -1157,7 +1196,7 @@ ${signFormUrl}
 
   // Show recovery certificate
   const handleShowRecoveryCert = async () => {
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
     setRecoveryLoading(true)
     setShowRecoveryCertModal(true)
     try {
@@ -1393,7 +1432,7 @@ ${signFormUrl}
       toast.error('נא לציין סיבה לכישלון ההרכבה')
       return
     }
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
 
     setActionLoading(true)
     try {
@@ -1431,9 +1470,13 @@ ${signFormUrl}
     }
   }
 
-  // Manual borrow - submit form
+  // Manual borrow - submit form. Creates one wheel_borrows row per selected wheel
+  // (the DB has no concept of a multi-wheel borrow group), all under the same borrower.
   const handleManualBorrow = async () => {
-    if (!manualBorrowWheel) return
+    if (manualBorrowWheels.length === 0) {
+      toast.error('נא לבחור לפחות גלגל אחד')
+      return
+    }
 
     // Validate required fields and highlight missing ones
     const errors: string[] = []
@@ -1445,37 +1488,45 @@ ${signFormUrl}
       toast.error('נא למלא את כל שדות החובה')
       return
     }
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
 
     setManualBorrowFormErrors([])
     setActionLoading(true)
     try {
-      const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${manualBorrowWheel.id}/borrow`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          borrower_name: manualBorrowForm.borrower_name,
-          borrower_phone: manualBorrowForm.borrower_phone,
-          borrower_id_number: manualBorrowForm.borrower_id_number || undefined,
-          borrower_address: manualBorrowForm.borrower_address || undefined,
-          vehicle_model: manualBorrowForm.vehicle_model || undefined,
-          vehicle_plate: manualBorrowForm.vehicle_plate || undefined,
-          deposit_type: manualBorrowForm.deposit_type,
-          deposit_amount_override: manualBorrowForm.deposit_amount_override ? parseInt(manualBorrowForm.deposit_amount_override) : undefined,
-          notes: manualBorrowForm.notes || undefined,
-          manager_phone: currentManager?.phone,
-          manager_password: sessionPassword
+      const failedWheels: string[] = []
+      for (const wheel of manualBorrowWheels) {
+        const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheel.id}/borrow`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            borrower_name: manualBorrowForm.borrower_name,
+            borrower_phone: manualBorrowForm.borrower_phone,
+            borrower_id_number: manualBorrowForm.borrower_id_number || undefined,
+            borrower_address: manualBorrowForm.borrower_address || undefined,
+            vehicle_model: manualBorrowForm.vehicle_model || undefined,
+            vehicle_plate: manualBorrowForm.vehicle_plate || undefined,
+            deposit_type: manualBorrowForm.deposit_type,
+            deposit_amount_override: manualBorrowForm.deposit_amount_override ? parseInt(manualBorrowForm.deposit_amount_override) : undefined,
+            notes: manualBorrowForm.notes || undefined,
+            manager_phone: currentManager?.phone,
+            manager_password: sessionPassword
+          })
         })
-      })
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'שגיאה בהשאלה')
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}))
+          failedWheels.push(`${wheel.wheel_number}${data.error ? ` (${data.error})` : ''}`)
+        }
       }
 
       await fetchStation()
+
+      if (failedWheels.length === manualBorrowWheels.length) {
+        throw new Error('שגיאה בהשאלה')
+      }
+
       setShowManualBorrowModal(false)
-      setManualBorrowWheel(null)
+      setManualBorrowWheels([])
       setManualBorrowForm({
         borrower_name: '',
         borrower_phone: '',
@@ -1488,7 +1539,12 @@ ${signFormUrl}
         notes: ''
       })
       setManualBorrowFormErrors([])
-      toast.success('ההשאלה נרשמה בהצלחה!')
+
+      if (failedWheels.length > 0) {
+        toast.error(`ההשאלה נרשמה חלקית — נכשל עבור: ${failedWheels.join(', ')}`)
+      } else {
+        toast.success(manualBorrowWheels.length > 1 ? 'ההשאלה נרשמה בהצלחה עבור כל הגלגלים!' : 'ההשאלה נרשמה בהצלחה!')
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'שגיאה בהשאלה')
     } finally {
@@ -1508,7 +1564,7 @@ ${signFormUrl}
       setWheelFormErrors(errors)
       return
     }
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
     setWheelFormErrors([])
     setActionLoading(true)
     const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
@@ -1575,7 +1631,7 @@ ${signFormUrl}
       setWheelFormErrors(errors)
       return
     }
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
     setWheelFormErrors([])
     setActionLoading(true)
     const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
@@ -1631,7 +1687,7 @@ ${signFormUrl}
 
   // Delete wheel
   const handleDeleteWheel = async (wheel: Wheel) => {
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
     showConfirm({
       title: 'מחיקת גלגל',
       message: `למחוק את גלגל #${wheel.wheel_number}? פעולה זו אינה ניתנת לביטול`,
@@ -1724,7 +1780,7 @@ ${signFormUrl}
 
   // Save contacts
   const handleSaveContacts = async () => {
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/managers`, {
@@ -1755,7 +1811,7 @@ ${signFormUrl}
   const doImport = async (importActionMode: 'add_new_only' | 'upsert' | 'replace_all', data?: Record<string, unknown>[]) => {
     const wheels = data ?? pendingImportData
     if (!wheels) return
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
     setShowImportConflictModal(false)
     setUploadLoading(true)
     try {
@@ -1796,7 +1852,7 @@ ${signFormUrl}
   const handleExcelUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
 
     event.target.value = ''
 
@@ -1863,7 +1919,7 @@ ${signFormUrl}
       toast.error('נא להזין קישור לגיליון Google Sheets')
       return
     }
-    if (!requirePassword()) return
+    if (!(await requirePassword())) return
 
     setUploadLoading(true)
     try {
@@ -3287,7 +3343,7 @@ ${signFormUrl}
                             <button
                               style={styles.optionItem}
                               onClick={() => {
-                                setManualBorrowWheel(wheel)
+                                setManualBorrowWheels([wheel])
                                 setShowManualBorrowModal(true)
                                 setOpenOptionsMenu(null)
                                 ensureWheelHistoryLoaded(wheel.id)
@@ -3727,7 +3783,42 @@ ${signFormUrl}
         </div>
       )}
 
-      {showManualBorrowModal && manualBorrowWheel && (
+      {showReauthModal && (
+        <div role="presentation" style={styles.modalOverlay} onClick={cancelReauthModal}>
+          <div role="dialog" aria-modal="true" aria-labelledby="reauth-modal-title" style={{...styles.modal, maxWidth: '380px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="reauth-modal-title" style={styles.modalTitle}>אימות סיסמה</h3>
+            <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
+              ההתחברות שלך בוצעה באמצעות טביעת אצבע/זיהוי פנים, ולכן נדרש להזין את הסיסמה פעם אחת כדי להמשיך בפעולה זו.
+            </p>
+            <input
+              type="password"
+              value={reauthPasswordInput}
+              onChange={e => setReauthPasswordInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') submitReauthModal() }}
+              placeholder="סיסמה"
+              style={styles.input}
+              autoFocus
+            />
+            <div style={{display: 'flex', gap: '12px', marginTop: '20px'}}>
+              <button
+                style={{flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#4b5563', color: '#fff', cursor: 'pointer', fontWeight: 'bold'}}
+                onClick={cancelReauthModal}
+              >
+                ביטול
+              </button>
+              <button
+                style={{flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', cursor: 'pointer', fontWeight: 'bold', opacity: reauthPasswordInput.trim() ? 1 : 0.5}}
+                onClick={submitReauthModal}
+                disabled={!reauthPasswordInput.trim()}
+              >
+                אישור
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showManualBorrowModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => !actionLoading && setShowManualBorrowModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="manual-borrow-modal-title" style={{...styles.modal, maxWidth: '450px', position: 'relative'}} onClick={e => e.stopPropagation()}>
             {/* Submitting Overlay */}
@@ -3776,17 +3867,61 @@ ${signFormUrl}
               padding: '12px',
               marginBottom: '16px',
             }}>
-              <div style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
-                <span style={{background: '#3b82f6', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
-                  גלגל {manualBorrowWheel.wheel_number}
-                </span>
-                <span style={{color: '#64748b', fontSize: '0.85rem'}}>
-                  {manualBorrowWheel.rim_size}" | {manualBorrowWheel.bolt_count}×{manualBorrowWheel.bolt_spacing}
-                </span>
-                {manualBorrowWheel.is_donut && (
-                  <span style={{background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem'}}>דונאט</span>
-                )}
-              </div>
+              {manualBorrowWheels.length === 0 ? (
+                <div style={{color: '#64748b', fontSize: '0.85rem'}}>לא נבחרו גלגלים עדיין — בחר למטה</div>
+              ) : (
+                <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                  {manualBorrowWheels.map(w => (
+                    <div key={w.id} style={{display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap'}}>
+                      <span style={{background: '#3b82f6', color: 'white', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem'}}>
+                        גלגל {w.wheel_number}
+                      </span>
+                      <span style={{color: '#64748b', fontSize: '0.85rem'}}>
+                        {w.rim_size}" | {w.bolt_count}×{w.bolt_spacing}
+                      </span>
+                      {w.is_donut && (
+                        <span style={{background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem'}}>דונאט</span>
+                      )}
+                      {manualBorrowWheels.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setManualBorrowWheels(manualBorrowWheels.filter(x => x.id !== w.id))}
+                          disabled={actionLoading}
+                          style={{marginRight: 'auto', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem', padding: '2px 6px'}}
+                        >
+                          הסר ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {(() => {
+                const selectedIds = new Set(manualBorrowWheels.map(w => w.id))
+                const selectableWheels = (station?.wheels || []).filter(w => w.is_available && !w.temporarily_unavailable && !selectedIds.has(w.id))
+                if (selectableWheels.length === 0) return null
+                return (
+                  <details style={{marginTop: '10px'}}>
+                    <summary style={{cursor: 'pointer', color: '#3b82f6', fontSize: '0.85rem', fontWeight: 600}}>
+                      {manualBorrowWheels.length > 0 ? 'הוסף גלגל נוסף לאותה השאלה' : 'בחר גלגלים'}
+                    </summary>
+                    <div style={{maxHeight: '160px', overflowY: 'auto', marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                      {selectableWheels.map(w => (
+                        <label key={w.id} style={{display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#334155', cursor: 'pointer', padding: '4px 2px'}}>
+                          <input
+                            type="checkbox"
+                            checked={false}
+                            onChange={() => { setManualBorrowWheels([...manualBorrowWheels, w]); ensureWheelHistoryLoaded(w.id) }}
+                            disabled={actionLoading}
+                          />
+                          <span>גלגל {w.wheel_number} — {w.rim_size}" | {w.bolt_count}×{w.bolt_spacing}{w.is_donut ? ' (דונאט)' : ''}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                )
+              })()}
             </div>
 
             <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
@@ -3847,16 +3982,16 @@ ${signFormUrl}
                   style={styles.input}
                   disabled={actionLoading}
                 />
-                {(() => {
-                  const similarFailure = findSimilarFailedMount(wheelHistoryCache[manualBorrowWheel.id] || [], manualBorrowForm.vehicle_model)
+                {manualBorrowWheels.map(w => {
+                  const similarFailure = findSimilarFailedMount(wheelHistoryCache[w.id] || [], manualBorrowForm.vehicle_model)
                   if (!similarFailure) return null
                   return (
-                    <div style={{marginTop: '6px', fontSize: '0.78rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '4px'}}>
+                    <div key={w.id} style={{marginTop: '6px', fontSize: '0.78rem', color: '#f59e0b', display: 'flex', alignItems: 'flex-start', gap: '4px'}}>
                       <span>⚠</span>
-                      <span>גלגל זה נכשל בעבר על רכב דומה{similarFailure.mount_feedback_note ? ` — ${similarFailure.mount_feedback_note}` : ''}</span>
+                      <span>גלגל {w.wheel_number} נכשל בעבר על רכב דומה{similarFailure.mount_feedback_note ? ` — ${similarFailure.mount_feedback_note}` : ''}</span>
                     </div>
                   )
-                })()}
+                })}
               </div>
 
               <div>
@@ -3896,13 +4031,13 @@ ${signFormUrl}
 
               <div>
                 <label style={{color: '#a0aec0', fontSize: '0.85rem', display: 'block', marginBottom: '4px'}}>
-                  פיקדון חריג (ריק = ברירת מחדל ₪{manualBorrowWheel?.custom_deposit || station?.deposit_amount || 200})
+                  פיקדון חריג (ריק = ברירת מחדל ₪{manualBorrowWheels[0]?.custom_deposit || station?.deposit_amount || 200})
                 </label>
                 <input
                   type="number"
                   value={manualBorrowForm.deposit_amount_override}
                   onChange={e => setManualBorrowForm({...manualBorrowForm, deposit_amount_override: e.target.value})}
-                  placeholder={`ברירת מחדל: ₪${manualBorrowWheel?.custom_deposit || station?.deposit_amount || 200}`}
+                  placeholder={`ברירת מחדל: ₪${manualBorrowWheels[0]?.custom_deposit || station?.deposit_amount || 200}`}
                   style={styles.input}
                   disabled={actionLoading}
                 />
@@ -3935,7 +4070,7 @@ ${signFormUrl}
                   cursor: 'pointer',
                   fontWeight: 'bold',
                 }}
-                onClick={() => setShowManualBorrowModal(false)}
+                onClick={() => { setShowManualBorrowModal(false); setManualBorrowWheels([]) }}
               >
                 ביטול
               </button>
@@ -3951,9 +4086,10 @@ ${signFormUrl}
                   fontWeight: 'bold',
                 }}
                 onClick={handleManualBorrow}
-                disabled={actionLoading}
+                disabled={actionLoading || manualBorrowWheels.length === 0}
+                title={manualBorrowWheels.length === 0 ? 'נא לבחור לפחות גלגל אחד' : undefined}
               >
-                {actionLoading ? <LoadingSpin text="שומר..." size={15} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>רשום השאלה</span>}
+                {actionLoading ? <LoadingSpin text="שומר..." size={15} /> : <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>רשום השאלה{manualBorrowWheels.length > 1 ? ` (${manualBorrowWheels.length} גלגלים)` : ''}</span>}
               </button>
             </div>
           </div>
@@ -4763,7 +4899,7 @@ ${signFormUrl}
               <button
                 style={{...styles.smallBtn, background: '#10b981'}}
                 onClick={async () => {
-                  if (!requirePassword()) return
+                  if (!(await requirePassword())) return
                   setActionLoading(true)
                   try {
                     const response = await fetch(`/api/wheel-stations/${stationId}`, {
@@ -4926,7 +5062,7 @@ ${signFormUrl}
               <button
                 style={{...styles.smallBtn, background: '#10b981', marginTop: '16px'}}
                 onClick={async () => {
-                  if (!requirePassword()) return
+                  if (!(await requirePassword())) return
                   setActionLoading(true)
                   try {
                     const response = await fetch(`/api/wheel-stations/${stationId}`, {
@@ -4996,7 +5132,7 @@ ${signFormUrl}
                 <button
                   style={{...styles.smallBtn, background: '#10b981', marginTop: '8px'}}
                   onClick={async () => {
-                    if (!requirePassword()) return
+                    if (!(await requirePassword())) return
                     setActionLoading(true)
                     try {
                       const validEmails = notificationEmails.filter(e => e.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
