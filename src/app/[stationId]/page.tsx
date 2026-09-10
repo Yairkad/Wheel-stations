@@ -3784,7 +3784,11 @@ ${signFormUrl}
       )}
 
       {showReauthModal && (
-        <div role="presentation" style={styles.modalOverlay} onClick={cancelReauthModal}>
+        // Higher zIndex than the standard modalOverlay (1000) — requirePassword() can be
+        // triggered from inside an already-open modal (e.g. manual borrow), and with an
+        // equal zIndex the later-mounted modal wins the stacking order, silently hiding
+        // this prompt underneath it so the click that opened it looks like it did nothing.
+        <div role="presentation" style={{...styles.modalOverlay, zIndex: 2000}} onClick={cancelReauthModal}>
           <div role="dialog" aria-modal="true" aria-labelledby="reauth-modal-title" style={{...styles.modal, maxWidth: '380px'}} onClick={e => e.stopPropagation()}>
             <h3 id="reauth-modal-title" style={styles.modalTitle}>אימות סיסמה</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
