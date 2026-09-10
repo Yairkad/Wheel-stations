@@ -7,6 +7,20 @@ import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import type { RoleResult } from '@/lib/types'
 import { useRoleSwitch, roleKey, resolveActiveRoleEntry } from '@/hooks/useRoleSwitch'
+import { useBackGuard } from '@/hooks/useBackGuard'
+import { usePreviousRoleEntry } from '@/hooks/usePreviousRoleEntry'
+import ExitConfirmDialog from '@/components/ExitConfirmDialog'
+
+function getRoleHomeHref(role: string | undefined, stationId: string | undefined, subRole: string | undefined): string {
+  switch (role) {
+    case 'station_manager': return stationId ? `/${stationId}` : '/stations'
+    case 'operator': return subRole === 'manager' ? '/call-center' : '/operator'
+    case 'district_manager': return '/super-manager'
+    case 'editor': return '/admin/punctures'
+    case 'admin': return '/admin/dashboard'
+    default: return '/stations'
+  }
+}
 
 interface UserSession {
   manager: {
@@ -46,6 +60,10 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   const [showPwaBanner, setShowPwaBanner] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null)
+
+  // Explicit exit / role-switch-back confirmation — shown both when a bare back
+  // press hits the role's home screen, and when the user deliberately clicks "התנתק".
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
 
   useEffect(() => {
     const isStandalone =
@@ -304,6 +322,10 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showProfileMenu, showRoleMenu])
 
+  // Resolves which role (if any) the user switched away from most recently, so the
+  // exit-confirmation dialog below can offer "switch back" as an explicit option.
+  const previousRoleEntry = usePreviousRoleEntry(authRoles, activeRole ?? '')
+
   const handleLogout = () => {
     Object.keys(localStorage).forEach(key => {
       if (
@@ -316,7 +338,8 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
         key === 'active_role' ||
         key === 'active_sub_role' ||
         key === 'active_station_id' ||
-        key === 'auth_password'
+        key === 'auth_password' ||
+        key === 'previous_role_snapshot'
       ) {
         localStorage.removeItem(key)
       }
@@ -324,6 +347,22 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
     toast.success('התנתקת בהצלחה')
     router.push('/login')
   }
+
+  const handleSwitchBackToPrevious = () => {
+    if (previousRoleEntry) switchToRole(previousRoleEntry)
+    setShowExitConfirm(false)
+  }
+
+  const activeStationIdForGuard = typeof window !== 'undefined' ? localStorage.getItem('active_station_id') : null
+  const activeRoleEntryForGuard = resolveActiveRoleEntry(authRoles, activeRole ?? '', typeof window !== 'undefined' ? localStorage.getItem('active_sub_role') : null, activeStationIdForGuard)
+  const homeHref = getRoleHomeHref(activeRoleEntryForGuard?.role, userSession?.stationId, activeRoleEntryForGuard?.data?.sub_role as string | undefined)
+
+  useBackGuard({
+    enabled: !isLoading && !!userSession,
+    isHome: pathname === homeHref,
+    homeHref,
+    onExitRequest: () => setShowExitConfirm(true),
+  })
 
   const getFormUrl = () => {
     if (!userSession?.stationId) return ''
@@ -434,6 +473,12 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
                         <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
                       </svg>
                       <span>הוסף גלגל</span>
+                    </Link>
+                    <Link href={`/${userSession.stationId}?action=manualBorrow`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                      </svg>
+                      <span>השאלה ידנית לפונה</span>
                     </Link>
                     <Link href={`/${userSession.stationId}?action=excel`} style={styles.submenuItem} onClick={() => setShowProfileMenu(false)}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -606,7 +651,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
         </button>
       )}
 
-      <button style={{ ...styles.dropdownItem, ...styles.dropdownItemDanger }} onClick={handleLogout}>
+      <button style={{ ...styles.dropdownItem, ...styles.dropdownItemDanger }} onClick={() => { setShowProfileMenu(false); setShowExitConfirm(true) }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
           <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
@@ -811,6 +856,15 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
       {/* Spacer */}
       <div className="app-header-spacer" style={styles.headerSpacer} />
 
+      {/* Exit / switch-back-to-previous-role confirmation — shown on the explicit
+          "התנתק" click, and when a bare back press hits the role's home screen. */}
+      <ExitConfirmDialog
+        open={showExitConfirm}
+        onCancel={() => setShowExitConfirm(false)}
+        onExit={() => { setShowExitConfirm(false); handleLogout() }}
+        onSwitchBack={handleSwitchBackToPrevious}
+        previousRoleEntry={previousRoleEntry}
+      />
     </>
   )
 }

@@ -22,8 +22,8 @@ interface FormData {
       rim_size: string
       bolt_count: number
       bolt_spacing: number
-    }
-  }
+    } | null
+  } | null
   station: {
     name: string
   }
@@ -78,7 +78,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
 
       const a = document.createElement('a')
       a.href = url
-      a.download = `טופס_השאלה_${form.borrow.borrower_name}_גלגל_${form.borrow.wheels.wheel_number}.png`
+      a.download = `טופס_השאלה_${form.borrow?.borrower_name || 'לא_ידוע'}_גלגל_${form.borrow?.wheels?.wheel_number || ''}.png`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -142,7 +142,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
   }
 
   const expiryDate = new Date(form.expires_at).toLocaleDateString('he-IL')
-  const borrowDate = new Date(form.borrow.borrow_date).toLocaleDateString('he-IL')
+  const borrowDate = form.borrow?.borrow_date ? new Date(form.borrow.borrow_date).toLocaleDateString('he-IL') : '-'
   const isUrgent = form.days_remaining <= 7
 
   return (
@@ -191,11 +191,11 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-gray-500">שם השואל</p>
-                <p className="font-semibold">{form.borrow.borrower_name}</p>
+                <p className="font-semibold">{form.borrow?.borrower_name || '-'}</p>
               </div>
               <div>
                 <p className="text-gray-500">מספר גלגל</p>
-                <p className="font-semibold">#{form.borrow.wheels.wheel_number}</p>
+                <p className="font-semibold">#{form.borrow?.wheels?.wheel_number || '-'}</p>
               </div>
               <div>
                 <p className="text-gray-500">תאריך השאלה</p>
@@ -203,7 +203,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
               </div>
               <div>
                 <p className="text-gray-500">דגם רכב</p>
-                <p className="font-semibold">{form.borrow.vehicle_model}</p>
+                <p className="font-semibold">{form.borrow?.vehicle_model || '-'}</p>
               </div>
             </div>
           </div>

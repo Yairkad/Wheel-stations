@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
+import { useBackGuard } from '@/hooks/useBackGuard'
+import { usePreviousRoleEntry } from '@/hooks/usePreviousRoleEntry'
+import ExitConfirmDialog from '@/components/ExitConfirmDialog'
 import LoadingSpin from '@/components/LoadingSpin'
 import Footer from '@/components/Footer'
 import { useClickOutside } from '@/hooks/useClickOutside'
@@ -72,6 +75,8 @@ export default function CallCenterPage() {
   const { authRoles, activeRole, currentRoleLabel, switchToRole, switchingRole, switchingToKey } = useRoleSwitch()
   const [showRoleMenu, setShowRoleMenu] = useState(false)
   const roleMenuRef = useRef<HTMLDivElement>(null)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
+  const previousRoleEntry = usePreviousRoleEntry(authRoles, activeRole)
 
   // Profile dropdown
   const [showProfileMenu, setShowProfileMenu] = useState(false)
@@ -203,6 +208,21 @@ export default function CallCenterPage() {
     localStorage.removeItem('operator_session')
     window.location.href = '/login'
   }
+
+  const handleSwitchBackToPrevious = () => {
+    if (previousRoleEntry) switchToRole(previousRoleEntry)
+    setShowExitConfirm(false)
+  }
+
+  // A bare back press should always land here (this page IS the call-center
+  // manager's home screen) rather than falling through into a logged-out state —
+  // a second back from here asks explicitly what the user wants to do.
+  useBackGuard({
+    enabled: !!manager,
+    isHome: true,
+    homeHref: '/call-center',
+    onExitRequest: () => setShowExitConfirm(true),
+  })
 
   const handleChangePassword = async () => {
     if (!passwordForm.current || !passwordForm.new || !passwordForm.confirm) {
@@ -522,7 +542,7 @@ export default function CallCenterPage() {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                   שינוי סיסמה
                 </button>
-                <button style={{...styles.profileItem, color:'#ef4444'}} onClick={handleLogout}>
+                <button style={{...styles.profileItem, color:'#ef4444'}} onClick={() => { setShowProfileMenu(false); setShowExitConfirm(true) }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                   יציאה
                 </button>
@@ -935,6 +955,14 @@ export default function CallCenterPage() {
           </div>
         </div>
       )}
+
+      <ExitConfirmDialog
+        open={showExitConfirm}
+        onCancel={() => setShowExitConfirm(false)}
+        onExit={() => { setShowExitConfirm(false); handleLogout() }}
+        onSwitchBack={handleSwitchBackToPrevious}
+        previousRoleEntry={previousRoleEntry}
+      />
 
       <Footer showFeedback guideHref="/guide?tab=call-center-manager" />
 

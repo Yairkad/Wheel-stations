@@ -83,6 +83,18 @@ export function useRoleSwitch(): UseRoleSwitchResult {
 
   const switchToRole = useCallback((r: RoleResult) => {
     setSwitchingToKey(roleKey(r))
+
+    // Remember which role we're switching AWAY from, so the back-navigation exit
+    // dialog (AppHeader) can offer "switch back to X" instead of only exit/cancel.
+    const prevRole = localStorage.getItem('active_role')
+    if (prevRole && prevRole !== r.role) {
+      localStorage.setItem('previous_role_snapshot', JSON.stringify({
+        role: prevRole,
+        subRole: localStorage.getItem('active_sub_role'),
+        stationId: localStorage.getItem('active_station_id'),
+      }))
+    }
+
     localStorage.setItem('active_role', r.role)
     if (r.data?.sub_role) localStorage.setItem('active_sub_role', r.data.sub_role as string)
     else localStorage.removeItem('active_sub_role')
