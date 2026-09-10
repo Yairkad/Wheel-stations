@@ -891,10 +891,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       toast.error('לא מחובר כמנהל')
       return
     }
-    if (!sessionPassword) {
-      toast.error('סיסמה לא נמצאה. נא להתנתק ולהתחבר מחדש')
-      return
-    }
+    if (!(await requirePassword())) return
     setApprovalLoading(borrowId)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/borrows/${borrowId}`, {
@@ -1018,7 +1015,8 @@ ${signFormUrl}
   }
 
   const handleRestoreWheel = async (wheelId: string) => {
-    if (!currentManager || !sessionPassword) return
+    if (!currentManager) return
+    if (!(await requirePassword())) return
     setRestoringWheel(wheelId)
     try {
       const res = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheelId}/restore`, {
@@ -1160,7 +1158,8 @@ ${signFormUrl}
 
   // Save own WhatsApp message wording (used automatically whenever this manager sends a form link)
   const handleSaveWhatsAppTemplate = async () => {
-    if (!currentManager || !sessionPassword) return
+    if (!currentManager) return
+    if (!(await requirePassword())) return
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/auth`, {
@@ -3784,7 +3783,11 @@ ${signFormUrl}
       )}
 
       {showReauthModal && (
-        <div role="presentation" style={styles.modalOverlay} onClick={cancelReauthModal}>
+        // Higher zIndex than the standard modalOverlay (1000) — requirePassword() can be
+        // triggered from inside an already-open modal (e.g. manual borrow), and with an
+        // equal zIndex the later-mounted modal wins the stacking order, silently hiding
+        // this prompt underneath it so the click that opened it looks like it did nothing.
+        <div role="presentation" style={{...styles.modalOverlay, zIndex: 2000}} onClick={cancelReauthModal}>
           <div role="dialog" aria-modal="true" aria-labelledby="reauth-modal-title" style={{...styles.modal, maxWidth: '380px'}} onClick={e => e.stopPropagation()}>
             <h3 id="reauth-modal-title" style={styles.modalTitle}>אימות סיסמה</h3>
             <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
