@@ -1511,9 +1511,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     opacity: 0.6,
     cursor: 'not-allowed',
   },
-  // Hidden capture summary (legal/audit record image source)
+  // Hidden capture summary (legal/audit record image source). Deliberately
+  // `position: fixed`, not `absolute` — an absolutely-positioned element at
+  // left:-10000px still inflates `document.documentElement.scrollWidth` by
+  // 10000px+ (its containing block is the initial containing block, since no
+  // ancestor sets `position: relative`), which made mobile browsers treat the
+  // whole page as ~10000px wide and zoom out to fit it — exactly the "form
+  // doesn't fill the screen, there's background around it" bug reported live.
+  // `position: fixed` is excluded from the document's scrollable overflow.
   captureSummary: {
-    position: 'absolute',
+    position: 'fixed',
     top: 0,
     left: '-10000px',
     width: '640px',
