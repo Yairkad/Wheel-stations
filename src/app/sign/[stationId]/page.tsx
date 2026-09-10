@@ -237,6 +237,23 @@ function SignFormContent({ stationId }: { stationId: string }) {
         } catch {
           // Non-fatal — if the status check itself fails, fall through and show the normal form
         }
+      } else if (isPrefilledMode) {
+        // A manager-prepared wheel+phone link (no `sr`) has no operator_sent_requests row
+        // to check against — look up any still-open request for this exact wheel+phone instead.
+        try {
+          const statusRes = await fetch(`/api/wheel-stations/${stationId}/public-borrow/status?wheel=${encodeURIComponent(prefilledWheelNumber!)}&phone=${encodeURIComponent(prefilledPhone!)}`)
+          if (statusRes.ok) {
+            const statusData = await statusRes.json()
+            if (statusData.status && statusData.status !== 'not_submitted') {
+              setAlreadySubmittedName(statusData.borrower_name || null)
+              setAlreadySubmitted(true)
+              setLoading(false)
+              return
+            }
+          }
+        } catch {
+          // Non-fatal — if the status check itself fails, fall through and show the normal form
+        }
       }
 
       const response = await fetch(`/api/wheel-stations/${stationId}`)
