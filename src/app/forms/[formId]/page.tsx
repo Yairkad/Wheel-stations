@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 interface FormData {
@@ -31,6 +31,7 @@ interface FormData {
 
 export default function FormViewerPage({ params }: { params: Promise<{ formId: string }> }) {
   const { formId } = use(params)
+  const router = useRouter()
   const [form, setForm] = useState<FormData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -112,12 +113,12 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
             טפסים נשמרים במערכת למשך 90 יום בלבד.<br />
             הטופס הזה נמחק אוטומטית.
           </p>
-          <Link
-            href="/stations"
+          <button
+            onClick={() => router.back()}
             className="inline-block px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800"
           >
-            חזרה לדף הראשי
-          </Link>
+            חזרה
+          </button>
         </div>
       </div>
     )
@@ -130,12 +131,12 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
           <div className="mb-4 flex justify-center"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">שגיאה</h1>
           <p className="text-gray-600 mb-6">{error || 'הטופס לא נמצא'}</p>
-          <Link
-            href="/stations"
+          <button
+            onClick={() => router.back()}
             className="inline-block px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800"
           >
-            חזרה לדף הראשי
-          </Link>
+            חזרה
+          </button>
         </div>
       </div>
     )
@@ -233,12 +234,12 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
               הדפס
             </button>
-            <Link
-              href="/stations"
+            <button
+              onClick={() => router.back()}
               className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium"
             >
               חזרה
-            </Link>
+            </button>
           </div>
         </div>
 
