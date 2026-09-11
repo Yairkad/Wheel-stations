@@ -34,7 +34,7 @@ export async function verifyStationManager(
 
   const { data: user } = await supabase
     .from('users')
-    .select('id, full_name, password, is_active')
+    .select('id, full_name, phone, password, is_active')
     .eq('phone', cleanPhone)
     .single()
 
