@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyStationManager } from '@/lib/station-auth'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,14 +22,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, borrowId } = await params
     const body = await request.json()
-    const { manager_phone, manager_password, action } = body
+    const { action } = body
 
-    // Verify manager credentials
-    if (!manager_phone || !manager_password) {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
-    }
-
-    const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    const auth = await verifyStationManagerSession(request, stationId)
     if (!auth.success) {
       return NextResponse.json({ error: auth.error }, { status: 401 })
     }
@@ -122,15 +117,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, borrowId } = await params
-    const body = await request.json()
-    const { manager_phone, manager_password } = body
-
-    // Verify manager credentials
-    if (!manager_phone || !manager_password) {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
-    }
-
-    const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    const auth = await verifyStationManagerSession(request, stationId)
     if (!auth.success) {
       return NextResponse.json({ error: auth.error }, { status: 401 })
     }

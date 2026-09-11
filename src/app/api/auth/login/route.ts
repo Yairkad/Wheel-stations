@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { checkRateLimit, getClientIp, checkAccountLockout, recordFailedAttempt, clearFailedAttempts } from '@/lib/rate-limit'
 import { verifyPassword } from '@/lib/password'
 import { createSessionToken, ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE } from '@/lib/admin-session'
+import { createManagerSession, MANAGER_SESSION_COOKIE, MANAGER_SESSION_MAX_AGE } from '@/lib/manager-session'
 import { logLogin } from '@/lib/login-log'
 import type { RoleResult } from '@/lib/types'
 export type { RoleResult }
@@ -155,6 +156,26 @@ export async function POST(request: NextRequest) {
         sameSite: 'strict',
         path: '/',
         maxAge: ADMIN_SESSION_MAX_AGE,
+      })
+    }
+
+    // Set HttpOnly manager session cookie for station/super managers — lets
+    // every sensitive station/super-manager API route authenticate off this
+    // cookie instead of a resent password, and works identically whether the
+    // login just happened via password or (in authenticate/complete) biometric.
+    // A station_manager role takes priority if a user somehow holds both.
+    const stationManagerRole = roles.find(r => r.role === 'station_manager')
+    const superManagerRole = roles.find(r => r.role === 'district_manager')
+    const managerRole = stationManagerRole ? 'station_manager' as const : superManagerRole ? 'super_manager' as const : null
+    if (managerRole) {
+      const managerUserId = ((stationManagerRole ?? superManagerRole)!.data as Record<string, unknown>).id as string
+      const token = await createManagerSession(managerUserId, managerRole)
+      response.cookies.set(MANAGER_SESSION_COOKIE, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: MANAGER_SESSION_MAX_AGE,
       })
     }
 

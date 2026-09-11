@@ -327,6 +327,7 @@ export default function AppHeader({ currentStationId, notificationCount, pushEna
   const previousRoleEntry = usePreviousRoleEntry(authRoles, activeRole ?? '')
 
   const handleLogout = () => {
+    fetch('/api/auth/manager-session', { method: 'DELETE' }).catch(() => {})
     Object.keys(localStorage).forEach(key => {
       if (
         key.startsWith('station_session_') ||

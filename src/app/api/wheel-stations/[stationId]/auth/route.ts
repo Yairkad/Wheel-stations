@@ -8,7 +8,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac } from 'crypto'
 import { verifyPassword } from '@/lib/password'
-import { verifyStationManager } from '@/lib/station-auth'
+import { verifyStationManager, verifyStationManagerSession } from '@/lib/station-auth'
+import { createManagerSession, MANAGER_SESSION_COOKIE, MANAGER_SESSION_MAX_AGE } from '@/lib/manager-session'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -205,10 +206,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Successful login - clear rate limit for this IP/station
     clearRateLimit(ip, stationId)
 
-    // Generate HMAC-signed token
+    // Generate HMAC-signed token (legacy, unrelated to manager_session below —
+    // kept as-is, not currently consumed by any Phase-2-migrated route)
     const token = createToken(stationId, user.id)
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       manager: {
         id: user.id,
@@ -220,6 +222,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       },
       token
     })
+
+    // Same manager_session cookie as /api/auth/login and the biometric flow —
+    // this is a separate, station-scoped login entry point (used when landing
+    // directly on a station page without going through the unified /login
+    // page first), so it needs to issue the cookie itself too.
+    const managerSessionToken = await createManagerSession(user.id, 'station_manager')
+    response.cookies.set(MANAGER_SESSION_COOKIE, managerSessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: MANAGER_SESSION_MAX_AGE,
+    })
+
+    return response
   } catch (error) {
     console.error('Error in POST /api/wheel-stations/[stationId]/auth:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -291,13 +308,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { phone, password, whatsapp_message_template } = body
+    const { whatsapp_message_template } = body
 
-    if (!phone || !password) {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
-    }
-
-    const auth = await verifyStationManager(stationId, phone, password)
+    const auth = await verifyStationManagerSession(request, stationId)
     if (!auth.success) {
       return NextResponse.json({ error: auth.error }, { status: 401 })
     }

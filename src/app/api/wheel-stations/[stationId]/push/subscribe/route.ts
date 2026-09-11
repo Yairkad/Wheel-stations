@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyPassword } from '@/lib/password'
 import { createClient } from '@supabase/supabase-js'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +19,7 @@ export async function POST(
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { subscription, manager_phone, manager_password } = body
+    const { subscription } = body
 
     if (!subscription || !subscription.endpoint || !subscription.keys) {
       return NextResponse.json(
@@ -28,45 +28,11 @@ export async function POST(
       )
     }
 
-    if (!manager_phone || !manager_password) {
-      return NextResponse.json(
-        { error: 'נדרש טלפון וסיסמה' },
-        { status: 400 }
-      )
+    const auth = await verifyStationManagerSession(request, stationId)
+    if (!auth.success) {
+      return NextResponse.json({ error: auth.error }, { status: 401 })
     }
-
-    // Verify manager credentials using unified tables
-    const cleanPhone = manager_phone.replace(/\D/g, '')
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, password, is_active')
-      .eq('phone', cleanPhone)
-      .single()
-
-    if (!user || !user.is_active) {
-      return NextResponse.json({ error: 'מנהל לא נמצא' }, { status: 404 })
-    }
-
-    const pwCheck = await verifyPassword(manager_password, user.password ?? '')
-    if (!pwCheck.valid) {
-      return NextResponse.json({ error: 'סיסמה שגויה' }, { status: 401 })
-    }
-    if (pwCheck.newHash) {
-      await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
-    }
-
-    const { data: roleRow } = await supabase
-      .from('user_roles')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('role', 'station_manager')
-      .eq('station_id', stationId)
-      .eq('is_active', true)
-      .single()
-
-    if (!roleRow) {
-      return NextResponse.json({ error: 'מנהל לא נמצא' }, { status: 404 })
-    }
+    const manager_phone = auth.managerPhone!
 
     // Check if subscription already exists
     const { data: existingSub } = await supabase
@@ -145,43 +111,17 @@ export async function DELETE(
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { endpoint, manager_phone, manager_password } = body
+    const { endpoint } = body
 
     if (!endpoint) {
       return NextResponse.json({ error: 'חסר endpoint' }, { status: 400 })
     }
 
-    // Verify manager credentials using unified tables
-    const cleanPhone = manager_phone.replace(/\D/g, '')
-    const { data: delUser } = await supabase
-      .from('users')
-      .select('id, password, is_active')
-      .eq('phone', cleanPhone)
-      .single()
-
-    if (!delUser || !delUser.is_active) {
-      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
+    const auth = await verifyStationManagerSession(request, stationId)
+    if (!auth.success) {
+      return NextResponse.json({ error: auth.error }, { status: 401 })
     }
-    const delPwCheck = await verifyPassword(manager_password, delUser.password ?? '')
-    if (!delPwCheck.valid) {
-      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
-    }
-    if (delPwCheck.newHash) {
-      await supabase.from('users').update({ password: delPwCheck.newHash }).eq('id', delUser.id)
-    }
-
-    const { data: delRole } = await supabase
-      .from('user_roles')
-      .select('id')
-      .eq('user_id', delUser.id)
-      .eq('role', 'station_manager')
-      .eq('station_id', stationId)
-      .eq('is_active', true)
-      .single()
-
-    if (!delRole) {
-      return NextResponse.json({ error: 'לא מורשה' }, { status: 401 })
-    }
+    const manager_phone = auth.managerPhone!
 
     // Remove subscription
     const { error } = await supabase
@@ -218,12 +158,12 @@ export async function GET(
 ) {
   try {
     const { stationId } = await params
-    const { searchParams } = new URL(request.url)
-    const manager_phone = searchParams.get('manager_phone')
 
-    if (!manager_phone) {
-      return NextResponse.json({ error: 'חסר טלפון' }, { status: 400 })
+    const auth = await verifyStationManagerSession(request, stationId)
+    if (!auth.success) {
+      return NextResponse.json({ error: auth.error }, { status: 401 })
     }
+    const manager_phone = auth.managerPhone!
 
     const { data: subs } = await supabase
       .from('wheel_station_push_subscriptions')

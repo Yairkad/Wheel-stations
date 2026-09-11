@@ -10,6 +10,7 @@ import {
   updateCredentialCounter,
 } from '@/lib/webauthn'
 import { createSessionToken, ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE } from '@/lib/admin-session'
+import { createManagerSession, MANAGER_SESSION_COOKIE, MANAGER_SESSION_MAX_AGE } from '@/lib/manager-session'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -157,6 +158,24 @@ export async function POST(request: NextRequest) {
         sameSite: 'strict',
         path: '/',
         maxAge: ADMIN_SESSION_MAX_AGE,
+      })
+    }
+
+    // Same manager_session cookie as /api/auth/login — this is what lets a
+    // biometric login authenticate sensitive station/super-manager actions
+    // without ever having a password to send (see the plan doc for why).
+    const stationManagerRole = roles.find(r => r.role === 'station_manager')
+    const superManagerRole = roles.find(r => r.role === 'district_manager')
+    const managerRole = stationManagerRole ? 'station_manager' as const : superManagerRole ? 'super_manager' as const : null
+    if (managerRole) {
+      const managerUserId = ((stationManagerRole ?? superManagerRole)!.data as Record<string, unknown>).id as string
+      const managerToken = await createManagerSession(managerUserId, managerRole)
+      response.cookies.set(MANAGER_SESSION_COOKIE, managerToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: MANAGER_SESSION_MAX_AGE,
       })
     }
 

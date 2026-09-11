@@ -4,9 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyPassword } from '@/lib/password'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -120,42 +120,10 @@ async function verifyManager(stationId: string, request: NextRequest): Promise<{
     }
   }
 
-  // Try station password auth (for station managers without Supabase Auth)
-  const authHeader = request.headers.get('x-station-auth')
-  if (authHeader) {
-    try {
-      const { phone, password } = JSON.parse(authHeader)
-      const cleanPhone = phone.replace(/\D/g, '')
-
-      const { data: authUser } = await supabase
-        .from('users')
-        .select('id, password, is_active')
-        .eq('phone', cleanPhone)
-        .single()
-
-      if (authUser && authUser.is_active) {
-        const importPwCheck = await verifyPassword(password, authUser.password ?? '')
-        if (importPwCheck.valid) {
-          if (importPwCheck.newHash) {
-            await supabase.from('users').update({ password: importPwCheck.newHash }).eq('id', authUser.id)
-          }
-          const { data: roleRow } = await supabase
-            .from('user_roles')
-            .select('id')
-            .eq('user_id', authUser.id)
-            .eq('role', 'station_manager')
-            .eq('station_id', stationId)
-            .eq('is_active', true)
-            .single()
-
-          if (roleRow) {
-            return { success: true, userId: authUser.id }
-          }
-        }
-      }
-    } catch {
-      // Invalid auth header format
-    }
+  // Try the station manager's session cookie (for managers without Supabase Auth)
+  const sessionAuth = await verifyStationManagerSession(request, stationId)
+  if (sessionAuth.success && sessionAuth.managerId) {
+    return { success: true, userId: sessionAuth.managerId }
   }
 
   return { success: false, error: 'Unauthorized' }

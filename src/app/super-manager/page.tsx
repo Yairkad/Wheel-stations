@@ -93,7 +93,6 @@ export default function SuperManagerPage() {
   const router = useRouter()
   const [superManager, setSuperManager] = useState<SuperManager | null>(null)
   const [canEdit, setCanEdit] = useState(false)
-  const [sessionPassword, setSessionPassword] = useState('')
   const [stations, setStations] = useState<Station[]>([])
   const [selectedStation, setSelectedStation] = useState<Station | null>(null)
   const [wheels, setWheels] = useState<Wheel[]>([])
@@ -156,7 +155,6 @@ export default function SuperManagerPage() {
       }
       setSuperManager(session.superManager)
       setCanEdit(session.superManager.can_edit ?? false)
-      setSessionPassword(session.password)
     } catch {
       router.push('/login')
     }
@@ -294,9 +292,7 @@ export default function SuperManagerPage() {
         category: form.category || null,
         is_donut: form.is_donut,
         notes: form.notes || null,
-        custom_deposit: form.custom_deposit ? parseFloat(form.custom_deposit) : null,
-        sm_phone: superManager.phone,
-        sm_password: sessionPassword
+        custom_deposit: form.custom_deposit ? parseFloat(form.custom_deposit) : null
       }
 
       const url = editingWheel
@@ -359,9 +355,7 @@ export default function SuperManagerPage() {
         closeConfirmDialog()
         try {
           const res = await fetch(`/api/wheel-stations/${selectedStation.id}/wheels/${wheel.id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sm_phone: superManager.phone, sm_password: sessionPassword })
+            method: 'DELETE'
           })
           if (!res.ok) {
             const data = await res.json()

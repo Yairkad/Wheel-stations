@@ -6409,9 +6409,279 @@
         "ux",
         "data-integrity"
       ],
-      "related_bugs": ["bug-388", "bug-389", "bug-390"],
+      "related_bugs": [
+        "bug-388",
+        "bug-389",
+        "bug-390"
+      ],
       "occurrences": 1,
       "last_seen": "2026-09-09T21:45:00.000Z"
+    },
+    {
+      "id": "bug-392",
+      "timestamp": "2026-09-11T07:58:55.046Z",
+      "error_message": "Missing await",
+      "file": "src/lib/station-auth.ts",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T07:58:55.046Z"
+    },
+    {
+      "id": "bug-393",
+      "timestamp": "2026-09-11T07:59:30.478Z",
+      "error_message": "Missing guard clause",
+      "file": "src/lib/super-manager-auth.ts",
+      "root_cause": "No early return/throw for edge case: !session || session.role !== 'super_manager'",
+      "fix": "Added guard clause: if (!session || session.role !== 'super_mana)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T07:59:30.478Z"
+    },
+    {
+      "id": "bug-394",
+      "timestamp": "2026-09-11T08:00:13.791Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/api/auth/login/route.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: // Same manager_session cookie as /api/auth/login — this is ; // biometric login authenticate sensitive station/super-mana",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-11T08:00:34.083Z"
+    },
+    {
+      "id": "bug-395",
+      "timestamp": "2026-09-11T08:02:36.935Z",
+      "error_message": "Wrong reference: verifyStationManager should be verifyStationManagerSession",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/route.ts",
+      "root_cause": "Used \"verifyStationManager\" instead of \"verifyStationManagerSession\"",
+      "fix": "Changed verifyStationManager → verifyStationManagerSession",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-09-11T08:05:38.437Z"
+    },
+    {
+      "id": "bug-396",
+      "timestamp": "2026-09-11T08:02:46.422Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/route.ts",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 8→3 lines (6 removed) | Also: const { manager_phone, manager_password, mount_res; // Verify manager credentials | Also: const { manager_phone, manager_password, action } ; // Verify manager credentials | Also: const { managers, manager_phone, manager_password ; managers: Manager[] | Also: const { subscription, manager_phone, manager_passw; if (!manager_phone || !manager_password) { | Also: const { endpoint, manager_phone, manager_password ; // Verify manager credentials using unified tables | Also: const body = await request.json(); const { manager_phone, manager_password, sm_phone, | Also: const { name, address, city_id, district, is_activ; // Check if this is a station manager update (has  | Also: const { phone, password, whatsapp_message_template; if (!phone || !password) { | Also: // Try station password auth (for station managers; const authHeader = request.headers.get('x-station- | Also: const phone = request.nextUrl.searchParams.get('ph; const password = request.nextUrl.searchParams.get(",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 11,
+      "last_seen": "2026-09-11T08:18:02.144Z"
+    },
+    {
+      "id": "bug-397",
+      "timestamp": "2026-09-11T08:07:15.448Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/api/wheel-stations/[stationId]/push/subscribe/route.ts",
+      "root_cause": "Had '@/lib/password'",
+      "fix": "Changed to '@supabase/supabase-js'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-11T08:11:05.899Z"
+    },
+    {
+      "id": "bug-398",
+      "timestamp": "2026-09-11T08:12:00.010Z",
+      "error_message": "Wrong reference: verifyStationManager should be verifyStationManagerSession",
+      "file": "src/app/api/wheel-stations/[stationId]/route.ts",
+      "root_cause": "Used \"verifyStationManager\" instead of \"verifyStationManagerSession\"",
+      "fix": "Changed verifyStationManager → verifyStationManagerSession",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T08:12:00.010Z"
+    },
+    {
+      "id": "bug-399",
+      "timestamp": "2026-09-11T08:14:12.937Z",
+      "error_message": "Missing await",
+      "file": "src/app/api/wheel-stations/[stationId]/auth/route.ts",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T08:14:12.937Z"
+    },
+    {
+      "id": "bug-400",
+      "timestamp": "2026-09-11T08:20:58.099Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Was returning: if (!(await requirePassword())) return",
+      "fix": "Now returns: setEnablingPush(true)",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-11T08:25:02.652Z"
+    },
+    {
+      "id": "bug-401",
+      "timestamp": "2026-09-11T08:21:07.808Z",
+      "error_message": "CSS fix: endpoint",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "endpoint: subscription.endpoint, → subscription.endpoint",
+      "fix": "Changed endpoint: subscription.endpoint, → subscription.endpoint",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 15,
+      "last_seen": "2026-09-11T08:31:04.105Z"
+    },
+    {
+      "id": "bug-402",
+      "timestamp": "2026-09-11T08:21:16.896Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→4 lines (2 removed) | Also: if (!(await requirePassword())) return; headers: { 'Content-Type': 'application/json' }, | Also: if (!(await requirePassword())) return; const response = await fetch(`/api/wheel-stations/",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-09-11T08:22:28.804Z"
+    },
+    {
+      "id": "bug-403",
+      "timestamp": "2026-09-11T08:27:43.560Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T08:27:43.560Z"
+    },
+    {
+      "id": "bug-404",
+      "timestamp": "2026-09-11T08:32:11.658Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/components/AppHeader.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T08:32:11.658Z"
+    },
+    {
+      "id": "bug-405",
+      "timestamp": "2026-09-11T09:00:00.000Z",
+      "error_message": "Root-cause architecture fix (planned, approved, and implemented this session): station/super-manager pages resent manager_phone+manager_password (or sm_phone+sm_password) on every sensitive action, verified fresh against the DB each time. Biometric (WebAuthn) login never captures a real password, so this forced an in-app 'enter your password once' modal for biometric users on every session — a real UX gap, not just a code smell.",
+      "file": "supabase/migrations/20260911_add_manager_sessions.sql, src/lib/manager-session.ts, src/lib/station-auth.ts, src/lib/super-manager-auth.ts, src/app/api/auth/login/route.ts, src/app/api/auth/webauthn/authenticate/complete/route.ts, src/app/api/auth/manager-session/route.ts, src/app/api/wheel-stations/[stationId]/{auth,route,managers,recovery,import}/route.ts, src/app/api/wheel-stations/[stationId]/wheels/route.ts, src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/{route,borrow/route,restore/route}.ts, src/app/api/wheel-stations/[stationId]/borrows/[borrowId]/route.ts, src/app/api/wheel-stations/[stationId]/push/subscribe/route.ts, src/app/[stationId]/page.tsx, src/app/super-manager/page.tsx, src/hooks/useRoleSwitch.ts, src/components/AppHeader.tsx",
+      "root_cause": "No server-side session existed for station/super managers (unlike admin, which already had a signed httpOnly cookie via src/lib/admin-session.ts). Every write action had to prove identity by resending the raw password, which the client cached in React state + localStorage (sessionPassword / session.password) for the lifetime of the tab — biometric login has no password to seed that cache with, hence the reauth modal patch that shipped 2026-08-25 as an interim fix.",
+      "fix": "New DB-backed session (manager_sessions table, plan approved by user - see .claude/plans/velvet-coalescing-candy.md): login (password OR biometric, at any of the 3 real station-manager login entry points found this session - /login, WebAuthn complete, and the station's own /api/wheel-stations/[stationId]/auth POST) now issues an httpOnly manager_session cookie via createManagerSession(). Every previously password-gated route now calls verifyStationManagerSession(request, stationId) or verifySuperManagerSession(request) instead, re-checking the live user_roles row on every call (so a revoked role still takes effect immediately, token or not). Client-side: removed requirePassword()/sessionPassword/the reauth modal entirely from [stationId]/page.tsx (17 call sites) and super-manager/page.tsx (2 call sites), stopped writing the raw password into station_session_*/super_manager_session localStorage blobs (useRoleSwitch.ts), and wired manager-session revocation into the shared AppHeader logout plus [stationId]/page.tsx's own logout. Password-CHANGE flows (auth/route.ts PUT, recovery/route.ts POST) were deliberately left password/recovery-key-based - re-entering your current credential to change it is correct even in a token-based system. operator_session/puncture_manager_auth (call-center, editor roles) were confirmed via grep to never have this per-request-password pattern in the first place and were left untouched.",
+      "tags": [
+        "architecture",
+        "auth",
+        "session-token",
+        "biometric-login",
+        "webauthn",
+        "manager-session",
+        "security",
+        "data-integrity"
+      ],
+      "related_bugs": [
+        "bug-270"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T09:00:00.000Z"
+    },
+    {
+      "id": "bug-406",
+      "timestamp": "2026-09-11T09:00:00.000Z",
+      "error_message": "Found while migrating wheels/[wheelId]/restore/route.ts to session auth: the station-manager branch of its credential check referenced wheel_station_managers, a legacy table dropped from the live DB (confirmed via information_schema.tables - zero rows). Every restore-a-deleted-wheel request from a station manager (not super manager) has been silently 500'ing since that table was dropped.",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/restore/route.ts",
+      "root_cause": "Dead-table reference left over from before the unified users/user_roles migration (20260405_unified_users.sql) - the super_manager branch was updated to use verifySuperManager() at the time, but this station_manager branch was missed.",
+      "fix": "Replaced entirely with verifyStationManagerSession(request, stationId) as part of the manager_session migration (bug-405) - fixes the dead-table bug as a side effect, not a separate change.",
+      "tags": [
+        "dead-code",
+        "pre-existing-bug",
+        "wheel-station",
+        "restore"
+      ],
+      "related_bugs": [
+        "bug-405"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T09:00:00.000Z"
+    },
+    {
+      "id": "bug-407",
+      "timestamp": "2026-09-11T09:42:06.775Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/lib/version.ts",
+      "root_cause": "Had '19.2.2'",
+      "fix": "Changed to '19.2.9'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-11T09:42:06.775Z"
     }
   ]
 }

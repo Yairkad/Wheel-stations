@@ -159,12 +159,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [currentManager, setCurrentManager] = useState<Manager | null>(null)
-  const [sessionPassword, setSessionPassword] = useState('')
-  // A biometric-only (WebAuthn) login never captures a real password, so requirePassword()
-  // below opens this modal to get one on-demand instead of just failing the action.
-  const [showReauthModal, setShowReauthModal] = useState(false)
-  const [reauthPasswordInput, setReauthPasswordInput] = useState('')
-  const reauthResolveRef = useRef<((value: boolean) => void) | null>(null)
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' })
   const [whatsappTemplateForm, setWhatsappTemplateForm] = useState('')
@@ -430,7 +424,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
               is_primary: session.manager.is_primary || false,
               whatsapp_message_template: session.manager.whatsapp_message_template || null
             })
-            setSessionPassword(session.password || '')
             return
           } else {
             localStorage.removeItem(`station_session_${stationId}`)
@@ -747,48 +740,9 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
     }
   }, [isManager, currentManager, stationId])
 
-  // A biometric-only (WebAuthn) login has no real password to store, so sessionPassword
-  // can legitimately be '' for a fully valid, logged-in manager. Every action below that
-  // sends manager_password/current_password to the server needs this guard — instead of
-  // just failing with a confusing "log in again" message, it prompts once for the password
-  // (via showReauthModal), caches it for the rest of this session, and lets the action
-  // proceed — the server still validates the password for real when the request lands.
-  const requirePassword = async (): Promise<boolean> => {
-    if (sessionPassword) return true
-    setReauthPasswordInput('')
-    setShowReauthModal(true)
-    const entered = await new Promise<boolean>(resolve => { reauthResolveRef.current = resolve })
-    return entered
-  }
-
-  const submitReauthModal = () => {
-    const pwd = reauthPasswordInput.trim()
-    if (!pwd) return
-    setSessionPassword(pwd)
-    try {
-      const key = `station_session_${stationId}`
-      const raw = localStorage.getItem(key)
-      if (raw) {
-        const session = JSON.parse(raw)
-        session.password = pwd
-        localStorage.setItem(key, JSON.stringify(session))
-      }
-    } catch { /* best-effort cache only */ }
-    setShowReauthModal(false)
-    reauthResolveRef.current?.(true)
-    reauthResolveRef.current = null
-  }
-
-  const cancelReauthModal = () => {
-    setShowReauthModal(false)
-    reauthResolveRef.current?.(false)
-    reauthResolveRef.current = null
-  }
-
   // Toggle push notifications
   const handleTogglePush = async () => {
     if (!currentManager) return
-    if (!(await requirePassword())) return
     setEnablingPush(true)
 
     try {
@@ -802,9 +756,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              endpoint: subscription.endpoint,
-              manager_phone: currentManager.phone,
-              manager_password: sessionPassword
+              endpoint: subscription.endpoint
             })
           })
           await subscription.unsubscribe()
@@ -864,8 +816,6 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             subscription: subscription.toJSON(),
-            manager_phone: currentManager.phone,
-            manager_password: sessionPassword,
             userAgent: navigator.userAgent
           })
         })
@@ -891,28 +841,22 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
       toast.error('לא מחובר כמנהל')
       return
     }
-    if (!(await requirePassword())) return
     setApprovalLoading(borrowId)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/borrows/${borrowId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          manager_phone: currentManager.phone,
-          manager_password: sessionPassword,
-          action
-        })
+        body: JSON.stringify({ action })
       })
       const data = await response.json()
       if (!response.ok) {
-        console.error('Borrow action failed:', { status: response.status, error: data.error, phone: currentManager.phone, passwordLen: sessionPassword?.length })
-        // If password is wrong, force re-login
-        if (data.error === 'סיסמא שגויה') {
-          toast.error('הסיסמה שגויה. נא להתנתק ולהתחבר מחדש')
+        console.error('Borrow action failed:', { status: response.status, error: data.error })
+        // If the session expired/is invalid, force re-login
+        if (response.status === 401) {
+          toast.error('פג תוקף החיבור. נא להתחבר מחדש')
           localStorage.removeItem(`station_session_${stationId}`)
           setIsManager(false)
           setCurrentManager(null)
-          setSessionPassword('')
         } else {
           toast.error(data.error || 'שגיאה בביצוע הפעולה')
         }
@@ -1016,13 +960,11 @@ ${signFormUrl}
 
   const handleRestoreWheel = async (wheelId: string) => {
     if (!currentManager) return
-    if (!(await requirePassword())) return
     setRestoringWheel(wheelId)
     try {
       const res = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheelId}/restore`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manager_phone: currentManager.phone, manager_password: sessionPassword })
+        headers: { 'Content-Type': 'application/json' }
       })
       if (res.ok) {
         toast.success('הגלגל שוחזר בהצלחה!')
@@ -1081,11 +1023,9 @@ ${signFormUrl}
       }
       setIsManager(true)
       setCurrentManager(data.manager)
-      setSessionPassword(loginPassword)
       localStorage.setItem(`station_session_${stationId}`, JSON.stringify({
         manager: data.manager,
         stationId,
-        password: loginPassword,
         timestamp: Date.now(),
         version: SESSION_VERSION
       }))
@@ -1101,9 +1041,9 @@ ${signFormUrl}
   }
 
   const handleLogout = () => {
+    fetch('/api/auth/manager-session', { method: 'DELETE' }).catch(() => {})
     setIsManager(false)
     setCurrentManager(null)
-    setSessionPassword('')
     localStorage.removeItem(`station_session_${stationId}`)
     window.location.href = '/login'
   }
@@ -1139,14 +1079,6 @@ ${signFormUrl}
         return
       }
       toast.success('הסיסמא שונתה בהצלחה!')
-      // Update session password and localStorage with new password
-      setSessionPassword(passwordForm.new)
-      const savedSession = localStorage.getItem(`station_session_${stationId}`)
-      if (savedSession) {
-        const session = JSON.parse(savedSession)
-        session.password = passwordForm.new
-        localStorage.setItem(`station_session_${stationId}`, JSON.stringify(session))
-      }
       setShowChangePasswordModal(false)
       setPasswordForm({ current: '', new: '', confirm: '' })
     } catch {
@@ -1159,15 +1091,12 @@ ${signFormUrl}
   // Save own WhatsApp message wording (used automatically whenever this manager sends a form link)
   const handleSaveWhatsAppTemplate = async () => {
     if (!currentManager) return
-    if (!(await requirePassword())) return
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/auth`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: currentManager.phone,
-          password: sessionPassword,
           whatsapp_message_template: whatsappTemplateForm.trim()
         })
       })
@@ -1195,11 +1124,10 @@ ${signFormUrl}
 
   // Show recovery certificate
   const handleShowRecoveryCert = async () => {
-    if (!(await requirePassword())) return
     setRecoveryLoading(true)
     setShowRecoveryCertModal(true)
     try {
-      const response = await fetch(`/api/wheel-stations/${stationId}/recovery?phone=${encodeURIComponent(currentManager?.phone || '')}&password=${encodeURIComponent(sessionPassword)}`)
+      const response = await fetch(`/api/wheel-stations/${stationId}/recovery`)
       const data = await response.json()
       if (!response.ok) {
         toast.error(data.error || 'שגיאה בטעינת תעודת שחזור')
@@ -1431,16 +1359,12 @@ ${signFormUrl}
       toast.error('נא לציין סיבה לכישלון ההרכבה')
       return
     }
-    if (!(await requirePassword())) return
-
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${returnTarget.id}/borrow`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          manager_phone: currentManager?.phone,
-          manager_password: sessionPassword,
           mount_result: returnForm.mount_result,
           mount_note: returnForm.note.trim() || undefined
         })
@@ -1487,8 +1411,6 @@ ${signFormUrl}
       toast.error('נא למלא את כל שדות החובה')
       return
     }
-    if (!(await requirePassword())) return
-
     setManualBorrowFormErrors([])
     setActionLoading(true)
     try {
@@ -1506,9 +1428,7 @@ ${signFormUrl}
             vehicle_plate: manualBorrowForm.vehicle_plate || undefined,
             deposit_type: manualBorrowForm.deposit_type,
             deposit_amount_override: manualBorrowForm.deposit_amount_override ? parseInt(manualBorrowForm.deposit_amount_override) : undefined,
-            notes: manualBorrowForm.notes || undefined,
-            manager_phone: currentManager?.phone,
-            manager_password: sessionPassword
+            notes: manualBorrowForm.notes || undefined
           })
         })
 
@@ -1563,7 +1483,6 @@ ${signFormUrl}
       setWheelFormErrors(errors)
       return
     }
-    if (!(await requirePassword())) return
     setWheelFormErrors([])
     setActionLoading(true)
     const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
@@ -1583,9 +1502,7 @@ ${signFormUrl}
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
-          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,
-          manager_phone: currentManager?.phone,
-          manager_password: sessionPassword
+          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null
         })
       })
       if (!response.ok) {
@@ -1630,7 +1547,6 @@ ${signFormUrl}
       setWheelFormErrors(errors)
       return
     }
-    if (!(await requirePassword())) return
     setWheelFormErrors([])
     setActionLoading(true)
     const validPcds = wheelForm.pcds.map(Number).filter(Boolean)
@@ -1650,9 +1566,7 @@ ${signFormUrl}
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
-          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,
-          manager_phone: currentManager?.phone,
-          manager_password: sessionPassword
+          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null
         })
       })
       if (!response.ok) {
@@ -1686,7 +1600,6 @@ ${signFormUrl}
 
   // Delete wheel
   const handleDeleteWheel = async (wheel: Wheel) => {
-    if (!(await requirePassword())) return
     showConfirm({
       title: 'מחיקת גלגל',
       message: `למחוק את גלגל #${wheel.wheel_number}? פעולה זו אינה ניתנת לביטול`,
@@ -1697,12 +1610,7 @@ ${signFormUrl}
         setActionLoading(true)
         try {
           const response = await fetch(`/api/wheel-stations/${stationId}/wheels/${wheel.id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              manager_phone: currentManager?.phone,
-              manager_password: sessionPassword
-            })
+            method: 'DELETE'
           })
           if (!response.ok) throw new Error('Failed to delete')
           await fetchStation()
@@ -1779,17 +1687,12 @@ ${signFormUrl}
 
   // Save contacts
   const handleSaveContacts = async () => {
-    if (!(await requirePassword())) return
     setActionLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/managers`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          managers: contacts,
-          manager_phone: currentManager?.phone,
-          manager_password: sessionPassword
-        })
+        body: JSON.stringify({ managers: contacts })
       })
       const data = await response.json()
       if (!response.ok) {
@@ -1810,16 +1713,12 @@ ${signFormUrl}
   const doImport = async (importActionMode: 'add_new_only' | 'upsert' | 'replace_all', data?: Record<string, unknown>[]) => {
     const wheels = data ?? pendingImportData
     if (!wheels) return
-    if (!(await requirePassword())) return
     setShowImportConflictModal(false)
     setUploadLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/import`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-station-auth': JSON.stringify({ phone: currentManager?.phone, password: sessionPassword })
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ wheels, mode: importActionMode })
       })
       const result = await response.json()
@@ -1851,7 +1750,6 @@ ${signFormUrl}
   const handleExcelUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-    if (!(await requirePassword())) return
 
     event.target.value = ''
 
@@ -1875,10 +1773,7 @@ ${signFormUrl}
           // Check for duplicates before importing
           const checkRes = await fetch(`/api/wheel-stations/${stationId}/import`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-station-auth': JSON.stringify({ phone: currentManager?.phone, password: sessionPassword })
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ wheels: jsonData, mode: 'check' })
           })
           const checkResult = await checkRes.json()
@@ -1918,19 +1813,12 @@ ${signFormUrl}
       toast.error('נא להזין קישור לגיליון Google Sheets')
       return
     }
-    if (!(await requirePassword())) return
 
     setUploadLoading(true)
     try {
       const response = await fetch(`/api/wheel-stations/${stationId}/import`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-station-auth': JSON.stringify({
-            phone: currentManager?.phone,
-            password: sessionPassword
-          })
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sheetsUrl: sheetsUrl.trim(),
           replace_existing: false
@@ -3782,45 +3670,6 @@ ${signFormUrl}
         </div>
       )}
 
-      {showReauthModal && (
-        // Higher zIndex than the standard modalOverlay (1000) — requirePassword() can be
-        // triggered from inside an already-open modal (e.g. manual borrow), and with an
-        // equal zIndex the later-mounted modal wins the stacking order, silently hiding
-        // this prompt underneath it so the click that opened it looks like it did nothing.
-        <div role="presentation" style={{...styles.modalOverlay, zIndex: 2000}} onClick={cancelReauthModal}>
-          <div role="dialog" aria-modal="true" aria-labelledby="reauth-modal-title" style={{...styles.modal, maxWidth: '380px'}} onClick={e => e.stopPropagation()}>
-            <h3 id="reauth-modal-title" style={styles.modalTitle}>אימות סיסמה</h3>
-            <p style={{color: '#a0aec0', marginBottom: '16px', fontSize: '0.9rem'}}>
-              ההתחברות שלך בוצעה באמצעות טביעת אצבע/זיהוי פנים, ולכן נדרש להזין את הסיסמה פעם אחת כדי להמשיך בפעולה זו.
-            </p>
-            <input
-              type="password"
-              value={reauthPasswordInput}
-              onChange={e => setReauthPasswordInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') submitReauthModal() }}
-              placeholder="סיסמה"
-              style={styles.input}
-              autoFocus
-            />
-            <div style={{display: 'flex', gap: '12px', marginTop: '20px'}}>
-              <button
-                style={{flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#4b5563', color: '#fff', cursor: 'pointer', fontWeight: 'bold'}}
-                onClick={cancelReauthModal}
-              >
-                ביטול
-              </button>
-              <button
-                style={{flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', cursor: 'pointer', fontWeight: 'bold', opacity: reauthPasswordInput.trim() ? 1 : 0.5}}
-                onClick={submitReauthModal}
-                disabled={!reauthPasswordInput.trim()}
-              >
-                אישור
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {showManualBorrowModal && (
         <div role="presentation" style={styles.modalOverlay} onClick={() => !actionLoading && setShowManualBorrowModal(false)}>
           <div role="dialog" aria-modal="true" aria-labelledby="manual-borrow-modal-title" style={{...styles.modal, maxWidth: '450px', position: 'relative'}} onClick={e => e.stopPropagation()}>
@@ -4902,17 +4751,12 @@ ${signFormUrl}
               <button
                 style={{...styles.smallBtn, background: '#10b981'}}
                 onClick={async () => {
-                  if (!(await requirePassword())) return
                   setActionLoading(true)
                   try {
                     const response = await fetch(`/api/wheel-stations/${stationId}`, {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        address: editAddress,
-                        manager_phone: currentManager?.phone,
-                        current_password: sessionPassword
-                      })
+                      body: JSON.stringify({ address: editAddress })
                     })
                     if (!response.ok) {
                       const data = await response.json()
@@ -5065,7 +4909,6 @@ ${signFormUrl}
               <button
                 style={{...styles.smallBtn, background: '#10b981', marginTop: '16px'}}
                 onClick={async () => {
-                  if (!(await requirePassword())) return
                   setActionLoading(true)
                   try {
                     const response = await fetch(`/api/wheel-stations/${stationId}`, {
@@ -5073,9 +4916,7 @@ ${signFormUrl}
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         deposit_amount: editDepositAmount ? parseInt(editDepositAmount) : 200,
-                        payment_methods: editPaymentMethods,
-                        manager_phone: currentManager?.phone,
-                        current_password: sessionPassword
+                        payment_methods: editPaymentMethods
                       })
                     })
                     if (!response.ok) {
@@ -5135,7 +4976,6 @@ ${signFormUrl}
                 <button
                   style={{...styles.smallBtn, background: '#10b981', marginTop: '8px'}}
                   onClick={async () => {
-                    if (!(await requirePassword())) return
                     setActionLoading(true)
                     try {
                       const validEmails = notificationEmails.filter(e => e.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()))
@@ -5147,11 +4987,7 @@ ${signFormUrl}
                       const response = await fetch(`/api/wheel-stations/${stationId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          notification_emails: validEmails,
-                          manager_phone: currentManager?.phone,
-                          current_password: sessionPassword
-                        })
+                        body: JSON.stringify({ notification_emails: validEmails })
                       })
                       if (!response.ok) {
                         const data = await response.json()

@@ -5,7 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifySuperManager } from '@/lib/super-manager-auth'
+import { verifySuperManagerSession } from '@/lib/super-manager-auth'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 import { logAction } from '@/lib/audit-log'
 
 const supabase = createClient(
@@ -22,42 +23,23 @@ interface RouteParams {
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
-    const body = await request.json()
-    const { manager_phone, manager_password, sm_phone, sm_password } = body
 
-    // Verify credentials - station manager or super manager
+    // Verify credentials - station manager or super manager, from whichever
+    // role the caller's manager_session cookie was issued for
     let actorName = ''
     let actorType: 'super_manager' | 'station_manager' = 'station_manager'
 
-    if (sm_phone && sm_password) {
-      const smAuth = await verifySuperManager(sm_phone, sm_password)
-      if (!smAuth.success) {
-        return NextResponse.json({ error: smAuth.error }, { status: 401 })
-      }
+    const smAuth = await verifySuperManagerSession(request)
+    if (smAuth.success) {
       actorName = smAuth.superManager?.full_name || 'מנהל מחוז'
       actorType = 'super_manager'
-    } else if (manager_phone && manager_password) {
-      const cleanPhone = manager_phone.replace(/\D/g, '')
-      const { data: station } = await supabase
-        .from('wheel_stations')
-        .select('id, wheel_station_managers (id, phone, password, full_name)')
-        .eq('id', stationId)
-        .single()
-
-      if (!station) {
-        return NextResponse.json({ error: 'תחנה לא נמצאה' }, { status: 404 })
-      }
-
-      const manager = station.wheel_station_managers.find(
-        (m: { phone: string; password: string }) => m.phone.replace(/\D/g, '') === cleanPhone
-      )
-      if (!manager || manager.password !== manager_password) {
-        return NextResponse.json({ error: 'פרטי כניסה שגויים' }, { status: 401 })
-      }
-      actorName = (manager as { full_name?: string }).full_name || 'מנהל תחנה'
-      actorType = 'station_manager'
     } else {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
+      const auth = await verifyStationManagerSession(request, stationId)
+      if (!auth.success) {
+        return NextResponse.json({ error: auth.error }, { status: 401 })
+      }
+      actorName = auth.managerName || 'מנהל תחנה'
+      actorType = 'station_manager'
     }
 
     // Get the deleted wheel

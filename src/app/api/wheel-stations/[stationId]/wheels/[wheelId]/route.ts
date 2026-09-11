@@ -7,9 +7,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifySuperManager } from '@/lib/super-manager-auth'
+import { verifySuperManagerSession } from '@/lib/super-manager-auth'
 import { logAction } from '@/lib/audit-log'
-import { verifyStationManager } from '@/lib/station-auth'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -61,24 +61,20 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit, manager_phone, manager_password, sm_phone, sm_password } = body
+    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit } = body
 
-    // Verify credentials - super manager or station manager
-    if (sm_phone && sm_password) {
-      const smAuth = await verifySuperManager(sm_phone, sm_password)
-      if (!smAuth.success) {
-        return NextResponse.json({ error: smAuth.error }, { status: 401 })
-      }
+    // Verify credentials - super manager or station manager, from whichever
+    // role the caller's manager_session cookie was issued for
+    const smAuth = await verifySuperManagerSession(request)
+    if (smAuth.success) {
       if (!smAuth.superManager?.can_edit) {
         return NextResponse.json({ error: 'אין הרשאת עריכה למנהל מחוז זה' }, { status: 403 })
       }
-    } else if (manager_phone && manager_password) {
-      const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    } else {
+      const auth = await verifyStationManagerSession(request, stationId)
       if (!auth.success) {
         return NextResponse.json({ error: auth.error }, { status: 401 })
       }
-    } else {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
     }
 
     const { error } = await supabase
@@ -119,32 +115,26 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
-    const body = await request.json()
-    const { manager_phone, manager_password, sm_phone, sm_password } = body
 
-    // Verify credentials - super manager or station manager
+    // Verify credentials - super manager or station manager, from whichever
+    // role the caller's manager_session cookie was issued for
     let deletedByName = ''
     let deletedByType = ''
 
-    if (sm_phone && sm_password) {
-      const smAuth = await verifySuperManager(sm_phone, sm_password)
-      if (!smAuth.success) {
-        return NextResponse.json({ error: smAuth.error }, { status: 401 })
-      }
+    const smAuth = await verifySuperManagerSession(request)
+    if (smAuth.success) {
       if (!smAuth.superManager?.can_edit) {
         return NextResponse.json({ error: 'אין הרשאת עריכה למנהל מחוז זה' }, { status: 403 })
       }
       deletedByName = smAuth.superManager?.full_name || 'מנהל מחוז'
       deletedByType = 'super_manager'
-    } else if (manager_phone && manager_password) {
-      const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    } else {
+      const auth = await verifyStationManagerSession(request, stationId)
       if (!auth.success) {
         return NextResponse.json({ error: auth.error }, { status: 401 })
       }
       deletedByName = auth.managerName || 'מנהל תחנה'
       deletedByType = 'station_manager'
-    } else {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
     }
 
     // Check if wheel has active borrows

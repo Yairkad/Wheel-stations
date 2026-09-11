@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
-import { verifyPassword } from '@/lib/password'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,36 +26,16 @@ function generateRecoveryKey(): string {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
-    const phone = request.nextUrl.searchParams.get('phone')
-    const password = request.nextUrl.searchParams.get('password')
 
-    if (!phone || !password) {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא' }, { status: 401 })
-    }
-
-    const cleanPhone = phone.replace(/\D/g, '')
-
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, full_name, phone, password, is_active')
-      .eq('phone', cleanPhone)
-      .single()
-
-    if (!user || !user.is_active) {
-      return NextResponse.json({ error: 'פרטי התחברות שגויים' }, { status: 403 })
-    }
-    const pwCheck = await verifyPassword(password, user.password ?? '')
-    if (!pwCheck.valid) {
-      return NextResponse.json({ error: 'פרטי התחברות שגויים' }, { status: 403 })
-    }
-    if (pwCheck.newHash) {
-      await supabase.from('users').update({ password: pwCheck.newHash }).eq('id', user.id)
+    const auth = await verifyStationManagerSession(request, stationId)
+    if (!auth.success || !auth.managerId) {
+      return NextResponse.json({ error: auth.error || 'פרטי התחברות שגויים' }, { status: 403 })
     }
 
     const { data: roleRow } = await supabase
       .from('user_roles')
       .select('id, is_primary, title, recovery_key')
-      .eq('user_id', user.id)
+      .eq('user_id', auth.managerId)
       .eq('role', 'station_manager')
       .eq('station_id', stationId)
       .eq('is_active', true)
@@ -84,7 +64,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       recovery_key: recoveryKey,
-      manager_name: user.full_name,
+      manager_name: auth.managerName,
       station_name: station?.name || '',
       role: roleRow.title || 'מנהל תחנה',
       is_primary: roleRow.is_primary || false,

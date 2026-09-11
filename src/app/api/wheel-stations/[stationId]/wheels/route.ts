@@ -6,8 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifySuperManager } from '@/lib/super-manager-auth'
-import { verifyStationManager } from '@/lib/station-auth'
+import { verifySuperManagerSession } from '@/lib/super-manager-auth'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,24 +47,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit, manager_phone, manager_password, sm_phone, sm_password } = body
+    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit } = body
 
-    // Verify credentials - super manager or station manager
-    if (sm_phone && sm_password) {
-      const smAuth = await verifySuperManager(sm_phone, sm_password)
-      if (!smAuth.success) {
-        return NextResponse.json({ error: smAuth.error }, { status: 401 })
-      }
+    // Verify credentials - super manager or station manager, from whichever
+    // role the caller's manager_session cookie was issued for
+    const smAuth = await verifySuperManagerSession(request)
+    if (smAuth.success) {
       if (!smAuth.superManager?.can_edit) {
         return NextResponse.json({ error: 'אין הרשאת עריכה למנהל מחוז זה' }, { status: 403 })
       }
-    } else if (manager_phone && manager_password) {
-      const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    } else {
+      const auth = await verifyStationManagerSession(request, stationId)
       if (!auth.success) {
         return NextResponse.json({ error: auth.error }, { status: 401 })
       }
-    } else {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
     }
 
     if (!wheel_number || !rim_size || !bolt_count || !bolt_spacing) {

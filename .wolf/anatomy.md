@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-09T19:04:02.087Z
-> Files: 5 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-11T09:42:06.752Z
+> Files: 29 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -53,6 +53,7 @@
 
 ## ../../../.claude/plans/
 
+- `velvet-coalescing-candy.md` — מעבר מסיסמה-בכל-בקשה לטוקן התחברות (session token) (~1157 tok)
 
 ## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
 
@@ -96,6 +97,7 @@
 
 ## src/app/[stationId]/
 
+- `page.tsx` — DEFAULT_WHATSAPP_TEMPLATE (~98552 tok)
 
 ## src/app/accessibility/
 
@@ -200,12 +202,18 @@
 
 ## src/app/api/auth/login/
 
+- `route.ts` — Next.js API route: POST (~2368 tok)
+
+## src/app/api/auth/manager-session/
+
+- `route.ts` — GET /api/auth/manager-session — check if the current manager session is still valid (~275 tok)
 
 ## src/app/api/auth/webauthn/authenticate/begin/
 
 
 ## src/app/api/auth/webauthn/authenticate/complete/
 
+- `route.ts` — Next.js API route: POST (~2354 tok)
 
 ## src/app/api/auth/webauthn/credentials/
 
@@ -326,24 +334,29 @@
 
 ## src/app/api/wheel-stations/[stationId]/
 
+- `route.ts` — Single Wheel Station API (~3398 tok)
 
 ## src/app/api/wheel-stations/[stationId]/auth/
 
+- `route.ts` — Station Manager Authentication API (~3254 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/
 
 
 ## src/app/api/wheel-stations/[stationId]/borrows/[borrowId]/
 
+- `route.ts` — Borrow Request Management API (~1356 tok)
 
 ## src/app/api/wheel-stations/[stationId]/deleted-wheels/
 
 
 ## src/app/api/wheel-stations/[stationId]/import/
 
+- `route.ts` — Wheel Import API (~3544 tok)
 
 ## src/app/api/wheel-stations/[stationId]/managers/
 
+- `route.ts` — Station Managers API (~1848 tok)
 
 ## src/app/api/wheel-stations/[stationId]/public-borrow/
 
@@ -353,24 +366,30 @@
 
 ## src/app/api/wheel-stations/[stationId]/push/subscribe/
 
+- `route.ts` — API Route: Subscribe to Push Notifications for Wheel Station (~1460 tok)
 
 ## src/app/api/wheel-stations/[stationId]/recovery/
 
+- `route.ts` — Recovery Key API (~1264 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/
 
+- `route.ts` — Wheels API for a specific station (~1167 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/
 
+- `route.ts` — Single Wheel API (~2298 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/
 
+- `route.ts` — Wheel Borrow API (~2379 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/history/
 
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/restore/
 
+- `route.ts` — Restore Deleted Wheel API (~876 tok)
 
 ## src/app/api/wheel-stations/admin/
 
@@ -447,12 +466,14 @@
 
 ## src/app/super-manager/
 
+- `page.tsx` — SESSION_EXPIRY_MS (~17729 tok)
 
 ## src/app/tmp-calc-test/
 
 
 ## src/components/
 
+- `AppHeader.tsx` — getRoleHomeHref (~15944 tok)
 - `Footer.tsx` — Footer (~615 tok)
 
 ## src/components/admin/
@@ -463,9 +484,14 @@
 
 ## src/hooks/
 
+- `useRoleSwitch.ts` — Exports roleKey, resolveActiveRoleEntry, useRoleSwitch (~2313 tok)
 
 ## src/lib/
 
+- `manager-session.ts` — Server-validated session tokens for station/super/puncture managers. (~864 tok)
+- `station-auth.ts` — Shared station manager authentication helper. (~927 tok)
+- `super-manager-auth.ts` — Verifies a super (district) manager by their manager_session cookie instead (~965 tok)
+- `version.ts` — App version - displayed in footer (~74 tok)
 
 ## src/stories/mocks/
 
@@ -505,3 +531,4 @@
 
 ## supabase/migrations/
 
+- `20260911_add_manager_sessions.sql` — Server-validated session tokens for station/super managers, replacing the (~397 tok)

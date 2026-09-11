@@ -122,7 +122,6 @@ export function useRoleSwitch(): UseRoleSwitchResult {
           manager: { ...d, type: 'wheel_station' },
           stationId: d.station_id,
           stationName: d.station_name,
-          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))
@@ -145,7 +144,6 @@ export function useRoleSwitch(): UseRoleSwitchResult {
       case 'district_manager': {
         localStorage.setItem('super_manager_session', JSON.stringify({
           superManager: { id: d.id, full_name: d.full_name, phone: d.phone, allowed_districts: d.allowed_districts, can_edit: d.can_edit ?? false },
-          password: pwd,
           timestamp: Date.now(),
           version: SESSION_VERSION,
         }))

@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-import { verifyStationManager } from '@/lib/station-auth'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 import { computeWheelStats } from '@/lib/wheel-stats'
 
 const supabase = createClient(
@@ -159,15 +159,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { name, address, city_id, district, is_active, managers, manager_phone, current_password, deposit_amount, payment_methods, notification_emails } = body
+    const { name, address, city_id, district, is_active, managers, deposit_amount, payment_methods, notification_emails } = body
 
-    // Check if this is a station manager update (has manager_phone and current_password)
-    if (manager_phone && current_password) {
-      const managerAuth = await verifyStationManager(stationId, manager_phone, current_password)
-      if (!managerAuth.success) {
-        return NextResponse.json({ error: managerAuth.error }, { status: 401 })
-      }
-
+    // Check if this is a station manager update (has a valid manager_session cookie)
+    const managerAuth = await verifyStationManagerSession(request, stationId)
+    if (managerAuth.success) {
       // Station managers can update address, deposit_amount, payment_methods, and notification_emails
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const managerUpdate: { address?: string; deposit_amount?: number; payment_methods?: any; notification_emails?: string[] } = {}

@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyStationManager } from '@/lib/station-auth'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -68,17 +68,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { managers, manager_phone, manager_password } = body as {
-      managers: Manager[]
-      manager_phone?: string
-      manager_password?: string
-    }
+    const { managers } = body as { managers: Manager[] }
 
-    if (!manager_phone || !manager_password) {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לעדכון' }, { status: 401 })
-    }
-
-    const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    const auth = await verifyStationManagerSession(request, stationId)
     if (!auth.success) {
       return NextResponse.json({ error: auth.error }, { status: 403 })
     }

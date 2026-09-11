@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { verifyStationManager } from '@/lib/station-auth'
+import { verifyStationManagerSession } from '@/lib/station-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,14 +22,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { borrower_name, borrower_phone, expected_return_date, deposit_type, deposit_details, deposit_amount_override, notes, vehicle_model, vehicle_plate, manager_phone, manager_password } = body
+    const { borrower_name, borrower_phone, expected_return_date, deposit_type, deposit_details, deposit_amount_override, notes, vehicle_model, vehicle_plate } = body
 
-    // Verify manager credentials
-    if (!manager_phone || !manager_password) {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
-    }
-
-    const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    const auth = await verifyStationManagerSession(request, stationId)
     if (!auth.success) {
       return NextResponse.json({ error: auth.error }, { status: 401 })
     }
@@ -109,12 +104,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { manager_phone, manager_password, mount_result, mount_note } = body
-
-    // Verify manager credentials
-    if (!manager_phone || !manager_password) {
-      return NextResponse.json({ error: 'נדרש טלפון וסיסמא לביצוע פעולה זו' }, { status: 401 })
-    }
+    const { mount_result, mount_note } = body
 
     if (mount_result !== 'success' && mount_result !== 'failed') {
       return NextResponse.json({ error: 'נא לציין האם ההרכבה הצליחה או נכשלה' }, { status: 400 })
@@ -128,7 +118,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'ההערה ארוכה מדי (מקסימום 200 תווים)' }, { status: 400 })
     }
 
-    const auth = await verifyStationManager(stationId, manager_phone, manager_password)
+    const auth = await verifyStationManagerSession(request, stationId)
     if (!auth.success) {
       return NextResponse.json({ error: auth.error }, { status: 401 })
     }
