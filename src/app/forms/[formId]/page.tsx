@@ -113,7 +113,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
             הטופס הזה נמחק אוטומטית.
           </p>
           <Link
-            href="/"
+            href="/stations"
             className="inline-block px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800"
           >
             חזרה לדף הראשי
@@ -131,7 +131,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
           <h1 className="text-2xl font-bold text-gray-900 mb-2">שגיאה</h1>
           <p className="text-gray-600 mb-6">{error || 'הטופס לא נמצא'}</p>
           <Link
-            href="/"
+            href="/stations"
             className="inline-block px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800"
           >
             חזרה לדף הראשי
@@ -234,7 +234,7 @@ export default function FormViewerPage({ params }: { params: Promise<{ formId: s
               הדפס
             </button>
             <Link
-              href="/"
+              href="/stations"
               className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium"
             >
               חזרה
