@@ -1838,6 +1838,19 @@ function SearchPageContent() {
                           {item.searchedBy && (<><span>·</span><span>{item.searchedBy}</span></>)}
                         </div>
                       </div>
+                      {/* Refresh — re-run the live lookup for this plate instead of showing the saved snapshot */}
+                      <button
+                        onClick={e => { e.stopPropagation(); handleVehicleLookup(item.plate) }}
+                        title="רענן תוצאה"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', flexShrink: 0, color: '#d1d5db', display: 'flex', alignItems: 'center', transition: 'color 0.15s' }}
+                        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = '#60a5fa')}
+                        onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = '#d1d5db')}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+                          <polyline points="21 3 21 9 15 9"/>
+                        </svg>
+                      </button>
                       {/* Heart / pin */}
                       <button
                         onClick={e => { e.stopPropagation(); toggleHistoryPin(item.id) }}
@@ -2270,6 +2283,15 @@ function SearchPageContent() {
                           לא נמצא מקור חיצוני לאימות המידות
                         </span>
                       )}
+                      <button
+                        onClick={() => handleVehicleLookup()}
+                        disabled={vehicleLoading}
+                        style={styles.pillActionBtn}
+                        title="רענן מידע — טוען מחדש מהמאגר, למקרה שהתוצאה שמורה מלפני תיקון"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+                        רענן מידע
+                      </button>
                     </div>
 
                     <div style={{ textAlign: 'center', marginTop: '6px' }}>

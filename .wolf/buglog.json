@@ -6682,6 +6682,30 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-11T09:42:06.775Z"
+    },
+    {
+      "id": "bug-408",
+      "timestamp": "2026-09-14T09:00:00.000Z",
+      "error_message": "Vercel build failed after the manager_session migration (bug-405) shipped: 'phone' does not exist on the type returned by verifyStationManager's users select.",
+      "file": "src/lib/station-auth.ts",
+      "root_cause": "When VerifyResult gained a managerPhone field for verifyStationManagerSession (bug-405), the same managerPhone: user.phone was also added to the original password-based verifyStationManager's return for symmetry - but only verifyStationManagerSession's own .select() was updated to fetch phone; the original verifyStationManager's .select('id, full_name, password, is_active') was never touched, so it referenced a column it never selected. Not caught by this session's own `tsc --noEmit` runs (the Supabase client here isn't instantiated with generated Database types, so .select() results are loosely typed and don't error on an unselected property) - only surfaced via the actual Next.js/Vercel build. Fixed by a separate Claude session/PR (#13, commit 819578f) the user pushed directly.",
+      "fix": "Added 'phone' to verifyStationManager's .select() call, matching verifyStationManagerSession. Pulled into main via PR #13. Verified no other function touched in the manager_session migration has the same select/return mismatch (grepped super-manager-auth.ts's two functions - both already correctly select phone).",
+      "tags": ["build-error", "supabase", "auth", "manager-session", "typescript"],
+      "related_bugs": ["bug-405"],
+      "occurrences": 1,
+      "last_seen": "2026-09-14T09:00:00.000Z"
+    },
+    {
+      "id": "bug-409",
+      "timestamp": "2026-09-15T00:00:00.000Z",
+      "error_message": "User fixed data in the internal vehicle_models/fitment database, but clicking a row in \"חיפושים אחרונים\" (recent searches) on the search page still showed the old error/wrong result.",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "loadFromHistory (search/page.tsx) just does setVehicleResult(item.vehicleResult) - a frozen JSON snapshot saved in the vehicle_search_history.vehicle_result column at the time of the ORIGINAL search (src/app/api/vehicle-search-history/route.ts POST). It never re-calls /api/vehicle/lookup, so fixing the underlying data never touches already-saved history rows - only a brand new search picks up the fix.",
+      "fix": "Two refresh entry points, both manual (not automatic on click - would hammer the external data.gov.il API on every 'recent searches' open for no benefit, since most cached rows are still fine): (1) a per-row 'רענן תוצאה' button in the vehicle history list itself, between the pin and remove buttons, calling handleVehicleLookup(item.plate) with stopPropagation so it doesn't also trigger the row's loadFromHistory click; (2) the one that actually matters for this report - a 'רענן מידע' button in the fitmentActionsRow on the RESULT screen itself (next to 'שיתוף'/'אימות מידות', ~line 2288), calling handleVehicleLookup() with no args since vehiclePlate is already in sync whether the result came from a fresh search or loadFromHistory. User's first screenshot after testing showed they were looking at the result screen (post loadFromHistory) with no refresh button visible there - the history-list-only button doesn't help once you've already opened an item, so the result-screen button is the one that actually fixes the reported scenario. Both call the existing handleVehicleLookup, which re-fetches live from /api/vehicle/lookup, re-runs the wheel-station search, and re-saves to history - upserting on the unique `plate` column (POST route, onConflict: 'plate') so the stale row's vehicle_result/searched_at get overwritten instead of duplicated.",
+      "tags": ["stale-cache", "history", "vehicle-search", "ux", "supabase-upsert"],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-15T00:00:00.000Z"
     }
   ]
 }
