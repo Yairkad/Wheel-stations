@@ -1,0 +1,287 @@
+/**
+ * Shared live scraping of vehicle wheel-fitment data from wheelfitment.eu
+ * (primary) and wheel-size.com (fallback). Extracted from
+ * src/app/api/vehicle-models/scrape/route.ts so it can also be used for live
+ * verification during search (src/lib/vehicle-fitment-verification.ts).
+ */
+
+// Hebrew to English make translations for wheelfitment.eu
+const MAKE_TRANSLATIONS: Record<string, string> = {
+  'טויוטה': 'toyota',
+  'יונדאי': 'hyundai',
+  'קיה': 'kia',
+  'מאזדה': 'mazda',
+  'הונדה': 'honda',
+  'ניסאן': 'nissan',
+  'מיצובישי': 'mitsubishi',
+  'סוזוקי': 'suzuki',
+  'סובארו': 'subaru',
+  'פולקסווגן': 'volkswagen',
+  'אאודי': 'audi',
+  'ב.מ.וו': 'bmw',
+  'מרצדס': 'mercedes-benz',
+  'מרצדס בנץ': 'mercedes-benz',
+  'פורד': 'ford',
+  'שברולט': 'chevrolet',
+  'פיאט': 'fiat',
+  'פיג\'ו': 'peugeot',
+  'סיטרואן': 'citroen',
+  'רנו': 'renault',
+  'וולוו': 'volvo',
+  'ג\'יפ': 'jeep',
+  'קרייזלר': 'chrysler',
+  'דודג\'': 'dodge',
+  'לקסוס': 'lexus',
+  'אינפיניטי': 'infiniti',
+  'סקודה': 'skoda',
+  'אופל': 'opel',
+  'בי.ווי.די': 'byd',
+  'סיאט': 'seat',
+  'מיני': 'mini',
+  'ג\'נסיס': 'genesis',
+  'דאצ\'יה': 'dacia',
+  'אלפא רומיאו': 'alfaromeo',
+  'פורשה': 'porsche',
+  'ג\'גואר': 'jaguar',
+  'לנד רובר': 'landrover',
+  'סאאב': 'saab',
+}
+
+function normalizeMake(make: string): string {
+  const makeLower = make.toLowerCase().trim()
+
+  for (const [heb, eng] of Object.entries(MAKE_TRANSLATIONS)) {
+    if (makeLower.includes(heb.toLowerCase())) {
+      return eng
+    }
+  }
+
+  return makeLower
+    .replace(/\s+/g, '')
+    .replace(/[\-\.]/g, '')
+}
+
+export interface ScrapeResult {
+  make: string
+  model: string
+  year: number
+  bolt_count: number
+  bolt_spacing: number
+  center_bore: number | null
+  rim_sizes: string[]
+  rim_sizes_allowed: number[]
+  tire_sizes: string[]
+  source_url: string
+  source: string
+}
+
+// Default timeout for each outbound scrape fetch, so a slow/unreachable
+// external site can't hang a live search request.
+const SCRAPE_TIMEOUT_MS = 5000
+
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      signal: controller.signal
+    })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+// Scrape from wheelfitment.eu
+export async function scrapeWheelfitment(make: string, model: string, year: number, timeoutMs = SCRAPE_TIMEOUT_MS): Promise<ScrapeResult | null> {
+  const makeNormalized = normalizeMake(make)
+
+  try {
+    // Step 1: Get list of models for this make
+    const makeUrl = `https://www.wheelfitment.eu/car/${makeNormalized}.html`
+    const makeResponse = await fetchWithTimeout(makeUrl, timeoutMs)
+
+    if (!makeResponse.ok) {
+      return null
+    }
+
+    const makeHtml = await makeResponse.text()
+
+    // Find matching model in the list
+    // Pattern: <a href="URL">Model Name</a></td><td>(2020 - )</td>
+    const modelLower = model.toLowerCase().replace(/[\s\-]/g, '')
+    const rowRegex = /<tr[^>]*>[\s\S]*?<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>[\s\S]*?<td[^>]*>\(([^)]*)\)<\/td>[\s\S]*?<\/tr>/gi
+
+    let bestMatch: { url: string; modelName: string; yearFrom: number; yearTo: number | null } | null = null
+    let fallbackMatch: { url: string; modelName: string; yearFrom: number; yearTo: number | null } | null = null
+    let match
+
+    while ((match = rowRegex.exec(makeHtml)) !== null) {
+      const modelUrl = match[1]
+      const modelName = match[2].trim()
+      const yearRange = match[3].trim()
+
+      const yearMatch = yearRange.match(/(\d{4})\s*-\s*(\d{4})?/)
+      const yearFrom = yearMatch ? parseInt(yearMatch[1]) : 0
+      const yearTo = yearMatch && yearMatch[2] ? parseInt(yearMatch[2]) : null
+
+      const modelNameClean = modelName.toLowerCase().replace(/[\s\-]/g, '')
+
+      if (modelNameClean.includes(modelLower) || modelLower.includes(modelNameClean)) {
+        if (yearFrom <= year && (yearTo === null || yearTo >= year)) {
+          bestMatch = { url: modelUrl, modelName, yearFrom, yearTo }
+          break
+        }
+        if (!fallbackMatch || yearFrom > fallbackMatch.yearFrom) {
+          fallbackMatch = { url: modelUrl, modelName, yearFrom, yearTo }
+        }
+      }
+    }
+
+    if (!bestMatch && fallbackMatch) {
+      bestMatch = fallbackMatch
+    }
+
+    if (!bestMatch) {
+      return null
+    }
+
+    // Step 2: Fetch model page for wheel data
+    const modelPageUrl = bestMatch.url.startsWith('http') ? bestMatch.url : `https://www.wheelfitment.eu${bestMatch.url}`
+    const modelResponse = await fetchWithTimeout(modelPageUrl, timeoutMs)
+
+    if (!modelResponse.ok) {
+      return null
+    }
+
+    const modelHtml = await modelResponse.text()
+
+    // Extract PCD
+    const pcdMatch = modelHtml.match(/PCD[^<]*<\/td>\s*<td[^>]*>([^<]+)/i)
+    const pcdStr = pcdMatch ? pcdMatch[1].trim() : null
+
+    let boltCount = 0
+    let boltSpacing = 0
+
+    if (pcdStr) {
+      const pcdParts = pcdStr.match(/(\d+)x([\d.]+)/)
+      if (pcdParts) {
+        boltCount = parseInt(pcdParts[1])
+        boltSpacing = parseFloat(pcdParts[2])
+      }
+    }
+
+    if (!boltCount || !boltSpacing) {
+      return null
+    }
+
+    // Extract Center bore
+    const cbMatch = modelHtml.match(/Center\s*bore[^<]*<\/td>\s*<td[^>]*>([\d.]+)/i)
+    const centerBore = cbMatch ? parseFloat(cbMatch[1]) : null
+
+    // Extract tire sizes and rim sizes
+    const tireSizesMatch = modelHtml.match(/Possible\s*tire\s*sizes[^<]*<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/i)
+    const rimSizesAllowed: number[] = []
+    const tireSizes: string[] = []
+
+    if (tireSizesMatch) {
+      const sizesStr = tireSizesMatch[1]
+
+      const rimMatches = sizesStr.matchAll(/R(\d{2})/g)
+      for (const m of rimMatches) {
+        const size = parseInt(m[1])
+        if (size >= 12 && size <= 24 && !rimSizesAllowed.includes(size)) {
+          rimSizesAllowed.push(size)
+        }
+      }
+      rimSizesAllowed.sort((a, b) => a - b)
+
+      const tireMatches = sizesStr.matchAll(/(\d{3}\/\d{2}R\d{2})/g)
+      for (const m of tireMatches) {
+        if (!tireSizes.includes(m[1])) {
+          tireSizes.push(m[1])
+        }
+      }
+    }
+
+    return {
+      make: make.trim(),
+      model: bestMatch.modelName,
+      year,
+      bolt_count: boltCount,
+      bolt_spacing: boltSpacing,
+      center_bore: centerBore,
+      rim_sizes: rimSizesAllowed.map(s => s.toString()),
+      rim_sizes_allowed: rimSizesAllowed,
+      tire_sizes: tireSizes,
+      source_url: modelPageUrl,
+      source: 'wheelfitment.eu'
+    }
+
+  } catch (error) {
+    console.error('Wheelfitment scrape error:', error)
+    return null
+  }
+}
+
+// Scrape from wheel-size.com (fallback)
+export async function scrapeWheelSize(make: string, model: string, year: number, timeoutMs = SCRAPE_TIMEOUT_MS): Promise<ScrapeResult | null> {
+  try {
+    const makeSlug = make.toLowerCase().replace(/\s+/g, '-')
+    const modelSlug = model.toLowerCase().replace(/\s+/g, '-')
+    const url = `https://www.wheel-size.com/size/${makeSlug}/${modelSlug}/${year}/`
+
+    const response = await fetchWithTimeout(url, timeoutMs)
+
+    if (!response.ok) {
+      return null
+    }
+
+    const html = await response.text()
+
+    const pcdRegex = /\b([3-6])x(1[0-9]{2}(?:\.[0-9]+)?)\b/g
+    const pcdMatches = [...html.matchAll(pcdRegex)]
+
+    if (pcdMatches.length === 0) {
+      return null
+    }
+
+    const [, boltCount, boltSpacing] = pcdMatches[0]
+
+    const centerBoreRegex = /(?:CB|Center\s*Bore|hub\s*bore)[:\s]+?([\d.]+)/i
+    const centerBoreMatch = html.match(centerBoreRegex)
+    const centerBore = centerBoreMatch ? parseFloat(centerBoreMatch[1]) : null
+
+    const tireSizeRegex = /(\d{3}\/\d{2}R(\d{2}))/g
+    const tireSizeMatches = [...html.matchAll(tireSizeRegex)]
+    const rimSizes = [...new Set(tireSizeMatches.map(m => m[2]))].sort((a, b) => parseInt(a) - parseInt(b))
+    const tireSizes = [...new Set(tireSizeMatches.map(m => m[1]))]
+
+    return {
+      make: make.trim(),
+      model: model.trim(),
+      year,
+      bolt_count: parseInt(boltCount),
+      bolt_spacing: parseFloat(boltSpacing),
+      center_bore: centerBore,
+      rim_sizes: rimSizes,
+      rim_sizes_allowed: rimSizes.map(s => parseInt(s)),
+      tire_sizes: tireSizes,
+      source_url: url,
+      source: 'wheel-size.com'
+    }
+
+  } catch (error) {
+    console.error('wheel-size.com scrape error:', error)
+    return null
+  }
+}
+
+// Tries wheelfitment.eu first, falls back to wheel-size.com.
+export async function scrapeVehicleFitment(make: string, model: string, year: number): Promise<ScrapeResult | null> {
+  const fromWheelfitment = await scrapeWheelfitment(make, model, year)
+  if (fromWheelfitment) return fromWheelfitment
+  return scrapeWheelSize(make, model, year)
+}

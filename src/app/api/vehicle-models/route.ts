@@ -2,6 +2,38 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { hebrewToEnglishMakes } from '@/lib/vehicle-mappings'
 import { validateAdminSession } from '@/lib/admin-auth'
+import { verifyVehicleModel } from '@/lib/vehicle-fitment-verification'
+
+// Cap on how many rows from a single search get live-verified against the
+// external site — a make+model+year query normally returns just one or a
+// few variant rows, this just guards against an unexpectedly broad match.
+const MAX_VERIFIED_ROWS = 3
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function attachSiteVerification(rows: any[]): Promise<any[]> {
+  const toVerify = rows.slice(0, MAX_VERIFIED_ROWS)
+  const verifications = await Promise.all(toVerify.map(row => verifyVehicleModel(row)))
+
+  return rows.map((row, i) => {
+    if (i >= toVerify.length) return row
+    const v = verifications[i]
+    if (v.dataSource !== 'site' || !v.siteData) {
+      return { ...row, dataSource: v.dataSource, scrapeMismatch: v.scrapeMismatch }
+    }
+    const site = v.siteData
+    return {
+      ...row,
+      bolt_count: site.bolt_count,
+      bolt_spacing: site.bolt_spacing,
+      center_bore: site.center_bore,
+      rim_sizes_allowed: site.rim_sizes_allowed?.length ? site.rim_sizes_allowed : row.rim_sizes_allowed,
+      tire_size_front: site.tire_sizes?.[0] || row.tire_size_front,
+      dataSource: 'site',
+      scrapeMismatch: true,
+      scrapeSourceUrl: v.scrapeSourceUrl
+    }
+  })
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -187,7 +219,13 @@ export async function GET(request: NextRequest) {
       from += pageSize
     }
 
-    return NextResponse.json({ vehicles: allData, models: allData })
+    // A specific make+model+year query is a "give me this car's fitment"
+    // lookup (used by the search / reverse-search pages), not a browsing or
+    // autocomplete fetch — live-verify its result(s) against the external
+    // site. Facet/autocomplete calls (missing one of these) are left alone.
+    const verifiedData = (make && model && year) ? await attachSiteVerification(allData) : allData
+
+    return NextResponse.json({ vehicles: verifiedData, models: verifiedData })
 
   } catch (error: any) {
     console.error('API error:', error)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { checkVehicleRimFit } from '@/lib/vehicle-mappings'
+import { verifyVehicleModel } from '@/lib/vehicle-fitment-verification'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -91,16 +92,36 @@ export async function GET(request: NextRequest) {
       return Math.abs(a.cb_difference ?? 0) - Math.abs(b.cb_difference ?? 0)
     })
 
+    // Live-verify only the top (best) match against the external site — bounds
+    // cost since reverse search can return many candidate donor vehicles.
+    let verifiedFiltered = filtered
+    if (filtered.length > 0) {
+      const top = filtered[0]
+      const v = await verifyVehicleModel(top)
+      const verifiedTop = v.dataSource === 'site' && v.siteData
+        ? {
+            ...top,
+            bolt_count: v.siteData.bolt_count,
+            bolt_spacing: v.siteData.bolt_spacing,
+            center_bore: v.siteData.center_bore,
+            dataSource: 'site' as const,
+            scrapeMismatch: true,
+            scrapeSourceUrl: v.scrapeSourceUrl
+          }
+        : { ...top, dataSource: v.dataSource, scrapeMismatch: v.scrapeMismatch }
+      verifiedFiltered = [verifiedTop, ...filtered.slice(1)]
+    }
+
     // Group by make
-    const grouped: Record<string, typeof filtered> = {}
-    for (const vehicle of filtered) {
+    const grouped: Record<string, typeof verifiedFiltered> = {}
+    for (const vehicle of verifiedFiltered) {
       const make = vehicle.make_he || vehicle.make
       if (!grouped[make]) grouped[make] = []
       grouped[make].push(vehicle)
     }
 
     return NextResponse.json({
-      results: filtered,
+      results: verifiedFiltered,
       grouped,
       total: filtered.length,
       counts: {
