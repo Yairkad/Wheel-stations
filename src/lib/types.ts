@@ -46,6 +46,9 @@ export interface VehicleSearchResult {
     bolt_spacing: number
     center_bore?: number | null
     source_url?: string | null
+    dataSource?: 'db' | 'site'
+    scrapeMismatch?: boolean
+    scrapeSourceUrl?: string | null
   } | null
   source?: string
   is_personal_import?: boolean
@@ -116,4 +119,7 @@ export interface VehicleModelRecord {
   tire_size_front?: string | null
   source_url?: string | null
   source?: string | null
+  dataSource?: 'db' | 'site'
+  scrapeMismatch?: boolean
+  scrapeSourceUrl?: string | null
 }

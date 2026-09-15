@@ -645,7 +645,10 @@ function SearchPageContent() {
           bolt_count: model.bolt_count,
           bolt_spacing: model.bolt_spacing,
           center_bore: model.center_bore || undefined,
-          source_url: model.source_url || undefined
+          source_url: model.dataSource === 'site' ? (model.scrapeSourceUrl || model.source_url || undefined) : (model.source_url || undefined),
+          dataSource: model.dataSource,
+          scrapeMismatch: model.scrapeMismatch,
+          scrapeSourceUrl: model.scrapeSourceUrl
         }
         setVehicleResult({
           vehicle: {
@@ -698,7 +701,10 @@ function SearchPageContent() {
         bolt_count: selectedModel.bolt_count,
         bolt_spacing: selectedModel.bolt_spacing,
         center_bore: selectedModel.center_bore || undefined,
-        source_url: selectedModel.source_url || undefined
+        source_url: selectedModel.dataSource === 'site' ? (selectedModel.scrapeSourceUrl || selectedModel.source_url || undefined) : (selectedModel.source_url || undefined),
+        dataSource: selectedModel.dataSource,
+        scrapeMismatch: selectedModel.scrapeMismatch,
+        scrapeSourceUrl: selectedModel.scrapeSourceUrl
       }
 
       setVehicleResult({
@@ -2175,14 +2181,20 @@ function SearchPageContent() {
                 {/* Wheel Fitment */}
                 {vehicleResult.wheel_fitment ? (
                   <div style={styles.vehicleFitmentCard}>
-                    {/* Source indicator - external only when scraped live (find_car_scrape) */}
-                    <div style={styles.sourceIndicator} title={vehicleResult.source === 'find_car_scrape' ? 'מידע נגרד כעת ממקור חיצוני' : 'מידע מהמאגר הפנימי'}>
-                      {vehicleResult.source === 'find_car_scrape' ? (
+                    {/* Source indicator - external when scraped live (find_car_scrape), or when a
+                        live site-check against the internal DB found a mismatch (scrapeMismatch) */}
+                    <div style={styles.sourceIndicator} title={vehicleResult.source === 'find_car_scrape' ? 'מידע נגרד כעת ממקור חיצוני' : vehicleResult.wheel_fitment.scrapeMismatch ? 'זוהתה אי-התאמה מול המאגר הפנימי - מוצגים נתוני האתר החיצוני' : 'מידע מהמאגר הפנימי'}>
+                      {vehicleResult.source === 'find_car_scrape' || vehicleResult.wheel_fitment.dataSource === 'site' ? (
                         <span style={{...styles.sourceVerified,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>מקור חיצוני</span>
                       ) : (
                         <span style={{...styles.sourceInternal,display:'inline-flex',alignItems:'center',gap:'4px'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>מאגר פנימי</span>
                       )}
                     </div>
+                    {vehicleResult.wheel_fitment.scrapeMismatch && (
+                      <div style={{ fontSize: '11px', color: '#92400e', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(217, 119, 6, 0.4)', borderRadius: '6px', padding: '4px 8px', marginBottom: '8px', textAlign: 'center' }}>
+                        זוהתה אי-התאמה בין המאגר הפנימי לאתר החיצוני - מוצגות המידות מהאתר, ונשלח דיווח אוטומטי לצוות
+                      </div>
+                    )}
                     {/* Main specs row */}
                     <div style={styles.fitmentMainRow} className="wheels-fitment-badges">
                       <div style={styles.fitmentSpec}>

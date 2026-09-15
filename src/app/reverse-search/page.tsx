@@ -18,6 +18,9 @@ interface VehicleResult {
     bolt_count: number
     bolt_spacing: number
     center_bore?: number
+    dataSource?: 'db' | 'site'
+    scrapeMismatch?: boolean
+    scrapeSourceUrl?: string | null
   } | null
   source?: string
 }
@@ -37,6 +40,9 @@ interface ReverseResult {
   tire_size_front?: string | null
   cb_difference: number | null
   match_level: 'exact' | 'with_ring' | 'technical'
+  dataSource?: 'db' | 'site'
+  scrapeMismatch?: boolean
+  scrapeSourceUrl?: string | null
 }
 
 interface CompareVehicleState {
@@ -274,6 +280,9 @@ export default function ReverseSearchPage() {
           bolt_count: model.bolt_count,
           bolt_spacing: model.bolt_spacing,
           center_bore: model.center_bore || undefined,
+          dataSource: model.dataSource,
+          scrapeMismatch: model.scrapeMismatch,
+          scrapeSourceUrl: model.scrapeSourceUrl,
         }
         const vResult = {
           vehicle: {
@@ -346,6 +355,9 @@ export default function ReverseSearchPage() {
           pcd: `${m.bolt_count}×${m.bolt_spacing}`,
           bolt_count: m.bolt_count, bolt_spacing: m.bolt_spacing,
           center_bore: m.center_bore || undefined,
+          dataSource: m.dataSource,
+          scrapeMismatch: m.scrapeMismatch,
+          scrapeSourceUrl: m.scrapeSourceUrl,
         },
         source: 'local_db'
       }
@@ -817,6 +829,11 @@ export default function ReverseSearchPage() {
                 )}
               </div>
             )}
+            {vehicleResult.wheel_fitment?.scrapeMismatch && (
+              <div style={{ fontSize: '11px', color: '#92400e', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(217, 119, 6, 0.4)', borderRadius: '6px', padding: '4px 8px', marginTop: '6px' }}>
+                זוהתה אי-התאמה בין המאגר הפנימי לאתר החיצוני - מוצגות המידות מהאתר, ונשלח דיווח אוטומטי לצוות
+              </div>
+            )}
             <button onClick={handleReset} style={styles.resetBtn}>
               חיפוש חדש
             </button>
@@ -959,6 +976,11 @@ export default function ReverseSearchPage() {
                             <span style={styles.detailBadge}>
                               {vehicle.bolt_count}×{vehicle.bolt_spacing}
                             </span>
+                            {vehicle.scrapeMismatch && (
+                              <span style={{ ...styles.detailBadge, background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(217, 119, 6, 0.4)', color: '#92400e' }} title="זוהתה אי-התאמה מול המאגר הפנימי - אלו המידות מהאתר החיצוני, ונשלח דיווח אוטומטי לצוות">
+                                ⚠ אומת מול אתר חיצוני
+                              </span>
+                            )}
                             {vehicle.center_bore && (
                               <span style={styles.detailBadge}>CB {vehicle.center_bore}</span>
                             )}
