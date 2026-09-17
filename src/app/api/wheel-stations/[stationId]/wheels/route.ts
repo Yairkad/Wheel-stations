@@ -47,10 +47,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId } = await params
     const body = await request.json()
-    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit } = body
+    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit, pending_donation } = body
 
     // Verify credentials - super manager or station manager, from whichever
     // role the caller's manager_session cookie was issued for
+    let managerId: string | undefined
     const smAuth = await verifySuperManagerSession(request)
     if (smAuth.success) {
       if (!smAuth.superManager?.can_edit) {
@@ -61,11 +62,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (!auth.success) {
         return NextResponse.json({ error: auth.error }, { status: 401 })
       }
+      managerId = auth.managerId
     }
 
     if (!wheel_number || !rim_size || !bolt_count || !bolt_spacing) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    // A wheel accepted as a donation but not yet physically at the station isn't real
+    // inventory yet — kept unavailable/untouchable until a manager finalizes it.
+    const isPending = !!pending_donation
 
     const { data: wheel, error } = await supabase
       .from('wheels')
@@ -83,7 +89,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         is_donut: is_donut || false,
         notes,
         custom_deposit: custom_deposit || null,
-        is_available: true
+        is_available: !isPending,
+        pending_donation: isPending,
+        pending_since: isPending ? new Date().toISOString() : null,
+        pending_by_manager_id: isPending ? (managerId ?? null) : null
       })
       .select()
       .single()

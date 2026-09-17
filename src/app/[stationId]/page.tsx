@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
 import { isPushSupported, requestNotificationPermission, registerServiceWorker, getPushNotSupportedReason } from '@/lib/push'
 import { getDistricts, getDistrictColor, getDistrictName, District } from '@/lib/districts'
-import { findSimilarFailedMount, WheelHistoryEntry } from '@/lib/vehicle-mappings'
+import { findSimilarFailedMount, WheelHistoryEntry, extractRimSize } from '@/lib/vehicle-mappings'
 import AppHeader from '@/components/AppHeader'
 import LoadingSpin from '@/components/LoadingSpin'
 import Footer from '@/components/Footer'
@@ -38,6 +38,8 @@ interface Wheel {
   unavailable_reason?: string | null
   unavailable_notes?: string | null
   unavailable_since?: string | null
+  pending_donation?: boolean
+  pending_since?: string | null
   current_borrow?: {
     id: string
     borrower_name: string
@@ -139,6 +141,16 @@ interface WheelForm {
   custom_deposit: string
 }
 
+// A vehicle-fitment match found while checking a wheel donation (by plate or make+model)
+interface DonationMatch {
+  label: string
+  rim_size: string | null
+  bolt_count: number | null
+  bolt_spacing: number | null
+  center_bore: number | null
+  tire_size: string | null
+}
+
 type ViewMode = 'cards' | 'table'
 type PageTab = 'wheels' | 'tracking' | 'alerts' | 'reports'
 
@@ -198,6 +210,22 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [showEditWheelModal, setShowEditWheelModal] = useState(false)
   const [selectedWheel, setSelectedWheel] = useState<Wheel | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+
+  // Wheel donation intake: search a vehicle (plate or make+model) to see the fitment it needs
+  // and how many matching wheels the station already has, before deciding whether to accept.
+  // "קבל" reuses the Add Wheel modal pre-filled, saved with pending_donation:true — it only
+  // becomes real inventory once a manager later finalizes it via the edit form.
+  const [showDonationModal, setShowDonationModal] = useState(false)
+  const [donationTab, setDonationTab] = useState<'plate' | 'model'>('plate')
+  const [donationPlate, setDonationPlate] = useState('')
+  const [donationMake, setDonationMake] = useState('')
+  const [donationModel, setDonationModel] = useState('')
+  const [donationLoading, setDonationLoading] = useState(false)
+  const [donationError, setDonationError] = useState('')
+  const [donationMatches, setDonationMatches] = useState<DonationMatch[]>([])
+  const [donationSelected, setDonationSelected] = useState<DonationMatch | null>(null)
+  const [donationExistingCount, setDonationExistingCount] = useState<number | null>(null)
+  const [donationAcceptMode, setDonationAcceptMode] = useState(false)
 
   // Forms
   const [wheelForm, setWheelForm] = useState<WheelForm>({
@@ -577,7 +605,8 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
         else if (showEditWheelModal) setShowEditWheelModal(false)
         else if (showWheelHistoryModal) setShowWheelHistoryModal(false)
         else if (showReturnModal) setShowReturnModal(false)
-        else if (showAddWheelModal) setShowAddWheelModal(false)
+        else if (showAddWheelModal) { setShowAddWheelModal(false); setDonationAcceptMode(false) }
+        else if (showDonationModal) setShowDonationModal(false)
         else if (showEditDetailsModal) setShowEditDetailsModal(false)
         else if (showExcelModal) setShowExcelModal(false)
         else if (showUnavailableModal) setShowUnavailableModal(false)
@@ -713,6 +742,17 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
           // Borrower-first manual loan: no wheel preset, manager picks from the checklist
           setManualBorrowWheels([])
           setShowManualBorrowModal(true)
+          break
+        case 'donation':
+          setDonationTab('plate')
+          setDonationPlate('')
+          setDonationMake('')
+          setDonationModel('')
+          setDonationMatches([])
+          setDonationSelected(null)
+          setDonationExistingCount(null)
+          setDonationError('')
+          setShowDonationModal(true)
           break
       }
     }
@@ -991,7 +1031,8 @@ ${signFormUrl}
 
   const undismissedDeletedCount = deletedWheels.filter(w => !dismissedDeletedIds.has(w.id)).length
   const undismissedLoanCount = overdueBorrows.filter(b => !dismissedLoanIds.has(b.id)).length
-  const alertCount = undismissedDeletedCount + undismissedLoanCount
+  const pendingDonationCount = station?.wheels.filter(w => w.pending_donation).length || 0
+  const alertCount = undismissedDeletedCount + undismissedLoanCount + pendingDonationCount
 
   const handleDismissDeleted = (wheelId: string) => {
     localStorage.setItem(`dismissed_deleted_${stationId}_${wheelId}`, '1')
@@ -1471,6 +1512,127 @@ ${signFormUrl}
     }
   }
 
+  // Suggest the next free wheel_number for this station (purely numeric ones only —
+  // stations that use prefixed schemes like "HD-51" or "5-15" get no suggestion)
+  const suggestNextWheelNumber = (): string => {
+    const numeric = (station?.wheels || [])
+      .map(w => w.wheel_number)
+      .filter(n => /^\d+$/.test(n))
+      .map(n => parseInt(n, 10))
+    if (!numeric.length) return ''
+    return String(Math.max(...numeric) + 1)
+  }
+
+  // Donation intake: look up the vehicle by plate to find the wheel spec it needs
+  const handleDonationPlateSearch = async () => {
+    if (!donationPlate.trim()) return
+    setDonationLoading(true)
+    setDonationError('')
+    setDonationMatches([])
+    setDonationSelected(null)
+    setDonationExistingCount(null)
+    try {
+      const response = await fetch(`/api/vehicle/lookup?plate=${encodeURIComponent(donationPlate.trim())}`)
+      const data = await response.json()
+      if (!response.ok || !data.success) {
+        setDonationError(data.error || 'הרכב לא נמצא')
+        return
+      }
+      const vehicleLabel = `${data.vehicle?.manufacturer || ''} ${data.vehicle?.model || ''} ${data.vehicle?.year || ''}`.trim()
+      const rim = extractRimSize(data.vehicle?.front_tire)
+      setDonationMatches([{
+        label: vehicleLabel || donationPlate.trim(),
+        rim_size: rim ? String(rim) : null,
+        bolt_count: data.wheel_fitment?.bolt_count ?? null,
+        bolt_spacing: data.wheel_fitment?.bolt_spacing ?? null,
+        center_bore: data.wheel_fitment?.center_bore ?? null,
+        tire_size: data.vehicle?.front_tire || null
+      }])
+      if (!data.wheel_fitment) {
+        setDonationError('נמצא הרכב אך לא נמצאו מידות גלגל אוטומטית — ניתן להזין אותן ידנית בטופס הקבלה')
+      }
+    } catch {
+      setDonationError('שגיאה בחיפוש הרכב')
+    } finally {
+      setDonationLoading(false)
+    }
+  }
+
+  // Donation intake: look up the vehicle by manufacturer + model to find the wheel spec it needs
+  const handleDonationModelSearch = async () => {
+    if (!donationMake.trim() || !donationModel.trim()) return
+    setDonationLoading(true)
+    setDonationError('')
+    setDonationMatches([])
+    setDonationSelected(null)
+    setDonationExistingCount(null)
+    try {
+      const response = await fetch(`/api/vehicle-models?make=${encodeURIComponent(donationMake.trim())}&model=${encodeURIComponent(donationModel.trim())}&limit=8`)
+      const data = await response.json()
+      const vehicles: Array<{ make?: string; make_he?: string; model?: string; model_he?: string; year_from?: number; year_to?: number; rim_size?: string; bolt_count?: number; bolt_spacing?: number; center_bore?: number; tire_size_front?: string }> = data.vehicles || []
+      if (!vehicles.length) {
+        setDonationError('לא נמצא רכב מתאים — ניתן להזין את המידות ידנית בטופס הקבלה')
+        return
+      }
+      setDonationMatches(vehicles.map(v => ({
+        label: `${v.make_he || v.make || ''} ${v.model_he || v.model || ''}${v.year_from ? ` (${v.year_from}${v.year_to ? '-' + v.year_to : '+'})` : ''}`.trim(),
+        rim_size: v.rim_size || null,
+        bolt_count: v.bolt_count ?? null,
+        bolt_spacing: v.bolt_spacing ?? null,
+        center_bore: v.center_bore ?? null,
+        tire_size: v.tire_size_front || null
+      })))
+    } catch {
+      setDonationError('שגיאה בחיפוש הרכב')
+    } finally {
+      setDonationLoading(false)
+    }
+  }
+
+  // Donation intake: once a vehicle match is picked, check how many matching wheels this
+  // station already has (reuses the existing cross-station search API, filtered to this station)
+  const selectDonationMatch = async (match: DonationMatch) => {
+    setDonationSelected(match)
+    setDonationExistingCount(null)
+    if (!match.bolt_count || !match.bolt_spacing) return
+    try {
+      const params = new URLSearchParams()
+      params.set('bolt_count', String(match.bolt_count))
+      params.set('bolt_spacing', String(match.bolt_spacing))
+      if (match.rim_size) params.set('rim_size', match.rim_size)
+      const response = await fetch(`/api/wheel-stations/search?${params.toString()}`)
+      const data = await response.json()
+      const results: Array<{ station: { id: string }; totalCount: number }> = data.results || []
+      const mine = results.find(r => r.station.id === stationId)
+      setDonationExistingCount(mine?.totalCount ?? 0)
+    } catch {
+      setDonationExistingCount(null)
+    }
+  }
+
+  // Donation intake: "קבל" — pre-fill the (shared) Add Wheel form from the matched spec and a
+  // suggested wheel number, then hand off to handleAddWheel with pending_donation:true
+  const acceptDonation = () => {
+    if (!donationSelected) return
+    setWheelForm({
+      wheel_number: suggestNextWheelNumber(),
+      rim_size: donationSelected.rim_size || '',
+      bolt_count: donationSelected.bolt_count ? String(donationSelected.bolt_count) : '4',
+      pcds: [donationSelected.bolt_spacing ? String(donationSelected.bolt_spacing) : ''],
+      center_bore: donationSelected.center_bore != null ? String(donationSelected.center_bore) : '',
+      tire_size: donationSelected.tire_size || '',
+      offset: '',
+      category: '',
+      is_donut: false,
+      notes: '',
+      custom_deposit: ''
+    })
+    setWheelFormErrors([])
+    setDonationAcceptMode(true)
+    setShowDonationModal(false)
+    setShowAddWheelModal(true)
+  }
+
   // Add wheel
   const handleAddWheel = async () => {
     // Validate required fields and highlight missing ones
@@ -1502,7 +1664,8 @@ ${signFormUrl}
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
-          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null
+          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,
+          pending_donation: donationAcceptMode
         })
       })
       if (!response.ok) {
@@ -1512,6 +1675,8 @@ ${signFormUrl}
       await fetchStation()
       setShowAddWheelModal(false)
       setShowCustomCategory(false)
+      const wasDonation = donationAcceptMode
+      setDonationAcceptMode(false)
       setWheelForm({
         wheel_number: '',
         rim_size: '',
@@ -1525,7 +1690,7 @@ ${signFormUrl}
         notes: '',
         custom_deposit: ''
       })
-      toast.success('הגלגל נוסף בהצלחה!')
+      toast.success(wasDonation ? 'התרומה נקלטה — ממתינה לכניסה למלאי (ראו בטאב התראות)' : 'הגלגל נוסף בהצלחה!')
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'שגיאה בהוספה')
     } finally {
@@ -1566,7 +1731,10 @@ ${signFormUrl}
           category: wheelForm.category || null,
           is_donut: wheelForm.is_donut,
           notes: wheelForm.notes || null,
-          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null
+          custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,
+          // Saving the edit form always finalizes a pending donation into real inventory
+          // (a no-op for a wheel that was already active — see the PUT handler)
+          pending_donation: false
         })
       })
       if (!response.ok) {
@@ -2044,6 +2212,8 @@ ${signFormUrl}
   }
 
   const filteredWheels = station?.wheels.filter(wheel => {
+    // Pending donations aren't real inventory yet — they only show in the Alerts tab list
+    if (wheel.pending_donation) return false
     if (rimSizeFilter.length && !rimSizeFilter.includes(wheel.rim_size)) return false
     if (boltCountFilter.length && !boltCountFilter.includes(wheel.bolt_count.toString())) return false
     if (boltSpacingFilter.length && !boltSpacingFilter.includes(wheel.bolt_spacing.toString())) return false
@@ -2063,12 +2233,14 @@ ${signFormUrl}
     return true
   }) || []
 
-  // Get unique values for filters
-  const rimSizes = [...new Set(station?.wheels.map(w => w.rim_size))].sort()
-  const boltCounts = [...new Set(station?.wheels.map(w => w.bolt_count.toString()))].sort()
-  const boltSpacings = [...new Set(station?.wheels.map(w => w.bolt_spacing.toString()))].sort()
-  const centerBores = [...new Set(station?.wheels.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a! - b!)
-  const categories = [...new Set(station?.wheels.map(w => w.category).filter(Boolean))]
+  // Get unique values for filters (excluding pending donations, which aren't real inventory yet)
+  const activeWheels = station?.wheels.filter(w => !w.pending_donation) || []
+  const rimSizes = [...new Set(activeWheels.map(w => w.rim_size))].sort()
+  const boltCounts = [...new Set(activeWheels.map(w => w.bolt_count.toString()))].sort()
+  const boltSpacings = [...new Set(activeWheels.map(w => w.bolt_spacing.toString()))].sort()
+  const centerBores = [...new Set(activeWheels.map(w => w.center_bore).filter(Boolean))].sort((a, b) => a! - b!)
+  const categories = [...new Set(activeWheels.map(w => w.category).filter(Boolean))]
+  const pendingDonationWheels = station?.wheels.filter(w => w.pending_donation) || []
 
   if (loading) {
     return (
@@ -2623,6 +2795,79 @@ ${signFormUrl}
       {/* Alerts Tab Content */}
       {activeTab === 'alerts' && isManager && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Pending Donations Section */}
+          {pendingDonationWheels.length > 0 && (
+            <div style={{
+              background: '#eff6ff',
+              borderRadius: '12px',
+              padding: '16px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <h3 style={{ color: '#3b82f6', margin: '0 0 12px 0', fontSize: '1rem' }}>
+                <span style={{display:'inline-flex',alignItems:'center',gap:'5px'}}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>תרומות ממתינות לכניסה למלאי ({pendingDonationWheels.length})</span>
+              </h3>
+              {pendingDonationWheels.map(wheel => (
+                <div key={wheel.id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: '#ffffff',
+                  borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
+                  border: '1px solid #bfdbfe'
+                }}>
+                  <div>
+                    <span style={{ fontWeight: 600, color: '#e2e8f0' }}>
+                      גלגל #{wheel.wheel_number}
+                    </span>
+                    <span style={{ color: '#94a3b8', marginRight: '8px', fontSize: '0.85rem' }}>
+                      {wheel.bolt_count}x{wheel.bolt_spacing} R{wheel.rim_size}
+                    </span>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                      התקבלה תרומה{wheel.pending_since ? ` ב-${new Date(wheel.pending_since).toLocaleDateString('he-IL')}` : ''} · טרם השלימה כניסה למלאי
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => {
+                        setSelectedWheel(wheel)
+                        setWheelForm({
+                          wheel_number: wheel.wheel_number,
+                          rim_size: wheel.rim_size,
+                          bolt_count: String(wheel.bolt_count),
+                          pcds: [String(wheel.bolt_spacing), ...(wheel.extra_bolt_spacings?.map(String) ?? [])],
+                          center_bore: wheel.center_bore ? String(wheel.center_bore) : '',
+                          tire_size: wheel.tire_size || '',
+                          offset: wheel.offset != null ? String(wheel.offset) : '',
+                          category: wheel.category || '',
+                          is_donut: wheel.is_donut,
+                          notes: wheel.notes || '',
+                          custom_deposit: wheel.custom_deposit ? String(wheel.custom_deposit) : ''
+                        })
+                        setWheelFormErrors([])
+                        setShowEditWheelModal(true)
+                      }}
+                      style={{
+                        background: '#10b981', color: 'white', border: 'none',
+                        padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                        fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap'
+                      }}
+                    >
+                      השלם והכנס למלאי
+                    </button>
+                    <button
+                      onClick={() => handleDeleteWheel(wheel)}
+                      style={{
+                        background: 'rgba(255,255,255,0.1)', color: '#94a3b8', border: 'none',
+                        padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
+                        fontSize: '0.8rem', whiteSpace: 'nowrap'
+                      }}
+                    >
+                      בטל תרומה
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Deleted Wheels Section */}
           {deletedWheels.length > 0 && (
             <div style={{
@@ -2758,7 +3003,7 @@ ${signFormUrl}
           )}
 
           {/* Empty state */}
-          {deletedWheels.length === 0 && overdueBorrows.length === 0 && (
+          {deletedWheels.length === 0 && overdueBorrows.length === 0 && pendingDonationWheels.length === 0 && (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
               <span style={{ display: 'block', marginBottom: '10px' }}><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
               <p>אין התראות כרגע</p>
@@ -4291,12 +4536,126 @@ ${signFormUrl}
         </div>
       )}
 
+      {/* Donation Check Modal */}
+      {showDonationModal && (
+        <div role="presentation" style={styles.modalOverlay} onClick={() => setShowDonationModal(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="donation-modal-title" style={{...styles.modal, maxWidth: '480px'}} onClick={e => e.stopPropagation()}>
+            <h3 id="donation-modal-title" style={{...styles.modalTitle, display:'inline-flex', alignItems:'center', gap:'6px'}}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+              בדיקת תרומת גלגל
+            </h3>
+            <p style={{fontSize: '0.85rem', color: '#64748b', margin: '0 0 14px'}}>
+              חפשו את הרכב שממנו הגלגל כדי לגלות איזו מידה מתאימה, ולראות כמה מהסוג הזה כבר יש בתחנה.
+            </p>
+
+            <div style={{display: 'flex', gap: '8px', marginBottom: '12px'}}>
+              <button
+                type="button"
+                onClick={() => { setDonationTab('plate'); setDonationMatches([]); setDonationSelected(null); setDonationExistingCount(null); setDonationError('') }}
+                style={{
+                  flex: 1, padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem',
+                  border: donationTab === 'plate' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                  background: donationTab === 'plate' ? '#eff6ff' : '#fff',
+                  color: donationTab === 'plate' ? '#1d4ed8' : '#475569'
+                }}
+              >מספר רישוי</button>
+              <button
+                type="button"
+                onClick={() => { setDonationTab('model'); setDonationMatches([]); setDonationSelected(null); setDonationExistingCount(null); setDonationError('') }}
+                style={{
+                  flex: 1, padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem',
+                  border: donationTab === 'model' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                  background: donationTab === 'model' ? '#eff6ff' : '#fff',
+                  color: donationTab === 'model' ? '#1d4ed8' : '#475569'
+                }}
+              >יצרן ודגם</button>
+            </div>
+
+            {donationTab === 'plate' ? (
+              <div style={{display: 'flex', gap: '8px', marginBottom: '12px'}}>
+                <input
+                  type="text"
+                  placeholder="מספר רישוי"
+                  value={donationPlate}
+                  onChange={e => setDonationPlate(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleDonationPlateSearch() }}
+                  style={{...styles.input, flex: 1, marginBottom: 0}}
+                />
+                <button type="button" style={styles.submitBtn} onClick={handleDonationPlateSearch} disabled={donationLoading}>
+                  {donationLoading ? <LoadingSpin text="" size={12} /> : 'חפש'}
+                </button>
+              </div>
+            ) : (
+              <div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
+                <input
+                  type="text"
+                  placeholder="יצרן (למשל טויוטה)"
+                  value={donationMake}
+                  onChange={e => setDonationMake(e.target.value)}
+                  style={{...styles.input, flex: 1, minWidth: '120px', marginBottom: 0}}
+                />
+                <input
+                  type="text"
+                  placeholder="דגם (למשל קורולה)"
+                  value={donationModel}
+                  onChange={e => setDonationModel(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') handleDonationModelSearch() }}
+                  style={{...styles.input, flex: 1, minWidth: '120px', marginBottom: 0}}
+                />
+                <button type="button" style={styles.submitBtn} onClick={handleDonationModelSearch} disabled={donationLoading}>
+                  {donationLoading ? <LoadingSpin text="" size={12} /> : 'חפש'}
+                </button>
+              </div>
+            )}
+
+            {donationError && <p style={{color: '#dc2626', fontSize: '0.85rem', margin: '0 0 12px'}}>{donationError}</p>}
+
+            {donationMatches.length > 0 && (
+              <div style={{display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px'}}>
+                {donationMatches.map((m, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => selectDonationMatch(m)}
+                    style={{
+                      textAlign: 'right', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
+                      border: donationSelected === m ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                      background: donationSelected === m ? '#eff6ff' : '#fff'
+                    }}
+                  >
+                    <div style={{fontWeight: 600, color: '#1e293b'}}>{m.label || 'רכב'}</div>
+                    <div style={{fontSize: '0.82rem', color: '#64748b'}}>
+                      {m.bolt_count && m.bolt_spacing ? `${m.bolt_count}×${m.bolt_spacing}` : 'PCD לא ידוע — יש להשלים ידנית'}
+                      {m.rim_size ? ` · ג'אנט ${m.rim_size}"` : ''}
+                      {m.center_bore ? ` · CB ${m.center_bore}` : ''}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {donationSelected && (
+              <div style={{background: '#f8fafc', borderRadius: '8px', padding: '12px', marginBottom: '12px', fontSize: '0.9rem', color: '#334155'}}>
+                {donationExistingCount === null
+                  ? 'בודק כמה יש כבר בתחנה...'
+                  : <span>יש כבר <strong>{donationExistingCount}</strong> גלגלים מהסוג הזה בתחנה</span>}
+              </div>
+            )}
+
+            <div style={styles.modalButtons}>
+              <button style={styles.cancelBtn} onClick={() => setShowDonationModal(false)}>סגור</button>
+              <button style={styles.submitBtn} onClick={acceptDonation} disabled={!donationSelected}>קבל תרומה</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Wheel Modal */}
       {showAddWheelModal && (
-        <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false) }}>
+        <div role="presentation" style={styles.modalOverlay} onClick={() => { setShowAddWheelModal(false); setShowCustomCategory(false); setDonationAcceptMode(false) }}>
           <div role="dialog" aria-modal="true" aria-labelledby="add-wheel-modal-title" style={styles.modal} onClick={e => e.stopPropagation()} className="add-wheel-modal">
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'}}>
-              <h3 id="add-wheel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px',margin:0}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>הוספת גלגל חדש</h3>
+              <h3 id="add-wheel-modal-title" style={{...styles.modalTitle,display:'inline-flex',alignItems:'center',gap:'6px',margin:0}} className="add-wheel-modal-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>{donationAcceptMode ? 'קליטת תרומה — פרטי גלגל' : 'הוספת גלגל חדש'}</h3>
               <div style={{width: '90px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '8px'}}>
                 <div>
                   <label style={styles.label}>מספר גלגל *</label>
@@ -4501,9 +4860,9 @@ ${signFormUrl}
               </div>
             </div>
             <div style={styles.modalButtons} className="add-wheel-modal-buttons">
-              <button style={styles.cancelBtn} onClick={() => setShowAddWheelModal(false)}>ביטול</button>
+              <button style={styles.cancelBtn} onClick={() => { setShowAddWheelModal(false); setDonationAcceptMode(false) }}>ביטול</button>
               <button style={styles.submitBtn} onClick={handleAddWheel} disabled={actionLoading}>
-                {actionLoading ? <LoadingSpin text="שומר..." /> : 'הוסף'}
+                {actionLoading ? <LoadingSpin text="שומר..." /> : (donationAcceptMode ? 'קבל תרומה' : 'הוסף')}
               </button>
             </div>
           </div>

@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
       .select('*')
       .in('station_id', activeStationIds)
       .is('deleted_at', null)
+      .eq('pending_donation', false)
 
     // Apply filters
     if (rim_size) {
@@ -136,6 +137,7 @@ export async function GET(request: NextRequest) {
       .select('*')
       .in('station_id', activeStationIds)
       .is('deleted_at', null)
+      .eq('pending_donation', false)
 
     if (filterError) {
       console.error('Error fetching filter options:', filterError)

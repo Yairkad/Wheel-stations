@@ -6,6 +6,7 @@ export interface WheelStatsInput {
   is_available: boolean
   temporarily_unavailable?: boolean | null
   deleted_at?: string | null
+  pending_donation?: boolean | null
 }
 
 export interface WheelStats {
@@ -16,7 +17,8 @@ export interface WheelStats {
 }
 
 export function computeWheelStats(wheels: WheelStatsInput[]): WheelStats {
-  const nonDeleted = wheels.filter(w => !w.deleted_at)
+  // Pending donations aren't real inventory yet — excluded here the same way deleted wheels are.
+  const nonDeleted = wheels.filter(w => !w.deleted_at && !w.pending_donation)
   const inactiveWheels = nonDeleted.filter(w => w.temporarily_unavailable).length
   const availableWheels = nonDeleted.filter(w => w.is_available && !w.temporarily_unavailable).length
   const takenWheels = nonDeleted.filter(w => !w.is_available && !w.temporarily_unavailable).length

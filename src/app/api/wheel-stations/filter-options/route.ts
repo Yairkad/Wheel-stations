@@ -44,6 +44,7 @@ export async function GET() {
       .select('*')
       .in('station_id', activeStationIds)
       .is('deleted_at', null)
+      .eq('pending_donation', false)
 
     if (error) {
       console.error('Error fetching filter options:', error)

@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { stationId, wheelId } = await params
     const body = await request.json()
-    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit } = body
+    const { wheel_number, rim_size, bolt_count, bolt_spacing, extra_bolt_spacings, center_bore, tire_size, offset, category, is_donut, notes, custom_deposit, pending_donation } = body
 
     // Verify credentials - super manager or station manager, from whichever
     // role the caller's manager_session cookie was issued for
@@ -77,22 +77,44 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    const update: Record<string, unknown> = {
+      wheel_number,
+      rim_size,
+      bolt_count,
+      bolt_spacing,
+      extra_bolt_spacings: extra_bolt_spacings?.length ? extra_bolt_spacings : null,
+      center_bore: center_bore || null,
+      tire_size: tire_size || null,
+      offset: offset ?? null,
+      category,
+      is_donut,
+      notes,
+      custom_deposit: custom_deposit || null
+    }
+
+    // Saving the edit form on a pending donation finalizes it into real inventory: once the
+    // caller confirms pending_donation:false, flip it into active stock (only when it's
+    // actually transitioning away from pending — a normal edit of an already-active wheel
+    // just re-sends false as a no-op and must not touch its current is_available/borrow state).
+    if (pending_donation === false) {
+      const { data: current } = await supabase
+        .from('wheels')
+        .select('pending_donation')
+        .eq('id', wheelId)
+        .eq('station_id', stationId)
+        .single()
+
+      update.pending_donation = false
+      if (current?.pending_donation) {
+        update.is_available = true
+        update.pending_since = null
+        update.pending_by_manager_id = null
+      }
+    }
+
     const { error } = await supabase
       .from('wheels')
-      .update({
-        wheel_number,
-        rim_size,
-        bolt_count,
-        bolt_spacing,
-        extra_bolt_spacings: extra_bolt_spacings?.length ? extra_bolt_spacings : null,
-        center_bore: center_bore || null,
-        tire_size: tire_size || null,
-        offset: offset ?? null,
-        category,
-        is_donut,
-        notes,
-        custom_deposit: custom_deposit || null
-      })
+      .update(update)
       .eq('id', wheelId)
       .eq('station_id', stationId)
 
@@ -137,14 +159,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       deletedByType = 'station_manager'
     }
 
-    // Check if wheel has active borrows
+    // Check if wheel has active borrows (a pending donation is also is_available:false,
+    // but it was never lent out — it's fine to cancel/delete one that won't be arriving)
     const { data: wheel } = await supabase
       .from('wheels')
-      .select('is_available, wheel_number, rim_size, bolt_count, bolt_spacing')
+      .select('is_available, wheel_number, rim_size, bolt_count, bolt_spacing, pending_donation')
       .eq('id', wheelId)
       .single()
 
-    if (wheel && !wheel.is_available) {
+    if (wheel && !wheel.is_available && !wheel.pending_donation) {
       return NextResponse.json({ error: 'לא ניתן למחוק גלגל שמושאל כרגע' }, { status: 400 })
     }
 
