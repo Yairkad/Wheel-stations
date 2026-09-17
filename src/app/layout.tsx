@@ -3,6 +3,7 @@ import { Rubik } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/ToastProvider";
 import AccessibilityWidget from "@/components/AccessibilityWidget";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const rubik = Rubik({
@@ -61,6 +62,7 @@ export default function RootLayout({
       <body className={`${rubik.className} antialiased`}>
         <ToastProvider />
         <SpeedInsights />
+        <ServiceWorkerRegistration />
         {children}
         <AccessibilityWidget />
       </body>

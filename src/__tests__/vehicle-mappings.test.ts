@@ -317,18 +317,18 @@ describe('checkRimFit - התאמת גלגל לרכב (מידה עצמית ± 1, 
     expect(checkRimFit('205/60R16', 16, '205/60R16', false)).toBe('match')
   })
 
-  it('matches one size up when the tire profile compensates for the diameter change', () => {
+  it('labels one size up "larger" when the tire profile compensates cleanly (≤3%)', () => {
     // vehicle: 16*25.4 + 2*(205*60/100) = 652.4mm; wheel: 17*25.4 + 2*(215*50/100) = 646.8mm (0.86% diff)
-    expect(checkRimFit('205/60R16', 17, '215/50', false)).toBe('match')
+    expect(checkRimFit('205/60R16', 17, '215/50', false)).toBe('larger')
   })
 
-  it('flags one size up as a mismatch when the tire profile does not compensate', () => {
+  it('labels one size up "larger_risky" when the diff is between 3% and 6% (may fit, rub risk)', () => {
     // vehicle: 652.4mm; wheel: 17*25.4 + 2*(205*60/100) = 677.8mm (3.89% diff)
-    expect(checkRimFit('205/60R16', 17, '205/60', false)).toBe('mismatch')
+    expect(checkRimFit('205/60R16', 17, '205/60', false)).toBe('larger_risky')
   })
 
-  it('matches one size down when the tire profile compensates', () => {
-    expect(checkRimFit('215/50R17', 16, '205/60', false)).toBe('match')
+  it('labels one size down "smaller" regardless of tire profile compensation', () => {
+    expect(checkRimFit('215/50R17', 16, '205/60', false)).toBe('smaller')
   })
 
   it('flags a rim 2 sizes away as a mismatch regardless of tire data (regression: the Mazda 6 report)', () => {
@@ -338,6 +338,12 @@ describe('checkRimFit - התאמת גלגל לרכב (מידה עצמית ± 1, 
     expect(checkRimFit('205/60R16', 16, '205/60', false)).toBe('match')
     expect(checkRimFit('205/60R16', 18, '205/60', false)).toBe('mismatch')
     expect(checkRimFit('205/60R16', 14, '205/60', false)).toBe('mismatch')
+  })
+
+  it('excludes a one-size-up candidate outright when the diff exceeds the 6% exclude threshold', () => {
+    // vehicle (155/70R13): 13*25.4 + 2*(155*70/100) = 547.2mm
+    // wheel one size up (215/60R14): 14*25.4 + 2*(215*60/100) = 613.6mm -> 12.1% diff, well past 6%
+    expect(checkRimFit('155/70R13', 14, '215/60', false)).toBe('mismatch')
   })
 
   it('marks an in-window wheel with no recorded tire size as needing tire data, not a silent pass', () => {
@@ -359,7 +365,7 @@ describe('checkRimFit - התאמת גלגל לרכב (מידה עצמית ± 1, 
   it('uses the manually-picked rim size as the window anchor when the vehicle has no tire data on file (e.g. personal imports)', () => {
     // No vehicle tire string at all — a manually-selected rim of 17 still gates the ±1 window
     expect(checkRimFit(null, 17, '205/60', false, 17)).toBe('match')
-    expect(checkRimFit(null, 16, '205/60', false, 17)).toBe('match')
+    expect(checkRimFit(null, 16, '205/60', false, 17)).toBe('smaller')
     expect(checkRimFit(null, 19, '205/60', false, 17)).toBe('mismatch')
     // No diameter data available for the vehicle even with a rim fallback — can't validate diameter, so pass
     expect(checkRimFit(undefined, 17, '215/50', false, 17)).toBe('match')
@@ -374,8 +380,8 @@ describe('checkVehicleRimFit - התאמת רכב מול רכב (חיפוש הפ�
     expect(checkVehicleRimFit('205/60R16', '205/60R16')).toBe('match')
   })
 
-  it('matches a candidate one size up with a compensating profile', () => {
-    expect(checkVehicleRimFit('205/60R16', '215/50R17')).toBe('match')
+  it('labels a candidate one size up "larger" with a compensating profile', () => {
+    expect(checkVehicleRimFit('205/60R16', '215/50R17')).toBe('larger')
   })
 
   it('flags a candidate two sizes away as a mismatch', () => {

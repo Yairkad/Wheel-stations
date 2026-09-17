@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { getTireDiameterMm, DIAMETER_MISMATCH_THRESHOLD } from '@/lib/vehicle-mappings'
+import { getTireDiameterMm, DIAMETER_MISMATCH_THRESHOLD, DIAMETER_EXCLUDE_THRESHOLD } from '@/lib/vehicle-mappings'
 
 interface TireDiameterCalculatorModalProps {
   vehicleTire: string | null | undefined
@@ -24,7 +24,10 @@ export default function TireDiameterCalculatorModal({
   const diffPct = vehicleDiameter != null && wheelDiameter != null
     ? (Math.abs(wheelDiameter - vehicleDiameter) / vehicleDiameter) * 100
     : null
-  const withinThreshold = diffPct != null && diffPct <= DIAMETER_MISMATCH_THRESHOLD * 100
+  const zone: 'clean' | 'risky' | 'excluded' | null = diffPct == null ? null
+    : diffPct <= DIAMETER_MISMATCH_THRESHOLD * 100 ? 'clean'
+    : diffPct <= DIAMETER_EXCLUDE_THRESHOLD * 100 ? 'risky'
+    : 'excluded'
 
   return (
     <div style={styles.overlay} onClick={onClose}>
@@ -73,22 +76,24 @@ export default function TireDiameterCalculatorModal({
             </div>
             <div style={styles.diffRow}>
               <span>הפרש</span>
-              <span style={{ color: diffPct == null ? '#64748b' : withinThreshold ? '#15803d' : '#dc2626' }}>
+              <span style={{ color: zone == null ? '#64748b' : zone === 'clean' ? '#15803d' : zone === 'risky' ? '#b45309' : '#dc2626' }}>
                 {diffPct != null ? `${diffPct.toFixed(1)}%` : 'הזן שתי מידות תקינות'}
               </span>
             </div>
           </div>
 
-          {diffPct != null && (
+          {zone != null && (
             <div style={{
               ...styles.verdict,
-              background: withinThreshold ? '#f0fdf4' : '#fef2f2',
-              border: withinThreshold ? '1px solid #bbf7d0' : '1px solid #fecaca',
-              color: withinThreshold ? '#15803d' : '#dc2626'
+              background: zone === 'clean' ? '#f0fdf4' : zone === 'risky' ? '#fffbeb' : '#fef2f2',
+              border: zone === 'clean' ? '1px solid #bbf7d0' : zone === 'risky' ? '1px solid #fde68a' : '1px solid #fecaca',
+              color: zone === 'clean' ? '#15803d' : zone === 'risky' ? '#b45309' : '#dc2626'
             }}>
-              {withinThreshold
+              {zone === 'clean'
                 ? `בטווח הסביר (עד ${(DIAMETER_MISMATCH_THRESHOLD * 100).toFixed(0)}% הפרש) - זה הסף שהאפליקציה בודקת לפיו`
-                : `מעל הסף (${(DIAMETER_MISMATCH_THRESHOLD * 100).toFixed(0)}% הפרש) שהאפליקציה בודקת לפיו`}
+                : zone === 'risky'
+                ? `בטווח סיכון (${(DIAMETER_MISMATCH_THRESHOLD * 100).toFixed(0)}%-${(DIAMETER_EXCLUDE_THRESHOLD * 100).toFixed(0)}% הפרש) - יתכן חיכוך, יש לבדוק ידנית לפני התקנה`
+                : `מעל הסף (${(DIAMETER_EXCLUDE_THRESHOLD * 100).toFixed(0)}% הפרש) - לא יתאים`}
             </div>
           )}
         </div>

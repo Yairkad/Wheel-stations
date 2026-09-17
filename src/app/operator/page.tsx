@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { SESSION_VERSION } from '@/lib/version'
 import { VehicleModelRecord, VehicleSearchResult, VehicleHistoryItem } from '@/lib/types'
-import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize } from '@/lib/vehicle-mappings'
+import { hebrewToEnglishMakes, hebrewToEnglishModels, modelToMake, extractRimSize, checkRimFit, getDiameterDiffPct, RimFitStatus } from '@/lib/vehicle-mappings'
 import { useRoleSwitch, roleKey } from '@/hooks/useRoleSwitch'
 import { useBackGuard } from '@/hooks/useBackGuard'
 import { usePreviousRoleEntry } from '@/hooks/usePreviousRoleEntry'
@@ -40,7 +40,7 @@ interface Station {
 
 interface WheelResult {
   station: Station
-  wheels: { wheel_number: number; rim_size: string; pcd: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
+  wheels: { wheel_number: number; rim_size: string; pcd: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean; tire_size?: string | null }[]
   availableCount: number
   totalCount: number
 }
@@ -635,7 +635,7 @@ export default function OperatorPage() {
         // Transform results
         const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
           station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
+          wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean; tire_size?: string | null }[]
           availableCount: number
           totalCount: number
         }) => ({
@@ -785,7 +785,7 @@ export default function OperatorPage() {
       // Transform results to our format
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
         station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-        wheels: { wheel_number: number; rim_size: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
+        wheels: { wheel_number: number; rim_size: string; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean; tire_size?: string | null }[]
         availableCount: number
         totalCount: number
       }) => ({
@@ -882,7 +882,7 @@ export default function OperatorPage() {
       // Transform results
       const transformedResults: WheelResult[] = (wheelsData.results || []).map((result: {
         station: { id: string; name: string; address: string; city?: string | null; district?: string | null }
-        wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean }[]
+        wheels: { wheel_number: number; rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null; is_available: boolean; is_donut?: boolean; temporarily_unavailable?: boolean; tire_size?: string | null }[]
         availableCount: number
         totalCount: number
       }) => ({
@@ -1114,20 +1114,22 @@ ${contact?.phone || ''}
   const specKeyOf = (w: { rim_size: string; bolt_count: number; bolt_spacing: number; center_bore?: number | null }) =>
     `${w.rim_size}|${w.bolt_count}|${w.bolt_spacing}|${w.center_bore ?? 'null'}`
 
-  const getRawWheelTier = (wheel: WheelResult['wheels'][number]): WheelTier => {
-    const wheelSize = parseInt(wheel.rim_size)
+  // Rim-size/rolled-diameter fitness, shared with search/stations pages: within ±1" window,
+  // smaller always labeled, larger validated against rolled diameter (clean / risky / excluded).
+  const getRimFit = (wheel: WheelResult['wheels'][number]): RimFitStatus => {
+    const wheelSize = wheel.rim_size ? parseInt(wheel.rim_size) : null
     const vehicleRimSize = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-    let sizeMatch: 'exact' | 'smaller' | null = null
-    if (vehicleRimSize && wheelSize) {
-      if (wheelSize === vehicleRimSize) sizeMatch = 'exact'
-      else if (wheelSize < vehicleRimSize) sizeMatch = 'smaller'
-    }
+    return checkRimFit(vehicleInfo?.front_tire, wheelSize, wheel.tire_size, !!wheel.is_donut, vehicleRimSize)
+  }
+
+  const getRawWheelTier = (wheel: WheelResult['wheels'][number]): WheelTier => {
+    const rimFit = getRimFit(wheel)
     const vCB = vehicleInfo?.center_bore
     const wCB = wheel.center_bore
     const cbRed = !!(vCB && wCB && wCB < vCB)
     const cbOrange = !!(vCB && wCB && (wCB - vCB) >= 2)
-    if (cbRed) return 'no'
-    if (sizeMatch === 'smaller' || cbOrange) return 'maybe'
+    if (cbRed || rimFit === 'mismatch') return 'no'
+    if (rimFit === 'smaller' || rimFit === 'larger' || rimFit === 'larger_risky' || rimFit === 'needs_tire_data' || cbOrange) return 'maybe'
     return 'yes'
   }
 
@@ -1139,13 +1141,10 @@ ${contact?.phone || ''}
     return raw
   }
 
-  // A wheel counts as an available match only if it's available, not oversized, and
-  // (when there's a vehicle to compare against) not a definite physical mismatch.
+  // A wheel counts as an available match only if it's available, and (when there's a
+  // vehicle to compare against) not a definite physical/size mismatch (see getRawWheelTier).
   const isAvailableMatch = (w: WheelResult['wheels'][number]) => {
     if (!w.is_available || w.temporarily_unavailable) return false
-    const ws = parseInt(w.rim_size)
-    const vrs = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-    if (vrs && ws > vrs) return false
     if (vehicleInfo && getEffectiveTier(w) === 'no') return false
     return true
   }
@@ -1828,11 +1827,9 @@ ${contact?.phone || ''}
                   {(() => {
                     const visibleWheels = result.wheels.filter(wheel => {
                       if (!wheel.is_available || wheel.temporarily_unavailable) return true
-                      const wheelSize = parseInt(wheel.rim_size)
-                      const vehicleRimSize = vehicleInfo?.rim_size ? parseInt(vehicleInfo.rim_size) : null
-                      if (vehicleRimSize && wheelSize > vehicleRimSize) return false
-                      // A definite physical mismatch (CB too small) isn't shown at all —
-                      // not even as a "no" option, per the מוקדן-facing simplified tiering.
+                      // A definite physical/size mismatch (CB too small, rim >1" smaller, or
+                      // larger with rolled diameter past the exclude threshold) isn't shown at
+                      // all — not even as a "no" option, per the מוקדן-facing simplified tiering.
                       if (vehicleInfo && getEffectiveTier(wheel) === 'no') return false
                       return true
                     })
@@ -1882,6 +1879,11 @@ ${contact?.phone || ''}
 
                       // Plate/model tabs — simplified יש/בספק tier, no technical numbers shown
                       const tier = getEffectiveTier(wheel)
+                      const rimFit = getRimFit(wheel)
+                      const wheelSizeForDiff = wheel.rim_size ? parseInt(wheel.rim_size) : null
+                      const diffPct = (rimFit === 'larger' || rimFit === 'larger_risky')
+                        ? getDiameterDiffPct(vehicleInfo?.front_tire, wheel.tire_size, wheelSizeForDiff)
+                        : null
                       return (
                         <div
                           key={wheel.wheel_number}
@@ -1902,7 +1904,13 @@ ${contact?.phone || ''}
                             </div>
                           ) : (
                             <>
-                              <div style={{fontSize: '0.75rem', marginTop: '4px', color: '#b45309', fontWeight: 600}}>? יתכן שיתאים</div>
+                              <div style={{fontSize: '0.75rem', marginTop: '4px', color: rimFit === 'larger_risky' ? '#dc2626' : '#b45309', fontWeight: 600}}>
+                                {rimFit === 'smaller' ? 'קוטר קטן מהנדרש'
+                                  : rimFit === 'larger' ? `קוטר גדול מהנדרש${diffPct != null ? ` (הפרש ${diffPct.toFixed(1)}%)` : ''}`
+                                  : rimFit === 'larger_risky' ? `קוטר גדול מהנדרש — סיכון לחיכוך${diffPct != null ? ` (הפרש ${diffPct.toFixed(1)}%)` : ''}`
+                                  : rimFit === 'needs_tire_data' ? 'חסרה מידת צמיג לאימות'
+                                  : '? יתכן שיתאים'}
+                              </div>
                               <button
                                 onClick={e => { e.stopPropagation(); setConsultWheel({ station: result.station, wheel }) }}
                                 style={{marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(37,99,235,0.1)', color: '#2563eb', border: 'none', borderRadius: '20px', padding: '4px 10px', fontSize: '0.7rem', cursor: 'pointer', fontWeight: 600}}

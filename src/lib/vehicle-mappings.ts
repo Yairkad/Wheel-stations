@@ -146,16 +146,25 @@ export function getDiameterDiffPct(
   return (Math.abs(wheelDiameter - vehicleDiameter) / vehicleDiameter) * 100
 }
 
-// Max relative rolled-diameter difference (as a fraction) still considered a match.
+// Max relative rolled-diameter difference (as a fraction) still considered a clean match.
 // Shared with getDiameterDiffPct()'s consumers so the UI's calculator uses the same cutoff
 // as the actual match/mismatch decision, instead of a second hardcoded copy of "3%".
 export const DIAMETER_MISMATCH_THRESHOLD = 0.03
 
-// 'match': rim within ±1" of the reference and (if checked) rolled diameter within DIAMETER_MISMATCH_THRESHOLD.
+// Above this relative rolled-diameter difference, a larger-rim candidate is excluded outright
+// (definitely won't clear the fender) rather than shown with a warning.
+export const DIAMETER_EXCLUDE_THRESHOLD = 0.06
+
+// 'match': same rim size as the reference, and (if checked) rolled diameter within DIAMETER_MISMATCH_THRESHOLD.
+// 'smaller': rim exactly one size down from the reference — always shown+labeled, no diameter check needed.
+// 'larger': rim exactly one size up, rolled diameter compensates cleanly (within DIAMETER_MISMATCH_THRESHOLD).
+// 'larger_risky': rim one size up, rolled diameter differs between DIAMETER_MISMATCH_THRESHOLD and
+// DIAMETER_EXCLUDE_THRESHOLD — may still fit but carries real rubbing risk, shown with a strong warning.
 // 'needs_tire_data': rim is in the ±1" window but there's no tire size on record to confirm
 // the rolled diameter actually compensates for the size change.
-// 'mismatch': rim more than 1" away, or rolled diameter differs by more than the threshold.
-export type RimFitStatus = 'match' | 'needs_tire_data' | 'mismatch'
+// 'mismatch': rim more than 1" away, or (same-size) rolled diameter differs by more than the threshold,
+// or (larger) rolled diameter differs by more than DIAMETER_EXCLUDE_THRESHOLD.
+export type RimFitStatus = 'match' | 'smaller' | 'larger' | 'larger_risky' | 'needs_tire_data' | 'mismatch'
 
 function compareRimAndDiameter(
   ownRim: number | null,
@@ -165,12 +174,18 @@ function compareRimAndDiameter(
   skipDiameterCheck: boolean
 ): RimFitStatus {
   if (ownRim == null || candidateRim == null) return 'match' // no data to judge — don't block
-  if (Math.abs(candidateRim - ownRim) > 1) return 'mismatch'
+  const rimDiff = candidateRim - ownRim
+  if (Math.abs(rimDiff) > 1) return 'mismatch'
+  if (rimDiff < 0) return 'smaller' // one size down, in-window — always labeled, diameter compensation not required
   if (skipDiameterCheck) return 'match'
   if (ownDiameter == null) return 'match' // can't compare, don't block
   if (candidateDiameter == null) return 'needs_tire_data'
   const relDiff = Math.abs(candidateDiameter - ownDiameter) / ownDiameter
-  return relDiff <= DIAMETER_MISMATCH_THRESHOLD ? 'match' : 'mismatch'
+  if (rimDiff === 0) return relDiff <= DIAMETER_MISMATCH_THRESHOLD ? 'match' : 'mismatch'
+  // rimDiff === 1 (one size up): dual threshold on rolled-diameter compensation
+  if (relDiff <= DIAMETER_MISMATCH_THRESHOLD) return 'larger'
+  if (relDiff <= DIAMETER_EXCLUDE_THRESHOLD) return 'larger_risky'
+  return 'mismatch'
 }
 
 // Whether a donor wheel is a size-compatible match for a vehicle: rim within one size up/down
