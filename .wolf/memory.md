@@ -2579,3 +2579,4 @@
 | 17:19 | Removed the now-redundant history-list refresh button (kept only the result-screen one) per user request | src/app/search/page.tsx | done, buglog bug-409 updated | ~150 |
 | 22:15 | תיקון רספונסיביות כרטיס תרומות ממתינות | src/app/[stationId]/page.tsx | done | ~3k |
 | 22:40 | פיצ'ר דוחות מפורטים: wheel_search_log + דוח חיפושים (מנהל+אדמין), סינון תאריכים למנהל, סינון תחנה/סוג דוח לאדמין, ייצוא אקסל מעוצב לכל דוח | search route, operator/search pages, [stationId]/page.tsx, admin/analytics, reports/* | next build passes | ~60k |
+| 23:30 | עיצוב מחדש לדוחות: ExportDialog יחיד, סרגל תקופות, לשוניות חסר/מושאל, חיפושי עבר לפי מידה | reports/*, [stationId]/page.tsx, admin/analytics | user approved screenshots | ~30k |

@@ -13,8 +13,8 @@ import LoadingSpin from '@/components/LoadingSpin'
 import Footer from '@/components/Footer'
 import { SESSION_VERSION } from '@/lib/version'
 import DateRangeFilter, { DateRange, rangeForDays, rangeLabel, inRange } from '@/components/reports/DateRangeFilter'
-import ExportButton from '@/components/reports/ExportButton'
-import SearchDemandReport from '@/components/reports/SearchDemandReport'
+import ExportDialog from '@/components/reports/ExportDialog'
+import SearchDemandReport, { SearchDemandData, searchDemandExportOptions } from '@/components/reports/SearchDemandReport'
 import { exportStyledExcel, ExcelRow, formatDateForFile } from '@/lib/excel-export'
 
 const DEFAULT_WHATSAPP_TEMPLATE = `שלום רב 👋
@@ -581,6 +581,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [reportDateFrom, setReportDateFrom] = useState('')
   const [reportDateTo, setReportDateTo] = useState('')
   const [reportRange, setReportRange] = useState<DateRange>(() => rangeForDays(30))
+  const [searchDemandData, setSearchDemandData] = useState<SearchDemandData | null>(null)
 
   // Tracking tab
   const [activeTab, setActiveTab] = useState<PageTab>('wheels')
@@ -3059,9 +3060,31 @@ ${signFormUrl}
 
         return (
           <div style={{padding: '20px 0'}}>
-            {/* Date range filter — applies to every date-based report below */}
+            {/* Toolbar: period filter (applies to every date-based report) + the single Excel export */}
             <div style={sectionCard}>
-              <div style={{fontSize: '0.8rem', color: '#64748b', marginBottom: '8px', fontWeight: 600}}>תקופת הדוחות: {periodText}</div>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '12px'}}>
+                <div>
+                  <div style={{fontSize: '1.05rem', fontWeight: 800, color: '#0f172a'}}>דוחות התחנה</div>
+                  <div style={{fontSize: '0.8rem', color: '#64748b'}}>תקופה: {periodText}</div>
+                </div>
+                <ExportDialog
+                  filePrefix={`reports_${stationFileName()}`}
+                  scopeText={`${station?.name || ''} · ${periodText}`}
+                  options={[
+                    { key: 'inventory', label: 'מלאי גלגלים נוכחי', hint: 'כל הגלגלים הפעילים + גלגלים לא זמינים', build: () => [
+                      { name: 'מלאי גלגלים', title: `מלאי גלגלים · ${station?.name || ''}`, rows: inventoryExcelRows() },
+                      { name: 'גלגלים לא זמינים', title: `גלגלים לא זמינים · ${station?.name || ''}`, color: 'DC2626', rows: unavailableExcelRows() },
+                    ] },
+                    { key: 'borrows', label: 'השאלות בתקופה', hint: 'פרטי כל השאלה + הגלגלים המבוקשים', build: () => [
+                      { name: 'השאלות בתקופה', title: `השאלות · ${station?.name || ''} · ${periodText}`, color: '7C3AED', rows: borrowExcelRows(periodBorrows) },
+                      { name: 'גלגלים מבוקשים', title: `גלגלים מבוקשים · ${periodText}`, rows: topWheels.map(t => ({
+                        'מספר גלגל': t.wheel!.wheel_number, 'מידות': `${t.wheel!.bolt_count}x${t.wheel!.bolt_spacing}`, 'קוטר': t.wheel!.rim_size, 'השאלות': t.count,
+                      })) },
+                    ] },
+                    ...searchDemandExportOptions(searchDemandData, { stationId, scopeName: station?.name || 'התחנה', range: reportRange }),
+                  ]}
+                />
+              </div>
               <DateRangeFilter value={reportRange} onChange={setReportRange} />
             </div>
 
@@ -3081,10 +3104,6 @@ ${signFormUrl}
                   </div>
                 ))}
               </div>
-              <ExportButton onClick={() => downloadExcel('inventory', [
-                { name: 'מלאי גלגלים', title: `מלאי גלגלים · ${station?.name || ''}`, rows: inventoryExcelRows() },
-                { name: 'גלגלים לא זמינים', title: `גלגלים לא זמינים · ${station?.name || ''}`, color: 'DC2626', rows: unavailableExcelRows() },
-              ])} />
             </div>
 
             {/* Borrows in period */}
@@ -3139,20 +3158,13 @@ ${signFormUrl}
                   </div>
                 </>
               )}
-
-              <ExportButton onClick={() => downloadExcel('borrows', [
-                { name: 'השאלות בתקופה', title: `השאלות · ${station?.name || ''} · ${periodText}`, color: '7C3AED', rows: borrowExcelRows(periodBorrows) },
-                { name: 'גלגלים מבוקשים', title: `גלגלים מבוקשים · ${periodText}`, rows: topWheels.map(t => ({
-                  'מספר גלגל': t.wheel!.wheel_number, 'מידות': `${t.wheel!.bolt_count}x${t.wheel!.bolt_spacing}`, 'קוטר': t.wheel!.rim_size, 'השאלות': t.count,
-                })) },
-              ])} />
             </div>
 
             {/* Wheel search demand */}
             <div style={sectionCard}>
               <h3 style={{...sectionTitle, marginBottom: '4px'}}>חיפושי גלגלים</h3>
               <div style={{fontSize: '0.78rem', color: '#64748b', marginBottom: '12px'}}>כל חיפוש של מוקדן או מנהל תחנה, ומה המצב שלו בתחנה שלך</div>
-              <SearchDemandReport stationId={stationId} stationName={station?.name} range={reportRange} />
+              <SearchDemandReport stationId={stationId} range={reportRange} onData={setSearchDemandData} />
             </div>
           </div>
         )
