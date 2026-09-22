@@ -13,10 +13,24 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url)
+  // Period: explicit from/to (YYYY-MM-DD) wins; otherwise the legacy `days` window.
+  // from='' and to='' with all=1 means "all time".
+  const fromParam = searchParams.get('from')
+  const toParam = searchParams.get('to')
+  const allTime = searchParams.get('all') === '1'
   const days = Math.min(parseInt(searchParams.get('days') || '90'), 365)
-  const since = new Date()
-  since.setDate(since.getDate() - days)
+  let since = new Date()
+  if (fromParam) since = new Date(`${fromParam}T00:00:00`)
+  else if (allTime) since = new Date('2000-01-01T00:00:00Z')
+  else since.setDate(since.getDate() - days)
+  const until = toParam ? new Date(`${toParam}T23:59:59.999`) : new Date(Date.now() + 60_000)
   const sinceISO = since.toISOString()
+  const untilISO = until.toISOString()
+  const stationId = searchParams.get('station_id') || null
+
+  // Adds the optional station filter to a query on a table with a station_id column
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const byStation = <Q,>(q: Q): Q => (stationId ? (q as any).eq('station_id', stationId) : q)
 
   const [
     kpiRes,
@@ -33,18 +47,20 @@ export async function GET(request: NextRequest) {
     // KPIs — direct parallel queries, no broken .rpc().catch() chain
     (async () => {
       const [stations, borrows, wheels, users, logins] = await Promise.all([
-        supabase.from('wheel_stations').select('id, is_active'),
-        supabase.from('wheel_borrows').select('id, actual_return_date, created_at'),
-        supabase.from('wheels').select('id, is_available, temporarily_unavailable, deleted_at'),
+        stationId
+          ? supabase.from('wheel_stations').select('id, is_active').eq('id', stationId)
+          : supabase.from('wheel_stations').select('id, is_active'),
+        byStation(supabase.from('wheel_borrows').select('id, actual_return_date, created_at')),
+        byStation(supabase.from('wheels').select('id, is_available, temporarily_unavailable, deleted_at')),
         supabase.from('users').select('id, is_active'),
-        supabase.from('login_log').select('id').gte('created_at', sinceISO),
+        supabase.from('login_log').select('id').gte('created_at', sinceISO).lte('created_at', untilISO),
       ])
       const allBorrows = (borrows.data || []) as { id: string; actual_return_date: string | null; created_at: string }[]
       const allWheels = (wheels.data || []) as { id: string; is_available: boolean; temporarily_unavailable: boolean; deleted_at: string | null }[]
       const allUsers = (users.data || []) as { id: string; is_active: boolean }[]
       return {
         stations_active: (stations.data || []).filter((s: { is_active: boolean }) => s.is_active).length,
-        borrows_total: allBorrows.filter(b => new Date(b.created_at) >= since).length,
+        borrows_total: allBorrows.filter(b => new Date(b.created_at) >= since && new Date(b.created_at) <= until).length,
         borrows_active: allBorrows.filter(b => !b.actual_return_date).length,
         wheels_total: allWheels.filter(w => !w.deleted_at).length,
         wheels_available: allWheels.filter(w => !w.deleted_at && w.is_available && !w.temporarily_unavailable).length,
@@ -56,41 +72,42 @@ export async function GET(request: NextRequest) {
     })(),
 
     // Borrows by month (last 12 months)
-    supabase
+    byStation(supabase
       .from('wheel_borrows')
-      .select('created_at, actual_return_date')
+      .select('created_at, actual_return_date'))
       .gte('created_at', (() => { const d = new Date(); d.setMonth(d.getMonth() - 11); d.setDate(1); return d.toISOString() })()),
 
     // Top stations by borrows
-    supabase
+    byStation(supabase
       .from('wheel_borrows')
-      .select('station_id, wheel_stations(name)')
-      .gte('created_at', sinceISO),
+      .select('station_id, wheel_stations(name)'))
+      .gte('created_at', sinceISO).lte('created_at', untilISO),
 
     // Wheels by station
     supabase
       .from('wheel_stations')
       .select('id, name, is_active, wheels(id, is_available, temporarily_unavailable, deleted_at)')
-      .eq('is_active', true),
+      .eq('is_active', true)
+      .order('name'),
 
     // Audit log breakdown
-    supabase
+    byStation(supabase
       .from('audit_log')
-      .select('action, actor_type, station_name, created_at')
-      .gte('created_at', sinceISO),
+      .select('action, actor_type, station_name, created_at'))
+      .gte('created_at', sinceISO).lte('created_at', untilISO),
 
     // Average borrow duration (days)
-    supabase
+    byStation(supabase
       .from('wheel_borrows')
-      .select('borrow_date, actual_return_date')
+      .select('borrow_date, actual_return_date'))
       .not('actual_return_date', 'is', null)
-      .gte('created_at', sinceISO),
+      .gte('created_at', sinceISO).lte('created_at', untilISO),
 
     // Full login log (for summary table + detail view)
     supabase
       .from('login_log')
       .select('id, user_id, full_name, phone, role, ip, created_at')
-      .gte('created_at', sinceISO)
+      .gte('created_at', sinceISO).lte('created_at', untilISO)
       .order('created_at', { ascending: false }),
 
     // Logins by day (last 30 days)
@@ -100,16 +117,16 @@ export async function GET(request: NextRequest) {
       .gte('created_at', (() => { const d = new Date(); d.setDate(d.getDate() - 29); return d.toISOString() })()),
 
     // Deposit types
-    supabase
+    byStation(supabase
       .from('wheel_borrows')
-      .select('deposit_type')
-      .gte('created_at', sinceISO),
+      .select('deposit_type'))
+      .gte('created_at', sinceISO).lte('created_at', untilISO),
 
     // Borrow status breakdown
-    supabase
+    byStation(supabase
       .from('wheel_borrows')
-      .select('status, actual_return_date')
-      .gte('created_at', sinceISO),
+      .select('status, actual_return_date'))
+      .gte('created_at', sinceISO).lte('created_at', untilISO),
   ])
 
   // --- Process borrows by month ---
@@ -143,8 +160,10 @@ export async function GET(request: NextRequest) {
 
   // --- Wheels by station ---
   type WheelRow = { id: string; is_available: boolean; temporarily_unavailable: boolean; deleted_at: string | null }
-  type StationRow = { name: string; wheels: WheelRow[] }
-  const wheelsByStation = ((wheelsByStationRes.data || []) as StationRow[]).map(s => {
+  type StationRow = { id: string; name: string; wheels: WheelRow[] }
+  const allStationRows = (wheelsByStationRes.data || []) as StationRow[]
+  const stations = allStationRows.map(s => ({ id: s.id, name: s.name }))
+  const wheelsByStation = allStationRows.filter(s => !stationId || s.id === stationId).map(s => {
     const active = s.wheels.filter(w => !w.deleted_at)
     return {
       name: s.name,
@@ -251,5 +270,6 @@ export async function GET(request: NextRequest) {
     depositTypes,
     loginSummary,
     loginLog,
+    stations,
   })
 }

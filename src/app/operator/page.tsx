@@ -13,6 +13,7 @@ import LoadingSpin from '@/components/LoadingSpin'
 import Footer from '@/components/Footer'
 import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
 import { useClickOutside } from '@/hooks/useClickOutside'
+import { appendSearchLogParams } from '@/lib/search-log'
 
 interface Operator {
   id: string
@@ -609,6 +610,7 @@ export default function OperatorPage() {
         if (specFilters.rim_size) params.append('rim_size', specFilters.rim_size)
         if (specFilters.bolt_count) params.append('bolt_count', specFilters.bolt_count)
         if (specFilters.bolt_spacing) params.append('bolt_spacing', specFilters.bolt_spacing)
+        appendSearchLogParams(params, 'spec', {}, 'operator')
 
         const wheelsRes = await fetch(`/api/wheel-stations/search?${params}`)
         const wheelsData = await wheelsRes.json()
@@ -759,6 +761,14 @@ export default function OperatorPage() {
         bolt_spacing: pcdInfo.bolt_spacing.toString(),
       })
       // Don't filter by rim_size to show more options
+      appendSearchLogParams(wheelParams, searchTab === 'plate' ? 'plate' : 'model', {
+        plate: searchTab === 'plate' ? plateNumber.trim() : null,
+        manufacturer: pcdInfo.manufacturer,
+        model: pcdInfo.model,
+        year: pcdInfo.year,
+        rim_size: pcdInfo.rim_size,
+        center_bore: pcdInfo.center_bore,
+      }, 'operator')
 
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
       const wheelsData = await wheelsRes.json()
@@ -856,6 +866,13 @@ export default function OperatorPage() {
         bolt_count: pcdInfo.bolt_count.toString(),
         bolt_spacing: pcdInfo.bolt_spacing.toString(),
       })
+      appendSearchLogParams(wheelParams, 'model', {
+        manufacturer: pcdInfo.manufacturer,
+        model: pcdInfo.model,
+        year: pcdInfo.year,
+        rim_size: pcdInfo.rim_size,
+        center_bore: pcdInfo.center_bore,
+      }, 'operator')
 
       const wheelsRes = await fetch(`/api/wheel-stations/search?${wheelParams}`)
       const wheelsData = await wheelsRes.json()

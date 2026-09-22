@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 import { AdminShell } from '@/components/admin/AdminShell'
 import Footer from '@/components/Footer'
+import DateRangeFilter, { DateRange, rangeForDays, rangeLabel } from '@/components/reports/DateRangeFilter'
+import ExportButton from '@/components/reports/ExportButton'
+import SearchDemandReport from '@/components/reports/SearchDemandReport'
+import { exportStyledExcel, ExcelSheet, formatDateForFile } from '@/lib/excel-export'
+import toast from 'react-hot-toast'
 
 interface Kpis {
   stations_active: number
@@ -56,7 +61,18 @@ interface AnalyticsData {
   depositTypes: DepositType[]
   loginSummary: LoginSummaryRow[]
   loginLog: LoginEntry[]
+  stations: { id: string; name: string }[]
 }
+
+type ReportType = 'all' | 'borrows' | 'inventory' | 'audit' | 'logins' | 'search'
+const REPORT_TYPES: { key: ReportType; label: string }[] = [
+  { key: 'all', label: 'כל הדוחות' },
+  { key: 'borrows', label: 'השאלות' },
+  { key: 'inventory', label: 'מלאי גלגלים' },
+  { key: 'search', label: 'חיפושי גלגלים' },
+  { key: 'audit', label: 'פעולות במערכת' },
+  { key: 'logins', label: 'כניסות משתמשים' },
+]
 
 const AUDIT_COLORS: Record<string, string> = {
   'גלגל נוצר': '#22c55e', 'גלגל עודכן': '#3b82f6', 'גלגל נמחק': '#ef4444',
@@ -110,14 +126,17 @@ function MiniBarChart({ data, valueKey, labelKey, color, everyNthLabel = 1 }: {
   )
 }
 
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, icon, children, onExport }: { title: string; icon: React.ReactNode; children: React.ReactNode; onExport?: () => void }) {
   return (
     <div style={s.section}>
       <div style={s.sectionHeader}>
         <div style={s.sectionIcon}>{icon}</div>
         <span style={s.sectionTitle}>{title}</span>
       </div>
-      <div style={s.sectionBody}>{children}</div>
+      <div style={s.sectionBody}>
+        {children}
+        {onExport && <div style={{ marginTop: 14 }}><ExportButton onClick={onExport} /></div>}
+      </div>
     </div>
   )
 }
@@ -126,25 +145,46 @@ export default function AnalyticsPage() {
   const { isAuthenticated, isLoading: authLoading, logout } = useAdminAuth()
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [days, setDays] = useState(90)
+  const [range, setRange] = useState<DateRange>(() => rangeForDays(90))
+  const [stationId, setStationId] = useState('')
+  const [reportType, setReportType] = useState<ReportType>('all')
+  const [stationsList, setStationsList] = useState<{ id: string; name: string }[]>([])
   const [loginView, setLoginView] = useState<'summary' | 'log'>('summary')
   const [loginSearch, setLoginSearch] = useState('')
 
   useEffect(() => {
     if (isAuthenticated) {
       setLoading(true)
-      fetch(`/api/admin/analytics?days=${days}`)
+      const p = new URLSearchParams()
+      if (range.from) p.set('from', range.from)
+      if (range.to) p.set('to', range.to)
+      if (!range.from && !range.to) p.set('all', '1')
+      if (stationId) p.set('station_id', stationId)
+      fetch(`/api/admin/analytics?${p}`)
         .then(r => r.json())
-        .then(d => { setData(d); setLoading(false) })
+        .then(d => {
+          setData(d)
+          if (d?.stations?.length) setStationsList(d.stations)
+          setLoading(false)
+        })
         .catch(() => setLoading(false))
     }
-  }, [isAuthenticated, days])
+  }, [isAuthenticated, range.from, range.to, stationId])
 
   if (authLoading || !isAuthenticated) {
     return <div style={s.loadingPage}><p>טוען...</p></div>
   }
 
   const kpis = data?.kpis
+  const periodText = rangeLabel(range)
+  const stationName = stationsList.find(st => st.id === stationId)?.name
+  const scopeText = stationName ? `תחנת ${stationName}` : 'כל התחנות'
+  const show = (t: ReportType) => reportType === 'all' || reportType === t
+
+  const exportSheets = (name: string, sheets: ExcelSheet[]) => {
+    if (exportStyledExcel(`${name}_${formatDateForFile()}`, sheets)) toast.success('הקובץ הורד בהצלחה')
+    else toast.error('אין נתונים לייצוא')
+  }
 
   return (
     <AdminShell onLogout={logout}>
@@ -163,12 +203,32 @@ export default function AnalyticsPage() {
               <p style={s.pageSubtitle}>מבט מקיף על פעילות המערכת</p>
             </div>
           </div>
-          <select value={days} onChange={e => setDays(Number(e.target.value))} style={s.select}>
-            <option value={30}>30 יום</option>
-            <option value={90}>90 יום</option>
-            <option value={180}>180 יום</option>
-            <option value={365}>שנה</option>
-          </select>
+        </div>
+
+        {/* Filter bar — applies to every report on the page */}
+        <div style={s.filterBar}>
+          <div style={s.filterRow}>
+            <label style={s.filterField}>
+              <span style={s.filterLabel}>סוג דוח</span>
+              <select value={reportType} onChange={e => setReportType(e.target.value as ReportType)} style={{ ...s.select, width: '100%' }}>
+                {REPORT_TYPES.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+              </select>
+            </label>
+            <label style={s.filterField}>
+              <span style={s.filterLabel}>תחנה</span>
+              <select value={stationId} onChange={e => setStationId(e.target.value)} style={{ ...s.select, width: '100%' }}>
+                <option value="">כל התחנות</option>
+                {stationsList.map(st => <option key={st.id} value={st.id}>{st.name}</option>)}
+              </select>
+            </label>
+          </div>
+          <div>
+            <span style={s.filterLabel}>תקופה: {periodText}</span>
+            <div style={{ marginTop: 6 }}><DateRangeFilter value={range} onChange={setRange} /></div>
+          </div>
+          {stationId && (reportType === 'all' || reportType === 'logins') && (
+            <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>* כניסות משתמשים אינן משויכות לתחנה ומוצגות לכל המערכת</div>
+          )}
         </div>
 
         {loading ? (
@@ -186,10 +246,10 @@ export default function AnalyticsPage() {
                 { label: 'גלגלים זמינים',   value: kpis?.wheels_available,  color: '#22c55e', icon: '✅' },
                 { label: 'גלגלים מושאלים',  value: kpis?.wheels_borrowed,   color: '#f59e0b', icon: '📤' },
                 { label: 'בלתי זמינים',     value: kpis?.wheels_unavailable, color: '#ef4444', icon: '🚫' },
-                { label: `השאלות (${days}י)`, value: kpis?.borrows_total,  color: '#8b5cf6', icon: '📋' },
+                { label: 'השאלות בתקופה', value: kpis?.borrows_total,  color: '#8b5cf6', icon: '📋' },
                 { label: 'השאלות פתוחות',   value: kpis?.borrows_active,    color: '#f59e0b', icon: '⏳' },
                 { label: 'משתמשים פעילים',  value: kpis?.users_active,      color: '#14b8a6', icon: '👥' },
-                { label: `כניסות (${days}י)`, value: kpis?.logins_period,  color: '#ec4899', icon: '🔐' },
+                { label: 'כניסות בתקופה', value: kpis?.logins_period,  color: '#ec4899', icon: '🔐' },
               ].map(({ label, value, color, icon }) => (
                 <div key={label} style={s.kpiCard}>
                   <div style={{ fontSize: '1.4rem', marginBottom: 6 }}>{icon}</div>
@@ -198,10 +258,25 @@ export default function AnalyticsPage() {
                 </div>
               ))}
             </div>
+            <div>
+              <ExportButton label="ייצוא סיכום לאקסל" onClick={() => exportSheets('summary', [{
+                name: 'סיכום', title: `סיכום · ${scopeText} · ${periodText}`,
+                rows: [
+                  ['תחנות פעילות', kpis?.stations_active], ['גלגלים במלאי', kpis?.wheels_total],
+                  ['גלגלים זמינים', kpis?.wheels_available], ['גלגלים מושאלים', kpis?.wheels_borrowed],
+                  ['בלתי זמינים', kpis?.wheels_unavailable], ['השאלות בתקופה', kpis?.borrows_total],
+                  ['השאלות פתוחות', kpis?.borrows_active], ['משתמשים פעילים', kpis?.users_active],
+                  ['כניסות בתקופה', kpis?.logins_period], ['משך השאלה ממוצע (ימים)', data.avgDuration],
+                ].map(([k, v]) => ({ 'מדד': k as string, 'ערך': (v as number) ?? '' })),
+              }])} />
+            </div>
 
             {/* Row: Borrows by Month + Logins by Day */}
             <div style={s.twoCol}>
-              <Section title={`השאלות לפי חודש (12 חודשים אחרונים)`} icon={
+              {show('borrows') && <Section title={`השאלות לפי חודש (12 חודשים אחרונים)`} onExport={() => exportSheets('borrows_by_month', [{
+                name: 'השאלות לפי חודש', title: `השאלות לפי חודש · ${scopeText}`, color: '7C3AED',
+                rows: data.borrowsByMonth.map(m => ({ 'חודש': m.month, 'השאלות': m.borrows, 'הוחזרו': m.returned })),
+              }])} icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
               }>
                 <MiniBarChart data={data.borrowsByMonth} valueKey="borrows" labelKey="month" color="#8b5cf6" />
@@ -219,9 +294,12 @@ export default function AnalyticsPage() {
                     משך השאלה ממוצע: <strong style={{ color: '#8b5cf6' }}>{data.avgDuration} ימים</strong>
                   </div>
                 )}
-              </Section>
+              </Section>}
 
-              <Section title="כניסות למערכת (30 ימים אחרונים)" icon={
+              {show('logins') && <Section title="כניסות למערכת (30 ימים אחרונים)" onExport={() => exportSheets('logins_by_day', [{
+                name: 'כניסות לפי יום', title: 'כניסות למערכת – 30 ימים אחרונים', color: 'DB2777',
+                rows: data.loginsByDay.map(d => ({ 'תאריך': new Date(d.date + 'T12:00:00').toLocaleDateString('he-IL'), 'כניסות': d.count })),
+              }])} icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
               }>
                 <MiniBarChart
@@ -237,12 +315,15 @@ export default function AnalyticsPage() {
                 <div style={{ marginTop: 10, fontSize: '0.82rem', color: '#64748b' }}>
                   סה״כ <strong style={{ color: '#ec4899' }}>{data.loginsByDay.reduce((s, d) => s + d.count, 0)}</strong> כניסות ב-30 ימים אחרונים
                 </div>
-              </Section>
+              </Section>}
             </div>
 
             {/* Row: Top Stations + Audit Breakdown */}
             <div style={s.twoCol}>
-              <Section title={`תחנות מובילות בהשאלות (${days} ימים)`} icon={
+              {show('borrows') && <Section title={`תחנות מובילות בהשאלות · ${periodText}`} onExport={() => exportSheets('top_stations', [{
+                name: 'תחנות מובילות', title: `תחנות מובילות בהשאלות · ${periodText}`, color: '7C3AED',
+                rows: data.topStations.map((st, i) => ({ 'דירוג': i + 1, 'תחנה': st.name, 'השאלות': st.count })),
+              }])} icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
               }>
                 {data.topStations.length === 0 ? (
@@ -262,9 +343,12 @@ export default function AnalyticsPage() {
                     ))}
                   </div>
                 )}
-              </Section>
+              </Section>}
 
-              <Section title={`פעולות במערכת (${days} ימים)`} icon={
+              {show('audit') && <Section title={`פעולות במערכת · ${periodText}`} onExport={() => exportSheets('audit', [{
+                name: 'פעולות במערכת', title: `פעולות במערכת · ${scopeText} · ${periodText}`,
+                rows: data.auditBreakdown.map(a => ({ 'פעולה': a.action, 'כמות': a.count })),
+              }])} icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
               }>
                 {data.auditBreakdown.length === 0 ? (
@@ -282,11 +366,16 @@ export default function AnalyticsPage() {
                     ))}
                   </div>
                 )}
-              </Section>
+              </Section>}
             </div>
 
             {/* Wheels by Station table */}
-            <Section title="גלגלים לפי תחנה" icon={
+            {show('inventory') && <Section title="גלגלים לפי תחנה (מצב נוכחי)" onExport={() => exportSheets('wheels_by_station', [{
+              name: 'גלגלים לפי תחנה', title: `גלגלים לפי תחנה · ${scopeText}`,
+              rows: data.wheelsByStation.map(st => ({
+                'תחנה': st.name, 'סה״כ': st.total, 'זמינים': st.available, 'מושאלים': st.borrowed, 'בלתי זמין': st.unavailable, 'נמחקו': st.deleted,
+              })),
+            }])} icon={
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
             }>
               {data.wheelsByStation.length === 0 ? (
@@ -316,11 +405,23 @@ export default function AnalyticsPage() {
                   </table>
                 </div>
               )}
-            </Section>
+            </Section>}
+
+            {/* Wheel search demand */}
+            {show('search') && (
+              <Section title={`חיפושי גלגלים · ${scopeText}`} icon={
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              }>
+                <SearchDemandReport stationId={stationId || null} stationName={stationName} range={range} />
+              </Section>
+            )}
 
             {/* Row: Top Logins + Deposit Types */}
             <div style={s.twoCol}>
-              <Section title={`משתמשים פעילים (${days} ימים)`} icon={
+              {show('logins') && <Section title={`משתמשים פעילים · ${periodText}`} onExport={() => exportSheets('active_users', [{
+                name: 'משתמשים פעילים', title: `משתמשים פעילים · ${periodText}`, color: 'DB2777',
+                rows: data.topLoginUsers.map((u, i) => ({ 'דירוג': i + 1, 'שם': u.full_name, 'טלפון': u.phone || '', 'תפקידים': u.roles.join(', '), 'כניסות': u.count })),
+              }])} icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
               }>
                 {data.topLoginUsers.length === 0 ? (
@@ -343,9 +444,12 @@ export default function AnalyticsPage() {
                     ))}
                   </div>
                 )}
-              </Section>
+              </Section>}
 
-              <Section title={`סוגי פיקדון בהשאלות (${days} ימים)`} icon={
+              {show('borrows') && <Section title={`סוגי פיקדון בהשאלות · ${periodText}`} onExport={() => exportSheets('deposit_types', [{
+                name: 'סוגי פיקדון', title: `סוגי פיקדון · ${scopeText} · ${periodText}`, color: '0D9488',
+                rows: data.depositTypes.map(d => ({ 'סוג פיקדון': d.type, 'כמות': d.count })),
+              }])} icon={
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
               }>
                 {data.depositTypes.length === 0 ? (
@@ -363,11 +467,11 @@ export default function AnalyticsPage() {
                     ))}
                   </div>
                 )}
-              </Section>
+              </Section>}
             </div>
 
             {/* Login Report Section */}
-            {(() => {
+            {show('logins') && (() => {
               const q = loginSearch.trim()
               const filteredSummary = q
                 ? (data.loginSummary || []).filter(u =>
@@ -382,7 +486,22 @@ export default function AnalyticsPage() {
 
               return (
                 <Section
-                  title={`כניסות מנהלים למערכת — ${days} ימים אחרונים`}
+                  title={`כניסות מנהלים למערכת · ${periodText}`}
+                  onExport={() => exportSheets('logins', [
+                    {
+                      name: 'סיכום כניסות', title: `כניסות לפי משתמש · ${periodText}`, color: 'DB2777',
+                      rows: filteredSummary.map(u => ({
+                        'שם': u.full_name, 'טלפון': u.phone || '', 'תפקידים': u.roles.join(', '), 'כניסות': u.count,
+                        'כניסה אחרונה': new Date(u.last_login).toLocaleString('he-IL'),
+                      })),
+                    },
+                    {
+                      name: 'יומן כניסות', title: `יומן כניסות · ${periodText}`, color: 'DB2777',
+                      rows: filteredLog.map(l => ({
+                        'תאריך ושעה': new Date(l.created_at).toLocaleString('he-IL'), 'שם': l.full_name, 'טלפון': l.phone || '', 'תפקיד': l.roleLabel,
+                      })),
+                    },
+                  ])}
                   icon={
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
@@ -509,6 +628,13 @@ const s: Record<string, React.CSSProperties> = {
   toggleActive: {
     background: '#1e293b', color: '#ffffff', fontWeight: 700,
   },
+  filterBar: {
+    maxWidth: 1160, width: 'calc(100% - 40px)', margin: '0 auto 16px', padding: 16, background: '#ffffff', border: '1px solid #e2e8f0',
+    borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12, boxSizing: 'border-box',
+  },
+  filterRow: { display: 'flex', gap: 12, flexWrap: 'wrap' },
+  filterField: { display: 'flex', flexDirection: 'column', gap: 4, flex: '1 1 200px', minWidth: 0 },
+  filterLabel: { fontSize: '0.78rem', fontWeight: 600, color: '#64748b' },
   content: { maxWidth: 1200, margin: '0 auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 20 },
 
   kpiGrid: {

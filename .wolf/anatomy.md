@@ -533,3 +533,12 @@
 ## supabase/migrations/
 
 - `20260911_add_manager_sessions.sql` — Server-validated session tokens for station/super managers, replacing the (~397 tok)
+
+## Reports (added 2026-09-22)
+- `src/lib/search-log.ts` — client helper `appendSearchLogParams(params, type, vehicle, source?)`: adds log_* params to /api/wheel-stations/search so operator/manager searches are logged (reads operator_session / station_session_* from localStorage). ~400 tok
+- `src/lib/excel-export.ts` — `exportStyledExcel(filename, sheets)` via xlsx-js-style: RTL, colored bold header, zebra rows, borders, auto widths, autofilter, optional title row. ~900 tok
+- `src/app/api/reports/search-demand/route.ts` — GET search-demand report (admin or station-manager session). wheel_search_log → available / unavailable (exists but borrowed) / none (real gap) per station or network; top missing specs & vehicles; per-station breakdown; plus vehicle_search_history checked vs TODAY's inventory. ~2k tok
+- `src/components/reports/DateRangeFilter.tsx` — presets (7/30/90/365/all) + custom from/to; exports rangeForDays, rangeLabel, inRange. ~900 tok
+- `src/components/reports/ExportButton.tsx` — green "ייצוא לאקסל" button used at the end of each report block. ~250 tok
+- `src/components/reports/SearchDemandReport.tsx` — search-demand report UI + styled Excel export; used by [stationId] reports tab and admin/analytics. ~3.5k tok
+- `supabase/migrations/20260922_add_wheel_search_log.sql` — wheel_search_log table (stations_with_match / stations_with_available UUID[]).

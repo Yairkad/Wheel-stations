@@ -12,6 +12,10 @@ import AppHeader from '@/components/AppHeader'
 import LoadingSpin from '@/components/LoadingSpin'
 import Footer from '@/components/Footer'
 import { SESSION_VERSION } from '@/lib/version'
+import DateRangeFilter, { DateRange, rangeForDays, rangeLabel, inRange } from '@/components/reports/DateRangeFilter'
+import ExportButton from '@/components/reports/ExportButton'
+import SearchDemandReport from '@/components/reports/SearchDemandReport'
+import { exportStyledExcel, ExcelRow, formatDateForFile } from '@/lib/excel-export'
 
 const DEFAULT_WHATSAPP_TEMPLATE = `שלום רב 👋
 מצורף כאן קישור לחתימה על טופס השאלת גלגל.
@@ -576,6 +580,7 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const [reportChecks, setReportChecks] = useState({ inventory: true, history: true, unavailable: false })
   const [reportDateFrom, setReportDateFrom] = useState('')
   const [reportDateTo, setReportDateTo] = useState('')
+  const [reportRange, setReportRange] = useState<DateRange>(() => rangeForDays(30))
 
   // Tracking tab
   const [activeTab, setActiveTab] = useState<PageTab>('wheels')
@@ -635,8 +640,12 @@ export default function StationPage({ params }: { params: Promise<{ stationId: s
   const fetchBorrows = async () => {
     setBorrowsLoading(true)
     try {
-      const status = borrowFilter === 'all' ? '' : borrowFilter
-      const response = await fetch(`/api/wheel-stations/${stationId}/borrows${status ? `?status=${status}` : ''}`)
+      // Reports need the full, unfiltered history (the tracking tab's status filter and default limit would skew stats)
+      const status = activeTab === 'reports' || borrowFilter === 'all' ? '' : borrowFilter
+      const qs = new URLSearchParams()
+      if (status) qs.set('status', status)
+      if (activeTab === 'reports') qs.set('limit', '2000')
+      const response = await fetch(`/api/wheel-stations/${stationId}/borrows${qs.toString() ? `?${qs}` : ''}`)
       if (!response.ok) throw new Error('Failed to fetch borrows')
       const data = await response.json()
       setBorrows(data.borrows || [])
@@ -2070,108 +2079,88 @@ ${signFormUrl}
     }
   }
 
-  // Excel export handler (used by reports tab)
+  // ---- Report row builders (shared by the Excel modal and the reports tab) ----
+  const inventoryExcelRows = (): ExcelRow[] => (station?.wheels || [])
+    .filter(w => !w.temporarily_unavailable)
+    .map(wheel => ({
+      'מספר גלגל': wheel.wheel_number,
+      'גודל ג\'אנט': wheel.rim_size,
+      'כמות ברגים': wheel.bolt_count,
+      'מרווח ברגים': wheel.bolt_spacing,
+      'CB': wheel.center_bore || '',
+      'מידות צמיג': wheel.tire_size || '',
+      'קטגוריה': wheel.category || '',
+      'דונאט': wheel.is_donut ? 'כן' : 'לא',
+      'הערות': wheel.notes || '',
+      'זמין': wheel.is_available ? 'כן' : 'לא',
+      'שם שואל': wheel.current_borrow?.borrower_name || '',
+      'טלפון שואל': wheel.current_borrow?.borrower_phone || '',
+    }))
+
+  const unavailableExcelRows = (): ExcelRow[] => (station?.wheels || [])
+    .filter(w => w.temporarily_unavailable)
+    .map(wheel => ({
+      'מספר גלגל': wheel.wheel_number,
+      'גודל ג\'אנט': wheel.rim_size,
+      'סיבת אי-זמינות': wheel.unavailable_reason || '',
+      'הערות': wheel.unavailable_notes || '',
+      'מתאריך': wheel.unavailable_since ? new Date(wheel.unavailable_since).toLocaleDateString('he-IL') : '',
+    }))
+
+  const borrowExcelRows = (list: BorrowRecord[]): ExcelRow[] => list.map(borrow => ({
+    'שם פונה': borrow.borrower_name,
+    'טלפון': borrow.borrower_phone,
+    'ת.ז.': borrow.borrower_id_number || '',
+    'כתובת': borrow.borrower_address || '',
+    'דגם רכב': borrow.vehicle_model || '',
+    'מספר גלגל': borrow.wheels?.wheel_number || '',
+    'תאריך השאלה': borrow.borrow_date ? new Date(borrow.borrow_date).toLocaleDateString('he-IL') : '',
+    'תאריך החזרה': borrow.actual_return_date ? new Date(borrow.actual_return_date).toLocaleDateString('he-IL') : '',
+    'סוג פיקדון': (() => {
+      const depositAmount = borrow.deposit_amount_override ?? borrow.wheels?.custom_deposit ?? station?.deposit_amount ?? 200
+      return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
+             borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
+             borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
+             borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
+             borrow.deposit_type === 'id' ? 'ת.ז.' :
+             borrow.deposit_type === 'license' ? 'רישיון' : ''
+    })(),
+    'סטטוס': borrow.status === 'pending' ? 'ממתין' :
+             borrow.status === 'borrowed' ? 'מושאל' :
+             borrow.status === 'returned' ? 'הוחזר' :
+             borrow.status === 'rejected' ? 'נדחה' : borrow.status,
+    'חתום': borrow.is_signed ? 'כן' : 'לא',
+    'הערות': borrow.notes || '',
+  }))
+
+  const stationFileName = () => station?.name.replace(/\s/g, '_') || 'station'
+
+  const downloadExcel = (name: string, sheets: Parameters<typeof exportStyledExcel>[1]) => {
+    if (exportStyledExcel(`${name}_${stationFileName()}_${formatDateForFile()}`, sheets)) {
+      toast.success('הקובץ הורד בהצלחה!')
+    } else {
+      toast.error('אין נתונים לייצוא בהגדרות הנוכחיות')
+    }
+  }
+
+  // Excel export handler (Excel modal)
   const handleExportWithOptions = () => {
     if (!reportChecks.inventory && !reportChecks.history && !reportChecks.unavailable) {
       toast.error('יש לבחור לפחות נתון אחד לייצוא')
       return
     }
-
-    const wb = XLSX.utils.book_new()
-    const date = new Date().toISOString().split('T')[0]
-    const dateFrom = reportDateFrom ? new Date(reportDateFrom) : null
-    const dateTo = reportDateTo ? new Date(reportDateTo + 'T23:59:59') : null
-
-    if (reportChecks.inventory && station?.wheels.length) {
-      const inventoryData = station.wheels
-        .filter(w => !w.temporarily_unavailable)
-        .map(wheel => ({
-          'מספר גלגל': wheel.wheel_number,
-          'גודל ג\'אנט': wheel.rim_size,
-          'כמות ברגים': wheel.bolt_count,
-          'מרווח ברגים': wheel.bolt_spacing,
-          'CB': wheel.center_bore || '',
-          'מידות צמיג': wheel.tire_size || '',
-          'קטגוריה': wheel.category || '',
-          'דונאט': wheel.is_donut ? 'כן' : 'לא',
-          'הערות': wheel.notes || '',
-          'זמין': wheel.is_available ? 'כן' : 'לא',
-          'שם שואל': wheel.current_borrow?.borrower_name || '',
-          'טלפון שואל': wheel.current_borrow?.borrower_phone || '',
-        }))
-      const wsInventory = XLSX.utils.json_to_sheet(inventoryData)
-      wsInventory['!cols'] = [
-        { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 },
-        { wch: 10 }, { wch: 14 }, { wch: 8 }, { wch: 25 }, { wch: 8 }, { wch: 20 }, { wch: 15 },
-      ]
-      XLSX.utils.book_append_sheet(wb, wsInventory, 'מלאי גלגלים')
-    }
-
-    if (reportChecks.unavailable && station?.wheels.length) {
-      const unavailableData = station.wheels
-        .filter(w => w.temporarily_unavailable)
-        .map(wheel => ({
-          'מספר גלגל': wheel.wheel_number,
-          'גודל ג\'אנט': wheel.rim_size,
-          'סיבת אי-זמינות': wheel.unavailable_reason || '',
-          'הערות': wheel.unavailable_notes || '',
-          'מתאריך': wheel.unavailable_since ? new Date(wheel.unavailable_since).toLocaleDateString('he-IL') : '',
-        }))
-      if (unavailableData.length) {
-        const wsUnavailable = XLSX.utils.json_to_sheet(unavailableData)
-        wsUnavailable['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 25 }, { wch: 14 }]
-        XLSX.utils.book_append_sheet(wb, wsUnavailable, 'גלגלים לא זמינים')
-      }
-    }
-
-    if (reportChecks.history) {
-      let filteredBorrowsForExport = [...borrows]
-      if (dateFrom) filteredBorrowsForExport = filteredBorrowsForExport.filter(b => new Date(b.borrow_date) >= dateFrom)
-      if (dateTo) filteredBorrowsForExport = filteredBorrowsForExport.filter(b => new Date(b.borrow_date) <= dateTo)
-
-      if (filteredBorrowsForExport.length) {
-        const historyData = filteredBorrowsForExport.map(borrow => ({
-          'שם פונה': borrow.borrower_name,
-          'טלפון': borrow.borrower_phone,
-          'ת.ז.': borrow.borrower_id_number || '',
-          'כתובת': borrow.borrower_address || '',
-          'דגם רכב': borrow.vehicle_model || '',
-          'מספר גלגל': borrow.wheels?.wheel_number || '',
-          'תאריך השאלה': borrow.borrow_date ? new Date(borrow.borrow_date).toLocaleDateString('he-IL') : '',
-          'תאריך החזרה': borrow.actual_return_date ? new Date(borrow.actual_return_date).toLocaleDateString('he-IL') : '',
-          'סוג פיקדון': (() => {
-            const depositAmount = borrow.deposit_amount_override ?? borrow.wheels?.custom_deposit ?? station?.deposit_amount ?? 200
-            return borrow.deposit_type === 'cash' ? `₪${depositAmount} מזומן` :
-                   borrow.deposit_type === 'bit' ? `₪${depositAmount} ביט` :
-                   borrow.deposit_type === 'paybox' ? `₪${depositAmount} פייבוקס` :
-                   borrow.deposit_type === 'bank_transfer' ? `₪${depositAmount} העברה` :
-                   borrow.deposit_type === 'id' ? 'ת.ז.' :
-                   borrow.deposit_type === 'license' ? 'רישיון' : ''
-          })(),
-          'סטטוס': borrow.status === 'pending' ? 'ממתין' :
-                   borrow.status === 'borrowed' ? 'מושאל' :
-                   borrow.status === 'returned' ? 'הוחזר' :
-                   borrow.status === 'rejected' ? 'נדחה' : borrow.status,
-          'חתום': borrow.is_signed ? 'כן' : 'לא',
-          'הערות': borrow.notes || '',
-        }))
-        const wsHistory = XLSX.utils.json_to_sheet(historyData)
-        wsHistory['!cols'] = [
-          { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 25 }, { wch: 20 },
-          { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 15 }, { wch: 10 }, { wch: 8 }, { wch: 25 },
-        ]
-        XLSX.utils.book_append_sheet(wb, wsHistory, 'היסטוריית השאלות')
-      }
-    }
-
-    if (wb.SheetNames.length === 0) {
-      toast.error('אין נתונים לייצוא בהגדרות הנוכחיות')
-      return
-    }
-
-    const filename = `wheels_${station?.name.replace(/\s/g, '_') || 'station'}_${date}.xlsx`
-    XLSX.writeFile(wb, filename)
-    toast.success('הקובץ הורד בהצלחה!')
+    const range: DateRange = { from: reportDateFrom, to: reportDateTo }
+    const stationTitle = station?.name || ''
+    downloadExcel('wheels', [
+      ...(reportChecks.inventory ? [{ name: 'מלאי גלגלים', title: `מלאי גלגלים · ${stationTitle}`, rows: inventoryExcelRows() }] : []),
+      ...(reportChecks.unavailable ? [{ name: 'גלגלים לא זמינים', title: `גלגלים לא זמינים · ${stationTitle}`, color: 'DC2626', rows: unavailableExcelRows() }] : []),
+      ...(reportChecks.history ? [{
+        name: 'היסטוריית השאלות',
+        title: `היסטוריית השאלות · ${stationTitle} · ${rangeLabel(range)}`,
+        color: '7C3AED',
+        rows: borrowExcelRows(borrows.filter(b => inRange(b.borrow_date, range))),
+      }] : []),
+    ])
   }
 
   const addContact = () => {
@@ -3016,8 +3005,14 @@ ${signFormUrl}
 
       {/* Reports Tab Content */}
       {activeTab === 'reports' && isManager && (() => {
-        // Readiness metrics
+        // Readiness metrics (current state — not date-dependent)
         const readyWheels = station ? station.wheels.filter(w => w.is_available && !w.temporarily_unavailable).length : 0
+        const borrowedWheels = station ? station.wheels.filter(w => !w.is_available).length : 0
+        const unavailableWheels = station ? station.wheels.filter(w => w.temporarily_unavailable).length : 0
+
+        // Borrows inside the selected date range
+        const periodBorrows = borrows.filter(b => inRange(b.borrow_date, reportRange))
+        const returnedInPeriod = periodBorrows.filter(b => b.status === 'returned').length
 
         // Last borrow time
         const sortedBorrows = [...borrows].sort((a, b) => new Date(b.borrow_date).getTime() - new Date(a.borrow_date).getTime())
@@ -3032,9 +3027,9 @@ ${signFormUrl}
           else lastBorrowLabel = 'לפני פחות משעה'
         }
 
-        // Bar chart: last 5 active days
+        // Bar chart: last 7 active days within the range
         const dayCountMap: Record<string, number> = {}
-        borrows.forEach(b => {
+        periodBorrows.forEach(b => {
           const day = new Date(b.borrow_date).toLocaleDateString('he-IL')
           dayCountMap[day] = (dayCountMap[day] || 0) + 1
         })
@@ -3044,73 +3039,120 @@ ${signFormUrl}
             const [db, mb, yb] = b[0].split('.').map(Number)
             return new Date(ya, ma - 1, da).getTime() - new Date(yb, mb - 1, db).getTime()
           })
-          .slice(-5)
+          .slice(-7)
         const maxCount = activeDays.length ? Math.max(...activeDays.map(d => d[1])) : 1
 
-        // Gold insight: most borrowed wheel
+        // Most borrowed wheels in the range
         const wheelBorrowCount: Record<string, number> = {}
-        borrows.forEach(b => {
+        periodBorrows.forEach(b => {
           if (b.wheel_id) wheelBorrowCount[b.wheel_id] = (wheelBorrowCount[b.wheel_id] || 0) + 1
         })
-        const topWheelId = Object.entries(wheelBorrowCount).sort((a, b) => b[1] - a[1])[0]
-        const topWheel = topWheelId ? station?.wheels.find(w => w.id === topWheelId[0]) : null
-        const topWheelCount = topWheelId?.[1] ?? 0
+        const topWheels = Object.entries(wheelBorrowCount)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([id, count]) => ({ wheel: station?.wheels.find(w => w.id === id), count }))
+          .filter(t => t.wheel)
+
+        const periodText = rangeLabel(reportRange)
+        const sectionCard: React.CSSProperties = {background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px'}
+        const sectionTitle: React.CSSProperties = {margin: '0 0 12px', color: '#1e293b', fontSize: '1rem', fontWeight: 700}
 
         return (
           <div style={{padding: '20px 0'}}>
-            {/* Readiness Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3" style={{gap: '12px', marginBottom: '24px'}}>
-              <div style={{background: '#1e293b', borderRadius: '12px', padding: '18px', textAlign: 'center'}}>
-                <div style={{fontSize: '2rem', fontWeight: 700, color: '#10b981'}}>{readyWheels}</div>
-                <div style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px'}}>גלגלים מוכנים לשימוש</div>
-              </div>
-              <div style={{background: '#1e293b', borderRadius: '12px', padding: '18px', textAlign: 'center'}}>
-                <div style={{fontSize: '1.2rem', fontWeight: 700, color: '#f59e0b', lineHeight: 1.3}}>{lastBorrowLabel}</div>
-                <div style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px'}}>השאלה אחרונה</div>
-              </div>
-              <div style={{background: '#1e293b', borderRadius: '12px', padding: '18px', textAlign: 'center'}}>
-                <div style={{fontSize: '2rem', fontWeight: 700, color: '#3b82f6'}}>{borrows.length}</div>
-                <div style={{fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px'}}>סה&quot;כ השאלות מאז הקמה</div>
-              </div>
+            {/* Date range filter — applies to every date-based report below */}
+            <div style={sectionCard}>
+              <div style={{fontSize: '0.8rem', color: '#64748b', marginBottom: '8px', fontWeight: 600}}>תקופת הדוחות: {periodText}</div>
+              <DateRangeFilter value={reportRange} onChange={setReportRange} />
             </div>
 
-            {/* Activity Bar Chart */}
-            <div style={{background: '#1e293b', borderRadius: '14px', padding: '20px', marginBottom: '16px'}}>
-              <h4 style={{margin: '0 0 16px', color: '#fff', fontSize: '0.95rem', fontWeight: 700}}>פעילות אחרונה (5 ימים פעילים)</h4>
+            {/* Inventory status (current) */}
+            <div style={sectionCard}>
+              <h3 style={sectionTitle}>מצב מלאי נוכחי</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4" style={{gap: '10px', marginBottom: '12px'}}>
+                {[
+                  { label: 'מוכנים לשימוש', value: readyWheels, color: '#16a34a' },
+                  { label: 'מושאלים', value: borrowedWheels, color: '#d97706' },
+                  { label: 'לא זמינים', value: unavailableWheels, color: '#dc2626' },
+                  { label: 'השאלה אחרונה', value: lastBorrowLabel, color: '#2563eb' },
+                ].map(t => (
+                  <div key={t.label} style={{background: '#f8fafc', borderRadius: '12px', padding: '14px 8px', textAlign: 'center'}}>
+                    <div style={{fontSize: typeof t.value === 'number' ? '1.7rem' : '1rem', fontWeight: 700, color: t.color, lineHeight: 1.2}}>{t.value}</div>
+                    <div style={{fontSize: '0.78rem', color: '#64748b', marginTop: '4px'}}>{t.label}</div>
+                  </div>
+                ))}
+              </div>
+              <ExportButton onClick={() => downloadExcel('inventory', [
+                { name: 'מלאי גלגלים', title: `מלאי גלגלים · ${station?.name || ''}`, rows: inventoryExcelRows() },
+                { name: 'גלגלים לא זמינים', title: `גלגלים לא זמינים · ${station?.name || ''}`, color: 'DC2626', rows: unavailableExcelRows() },
+              ])} />
+            </div>
+
+            {/* Borrows in period */}
+            <div style={sectionCard}>
+              <h3 style={sectionTitle}>השאלות בתקופה</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3" style={{gap: '10px', marginBottom: '14px'}}>
+                <div style={{background: '#f8fafc', borderRadius: '12px', padding: '14px 8px', textAlign: 'center'}}>
+                  <div style={{fontSize: '1.7rem', fontWeight: 700, color: '#2563eb'}}>{periodBorrows.length}</div>
+                  <div style={{fontSize: '0.78rem', color: '#64748b'}}>השאלות</div>
+                </div>
+                <div style={{background: '#f8fafc', borderRadius: '12px', padding: '14px 8px', textAlign: 'center'}}>
+                  <div style={{fontSize: '1.7rem', fontWeight: 700, color: '#16a34a'}}>{returnedInPeriod}</div>
+                  <div style={{fontSize: '0.78rem', color: '#64748b'}}>הוחזרו</div>
+                </div>
+                <div style={{background: '#f8fafc', borderRadius: '12px', padding: '14px 8px', textAlign: 'center'}}>
+                  <div style={{fontSize: '1.7rem', fontWeight: 700, color: '#64748b'}}>{borrows.length}</div>
+                  <div style={{fontSize: '0.78rem', color: '#64748b'}}>סה&quot;כ מאז הקמה</div>
+                </div>
+              </div>
+
+              <div style={{fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '10px'}}>פעילות (7 ימים פעילים אחרונים בתקופה)</div>
               {activeDays.length === 0 ? (
-                <div style={{textAlign: 'center', color: '#64748b', fontSize: '0.9rem', padding: '24px 0'}}>טרם בוצעו השאלות בתחנה זו</div>
+                <div style={{textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', padding: '16px 0'}}>אין השאלות בתקופה זו</div>
               ) : (
-                <div style={{display: 'flex', alignItems: 'flex-end', gap: '10px', height: '100px', width: '100%'}}>
+                <div style={{display: 'flex', alignItems: 'flex-end', gap: '8px', height: '100px', width: '100%', marginBottom: '14px'}}>
                   {activeDays.map(([day, count]) => (
-                    <div key={day} style={{flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
-                      <div style={{fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600}}>{count}</div>
+                    <div key={day} style={{flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px'}}>
+                      <div style={{fontSize: '0.72rem', color: '#475569', fontWeight: 600}}>{count}</div>
                       <div style={{
                         width: '100%',
                         minHeight: '12px',
-                        height: `${Math.max(12, Math.round((count / maxCount) * 72))}px`,
+                        height: `${Math.max(12, Math.round((count / maxCount) * 64))}px`,
                         background: 'linear-gradient(180deg, #3b82f6, #1d4ed8)',
                         borderRadius: '4px 4px 0 0',
                       }} />
-                      <div style={{fontSize: '0.68rem', color: '#64748b', textAlign: 'center', whiteSpace: 'nowrap'}}>{day}</div>
+                      <div style={{fontSize: '0.62rem', color: '#64748b', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', maxWidth: '100%'}}>{day.slice(0, -5)}</div>
                     </div>
                   ))}
                 </div>
               )}
+
+              {topWheels.length > 0 && (
+                <>
+                  <div style={{fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '8px'}}>🏆 הגלגלים המבוקשים בתקופה</div>
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '14px'}}>
+                    {topWheels.map(({ wheel, count }) => (
+                      <div key={wheel!.id} style={{display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '0.85rem', background: '#f8fafc', borderRadius: '8px', padding: '8px 12px'}}>
+                        <span style={{color: '#1e293b'}}>גלגל #{wheel!.wheel_number} <span dir="ltr" style={{color: '#64748b', fontSize: '0.8rem'}}>{wheel!.bolt_count}x{wheel!.bolt_spacing} R{wheel!.rim_size}</span></span>
+                        <strong style={{color: '#d97706', flexShrink: 0}}>{count} השאלות</strong>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <ExportButton onClick={() => downloadExcel('borrows', [
+                { name: 'השאלות בתקופה', title: `השאלות · ${station?.name || ''} · ${periodText}`, color: '7C3AED', rows: borrowExcelRows(periodBorrows) },
+                { name: 'גלגלים מבוקשים', title: `גלגלים מבוקשים · ${periodText}`, rows: topWheels.map(t => ({
+                  'מספר גלגל': t.wheel!.wheel_number, 'מידות': `${t.wheel!.bolt_count}x${t.wheel!.bolt_spacing}`, 'קוטר': t.wheel!.rim_size, 'השאלות': t.count,
+                })) },
+              ])} />
             </div>
 
-            {/* Gold Insight */}
-            <div style={{background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: '1px solid #f59e0b44', borderRadius: '14px', padding: '18px', display: 'flex', alignItems: 'center', gap: '14px'}}>
-              <div style={{fontSize: '1.8rem'}}>🏆</div>
-              {topWheel ? (
-                <div>
-                  <div style={{color: '#f59e0b', fontWeight: 700, fontSize: '0.95rem'}}>הגלגל המבוקש ביותר</div>
-                  <div style={{color: '#e2e8f0', fontSize: '0.9rem', marginTop: '2px'}}>
-                    גלגל #{topWheel.wheel_number} — הושאל <strong>{topWheelCount}</strong> פעמים
-                  </div>
-                </div>
-              ) : (
-                <div style={{color: '#64748b', fontSize: '0.9rem'}}>טרם בוצעו השאלות בתחנה זו</div>
-              )}
+            {/* Wheel search demand */}
+            <div style={sectionCard}>
+              <h3 style={{...sectionTitle, marginBottom: '4px'}}>חיפושי גלגלים</h3>
+              <div style={{fontSize: '0.78rem', color: '#64748b', marginBottom: '12px'}}>כל חיפוש של מוקדן או מנהל תחנה, ומה המצב שלו בתחנה שלך</div>
+              <SearchDemandReport stationId={stationId} stationName={station?.name} range={reportRange} />
             </div>
           </div>
         )
