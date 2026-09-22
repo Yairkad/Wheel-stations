@@ -2808,23 +2808,23 @@ ${signFormUrl}
               </h3>
               {pendingDonationWheels.map(wheel => (
                 <div key={wheel.id} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  display: 'flex', flexDirection: 'column', gap: '10px',
                   background: '#ffffff',
-                  borderRadius: '8px', padding: '10px 14px', marginBottom: '6px',
+                  borderRadius: '8px', padding: '12px 14px', marginBottom: '8px',
                   border: '1px solid #bfdbfe'
                 }}>
-                  <div>
-                    <span style={{ fontWeight: 600, color: '#e2e8f0' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap' }}>
                       גלגל #{wheel.wheel_number}
                     </span>
-                    <span style={{ color: '#94a3b8', marginRight: '8px', fontSize: '0.85rem' }}>
+                    <span dir="ltr" style={{ color: '#64748b', marginRight: '8px', fontSize: '0.85rem', whiteSpace: 'nowrap', display: 'inline-block' }}>
                       {wheel.bolt_count}x{wheel.bolt_spacing} R{wheel.rim_size}
                     </span>
                     <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
                       התקבלה תרומה{wheel.pending_since ? ` ב-${new Date(wheel.pending_since).toLocaleDateString('he-IL')}` : ''} · טרם השלימה כניסה למלאי
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button
                       onClick={() => {
                         setSelectedWheel(wheel)
@@ -2845,9 +2845,10 @@ ${signFormUrl}
                         setShowEditWheelModal(true)
                       }}
                       style={{
+                        flex: '1 1 160px',
                         background: '#10b981', color: 'white', border: 'none',
-                        padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
-                        fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap'
+                        padding: '8px 12px', borderRadius: '6px', cursor: 'pointer',
+                        fontWeight: 600, fontSize: '0.85rem', whiteSpace: 'nowrap'
                       }}
                     >
                       השלם והכנס למלאי
@@ -2855,9 +2856,10 @@ ${signFormUrl}
                     <button
                       onClick={() => handleDeleteWheel(wheel)}
                       style={{
-                        background: 'rgba(255,255,255,0.1)', color: '#94a3b8', border: 'none',
-                        padding: '6px 12px', borderRadius: '6px', cursor: 'pointer',
-                        fontSize: '0.8rem', whiteSpace: 'nowrap'
+                        flex: '0 1 auto',
+                        background: '#f1f5f9', color: '#64748b', border: '1px solid #e2e8f0',
+                        padding: '8px 12px', borderRadius: '6px', cursor: 'pointer',
+                        fontSize: '0.85rem', whiteSpace: 'nowrap'
                       }}
                     >
                       בטל תרומה
