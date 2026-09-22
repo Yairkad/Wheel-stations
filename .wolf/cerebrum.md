@@ -5,6 +5,7 @@
 > Last updated: 2026-09-17 — added the wheel donation-intake feature (pending_donation same-table-flag convention, wheel_number per-station-only uniqueness, live-DB-hot-reload migration-timing gotcha, user's stated preference to apply migrations himself). See 2026-08-31 entry below for the admin/users duplicate-role-row bug work.
 
 ## User Preferences
+- [2026-09-22] Reports UI: user rejected per-section export buttons — wants ONE export button in the reports toolbar opening a dialog to choose datasets. Prefers segmented-control date presets with custom dates shown only on 'מותאם', clearly labeled tabs with counts + one-line explanation instead of ambiguous toggles. Show screenshots (mock data) for approval before pushing UI work.
 - [2026-09-22] User wants a short plan explained and confirmed BEFORE building a new feature (said so mid-build). Also: every report view gets its own Excel export button; Excel must be styled (xlsx-js-style helper in src/lib/excel-export.ts).
 
 <!-- How the user likes things done. Code style, tools, patterns, communication. -->

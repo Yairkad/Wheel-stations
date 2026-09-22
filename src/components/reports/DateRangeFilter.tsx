@@ -1,18 +1,21 @@
 'use client'
 
 /**
- * Date range picker for reports: quick presets (7/30/90/365 days, all time) plus a
- * custom from/to. Values are YYYY-MM-DD strings; '' means open-ended.
+ * Date range picker for reports: one segmented control (7 / 30 / 90 days, year, all,
+ * custom). The from/to date fields appear only when "מותאם" is selected.
+ * Values are YYYY-MM-DD strings; '' means open-ended.
  */
+
+import { useState } from 'react'
 
 export interface DateRange { from: string; to: string }
 
-const PRESETS: { label: string; days: number | null }[] = [
-  { label: '7 ימים', days: 7 },
-  { label: '30 ימים', days: 30 },
-  { label: '90 ימים', days: 90 },
-  { label: 'שנה', days: 365 },
-  { label: 'הכל', days: null },
+const PRESETS: { key: string; label: string; days: number | null }[] = [
+  { key: '7', label: '7 ימים', days: 7 },
+  { key: '30', label: '30 ימים', days: 30 },
+  { key: '90', label: '90 ימים', days: 90 },
+  { key: '365', label: 'שנה', days: 365 },
+  { key: 'all', label: 'הכל', days: null },
 ]
 
 const toYMD = (d: Date) => {
@@ -45,57 +48,70 @@ export function inRange(iso: string | null | undefined, r: DateRange): boolean {
 }
 
 export default function DateRangeFilter({ value, onChange }: { value: DateRange; onChange: (r: DateRange) => void }) {
-  const activePreset = PRESETS.find(p => {
+  const matchedPreset = PRESETS.find(p => {
     const r = rangeForDays(p.days)
     return r.from === value.from && r.to === value.to
   })
+  const [customMode, setCustomMode] = useState(!matchedPreset)
+  const active = customMode ? 'custom' : matchedPreset?.key
+
+  const options = [...PRESETS.map(p => ({ key: p.key, label: p.label })), { key: 'custom', label: 'מותאם' }]
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        {PRESETS.map(p => {
-          const on = activePreset?.label === p.label
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
+      <div role="radiogroup" aria-label="תקופה" style={seg.group}>
+        {options.map(o => {
+          const on = active === o.key
           return (
             <button
-              key={p.label}
+              key={o.key}
               type="button"
-              onClick={() => onChange(rangeForDays(p.days))}
-              style={{
-                padding: '6px 12px', borderRadius: 999, fontSize: '0.8rem', cursor: 'pointer',
-                border: `1px solid ${on ? '#2563eb' : '#cbd5e1'}`,
-                background: on ? '#2563eb' : '#ffffff', color: on ? '#ffffff' : '#334155',
-                fontWeight: on ? 700 : 500, whiteSpace: 'nowrap',
+              role="radio"
+              aria-checked={on}
+              onClick={() => {
+                if (o.key === 'custom') { setCustomMode(true); return }
+                setCustomMode(false)
+                onChange(rangeForDays(PRESETS.find(p => p.key === o.key)!.days))
               }}
+              style={{ ...seg.btn, ...(on ? seg.btnOn : {}) }}
             >
-              {p.label}
+              {o.label}
             </button>
           )
         })}
       </div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-        <input
-          type="date"
-          value={value.from}
-          max={value.to || undefined}
-          onChange={e => onChange({ ...value, from: e.target.value })}
-          aria-label="מתאריך"
-          style={dateInput}
-        />
-        <span style={{ color: '#64748b', fontSize: '0.8rem' }}>עד</span>
-        <input
-          type="date"
-          value={value.to}
-          min={value.from || undefined}
-          onChange={e => onChange({ ...value, to: e.target.value })}
-          aria-label="עד תאריך"
-          style={dateInput}
-        />
-      </div>
+      {customMode && (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <label style={seg.field}>
+            <span style={seg.fieldLabel}>מתאריך</span>
+            <input type="date" value={value.from} max={value.to || undefined} onChange={e => onChange({ ...value, from: e.target.value })} style={seg.input} />
+          </label>
+          <label style={seg.field}>
+            <span style={seg.fieldLabel}>עד תאריך</span>
+            <input type="date" value={value.to} min={value.from || undefined} onChange={e => onChange({ ...value, to: e.target.value })} style={seg.input} />
+          </label>
+        </div>
+      )}
     </div>
   )
 }
 
-const dateInput: React.CSSProperties = {
-  padding: '6px 8px', borderRadius: 8, border: '1px solid #cbd5e1',
-  background: '#ffffff', color: '#1e293b', fontSize: '0.82rem', minWidth: 0,
+const seg: Record<string, React.CSSProperties> = {
+  // 6 options: one row on wide screens, a neat 3x2 grid on phones
+  group: {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))',
+    background: '#f1f5f9', borderRadius: 12, padding: 4, gap: 2,
+  },
+  btn: {
+    padding: '8px 10px', border: 'none', borderRadius: 9, background: 'transparent',
+    color: '#475569', fontSize: '0.84rem', fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
+    transition: 'background 0.15s, color 0.15s',
+  },
+  btnOn: { background: '#ffffff', color: '#1d4ed8', fontWeight: 700, boxShadow: '0 1px 3px rgba(15,23,42,0.12)' },
+  field: { display: 'flex', flexDirection: 'column', gap: 4, flex: '1 1 140px', minWidth: 0 },
+  fieldLabel: { fontSize: '0.75rem', fontWeight: 600, color: '#64748b' },
+  input: {
+    padding: '9px 10px', borderRadius: 10, border: '1px solid #cbd5e1', background: '#ffffff',
+    color: '#1e293b', fontSize: '0.88rem', width: '100%', boxSizing: 'border-box',
+  },
 }
