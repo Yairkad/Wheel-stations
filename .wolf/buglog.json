@@ -6690,8 +6690,16 @@
       "file": "src/lib/station-auth.ts",
       "root_cause": "When VerifyResult gained a managerPhone field for verifyStationManagerSession (bug-405), the same managerPhone: user.phone was also added to the original password-based verifyStationManager's return for symmetry - but only verifyStationManagerSession's own .select() was updated to fetch phone; the original verifyStationManager's .select('id, full_name, password, is_active') was never touched, so it referenced a column it never selected. Not caught by this session's own `tsc --noEmit` runs (the Supabase client here isn't instantiated with generated Database types, so .select() results are loosely typed and don't error on an unselected property) - only surfaced via the actual Next.js/Vercel build. Fixed by a separate Claude session/PR (#13, commit 819578f) the user pushed directly.",
       "fix": "Added 'phone' to verifyStationManager's .select() call, matching verifyStationManagerSession. Pulled into main via PR #13. Verified no other function touched in the manager_session migration has the same select/return mismatch (grepped super-manager-auth.ts's two functions - both already correctly select phone).",
-      "tags": ["build-error", "supabase", "auth", "manager-session", "typescript"],
-      "related_bugs": ["bug-405"],
+      "tags": [
+        "build-error",
+        "supabase",
+        "auth",
+        "manager-session",
+        "typescript"
+      ],
+      "related_bugs": [
+        "bug-405"
+      ],
       "occurrences": 1,
       "last_seen": "2026-09-14T09:00:00.000Z"
     },
@@ -6702,10 +6710,33 @@
       "file": "src/app/search/page.tsx",
       "root_cause": "loadFromHistory (search/page.tsx) just does setVehicleResult(item.vehicleResult) - a frozen JSON snapshot saved in the vehicle_search_history.vehicle_result column at the time of the ORIGINAL search (src/app/api/vehicle-search-history/route.ts POST). It never re-calls /api/vehicle/lookup, so fixing the underlying data never touches already-saved history rows - only a brand new search picks up the fix.",
       "fix": "A 'רענן מידע' button in the fitmentActionsRow on the RESULT screen itself (next to 'שיתוף'/'אימות מידות', ~line 2288), calling handleVehicleLookup() with no args since vehiclePlate is already in sync whether the result came from a fresh search or loadFromHistory. This re-fetches live from /api/vehicle/lookup, re-runs the wheel-station search, and re-saves to history - upserting on the unique `plate` column (POST route, onConflict: 'plate') so the stale row's vehicle_result/searched_at get overwritten instead of duplicated. Deliberately manual, not automatic on every history click - would hammer the external data.gov.il API for no benefit, since most cached rows are still fine. First attempt put an equivalent button in the vehicle-history LIST instead (visible only pre-search) - user's screenshot showed they were on the result screen (post loadFromHistory) with no button visible there, so that placement was removed once the result-screen one covered the actual use case (see cerebrum Do-Not-Repeat 2026-09-15).",
-      "tags": ["stale-cache", "history", "vehicle-search", "ux", "supabase-upsert"],
+      "tags": [
+        "stale-cache",
+        "history",
+        "vehicle-search",
+        "ux",
+        "supabase-upsert"
+      ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-15T00:00:00.000Z"
+    },
+    {
+      "id": "bug-410",
+      "timestamp": "2026-09-22T00:00:00Z",
+      "error_message": "כרטיס 'תרומות ממתינות לכניסה למלאי' לא רספונסיבי במובייל – טקסט נשבר מילה-מילה, כותרת הגלגל כמעט בלתי נראית",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "שורה flex אופקית עם כפתורים nowrap+flexShrink:0 שחונקים את עמודת הטקסט; צבע כותרת #e2e8f0 (מערכת כהה ישנה) על רקע לבן",
+      "fix": "כרטיס בעמודה (flexDirection column), כפתורים בשורה נפרדת עם flexWrap, מידות ב-dir=ltr nowrap, צבעי טקסט/כפתור ביטול מותאמים לרקע בהיר",
+      "tags": [
+        "responsive",
+        "mobile",
+        "donation",
+        "ui"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-22T00:00:00Z"
     }
   ]
 }

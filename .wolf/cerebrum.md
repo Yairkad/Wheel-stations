@@ -5,6 +5,7 @@
 > Last updated: 2026-09-17 — added the wheel donation-intake feature (pending_donation same-table-flag convention, wheel_number per-station-only uniqueness, live-DB-hot-reload migration-timing gotcha, user's stated preference to apply migrations himself). See 2026-08-31 entry below for the admin/users duplicate-role-row bug work.
 
 ## User Preferences
+- [2026-09-22] User wants a short plan explained and confirmed BEFORE building a new feature (said so mid-build). Also: every report view gets its own Excel export button; Excel must be styled (xlsx-js-style helper in src/lib/excel-export.ts).
 
 <!-- How the user likes things done. Code style, tools, patterns, communication. -->
 - **No example/demo text in input placeholders.** User pushed back hard on a `placeholder="למשל: הבלם נשייף בחישוק"` (example text) in a new free-text reason field, questioning the example itself ("מה זה נשייף בכלל?"). Don't invent illustrative example content for placeholder text on new form fields in this app — leave placeholders empty (or omit the attribute) unless the user asks for one, rather than guessing at a plausible-sounding example.
@@ -12,6 +13,7 @@
 - **User prefers to run DB schema migrations himself via the Supabase SQL editor, not have Claude auto-apply them, even when Claude has live Supabase MCP write access available (`mcp__supabase__apply_migration`).** [2026-09-17] Confirmed live: proposed applying an additive, low-risk `ALTER TABLE ... ADD COLUMN` migration directly (to avoid a real hot-reload breakage window on the local dev server — see Do-Not-Repeat below) and he declined ("אני ארוץ בעצמי דרך ה-SQL editor"). Default to leaving migration files for the user to run themselves; only ask/offer to apply one directly, don't just do it, even under time pressure from a live-breakage risk.
 
 ## Key Learnings
+- [2026-09-22] Search demand reporting: /api/wheel-stations/search logs to `wheel_search_log` only when the caller passes log_source (via `appendSearchLogParams` in src/lib/search-log.ts) — operator page + /search (manager/operator sessions). Report distinguishes 'none' (no such wheel at all = inventory gap) from 'unavailable' (exists but borrowed/temporarily unavailable) — user explicitly required this split. `vehicle_search_history` is one row per plate (UNIQUE, bumped), so it can only be checked against TODAY's inventory, not historical availability. Borrows API default limit is 50 — reports tab requests limit=2000 and ignores the tracking tab's status filter.
 
 - **Project:** wheels-app
 

@@ -13,6 +13,7 @@ import TireDiameterCalculatorModal from '@/components/TireDiameterCalculatorModa
 import LoadingSpin from '@/components/LoadingSpin'
 import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
+import { appendSearchLogParams } from '@/lib/search-log'
 
 const MAX_HISTORY_ITEMS = 30
 
@@ -370,6 +371,7 @@ function SearchPageContent() {
       if (searchFilters.center_bore) params.append('center_bore', searchFilters.center_bore)
       if (searchFilters.district) params.append('district', searchFilters.district)
       if (searchFilters.available_only) params.append('available_only', 'true')
+      if (!searchFilters.available_only) appendSearchLogParams(params, 'spec')
 
       const response = await fetch(`/api/wheel-stations/search?${params}`)
       if (!response.ok) throw new Error('Failed to search')
@@ -546,6 +548,13 @@ function SearchPageContent() {
         params.set('bolt_spacing', data.wheel_fitment.bolt_spacing.toString())
         // Don't filter by rim_size - show all PCD-compatible wheels
         // Don't filter by available_only - show borrowed wheels too so managers can see full picture
+        appendSearchLogParams(params, 'plate', {
+          plate: plate.trim(),
+          manufacturer: data.vehicle?.manufacturer,
+          model: data.vehicle?.model,
+          year: data.vehicle?.year,
+          center_bore: data.wheel_fitment.center_bore,
+        })
 
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
@@ -668,6 +677,12 @@ function SearchPageContent() {
         const params = new URLSearchParams()
         params.set('bolt_count', wheelFitment.bolt_count.toString())
         params.set('bolt_spacing', wheelFitment.bolt_spacing.toString())
+        appendSearchLogParams(params, 'model', {
+          manufacturer: make,
+          model,
+          year: parseInt(year) || null,
+          center_bore: wheelFitment.center_bore,
+        })
 
         const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
         if (searchResponse.ok) {
@@ -723,6 +738,12 @@ function SearchPageContent() {
       const params = new URLSearchParams()
       params.set('bolt_count', wheelFitment.bolt_count.toString())
       params.set('bolt_spacing', wheelFitment.bolt_spacing.toString())
+      appendSearchLogParams(params, 'model', {
+        manufacturer: selectedModel.make_he || selectedModel.make,
+        model: selectedModel.model,
+        year: parseInt(modelSearchYear) || selectedModel.year_from || null,
+        center_bore: selectedModel.center_bore,
+      })
 
       const searchResponse = await fetch(`/api/wheel-stations/search?${params}`)
       if (searchResponse.ok) {

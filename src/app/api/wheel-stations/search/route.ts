@@ -130,6 +130,16 @@ export async function GET(request: NextRequest) {
 
     const results = Array.from(stationMap.values())
 
+    // Demand logging for operator / station-manager searches (see src/lib/search-log.ts).
+    // Never blocks or fails the search itself.
+    const logSource = searchParams.get('log_source')
+    if ((logSource === 'operator' || logSource === 'manager') && !district) {
+      await logSearch(searchParams, logSource, results.map(r => ({
+        stationId: r.station.id,
+        hasAvailable: r.wheels.some(w => w.is_available && !w.temporarily_unavailable)
+      })))
+    }
+
     // Get unique filter options from all wheels in active stations
     // Using select('*') to handle case where center_bore column might not exist yet
     const { data: allWheels, error: filterError } = await supabase
@@ -159,5 +169,51 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in GET /api/wheel-stations/search:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// Records one search in wheel_search_log. Skips a repeat of the same vehicle/spec by the
+// same person within 10 minutes, so re-running a search doesn't inflate the counts.
+async function logSearch(
+  sp: URLSearchParams,
+  source: 'operator' | 'manager',
+  stations: { stationId: string; hasAvailable: boolean }[]
+) {
+  try {
+    const type = sp.get('log_type')
+    const toNum = (v: string | null) => (v && !isNaN(parseFloat(v)) ? parseFloat(v) : null)
+    const row = {
+      source,
+      search_type: type === 'plate' || type === 'model' ? type : 'spec',
+      searched_by: sp.get('log_by')?.slice(0, 100) || null,
+      plate: sp.get('log_plate')?.slice(0, 20) || null,
+      manufacturer: sp.get('log_make')?.slice(0, 60) || null,
+      model: sp.get('log_model')?.slice(0, 60) || null,
+      year: toNum(sp.get('log_year')),
+      bolt_count: toNum(sp.get('bolt_count')),
+      bolt_spacing: toNum(sp.get('bolt_spacing')),
+      center_bore: toNum(sp.get('log_cb') || sp.get('center_bore')),
+      rim_size: sp.get('log_rim') || sp.get('rim_size') || null,
+      stations_with_match: stations.map(s => s.stationId),
+      stations_with_available: stations.filter(s => s.hasAvailable).map(s => s.stationId),
+    }
+
+    let dupQuery = supabase
+      .from('wheel_search_log')
+      .select('id')
+      .gte('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
+      .limit(1)
+    dupQuery = row.searched_by ? dupQuery.eq('searched_by', row.searched_by) : dupQuery.is('searched_by', null)
+    dupQuery = row.plate ? dupQuery.eq('plate', row.plate) : dupQuery.is('plate', null)
+    dupQuery = row.model ? dupQuery.eq('model', row.model) : dupQuery.is('model', null)
+    dupQuery = row.bolt_count != null ? dupQuery.eq('bolt_count', row.bolt_count) : dupQuery.is('bolt_count', null)
+    dupQuery = row.bolt_spacing != null ? dupQuery.eq('bolt_spacing', row.bolt_spacing) : dupQuery.is('bolt_spacing', null)
+    const { data: dup } = await dupQuery
+    if (dup && dup.length > 0) return
+
+    const { error } = await supabase.from('wheel_search_log').insert(row)
+    if (error) console.error('wheel_search_log insert failed:', error.message)
+  } catch (err) {
+    console.error('wheel_search_log error:', err)
   }
 }
