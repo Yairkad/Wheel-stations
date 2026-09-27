@@ -67,6 +67,8 @@ function SearchPageContent() {
   const [ocrStatusText, setOcrStatusText] = useState('')
   const [ocrIsDownloading, setOcrIsDownloading] = useState(false)
   const [showOcrResultModal, setShowOcrResultModal] = useState(false)
+  // TEMP DEBUG — remove once the share-target logout issue is diagnosed (bug-441 follow-up)
+  const [shareDebugInfo, setShareDebugInfo] = useState<string | null>(null)
   const [ocrResultData, setOcrResultData] = useState<import('@/lib/ocr').OcrVehicleData | null>(null)
   const [ocrAutoSearch, setOcrAutoSearch] = useState(false)
   const ocrInputRef = useRef<HTMLInputElement>(null)
@@ -275,12 +277,15 @@ function SearchPageContent() {
     if (!hasStationSession && !hasOperatorSession && !hasSuperManagerSession) {
       // TEMP DEBUG — remove once the share-target logout issue is diagnosed (bug-441
       // follow-up): users report being logged out specifically after a share-target
-      // launch. Surface exactly what's in localStorage at that moment via a blocking
-      // alert (guaranteed visible, no dev tools needed) instead of guessing further.
+      // launch. alert() turned out to be silently blocked here (no user-gesture in
+      // this navigation), so show it on-page instead and hold the redirect a bit so
+      // there's time to read it.
       const cameFromShare = /[?&](ocr|ocr_empty|ocr_error)(=|&|$)/.test(window.location.search)
       if (cameFromShare) {
         const keys = Object.keys(localStorage)
-        alert('DEBUG שיתוף: לא זוהתה התחברות.\nמפתחות ב-localStorage (' + keys.length + '): ' + (keys.join(', ') || '(ריק לגמרי)'))
+        setShareDebugInfo('מפתחות ב-localStorage (' + keys.length + '): ' + (keys.join(', ') || '(ריק לגמרי)'))
+        setTimeout(() => { window.location.href = '/login' }, 20000)
+        return
       }
       // Not logged in - redirect to login
       window.location.href = '/login'
@@ -1149,7 +1154,17 @@ function SearchPageContent() {
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: '#f8fafc', direction: 'rtl', textAlign: 'center', padding: '20px',
       }}>
-        <p style={{ color: '#64748b', fontSize: '0.95rem' }}>צריך להתחבר כדי לגשת לכאן — מעביר אותך למסך התחברות...</p>
+        {shareDebugInfo ? (
+          <div style={{ maxWidth: 340, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <p style={{ color: '#dc2626', fontWeight: 700, fontSize: '0.95rem' }}>DEBUG שיתוף: לא זוהתה התחברות</p>
+            <p style={{ color: '#334155', fontSize: '0.85rem', wordBreak: 'break-word' }}>{shareDebugInfo}</p>
+            <button onClick={() => { window.location.href = '/login' }} style={{ padding: '10px 16px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' }}>
+              המשך להתחברות
+            </button>
+          </div>
+        ) : (
+          <p style={{ color: '#64748b', fontSize: '0.95rem' }}>צריך להתחבר כדי לגשת לכאן — מעביר אותך למסך התחברות...</p>
+        )}
       </div>
     )
   }

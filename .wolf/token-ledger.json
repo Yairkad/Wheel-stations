@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-27T11:27:32.663Z",
   "lifetime": {
-    "total_tokens_estimated": 49990599,
-    "total_reads": 6645,
-    "total_writes": 11127,
+    "total_tokens_estimated": 50042237,
+    "total_reads": 6648,
+    "total_writes": 11128,
     "total_sessions": 105,
-    "anatomy_hits": 2415,
-    "anatomy_misses": 4186,
-    "repeated_reads_blocked": 9232,
-    "estimated_savings_vs_bare_cli": 458161170
+    "anatomy_hits": 2416,
+    "anatomy_misses": 4188,
+    "repeated_reads_blocked": 9234,
+    "estimated_savings_vs_bare_cli": 458161370
   },
   "sessions": [
     {
@@ -103597,6 +103597,46 @@
         "writes_count": 11,
         "repeated_reads_blocked": 14,
         "anatomy_lookups": 4
+      }
+    },
+    {
+      "id": "session-2026-09-27-2110",
+      "started": "2026-09-27T18:10:31.042Z",
+      "ended": "2026-09-27T18:21:58.225Z",
+      "reads": [
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/login/page.tsx",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/middleware.ts",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 51296,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 342,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 51296,
+        "output_tokens_estimated": 342,
+        "reads_count": 3,
+        "writes_count": 1,
+        "repeated_reads_blocked": 2,
+        "anatomy_lookups": 1
       }
     }
   ],
