@@ -247,12 +247,30 @@ function SearchPageContent() {
   // redirected back here with ?ocr=<result> (or ?ocr_empty=1 / ?ocr_error=1). Waits
   // for isAuthenticated so it doesn't race the login-redirect check below — same fix
   // as sharedPlate above.
+  //
+  // bug-441 follow-up: on real Android/Chrome share attempts the query string didn't
+  // survive — landed on a bare /search with no params at all. /api/share-target also
+  // sets a short-lived `share_ocr_result` cookie as a fallback channel that isn't at
+  // the mercy of the OS/browser's redirect-URL handling; check that when the query
+  // param is missing.
   useEffect(() => {
     if (!isAuthenticated) return
     const params = new URLSearchParams(window.location.search)
-    const ocrParam = params.get('ocr')
-    const ocrEmpty = params.get('ocr_empty')
-    const ocrError = params.get('ocr_error')
+    let ocrParam = params.get('ocr')
+    let ocrEmpty = params.get('ocr_empty')
+    let ocrError = params.get('ocr_error')
+
+    if (!ocrParam && !ocrEmpty && !ocrError) {
+      const match = document.cookie.match(/(?:^|; )share_ocr_result=([^;]*)/)
+      if (match) {
+        const value = decodeURIComponent(match[1])
+        document.cookie = 'share_ocr_result=; Max-Age=0; path=/'
+        if (value === 'ocr_empty') ocrEmpty = '1'
+        else if (value === 'ocr_error') ocrError = '1'
+        else ocrParam = value
+      }
+    }
+
     if (!ocrParam && !ocrEmpty && !ocrError) return
     window.history.replaceState({}, '', '/search')
     if (ocrParam) {

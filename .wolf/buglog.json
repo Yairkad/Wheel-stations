@@ -7250,6 +7250,59 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T15:05:00.000Z"
+    },
+    {
+      "id": "bug-442",
+      "timestamp": "2026-09-27T18:52:42.857Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 31→48 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T18:52:42.857Z"
+    },
+    {
+      "id": "bug-443",
+      "timestamp": "2026-09-27T18:53:04.093Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 23→41 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T18:53:04.093Z"
+    },
+    {
+      "id": "bug-444",
+      "timestamp": "2026-09-27T19:00:00.000Z",
+      "error_message": "אחרי מעבר ל-/api/share-target (bug-441), עדיין שיתוף תמונה מגיע ל-search רגיל בלי שום פעולה - אין מודל, אין toast, אין הפניה ל-login",
+      "file": "src/app/api/share-target/route.ts, src/app/search/page.tsx",
+      "root_cause": "לוגי production אמיתיים (Vercel) הראו: POST /api/share-target מצליח (303) בכל ניסיון, אבל אף GET /search לא הכיל ocr= בפרמטרים, ואף בקשת /login לא נרשמה בכלל. המשתמש דיווח על הבזק חצי-שניה של טקסט התחברות ואז נחיתה על מסך חיפוש רגיל - זה מתאים להתנהגות רגילה/תמימה של isAuthenticated=false->true על כל טעינת דף (לא קשור בפועל להתנתקות אמיתית). המסקנה: ה-redirect ל-/search מצליח, אבל ה-query string (?ocr=...) לא שורד את שרשרת ה-share intent באנדרואיד/כרום - כנראה שה-OS/WebAPK לא שומר את פרמטרי ה-URL של יעד ה-redirect בצורה אמינה.",
+      "fix": "/api/share-target כותב את התוצאה גם ל-cookie קצר-טווח (share_ocr_result, maxAge 60s, path /) בנוסף לפרמטר ה-URL, כערוץ גיבוי שלא תלוי בשרידות ה-query string מול ה-OS. search/page.tsx בודק קודם את פרמטר ה-URL ואם הוא חסר בודק את העוגייה, ומוחק אותה מיד אחרי קריאה (חד-פעמי). נבדק מקומית (curl POST -> Set-Cookie: share_ocr_result=ocr_empty מאושר בתגובה). tsc --noEmit נקי.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "pwa",
+        "android",
+        "query-string",
+        "cookie-fallback"
+      ],
+      "related_bugs": [
+        "bug-441"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:00:00.000Z"
     }
   ]
 }
