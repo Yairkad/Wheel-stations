@@ -7463,6 +7463,45 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T19:25:00.000Z"
+    },
+    {
+      "id": "bug-454",
+      "timestamp": "2026-09-27T19:42:36.549Z",
+      "error_message": "Type error",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:42:36.549Z"
+    },
+    {
+      "id": "bug-455",
+      "timestamp": "2026-09-27T19:45:00.000Z",
+      "error_message": "עם מסך התוצאה הגלוי (bug-453) המשתמש קיבל \"שגיאה בזיהוי התמונה ששותפה\" - התקדמות אמיתית: הקוד עצמו רץ עד הסוף. אותה תמונה בדיוק, כשהועלתה ידנית מהגלריה דרך כפתור ההעלאה, זוהתה בהצלחה.",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "בדיקה ישירה מול production (curl, קובץ בינארי של 5MB) החזירה 413 Request Entity Too Large / X-Vercel-Error: FUNCTION_PAYLOAD_TOO_LARGE. פונקציות Vercel Serverless רגילות (Node.js runtime) חוסמות קשיח גוף בקשה מעל כ-4.5MB - תמונת מצלמה אמיתית משותפת מ-WhatsApp/גלריה חוצה את הגבול הזה בקלות, בעוד שההעלאה הידנית עבדה (יתכן שהתמונה ששותפה שונה בגודלה/פורמט מזו שנבחרה ידנית, או שפשוט נבדקה עם תמונה אחרת בעבר) - בכל מקרה, מגבלת הגודל בפונקציה עצמה היא באג אמיתי ומאושר, לא ניחוש.",
+      "fix": "שינוי /api/share-target/route.ts ל-export const runtime = \"edge\" - פונקציות Edge של Vercel זורמות (streaming) את גוף הבקשה במקום לבפר אותו במלואו מראש, ולכן לא כפופות לאותה מגבלת 4.5MB הקשיחה. runGeminiOcr (Buffer, process.env, fetch) נתמך ב-Edge runtime של Vercel. tsc --noEmit נקי. טרם אומת אם זה בפועל פותר את ה-413 עבור קבצים גדולים - לבדוק עם curl של קובץ 5MB+ מול production אחרי הפריסה.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "vercel",
+        "payload-size",
+        "edge-runtime"
+      ],
+      "related_bugs": [
+        "bug-441",
+        "bug-444",
+        "bug-446",
+        "bug-453"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:45:00.000Z"
     }
   ]
 }

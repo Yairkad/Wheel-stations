@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T19:17:00.591Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T19:42:36.499Z
 > Files: 7 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
@@ -296,7 +296,7 @@
 
 ## src/app/api/share-target/
 
-- `route.ts` — Web Share Target endpoint (public/manifest.json's share_target.action). (~833 tok)
+- `route.ts` — Edge runtime: the default Node.js serverless runtime hard-caps request bodies at (~956 tok)
 
 ## src/app/api/signed-forms/[formId]/
 

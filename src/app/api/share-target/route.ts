@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runGeminiOcr } from '@/lib/ocr-gemini'
 
+// Edge runtime: the default Node.js serverless runtime hard-caps request bodies at
+// ~4.5MB, which a real phone camera photo shared via the OS share sheet routinely
+// exceeds (confirmed via a direct 413 FUNCTION_PAYLOAD_TOO_LARGE from Vercel on a
+// 5MB test upload — bug-453 follow-up). Edge functions stream the body instead of
+// buffering it whole, so they aren't subject to that same limit.
+export const runtime = 'edge'
+
 // Web Share Target endpoint (public/manifest.json's share_target.action).
 // The OS share sheet POSTs the shared image directly here — a real server route,
 // not a Service Worker — so the feature doesn't depend on a SW registration still
