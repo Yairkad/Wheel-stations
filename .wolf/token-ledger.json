@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-27T11:27:32.663Z",
   "lifetime": {
-    "total_tokens_estimated": 49935798,
-    "total_reads": 6633,
-    "total_writes": 11116,
-    "total_sessions": 103,
-    "anatomy_hits": 2411,
-    "anatomy_misses": 4178,
-    "repeated_reads_blocked": 9218,
-    "estimated_savings_vs_bare_cli": 457801063
+    "total_tokens_estimated": 49990599,
+    "total_reads": 6645,
+    "total_writes": 11127,
+    "total_sessions": 105,
+    "anatomy_hits": 2415,
+    "anatomy_misses": 4186,
+    "repeated_reads_blocked": 9232,
+    "estimated_savings_vs_bare_cli": 458161170
   },
   "sessions": [
     {
@@ -103452,6 +103452,150 @@
         "reads_count": 11,
         "writes_count": 2,
         "repeated_reads_blocked": 11,
+        "anatomy_lookups": 4
+      }
+    },
+    {
+      "id": "session-2026-09-27-1205",
+      "started": "2026-09-27T09:05:43.646Z",
+      "ended": "2026-09-27T15:05:23.355Z",
+      "reads": [
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/.wolf/memory.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/version.ts",
+          "tokens_estimated": 74,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/db255345-845a-447f-81e2-fed09914a04e/scratchpad/version-bump-wt/src/lib/version.ts",
+          "tokens_estimated": 74,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/manifest.json",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/sw.js",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/ServiceWorkerRegistration.tsx",
+          "tokens_estimated": 141,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 51319,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/ocr/route.ts",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/.wolf/anatomy.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/.wolf/buglog.json",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/push.ts",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/ocr.ts",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "C:/Users/0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/db255345-845a-447f-81e2-fed09914a04e/scratchpad/version-bump-wt/src/lib/version.ts",
+          "tokens_estimated": 9,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 289,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/ocr-gemini.ts",
+          "tokens_estimated": 1235,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/ocr/route.ts",
+          "tokens_estimated": 450,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/ocr/route.ts",
+          "tokens_estimated": 33,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/share-target/route.ts",
+          "tokens_estimated": 382,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/manifest.json",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/sw.js",
+          "tokens_estimated": 92,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/ServiceWorkerRegistration.tsx",
+          "tokens_estimated": 48,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 374,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+          "tokens_estimated": 265,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 51608,
+        "output_tokens_estimated": 3193,
+        "reads_count": 12,
+        "writes_count": 11,
+        "repeated_reads_blocked": 14,
         "anatomy_lookups": 4
       }
     }

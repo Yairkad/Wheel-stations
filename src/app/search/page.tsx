@@ -273,6 +273,15 @@ function SearchPageContent() {
     const hasSuperManagerSession = localStorage.getItem('super_manager_session')
 
     if (!hasStationSession && !hasOperatorSession && !hasSuperManagerSession) {
+      // TEMP DEBUG — remove once the share-target logout issue is diagnosed (bug-441
+      // follow-up): users report being logged out specifically after a share-target
+      // launch. Surface exactly what's in localStorage at that moment via a blocking
+      // alert (guaranteed visible, no dev tools needed) instead of guessing further.
+      const cameFromShare = /[?&](ocr|ocr_empty|ocr_error)(=|&|$)/.test(window.location.search)
+      if (cameFromShare) {
+        const keys = Object.keys(localStorage)
+        alert('DEBUG שיתוף: לא זוהתה התחברות.\nמפתחות ב-localStorage (' + keys.length + '): ' + (keys.join(', ') || '(ריק לגמרי)'))
+      }
       // Not logged in - redirect to login
       window.location.href = '/login'
       return
