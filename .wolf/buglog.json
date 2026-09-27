@@ -7303,6 +7303,44 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T19:00:00.000Z"
+    },
+    {
+      "id": "bug-445",
+      "timestamp": "2026-09-27T19:06:20.446Z",
+      "error_message": "CSS fix: follow-up",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "follow-up: on real Android/Chrome share attempts the query string didn't → on Android, sharing to an already-open PWA task appears to",
+      "fix": "Changed follow-up: on real Android/Chrome share attempts the query string didn't → on Android, sharing to an already-open PWA task appears to",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:06:20.446Z"
+    },
+    {
+      "id": "bug-446",
+      "timestamp": "2026-09-27T19:10:00.000Z",
+      "error_message": "גם אחרי fallback ל-cookie (bug-444), שיתוף תמונה עדיין לא פותח מודל - עדיין כלום",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "לוג שני מ-Vercel (סכמה אחרת, בלי requestQueryString בכלל) לא הוכיח בפועל שה-query string אבד - הפסילה הקודמת הייתה מהיסק שגוי מתוך שדה שלא קיים בפורמט הזה. במקום זה, גילינו שכבר יש בפרויקט תבנית קיימת (AppHeader.tsx, operator/page.tsx, call-center/page.tsx) לטיפול ב-bfcache על ידי מאזין pageshow עם בדיקת e.persisted - סימן שכבר נתקלו בזה: אנדרואיד לפעמים \"מחזיר לחיים\" instance ישן וקפוא של העמוד במקום לטעון מחדש כשפותחים משיתוף, וקוד שרץ פעם אחת ב-mount (כמו ה-useEffect של בדיקת ocr) אף פעם לא רץ שוב על ה-instance הקפוא הזה, גם אם ה-cookie/URL תקינים בפועל.",
+      "fix": "חילצתי את בדיקת ה-ocr/cookie ל-checkForShareResult() והפכתי אותה לרוץ גם על mount וגם על אירוע pageshow (window.addEventListener(\"pageshow\", checkForShareResult)) - זה יורה גם בטעינה טרייה וגם בשחזור מ-bfcache, בניגוד ל-useEffect עם [] deps שרץ פעם אחת בלבד. שים לב: זה עוזר רק מרגע שהמכשיר טוען לפחות פעם אחת גרסת JS טרייה שכוללת את התיקון הזה - אם יש כרגע instance קפוא מלפני התיקון, צריך לסגור את האפליקציה לגמרי (לא רק לצאת) פעם אחת כדי לטעון מחדש.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "pwa",
+        "android",
+        "bfcache",
+        "pageshow"
+      ],
+      "related_bugs": [
+        "bug-441",
+        "bug-444"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:10:00.000Z"
     }
   ]
 }

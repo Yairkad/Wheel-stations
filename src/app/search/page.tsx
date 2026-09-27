@@ -248,42 +248,53 @@ function SearchPageContent() {
   // for isAuthenticated so it doesn't race the login-redirect check below — same fix
   // as sharedPlate above.
   //
-  // bug-441 follow-up: on real Android/Chrome share attempts the query string didn't
-  // survive — landed on a bare /search with no params at all. /api/share-target also
-  // sets a short-lived `share_ocr_result` cookie as a fallback channel that isn't at
-  // the mercy of the OS/browser's redirect-URL handling; check that when the query
-  // param is missing.
+  // bug-441 follow-up: /api/share-target also sets a short-lived `share_ocr_result`
+  // cookie as a fallback channel in case the query param doesn't make it.
+  //
+  // bug-444 follow-up: on Android, sharing to an already-open PWA task appears to
+  // resume a bfcached instance of this page rather than doing a fresh load — so this
+  // effect's one-time mount run never sees the new navigation at all (same class of
+  // issue AppHeader.tsx/operator/page.tsx already work around for session state via
+  // 'pageshow'). Re-run the same check on every 'pageshow' (fresh load AND bfcache
+  // restore both fire it), not just on mount.
   useEffect(() => {
     if (!isAuthenticated) return
-    const params = new URLSearchParams(window.location.search)
-    let ocrParam = params.get('ocr')
-    let ocrEmpty = params.get('ocr_empty')
-    let ocrError = params.get('ocr_error')
 
-    if (!ocrParam && !ocrEmpty && !ocrError) {
-      const match = document.cookie.match(/(?:^|; )share_ocr_result=([^;]*)/)
-      if (match) {
-        const value = decodeURIComponent(match[1])
-        document.cookie = 'share_ocr_result=; Max-Age=0; path=/'
-        if (value === 'ocr_empty') ocrEmpty = '1'
-        else if (value === 'ocr_error') ocrError = '1'
-        else ocrParam = value
+    const checkForShareResult = () => {
+      const params = new URLSearchParams(window.location.search)
+      let ocrParam = params.get('ocr')
+      let ocrEmpty = params.get('ocr_empty')
+      let ocrError = params.get('ocr_error')
+
+      if (!ocrParam && !ocrEmpty && !ocrError) {
+        const match = document.cookie.match(/(?:^|; )share_ocr_result=([^;]*)/)
+        if (match) {
+          const value = decodeURIComponent(match[1])
+          document.cookie = 'share_ocr_result=; Max-Age=0; path=/'
+          if (value === 'ocr_empty') ocrEmpty = '1'
+          else if (value === 'ocr_error') ocrError = '1'
+          else ocrParam = value
+        }
       }
-    }
 
-    if (!ocrParam && !ocrEmpty && !ocrError) return
-    window.history.replaceState({}, '', '/search')
-    if (ocrParam) {
-      try {
-        applyOcrResult(JSON.parse(ocrParam))
-      } catch {
+      if (!ocrParam && !ocrEmpty && !ocrError) return
+      window.history.replaceState({}, '', '/search')
+      if (ocrParam) {
+        try {
+          applyOcrResult(JSON.parse(ocrParam))
+        } catch {
+          toast.error('שגיאה בקריאת התמונה')
+        }
+      } else if (ocrError) {
         toast.error('שגיאה בקריאת התמונה')
+      } else {
+        toast.error('לא זוהה מידע מהתמונה')
       }
-    } else if (ocrError) {
-      toast.error('שגיאה בקריאת התמונה')
-    } else {
-      toast.error('לא זוהה מידע מהתמונה')
     }
+
+    checkForShareResult()
+    window.addEventListener('pageshow', checkForShareResult)
+    return () => window.removeEventListener('pageshow', checkForShareResult)
   }, [isAuthenticated])
 
   useEffect(() => {
