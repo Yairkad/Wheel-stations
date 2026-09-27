@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T12:23:35.011Z
-> Files: 43 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T14:59:30.132Z
+> Files: 7 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -44,7 +44,6 @@
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/db255345-845a-447f-81e2-fed09914a04e/scratchpad/version-bump-wt/src/lib/
 
-- `version.ts` — App version - displayed in footer (~74 tok)
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/de0847df-c6b9-4343-920c-e2446045ac78/scratchpad/
 
@@ -57,9 +56,6 @@
 
 ## ../../../.claude/plans/
 
-- `binary-churning-ocean.md` — תרומת גלגל – בדיקת התאמה + כניסה דו-שלבית למלאי (~1949 tok)
-- `effervescent-hugging-sonnet.md` — תיקון: שיתוף תמונה מוואטסאפ + לוגיקת התאמת קוטר גאנט (~3076 tok)
-- `velvet-coalescing-candy.md` — מעבר מסיסמה-בכל-בקשה לטוקן התחברות (session token) (~1157 tok)
 
 ## ../../../.claude/projects/c--Users-----------Desktop-projects-WHEELS-APP/memory/
 
@@ -69,7 +65,6 @@
 
 ## ./
 
-- `tmp-verify-footer-dots.mjs` — browser: showFeedbackIndex (~354 tok)
 
 ## .claude/
 
@@ -86,8 +81,13 @@
 ## .storybook/
 
 
+## Reports (added 2026-09-22)
+
+
 ## public/
 
+- `manifest.json` (~240 tok)
+- `sw.js` — Service Worker for Web Push Notifications (~458 tok)
 
 ## scripts/
 
@@ -97,15 +97,12 @@
 
 ## src/__tests__/
 
-- `vehicle-mappings.test.ts` — Vehicle Mappings Tests (~4098 tok)
 
 ## src/app/
 
-- `layout.tsx` — rubik (~530 tok)
 
 ## src/app/[stationId]/
 
-- `page.tsx` — Station manager page. DEFAULT_WHATSAPP_TEMPLATE. Now also: wheel-donation intake (בדיקת תרומה, ?action=donation) — search vehicle by plate/make+model (reuses /api/vehicle/lookup, /api/vehicle-models), shows existing station match count via /api/wheel-stations/search, "קבל" creates a wheel with pending_donation:true (reuses the Add Wheel modal in donationAcceptMode), pending wheels listed in Alerts tab with "השלם והכנס למלאי" (opens Edit Wheel modal, saving always sends pending_donation:false to finalize) and "בטל תרומה" (reuses handleDeleteWheel). filteredWheels/rimSizes/etc now exclude pending_donation wheels (~109000 tok)
 
 ## src/app/accessibility/
 
@@ -130,7 +127,6 @@
 
 ## src/app/admin/reports/
 
-- `page.tsx` — ErrorReportsPage (~16518 tok)
 
 ## src/app/admin/trusted-matches/
 
@@ -140,7 +136,6 @@
 
 ## src/app/admin/vehicles/
 
-- `page.tsx` — VehiclesAdminPageWrapper (~44604 tok)
 
 ## src/app/api/admin/analytics/
 
@@ -210,18 +205,15 @@
 
 ## src/app/api/auth/login/
 
-- `route.ts` — Next.js API route: POST (~2368 tok)
 
 ## src/app/api/auth/manager-session/
 
-- `route.ts` — GET /api/auth/manager-session — check if the current manager session is still valid (~275 tok)
 
 ## src/app/api/auth/webauthn/authenticate/begin/
 
 
 ## src/app/api/auth/webauthn/authenticate/complete/
 
-- `route.ts` — Next.js API route: POST (~2354 tok)
 
 ## src/app/api/auth/webauthn/credentials/
 
@@ -282,6 +274,7 @@
 
 ## src/app/api/ocr/
 
+- `route.ts` — Next.js API route: POST (~447 tok)
 
 ## src/app/api/operator/sent-requests/
 
@@ -300,6 +293,10 @@
 
 ## src/app/api/resolve-maps/
 
+
+## src/app/api/share-target/
+
+- `route.ts` — Web Share Target endpoint (public/manifest.json's share_target.action). (~382 tok)
 
 ## src/app/api/signed-forms/[formId]/
 
@@ -342,29 +339,24 @@
 
 ## src/app/api/wheel-stations/[stationId]/
 
-- `route.ts` — Single Wheel Station API (~3398 tok)
 
 ## src/app/api/wheel-stations/[stationId]/auth/
 
-- `route.ts` — Station Manager Authentication API (~3254 tok)
 
 ## src/app/api/wheel-stations/[stationId]/borrows/
 
 
 ## src/app/api/wheel-stations/[stationId]/borrows/[borrowId]/
 
-- `route.ts` — Borrow Request Management API (~1356 tok)
 
 ## src/app/api/wheel-stations/[stationId]/deleted-wheels/
 
 
 ## src/app/api/wheel-stations/[stationId]/import/
 
-- `route.ts` — Wheel Import API (~3544 tok)
 
 ## src/app/api/wheel-stations/[stationId]/managers/
 
-- `route.ts` — Station Managers API (~1848 tok)
 
 ## src/app/api/wheel-stations/[stationId]/public-borrow/
 
@@ -374,30 +366,24 @@
 
 ## src/app/api/wheel-stations/[stationId]/push/subscribe/
 
-- `route.ts` — API Route: Subscribe to Push Notifications for Wheel Station (~1460 tok)
 
 ## src/app/api/wheel-stations/[stationId]/recovery/
 
-- `route.ts` — Recovery Key API (~1264 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/
 
-- `route.ts` — Wheels API for a specific station. POST accepts `pending_donation` — when true, inserts with is_available:false, pending_since:now(), pending_by_manager_id (~1450 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/
 
-- `route.ts` — Single Wheel API. PUT: pending_donation:false transitions a pending wheel to real inventory (is_available:true, clears pending_since/by) — a no-op on an already-active wheel. DELETE: soft-delete block on !is_available now excepts pending_donation wheels (cancel a donation that never arrived) (~2750 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/borrow/
 
-- `route.ts` — Wheel Borrow API (~2379 tok)
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/history/
 
 
 ## src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/restore/
 
-- `route.ts` — Restore Deleted Wheel API (~876 tok)
 
 ## src/app/api/wheel-stations/admin/
 
@@ -413,7 +399,6 @@
 
 ## src/app/api/wheel-stations/filter-options/
 
-- `route.ts` — Filter Options API. Now excludes pending_donation wheels from the wheels query (~647 tok)
 
 ## src/app/api/wheel-stations/managers/
 
@@ -423,7 +408,6 @@
 
 ## src/app/api/wheel-stations/search/
 
-- `route.ts` — Global Wheel Search API. Now excludes pending_donation wheels from both queries — also reused by [stationId]/page.tsx's donation-intake flow (filtered client-side to the current station) to show "how many of this spec do we already have" (~1620 tok)
 
 ## src/app/api/wheel-stations/verified-matches/
 
@@ -454,7 +438,6 @@
 
 ## src/app/operator/
 
-- `page.tsx` — OperatorPage (~35426 tok)
 
 ## src/app/privacy/
 
@@ -467,28 +450,23 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~51004 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~51296 tok)
 
 ## src/app/sign/[stationId]/
 
 
 ## src/app/stations/
 
-- `page.tsx` — WheelStationsPage (~38966 tok)
 
 ## src/app/super-manager/
 
-- `page.tsx` — SESSION_EXPIRY_MS (~17729 tok)
 
 ## src/app/tmp-calc-test/
 
 
 ## src/components/
 
-- `AppHeader.tsx` — getRoleHomeHref. "ניהול התחנה" submenu now has a "בדיקת תרומה" link (?action=donation) alongside "הוסף גלגל" (~16130 tok)
-- `Footer.tsx` — Footer (~615 tok)
-- `ServiceWorkerRegistration.tsx` — ServiceWorkerRegistration (~141 tok)
-- `TireDiameterCalculatorModal.tsx` — TireDiameterCalculatorModal (~1882 tok)
+- `ServiceWorkerRegistration.tsx` — ServiceWorkerRegistration (~118 tok)
 
 ## src/components/admin/
 
@@ -498,16 +476,10 @@
 
 ## src/hooks/
 
-- `useRoleSwitch.ts` — Exports roleKey, resolveActiveRoleEntry, useRoleSwitch (~2313 tok)
 
 ## src/lib/
 
-- `manager-session.ts` — Server-validated session tokens for station/super/puncture managers. (~864 tok)
-- `station-auth.ts` — Shared station manager authentication helper. (~927 tok)
-- `super-manager-auth.ts` — Verifies a super (district) manager by their manager_session cookie instead (~965 tok)
-- `vehicle-mappings.ts` — Hebrew-English vehicle brand and model mappings (~3777 tok)
-- `version.ts` — App version - displayed in footer (~74 tok)
-- `wheel-stats.ts` — Shared wheel-count stats used by all wheel-stations list/detail API routes. Now also excludes pending_donation wheels from all counts, same as deleted ones (~340 tok)
+- `ocr-gemini.ts` — Server-only: calls Gemini to extract vehicle fields from a רישיון רכב photo. (~1235 tok)
 
 ## src/stories/mocks/
 
@@ -547,14 +519,3 @@
 
 ## supabase/migrations/
 
-- `20260911_add_manager_sessions.sql` — Server-validated session tokens for station/super managers, replacing the (~397 tok)
-- `20260916_add_wheel_pending_donation.sql` — Track wheels accepted as a donation but not yet physically in the station's active inventory (~89 tok)
-
-## Reports (added 2026-09-22)
-- `src/lib/search-log.ts` — client helper `appendSearchLogParams(params, type, vehicle, source?)`: adds log_* params to /api/wheel-stations/search so operator/manager searches are logged (reads operator_session / station_session_* from localStorage). ~400 tok
-- `src/lib/excel-export.ts` — `exportStyledExcel(filename, sheets)` via xlsx-js-style: RTL, colored bold header, zebra rows, borders, auto widths, autofilter, optional title row. ~900 tok
-- `src/app/api/reports/search-demand/route.ts` — GET search-demand report (admin or station-manager session). wheel_search_log → available / unavailable (exists but borrowed) / none (real gap) per station or network; top missing specs & vehicles; per-station breakdown; plus vehicle_search_history checked vs TODAY's inventory. ~2k tok
-- `src/components/reports/DateRangeFilter.tsx` — presets (7/30/90/365/all) + custom from/to; exports rangeForDays, rangeLabel, inRange. ~900 tok
-- `src/components/reports/ExportDialog.tsx` — the ONE "ייצוא לאקסל" entry per reports screen: toolbar button → dialog with checkbox per dataset (ExportOption.build), writes one styled workbook. ~1.2k tok
-- `src/components/reports/SearchDemandReport.tsx` — search-demand report UI + styled Excel export; used by [stationId] reports tab and admin/analytics. ~3.5k tok
-- `supabase/migrations/20260922_add_wheel_search_log.sql` — wheel_search_log table (stations_with_match / stations_with_available UUID[]).

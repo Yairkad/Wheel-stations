@@ -71,6 +71,26 @@ function SearchPageContent() {
   const [ocrAutoSearch, setOcrAutoSearch] = useState(false)
   const ocrInputRef = useRef<HTMLInputElement>(null)
 
+  // Shared by the manual upload button (handleOcrUpload below) and the Web Share
+  // Target flow (?ocr=... from /api/share-target, which already ran the OCR).
+  function applyOcrResult(ocr: { plate?: string | null, manufacturer?: string | null, model?: string | null, year?: string | null, tireSizes?: string[] }) {
+    const hasAnything = ocr.plate || ocr.manufacturer || ocr.model || (ocr.tireSizes && ocr.tireSizes.length > 0)
+    if (!hasAnything) {
+      toast.error('לא זוהה מידע מהתמונה')
+      return
+    }
+    const tireSizes: string[] = Array.isArray(ocr.tireSizes) ? ocr.tireSizes.filter(Boolean) : []
+    setOcrResultData({
+      plate: ocr.plate ?? null,
+      manufacturer: ocr.manufacturer ?? null,
+      model: ocr.model ?? null,
+      year: ocr.year ?? null,
+      tireSizes,
+      rimSize: extractRimSize(tireSizes[0] ?? null),
+    })
+    setShowOcrResultModal(true)
+  }
+
   async function handleOcrUpload(file: File) {
     setOcrLoading(true)
     setOcrStatusText('מפענח תמונה עם AI...')
@@ -80,25 +100,7 @@ function SearchPageContent() {
       const response = await fetch('/api/ocr', { method: 'POST', body: formData })
       if (!response.ok) throw new Error('OCR failed')
       const ocr = await response.json()
-
-      const hasAnything = ocr.plate || ocr.manufacturer || ocr.model || (ocr.tireSizes && ocr.tireSizes.length > 0)
-      if (!hasAnything) {
-        toast.error('לא זוהה מידע מהתמונה')
-        return
-      }
-
-      // Normalise to expected OcrVehicleData shape
-      const { extractRimSize } = await import('@/lib/vehicle-mappings')
-      const tireSizes: string[] = Array.isArray(ocr.tireSizes) ? ocr.tireSizes.filter(Boolean) : []
-      setOcrResultData({
-        plate: ocr.plate ?? null,
-        manufacturer: ocr.manufacturer ?? null,
-        model: ocr.model ?? null,
-        year: ocr.year ?? null,
-        tireSizes,
-        rimSize: extractRimSize(tireSizes[0] ?? null),
-      })
-      setShowOcrResultModal(true)
+      applyOcrResult(ocr)
     } catch {
       toast.error('שגיאה בקריאת התמונה')
     } finally {
@@ -239,26 +241,28 @@ function SearchPageContent() {
     refreshHistory()
   }, [])
 
-  // Handle Web Share Target: if ?shared=1, read image from IndexedDB and run OCR.
-  // Waits for isAuthenticated so it doesn't race the login-redirect check below —
-  // otherwise an unauthenticated share gets wiped out by the navigation to /login
-  // before the IndexedDB read (and OCR) ever completes. Same fix as sharedPlate above.
+  // Handle Web Share Target: /api/share-target already ran the OCR server-side and
+  // redirected back here with ?ocr=<result> (or ?ocr_empty=1 / ?ocr_error=1). Waits
+  // for isAuthenticated so it doesn't race the login-redirect check below — same fix
+  // as sharedPlate above.
   useEffect(() => {
     if (!isAuthenticated) return
     const params = new URLSearchParams(window.location.search)
-    if (params.get('shared') !== '1') return
+    const ocrParam = params.get('ocr')
+    const ocrEmpty = params.get('ocr_empty')
+    const ocrError = params.get('ocr_error')
+    if (!ocrParam && !ocrEmpty && !ocrError) return
     window.history.replaceState({}, '', '/search')
-    const req = indexedDB.open('wheels-share', 1)
-    req.onsuccess = e => {
-      const db = (e.target as IDBOpenDBRequest).result
-      const tx = db.transaction('pending', 'readwrite')
-      const store = tx.objectStore('pending')
-      const get = store.get('image')
-      get.onsuccess = () => {
-        store.delete('image')
-        const file = get.result as File | undefined
-        if (file) handleOcrUpload(file)
+    if (ocrParam) {
+      try {
+        applyOcrResult(JSON.parse(ocrParam))
+      } catch {
+        toast.error('שגיאה בקריאת התמונה')
       }
+    } else if (ocrError) {
+      toast.error('שגיאה בקריאת התמונה')
+    } else {
+      toast.error('לא זוהה מידע מהתמונה')
     }
   }, [isAuthenticated])
 

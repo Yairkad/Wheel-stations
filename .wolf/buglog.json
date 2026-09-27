@@ -7150,6 +7150,106 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T00:00:00Z"
+    },
+    {
+      "id": "bug-436",
+      "timestamp": "2026-09-27T14:58:19.080Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "61 lines replaced/restructured",
+      "fix": "Rewrote 111→40 lines (61 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T14:58:19.080Z"
+    },
+    {
+      "id": "bug-437",
+      "timestamp": "2026-09-27T14:58:25.384Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/api/ocr/route.ts",
+      "root_cause": "Had 'Missing API key'",
+      "fix": "Changed to 'OCR failed'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T14:58:25.384Z"
+    },
+    {
+      "id": "bug-438",
+      "timestamp": "2026-09-27T14:58:39.751Z",
+      "error_message": "Incorrect value in code",
+      "file": "public/manifest.json",
+      "root_cause": "Had \"/search\"",
+      "fix": "Changed to \"/api/share-target\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T14:58:39.751Z"
+    },
+    {
+      "id": "bug-439",
+      "timestamp": "2026-09-27T14:58:50.577Z",
+      "error_message": "Significant refactor of ",
+      "file": "public/sw.js",
+      "root_cause": "33 lines replaced/restructured",
+      "fix": "Rewrote 38→6 lines (33 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T14:58:50.577Z"
+    },
+    {
+      "id": "bug-440",
+      "timestamp": "2026-09-27T14:59:30.173Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T14:59:30.173Z"
+    },
+    {
+      "id": "bug-441",
+      "timestamp": "2026-09-27T15:05:00.000Z",
+      "error_message": "אחרי תיקון isAuthenticated (bug-434 הקודם), שיתוף תמונה עדיין לא פותח מודל זיהוי - המשתמש אישר עם curl POST גולמי ל-/search שהשרת פשוט מגיש את הדף הרגיל ומתעלם מהקובץ",
+      "file": "public/sw.js, public/manifest.json, src/app/api/share-target/route.ts, src/lib/ocr-gemini.ts, src/app/search/page.tsx",
+      "root_cause": "כל הזרימה תלתה ב-Service Worker שיירט POST ל-/search, שמר את התמונה ב-IndexedDB, והפנה בחזרה עם ?shared=1. הוכח עם curl גולמי (בלי SW) ש-Next.js מגיש 200 לדף /search הרגיל ומתעלם לגמרי מגוף הבקשה כשאין מי שמיירט - כלומר אם ה-SW לא רשום/פעיל באותו רגע (כרום ידוע במחיקת SW של אתרים שלא נפתחים ישירות לעיתים קרובות), השיתוף נבלע בלי שגיאה. המשתמש אישר שגם פתיחת האפליקציה ישירות לפני השיתוף לא עזרה - כלומר לא מספיק להסתמך על SW בכלל בשביל הפיצ׳ר הזה.",
+      "fix": "הוצא את כל הלוגיקה מ-Service Worker/IndexedDB (הוסר לגמרי מ-sw.js) והועבר לשרת: share_target.action ב-manifest.json שונה ל-/api/share-target (route.ts אמיתי) שמקבל את הקובץ ישירות, מריץ OCR (Gemini) מיידית בצד שרת (משותף עם /api/ocr דרך src/lib/ocr-gemini.ts החדש), ומפנה חזרה ל-/search?ocr=<תוצאה> (או ocr_empty=1/ocr_error=1). search/page.tsx כבר לא נוגע ב-IndexedDB בכלל - קורא את התוצאה מה-URL ופותח את המודל דרך applyOcrResult (פונקציה משותפת עם כפתור ההעלאה הידני). נבדק מקומית עם npm run dev + curl: הצלחה (redirect ל-ocr=...), כשל Gemini (redirect ל-ocr_error=1), ותמונה בלי מידע רלוונטי (redirect ל-ocr_empty=1) - שלושתם עובדים כצפוי. tsc --noEmit נקי.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "pwa",
+        "service-worker",
+        "architecture-change"
+      ],
+      "related_bugs": [
+        "bug-434"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T15:05:00.000Z"
     }
   ]
 }
