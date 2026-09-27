@@ -6737,6 +6737,26 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-22T00:00:00Z"
+    },
+    {
+      "id": "bug-411",
+      "timestamp": "2026-09-27T00:00:00Z",
+      "error_message": "plate 60037403 (Chery FX EV 2024, on road since 05/2024) -> 'הרכב לא נמצא במאגרים'; Vercel log: find-car.co.il fetch failed: 403",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "find-car.co.il blocks Vercel server IPs (403) so the last-resort fallback never works server-side (parsing verified OK on user-saved page). Why regular data.gov.il lookup missed a 2024 registered car is still unconfirmed — non-OK regular responses were silently swallowed with no log. Also 'צ'רי' missing from MAKE_TRANSLATIONS. UPDATE: user confirmed the exact filters query returns the record from a browser, so the server-side regular request failed (non-OK/throw) and was treated as 'not found'.",
+      "fix": "fetchGovData() helper: one retry on non-OK/throw with logged status; if regular lookup failed and nothing else found, return 502 'שגיאה בחיבור למאגר הממשלתי' instead of misleading 404. Plus Chery make translation.",
+      "tags": [
+        "vehicle-lookup",
+        "find-car-scrape",
+        "data.gov.il",
+        "403"
+      ],
+      "related_bugs": [
+        "bug-149",
+        "bug-150"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T00:00:00Z"
     }
   ]
 }

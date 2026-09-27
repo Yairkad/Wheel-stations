@@ -73,6 +73,29 @@ interface DataGovResponse<T> {
   }
 }
 
+/**
+ * Query a data.gov.il datastore_search URL, retrying once on failure.
+ * Returns null (and logs why) if both attempts fail, so callers can tell
+ * "couldn't query" apart from "queried, no records".
+ */
+async function fetchGovData<T>(url: string, label: string): Promise<DataGovResponse<T> | null> {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: { 'Accept': 'application/json' },
+        next: { revalidate: 3600 }
+      })
+      if (response.ok) {
+        return await response.json()
+      }
+      console.error(`data.gov.il ${label} API error (attempt ${attempt}):`, response.status, response.statusText)
+    } catch (error) {
+      console.error(`data.gov.il ${label} fetch failed (attempt ${attempt}):`, error)
+    }
+  }
+  return null
+}
+
 // Scraped vehicle data from find-car.co.il
 interface FindCarScrapedData {
   manufacturer: string
@@ -205,6 +228,8 @@ const MAKE_TRANSLATIONS: Record<string, string> = {
   'ניאו': 'nio',
   'גאק': 'gac',
   'פאו': 'faw',
+  'צ\'רי': 'chery',
+  'צרי': 'chery',
 }
 
 function normalizeMakeForWheelfitment(make: string): string {
@@ -547,14 +572,12 @@ export async function GET(request: NextRequest) {
     regularApiUrl.searchParams.set('filters', JSON.stringify({ mispar_rechev: cleanPlate }))
     regularApiUrl.searchParams.set('limit', '1')
 
-    const regularResponse = await fetch(regularApiUrl.toString(), {
-      headers: { 'Accept': 'application/json' },
-      next: { revalidate: 3600 }
-    })
+    const regularData = await fetchGovData<VehicleRecord>(regularApiUrl.toString(), 'regular')
+    // Remember a failed (not merely empty) regular lookup so we don't report
+    // "not found" for a vehicle we simply couldn't query.
+    const regularFailed = !regularData
 
-    if (regularResponse.ok) {
-      const regularData: DataGovResponse<VehicleRecord> = await regularResponse.json()
-
+    if (regularData) {
       if (regularData.success && regularData.result.records.length > 0) {
         const vehicle = regularData.result.records[0]
         const pcdData = await findPcdData(
@@ -656,6 +679,13 @@ export async function GET(request: NextRequest) {
           } : null,
           pcd_found: !!pcdData
         })
+      }
+
+      if (regularFailed) {
+        return NextResponse.json(
+          { error: 'שגיאה בחיבור למאגר הממשלתי, נסה שוב', plate: cleanPlate },
+          { status: 502 }
+        )
       }
 
       return NextResponse.json(
