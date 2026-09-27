@@ -13,8 +13,8 @@
       "first_read": "2026-09-27T18:18:47.686Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx": {
-      "count": 21,
-      "tokens": 53165,
+      "count": 24,
+      "tokens": 53456,
       "first_read": "2026-09-27T18:19:19.848Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/share-target/route.ts": {
@@ -26,6 +26,11 @@
       "count": 1,
       "tokens": 0,
       "first_read": "2026-09-27T19:05:27.391Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/sw.js": {
+      "count": 1,
+      "tokens": 458,
+      "first_read": "2026-09-27T20:57:31.643Z"
     }
   },
   "files_written": [
@@ -148,16 +153,53 @@
       "action": "create",
       "tokens": 551,
       "at": "2026-09-27T20:25:11.413Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/sw.js",
+      "action": "edit",
+      "tokens": 690,
+      "at": "2026-09-27T20:57:44.308Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 89,
+      "at": "2026-09-27T20:58:02.286Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 530,
+      "at": "2026-09-27T20:58:21.642Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 63,
+      "at": "2026-09-27T20:58:36.263Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 121,
+      "at": "2026-09-27T20:58:48.388Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/scripts/tmp-add-bug.js",
+      "action": "create",
+      "tokens": 555,
+      "at": "2026-09-27T20:59:54.562Z"
     }
   ],
   "edit_counts": {
-    "src/app/search/page.tsx": 14,
+    "src/app/search/page.tsx": 18,
     "src/app/api/share-target/route.ts": 5,
-    "scripts/tmp-add-bug.js": 1
+    "scripts/tmp-add-bug.js": 2,
+    "public/sw.js": 1
   },
-  "anatomy_hits": 2,
+  "anatomy_hits": 3,
   "anatomy_misses": 3,
-  "repeated_reads_warned": 25,
+  "repeated_reads_warned": 28,
   "cerebrum_warnings": 0,
-  "stop_count": 8
+  "stop_count": 12
 }

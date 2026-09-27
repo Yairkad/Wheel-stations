@@ -73,7 +73,7 @@ function SearchPageContent() {
   // at all — set synchronously from the very first render (not an effect) so it
   // shows even before the auth check resolves. bug-448 follow-up: sharing was
   // silently doing nothing with no way to tell whether the page was even reached.
-  const [shareOverlay, setShareOverlay] = useState<{ status: 'processing' | 'empty' | 'error' | 'no_file' } | null>(() => {
+  const [shareOverlay, setShareOverlay] = useState<{ status: 'processing' | 'empty' | 'error' | 'no_file', diag?: string | null } | null>(() => {
     if (typeof window === 'undefined') return null
     return new URLSearchParams(window.location.search).get('share') === '1' ? { status: 'processing' } : null
   })
@@ -281,7 +281,11 @@ function SearchPageContent() {
 
     const checkForShareResult = () => {
       const params = new URLSearchParams(window.location.search)
-      if (params.get('share') === '1' && !shareOverlay) setShareOverlay({ status: 'processing' })
+      // TEMP DIAGNOSTIC (bug-457 follow-up): sw.js's fetch listener tags the
+      // redirect with sw_diag=found_<bytes>|empty, telling us whether the browser
+      // ever had real file bytes locally, independent of what the server saw.
+      const swDiag = params.get('sw_diag')
+      if (params.get('share') === '1' && !shareOverlay) setShareOverlay({ status: 'processing', diag: swDiag })
 
       let ocrParam = params.get('ocr')
       let ocrEmpty = params.get('ocr_empty')
@@ -305,16 +309,17 @@ function SearchPageContent() {
         try {
           applyOcrResult(JSON.parse(ocrParam))
           setShareOverlay(null)
+          if (swDiag) toast.success('SW ראה קובץ אמיתי: ' + swDiag, { duration: 8000 })
         } catch {
           toast.error('שגיאה בקריאת התמונה')
-          setShareOverlay({ status: 'error' })
+          setShareOverlay({ status: 'error', diag: swDiag })
         }
       } else if (ocrError) {
         toast.error('שגיאה בקריאת התמונה')
-        setShareOverlay({ status: cookieValue === 'no_file' ? 'no_file' : 'error' })
+        setShareOverlay({ status: cookieValue === 'no_file' ? 'no_file' : 'error', diag: swDiag })
       } else {
         toast.error('לא זוהה מידע מהתמונה')
-        setShareOverlay({ status: 'empty' })
+        setShareOverlay({ status: 'empty', diag: swDiag })
       }
     }
 
@@ -1239,6 +1244,11 @@ function SearchPageContent() {
           <svg className="spinning-wheel" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
         ) : null}
         <p style={{ color: '#334155', fontSize: '0.95rem', maxWidth: 300 }}>{messages[shareOverlay.status]}</p>
+        {shareOverlay.diag && (
+          <p style={{ color: '#7c3aed', fontWeight: 700, fontSize: '0.9rem', background: '#f3e8ff', padding: '10px 14px', borderRadius: '8px', maxWidth: 300 }}>
+            אבחון SW: {shareOverlay.diag}
+          </p>
+        )}
         {shareOverlay.status !== 'processing' && (
           <button onClick={() => setShareOverlay(null)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' }}>
             סגור

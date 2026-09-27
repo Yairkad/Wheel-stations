@@ -7573,6 +7573,60 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-27T20:15:00.000Z"
+    },
+    {
+      "id": "bug-460",
+      "timestamp": "2026-09-27T20:57:44.324Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "public/sw.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T20:57:44.324Z"
+    },
+    {
+      "id": "bug-461",
+      "timestamp": "2026-09-27T20:58:21.651Z",
+      "error_message": "CSS fix: status",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "status: 'empty' → 'empty', diag: swDiag",
+      "fix": "Changed status: 'empty' → 'empty', diag: swDiag",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-27T20:58:48.397Z"
+    },
+    {
+      "id": "bug-462",
+      "timestamp": "2026-09-27T21:00:00.000Z",
+      "error_message": "שיתוף תמונה נכשל עם content-length קטן (~75 בייט) גם עבור קובץ 19KB - צריך לדעת אם כרום בכלל מקבל את הקובץ מקומית, לפני שמשקיעים בחזרה לארכיטקטורת Service Worker",
+      "file": "public/sw.js, src/app/search/page.tsx",
+      "root_cause": "המשתמש שאל בצדק: אם זו מגבלת כרום קבועה, למה זה עבד בעבר (עם ה-SW הישן)? שתי השערות סותרות: (א) הקובץ אבד בזמן שידור ברשת - SW (שמטפל בקובץ מקומית, בלי רשת) יפתור. (ב) כרום מעולם לא קיבל את הקובץ בכלל, גם ב-SW הישן - וההוכחה המקורית שה-SW \"לא עבד\" הייתה חלשה (curl בלי SW בכלל). אי אפשר להכריע בלי למדוד ישירות מה ה-SW רואה.",
+      "fix": "הוחזר יירוט זמני ל-sw.js (fetch listener) שקורא formData() מקומית (בלי רשת) על POST ל-/api/share-target, בודק אם יש קובץ אמיתי (File עם size>0), ואז משדר את הבקשה המקורית ללא שינוי לרשת בדיוק כמו היום (לא משנה התנהגות אמיתית), ומתייג את ה-redirect הסופי עם sw_diag=found_<bytes>|empty. search/page.tsx מציג את התג הזה בברור על המסך (shareOverlay.diag) כדי לקבל תשובה חד-משמעית: אם found - השערה א נכונה (SW יפתור, נחזיר ארכיטקטורה). אם empty - השערה ב נכונה (זו בעיית כרום/OS אמיתית, SW לא יעזור). זמני - להסיר אחרי שמגיעה תשובה. tsc --noEmit נקי. חשוב: המשתמש צריך לפתוח את האפליקציה פעם רגילה קודם כדי שה-SW החדש יירשם/יתעדכן לפני שינסה לשתף.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "service-worker",
+        "diagnostics",
+        "temporary"
+      ],
+      "related_bugs": [
+        "bug-453",
+        "bug-455",
+        "bug-457"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T21:00:00.000Z"
     }
   ]
 }
