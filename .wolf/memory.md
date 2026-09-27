@@ -2685,3 +2685,10 @@ Built the "בדיקת תרומה" (donation check) feature end-to-end per user r
 | 15:17 | Session end: 1 writes across 1 files (version.ts) | 3 reads | ~157 tok |
 | 15:23 | Edited src/app/search/page.tsx | added 1 condition(s) | ~289 |
 | 15:26 | Session end: 2 writes across 2 files (version.ts, page.tsx) | 8 reads | ~51503 tok |
+| 22:15 | תיקון רספונסיביות כרטיס תרומות ממתינות | src/app/[stationId]/page.tsx | done | ~3k |
+| 22:40 | פיצ'ר דוחות מפורטים: wheel_search_log + דוח חיפושים (מנהל+אדמין), סינון תאריכים למנהל, סינון תחנה/סוג דוח לאדמין, ייצוא אקסל מעוצב לכל דוח | search route, operator/search pages, [stationId]/page.tsx, admin/analytics, reports/* | next build passes | ~60k |
+| 23:30 | עיצוב מחדש לדוחות: ExportDialog יחיד, סרגל תקופות, לשוניות חסר/מושאל, חיפושי עבר לפי מידה | reports/*, [stationId]/page.tsx, admin/analytics | user approved screenshots | ~30k |
+| 06:23 | Investigated why plate 60037403 not found; data.gov.il blocked by sandbox egress (403), explained lookup only checks regular+personal-import resources then find-car | src/app/api/vehicle/lookup/route.ts | answered, awaiting user info | ~15k |
+| 06:37 | find-car 403 from Vercel confirmed; added regular gov.il error log + Chery make translation | src/app/api/vehicle/lookup/route.ts | pushed | ~20k |
+| 06:41 | Added fetchGovData retry + 502 on failed regular lookup; opened PR | src/app/api/vehicle/lookup/route.ts | pushed | ~10k |
+| 15:30 | Fixed shared-image OCR race: gated ?shared=1 IndexedDB/OCR effect on isAuthenticated so it can't lose the image to the /login redirect (same pattern as sharedPlate) | src/app/search/page.tsx | tsc clean, committed | ~5k |

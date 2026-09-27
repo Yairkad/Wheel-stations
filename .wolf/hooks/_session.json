@@ -3,7 +3,7 @@
   "started": "2026-09-27T09:05:43.646Z",
   "files_read": {
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/.wolf/memory.md": {
-      "count": 1,
+      "count": 2,
       "tokens": 0,
       "first_read": "2026-09-27T11:55:37.539Z"
     },
@@ -41,6 +41,16 @@
       "count": 1,
       "tokens": 0,
       "first_read": "2026-09-27T12:22:09.913Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/.wolf/anatomy.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-09-27T12:31:06.735Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/.wolf/buglog.json": {
+      "count": 4,
+      "tokens": 0,
+      "first_read": "2026-09-27T12:31:53.393Z"
     }
   },
   "files_written": [
@@ -62,8 +72,8 @@
     "src/app/search/page.tsx": 1
   },
   "anatomy_hits": 4,
-  "anatomy_misses": 4,
-  "repeated_reads_warned": 5,
+  "anatomy_misses": 6,
+  "repeated_reads_warned": 9,
   "cerebrum_warnings": 0,
   "stop_count": 5
 }
