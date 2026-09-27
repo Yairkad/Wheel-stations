@@ -7079,6 +7079,40 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-27T12:00:41.360Z"
+    },
+    {
+      "id": "bug-432",
+      "timestamp": "2026-09-27T12:23:35.112Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "No early return/throw for edge case: !isAuthenticated",
+      "fix": "Added guard clause: if (!isAuthenticated)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T12:23:35.112Z"
+    },
+    {
+      "id": "bug-432",
+      "timestamp": "2026-09-27T00:00:00.000Z",
+      "error_message": "שיתוף תמונה מהגלריה/מצלמה לאפליקציה (Web Share Target) לא מזהה את התמונה ולא פותח את מודל זיהוי הרישיון",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "ה-useEffect שמטפל ב-?shared=1 (קריאת התמונה מ-IndexedDB והרצת handleOcrUpload) רץ ללא תלות ב-isAuthenticated, מיד ב-mount. useEffect נפרד ואחר-כך בקוד (בדיקת session) מריץ window.location.href=\"/login\" אם אין session מזוהה. שני ה-effects רצים על אותו mount לפי סדר ההצהרה - קריאת ה-IndexedDB היא אסינכרונית ומפסידה למרוץ מול ה-redirect הסינכרוני, כך שתמונה ששותפה בזמן שהאפליקציה לא זיהתה session פעיל נמחקת בלי אזהרה והמודל אף פעם לא נפתח. בדיוק אותו דפוס באג שכבר תוקן קודם עבור שיתוף ?plate=... (ראה שורה 5887-5888/5968 ב-buglog הקיים: sharedPlate מוגן ב-isAuthenticated מטעם זהה) - אבל התיקון לא הוחל גם על שיתוף התמונה.",
+      "fix": "הוספת תלות isAuthenticated ל-useEffect של ?shared=1: return מוקדם אם !isAuthenticated, כך שה-effect רץ שוב ומטפל בתמונה רק אחרי שה-auth check הסתיים בהצלחה (ולא רץ בכלל אם מפנים ל-login). זהה בדיוק לתבנית הקיימת של sharedPlate.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "pwa",
+        "race-condition",
+        "auth"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T00:00:00.000Z"
     }
   ]
 }

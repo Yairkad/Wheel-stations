@@ -238,8 +238,12 @@ function SearchPageContent() {
     refreshHistory()
   }, [])
 
-  // Handle Web Share Target: if ?shared=1, read image from IndexedDB and run OCR
+  // Handle Web Share Target: if ?shared=1, read image from IndexedDB and run OCR.
+  // Waits for isAuthenticated so it doesn't race the login-redirect check below —
+  // otherwise an unauthenticated share gets wiped out by the navigation to /login
+  // before the IndexedDB read (and OCR) ever completes. Same fix as sharedPlate above.
   useEffect(() => {
+    if (!isAuthenticated) return
     const params = new URLSearchParams(window.location.search)
     if (params.get('shared') !== '1') return
     window.history.replaceState({}, '', '/search')
@@ -255,7 +259,7 @@ function SearchPageContent() {
         if (file) handleOcrUpload(file)
       }
     }
-  }, [])
+  }, [isAuthenticated])
 
   useEffect(() => {
     // Check if user is authenticated (station manager, operator, or district manager)
