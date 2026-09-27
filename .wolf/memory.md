@@ -2577,3 +2577,109 @@
 | 17:18 | Session end: 2 writes across 1 files (page.tsx) | 4 reads | ~51078 tok |
 | 17:18 | Edited src/app/search/page.tsx | removed 14 lines | ~12 |
 | 17:19 | Removed the now-redundant history-list refresh button (kept only the result-screen one) per user request | src/app/search/page.tsx | done, buglog bug-409 updated | ~150 |
+| 17:20 | Session end: 3 writes across 1 files (page.tsx) | 4 reads | ~51271 tok |
+
+## Session: 2026-09-16 21:24
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-16 21:24
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-16 22:22
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 22:52 | Created ../../../.claude/plans/binary-churning-ocean.md | — | ~2079 |
+| 22:59 | Created supabase/migrations/20260916_add_wheel_pending_donation.sql | — | ~89 |
+| 23:00 | Edited src/lib/wheel-stats.ts | modified computeWheelStats() | ~270 |
+| 23:00 | Edited src/app/api/wheel-stations/[stationId]/wheels/route.ts | modified if() | ~574 |
+| 23:00 | Edited src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/route.ts | added 2 condition(s) | ~628 |
+| 23:00 | Edited src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/route.ts | modified if() | ~157 |
+| 23:01 | Edited src/app/api/wheel-stations/search/route.ts | 5→6 lines | ~50 |
+| 23:01 | Edited src/app/api/wheel-stations/search/route.ts | 5→6 lines | ~62 |
+| 23:01 | Edited src/app/api/wheel-stations/filter-options/route.ts | modified if() | ~36 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | 5→7 lines | ~65 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~80 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | 6→8 lines | ~205 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | CSS: pending_donation | ~208 |
+| 23:02 | Edited src/app/[stationId]/page.tsx | CSS: label, bolt_spacing | ~148 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | CSS: intake, pending_donation | ~402 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | CSS: pending_donation | ~305 |
+| 23:03 | Edited src/app/[stationId]/page.tsx | added 1 condition(s) | ~46 |
+| 23:04 | Edited src/app/[stationId]/page.tsx | inline fix | ~49 |
+| 23:04 | Edited src/app/[stationId]/page.tsx | 4→4 lines | ~107 |
+| 23:04 | Edited src/app/[stationId]/page.tsx | inline fix | ~51 |
+| 23:05 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~107 |
+| 23:06 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~1575 |
+| 23:06 | Edited src/app/[stationId]/page.tsx | inline fix | ~28 |
+| 23:07 | Edited src/app/[stationId]/page.tsx | expanded (+11 lines) | ~162 |
+| 23:07 | Edited src/components/AppHeader.tsx | expanded (+6 lines) | ~209 |
+| 23:08 | Edited src/app/[stationId]/page.tsx | added optional chaining | ~1174 |
+| 23:08 | Edited src/app/[stationId]/page.tsx | 2→2 lines | ~41 |
+| 23:09 | Edited src/app/[stationId]/page.tsx | added 2 condition(s) | ~1833 |
+
+## Session: 2026-09-16 23:38
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 06:31 | Created ../../../.claude/plans/effervescent-hugging-sonnet.md | — | ~2653 |
+| 08:40 | Edited ../../../.claude/plans/effervescent-hugging-sonnet.md | added 2 condition(s) | ~814 |
+| 08:41 | Edited ../../../.claude/plans/effervescent-hugging-sonnet.md | 5→6 lines | ~181 |
+
+## Session: 2026-09-17 (wheel donation intake feature)
+
+Built the "בדיקת תרומה" (donation check) feature end-to-end per user request: station manager searches a vehicle (plate or make+model, reusing /api/vehicle/lookup and /api/vehicle-models) to see the wheel spec it needs and how many matching wheels the station already has (reused /api/wheel-stations/search, filtered client-side to the current station). "קבל" creates a wheel with `pending_donation:true` (new DB columns: pending_donation/pending_since/pending_by_manager_id) — reuses the existing Add Wheel modal in a `donationAcceptMode` flag rather than building a parallel form. Pending wheels are hidden from the main inventory grid/stats/cross-station search (like soft-deleted ones) and listed in the Alerts tab with "השלם והכנס למלאי" (opens the existing Edit Wheel modal, which now always sends `pending_donation:false` — server only flips is_available on an actual true→false transition, so this is a no-op for normal edits) and "בטל תרומה" (reuses `handleDeleteWheel`; DELETE's borrow-block condition now excepts pending wheels). Files touched: `[stationId]/page.tsx`, `AppHeader.tsx` (new submenu link), `api/wheel-stations/[stationId]/wheels/route.ts` + `[wheelId]/route.ts`, `api/wheel-stations/search/route.ts`, `api/wheel-stations/filter-options/route.ts`, `lib/wheel-stats.ts`, new migration `20260916_add_wheel_pending_donation.sql`. `tsc --noEmit` clean. Migration NOT applied to live DB — user explicitly chose to run it themselves via the SQL editor (see cerebrum Do-Not-Repeat entry). Deliberately out of scope: true cross-station-unique wheel numbering (existing data already collides across stations; only avoided within the current station, matching the existing per-station DB unique constraint).
+| 08:42 | Edited ../../../.claude/plans/effervescent-hugging-sonnet.md | 4→4 lines | ~64 |
+| 08:42 | Edited ../../../.claude/plans/effervescent-hugging-sonnet.md | 4→5 lines | ~97 |
+| 08:42 | Edited ../../../.claude/plans/effervescent-hugging-sonnet.md | expanded (+8 lines) | ~180 |
+| 08:42 | Edited ../../../.claude/plans/effervescent-hugging-sonnet.md | inline fix | ~119 |
+| 08:46 | Created src/components/ServiceWorkerRegistration.tsx | — | ~141 |
+| 08:46 | Edited src/app/layout.tsx | added 1 import(s) | ~76 |
+| 08:46 | Edited src/app/layout.tsx | 4→5 lines | ~40 |
+| 08:47 | Edited src/lib/vehicle-mappings.ts | added 4 condition(s) | ~741 |
+| 08:47 | Edited src/__tests__/vehicle-mappings.test.ts | 13→13 lines | ~204 |
+| 08:47 | Edited src/__tests__/vehicle-mappings.test.ts | modified vehicle() | ~206 |
+| 08:47 | Edited src/__tests__/vehicle-mappings.test.ts | modified vehicle() | ~100 |
+| 08:48 | Edited src/__tests__/vehicle-mappings.test.ts | 3→3 lines | ~61 |
+| 08:48 | Edited src/__tests__/vehicle-mappings.test.ts | 3→3 lines | ~46 |
+| 08:50 | Edited src/app/search/page.tsx | added 1 condition(s) | ~333 |
+| 08:51 | Edited src/app/search/page.tsx | modified getDiameterDiffPct() | ~125 |
+| 08:54 | Edited src/app/search/page.tsx | expanded (+15 lines) | ~1203 |
+| 08:55 | Edited src/app/stations/page.tsx | added 1 condition(s) | ~1910 |
+| 08:56 | Edited src/app/operator/page.tsx | 6→6 lines | ~96 |
+| 08:57 | Edited src/app/operator/page.tsx | inline fix | ~68 |
+| 08:57 | Edited src/app/operator/page.tsx | inline fix | ~56 |
+| 08:57 | Edited src/app/operator/page.tsx | inline fix | ~68 |
+| 08:58 | Edited src/app/operator/page.tsx | inline fix | ~46 |
+| 08:59 | Edited src/app/operator/page.tsx | CSS: pages | ~301 |
+| 09:00 | Edited src/app/operator/page.tsx | 8→5 lines | ~63 |
+| 09:00 | Edited src/app/operator/page.tsx | 3→3 lines | ~71 |
+| 09:00 | Edited src/app/operator/page.tsx | 10→8 lines | ~172 |
+| 09:01 | Edited src/app/operator/page.tsx | added optional chaining | ~160 |
+| 09:01 | Edited src/app/operator/page.tsx | expanded (+6 lines) | ~230 |
+| 09:01 | Edited src/components/TireDiameterCalculatorModal.tsx | inline fix | ~33 |
+| 09:01 | Edited src/components/TireDiameterCalculatorModal.tsx | CSS: zone, null | ~105 |
+| 09:02 | Edited src/components/TireDiameterCalculatorModal.tsx | 20→22 lines | ~365 |
+| 09:55 | Session end: 34 writes across 7 files (effervescent-hugging-sonnet.md, ServiceWorkerRegistration.tsx, layout.tsx, vehicle-mappings.ts, vehicle-mappings.test.ts) | 24 reads | ~291985 tok |
+| 10:09 | Session end: 34 writes across 7 files (effervescent-hugging-sonnet.md, ServiceWorkerRegistration.tsx, layout.tsx, vehicle-mappings.ts, vehicle-mappings.test.ts) | 24 reads | ~293027 tok |
+| 10:22 | Session end: 34 writes across 7 files (effervescent-hugging-sonnet.md, ServiceWorkerRegistration.tsx, layout.tsx, vehicle-mappings.ts, vehicle-mappings.test.ts) | 24 reads | ~293027 tok |
+| 10:27 | Session end: 34 writes across 7 files (effervescent-hugging-sonnet.md, ServiceWorkerRegistration.tsx, layout.tsx, vehicle-mappings.ts, vehicle-mappings.test.ts) | 24 reads | ~293027 tok |
+| 10:29 | Session end: 34 writes across 7 files (effervescent-hugging-sonnet.md, ServiceWorkerRegistration.tsx, layout.tsx, vehicle-mappings.ts, vehicle-mappings.test.ts) | 24 reads | ~293027 tok |
+
+## Session: 2026-09-27 12:05
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+
+## Session: 2026-09-27 (handoff pickup)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 00:00 | Picked up HANDOFF-vehicle-lookup-60037403.md: verified PR #17 merged to main (a8c8522) and live on production | src/app/api/vehicle/lookup/route.ts | confirmed fixed — curl to https://wheel-stations.vercel.app/api/vehicle/lookup?plate=60037403 returns 200 success:true FX EV 2024; logged bug-412 | ~1500 |
+| 15:00 | Edited ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/db255345-845a-447f-81e2-fed09914a04e/scratchpad/version-bump-wt/src/lib/version.ts | "19.3.8" → "19.3.9" | ~9 |
+| 15:03 | Session end: 1 writes across 1 files (version.ts) | 3 reads | ~157 tok |
+| 15:17 | Session end: 1 writes across 1 files (version.ts) | 3 reads | ~157 tok |

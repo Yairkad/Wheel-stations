@@ -6690,8 +6690,16 @@
       "file": "src/lib/station-auth.ts",
       "root_cause": "When VerifyResult gained a managerPhone field for verifyStationManagerSession (bug-405), the same managerPhone: user.phone was also added to the original password-based verifyStationManager's return for symmetry - but only verifyStationManagerSession's own .select() was updated to fetch phone; the original verifyStationManager's .select('id, full_name, password, is_active') was never touched, so it referenced a column it never selected. Not caught by this session's own `tsc --noEmit` runs (the Supabase client here isn't instantiated with generated Database types, so .select() results are loosely typed and don't error on an unselected property) - only surfaced via the actual Next.js/Vercel build. Fixed by a separate Claude session/PR (#13, commit 819578f) the user pushed directly.",
       "fix": "Added 'phone' to verifyStationManager's .select() call, matching verifyStationManagerSession. Pulled into main via PR #13. Verified no other function touched in the manager_session migration has the same select/return mismatch (grepped super-manager-auth.ts's two functions - both already correctly select phone).",
-      "tags": ["build-error", "supabase", "auth", "manager-session", "typescript"],
-      "related_bugs": ["bug-405"],
+      "tags": [
+        "build-error",
+        "supabase",
+        "auth",
+        "manager-session",
+        "typescript"
+      ],
+      "related_bugs": [
+        "bug-405"
+      ],
       "occurrences": 1,
       "last_seen": "2026-09-14T09:00:00.000Z"
     },
@@ -6702,10 +6710,375 @@
       "file": "src/app/search/page.tsx",
       "root_cause": "loadFromHistory (search/page.tsx) just does setVehicleResult(item.vehicleResult) - a frozen JSON snapshot saved in the vehicle_search_history.vehicle_result column at the time of the ORIGINAL search (src/app/api/vehicle-search-history/route.ts POST). It never re-calls /api/vehicle/lookup, so fixing the underlying data never touches already-saved history rows - only a brand new search picks up the fix.",
       "fix": "A 'רענן מידע' button in the fitmentActionsRow on the RESULT screen itself (next to 'שיתוף'/'אימות מידות', ~line 2288), calling handleVehicleLookup() with no args since vehiclePlate is already in sync whether the result came from a fresh search or loadFromHistory. This re-fetches live from /api/vehicle/lookup, re-runs the wheel-station search, and re-saves to history - upserting on the unique `plate` column (POST route, onConflict: 'plate') so the stale row's vehicle_result/searched_at get overwritten instead of duplicated. Deliberately manual, not automatic on every history click - would hammer the external data.gov.il API for no benefit, since most cached rows are still fine. First attempt put an equivalent button in the vehicle-history LIST instead (visible only pre-search) - user's screenshot showed they were on the result screen (post loadFromHistory) with no button visible there, so that placement was removed once the result-screen one covered the actual use case (see cerebrum Do-Not-Repeat 2026-09-15).",
-      "tags": ["stale-cache", "history", "vehicle-search", "ux", "supabase-upsert"],
+      "tags": [
+        "stale-cache",
+        "history",
+        "vehicle-search",
+        "ux",
+        "supabase-upsert"
+      ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-09-15T00:00:00.000Z"
+    },
+    {
+      "id": "bug-410",
+      "timestamp": "2026-09-16T20:00:31.731Z",
+      "error_message": "Type error",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/route.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: const { wheel_number, rim_size, bolt_count, bolt_spacing, ex; const update: Record<string, unknown> = {",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-16T20:00:46.343Z"
+    },
+    {
+      "id": "bug-411",
+      "timestamp": "2026-09-16T20:00:55.356Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/wheel-stations/[stationId]/wheels/[wheelId]/route.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 10→11 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-16T20:00:55.356Z"
+    },
+    {
+      "id": "bug-412",
+      "timestamp": "2026-09-16T20:02:09.672Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "No early return/throw for edge case: wheel.pending_donation",
+      "fix": "Added guard clause: if (wheel.pending_donation)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-16T20:02:09.672Z"
+    },
+    {
+      "id": "bug-413",
+      "timestamp": "2026-09-16T20:02:27.406Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 6→8 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-16T20:02:27.406Z"
+    },
+    {
+      "id": "bug-414",
+      "timestamp": "2026-09-16T20:02:36.527Z",
+      "error_message": "CSS fix: custom_deposit",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null → wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,",
+      "fix": "Changed custom_deposit: wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null → wheelForm.custom_deposit ? parseInt(wheelForm.custom_deposit) : null,",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-16T20:02:36.527Z"
+    },
+    {
+      "id": "bug-415",
+      "timestamp": "2026-09-16T20:04:28.872Z",
+      "error_message": "Type error",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: {/* Donation Check Modal */}; {showDonationModal && (",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-16T20:09:14.378Z"
+    },
+    {
+      "id": "bug-416",
+      "timestamp": "2026-09-16T20:05:42.587Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/[stationId]/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: // Suggest the next free wheel_number for this station (pure; // stations that use prefixed schemes like \"HD-51\" or \"5-15\" | Also: {/* Pending Donations Section */}; {pendingDonationWheels.length > 0 && (",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-09-16T20:08:09.730Z"
+    },
+    {
+      "id": "bug-417",
+      "timestamp": "2026-09-17T05:41:52.923Z",
+      "error_message": "Significant refactor of ",
+      "file": "../../../.claude/plans/effervescent-hugging-sonnet.md",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 5→6 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T05:41:52.923Z"
+    },
+    {
+      "id": "bug-418",
+      "timestamp": "2026-09-17T05:47:03.769Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/lib/vehicle-mappings.ts",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 26→41 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T05:47:03.769Z"
+    },
+    {
+      "id": "bug-419",
+      "timestamp": "2026-09-17T05:47:42.283Z",
+      "error_message": "Type error",
+      "file": "src/__tests__/vehicle-mappings.test.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T05:47:42.283Z"
+    },
+    {
+      "id": "bug-420",
+      "timestamp": "2026-09-17T05:47:57.000Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/__tests__/vehicle-mappings.test.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 6→5 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T05:47:57.000Z"
+    },
+    {
+      "id": "bug-421",
+      "timestamp": "2026-09-17T05:48:07.630Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/__tests__/vehicle-mappings.test.ts",
+      "root_cause": "Had 'match'",
+      "fix": "Changed to 'smaller'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-17T05:48:15.669Z"
+    },
+    {
+      "id": "bug-422",
+      "timestamp": "2026-09-17T05:50:59.508Z",
+      "error_message": "CSS fix: wheels",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "wheels: exclude those whose CB is physically incompatible → exclude those whose CB is physically incompatible,",
+      "fix": "Changed wheels: exclude those whose CB is physically incompatible → exclude those whose CB is physically incompatible,",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T05:50:59.509Z"
+    },
+    {
+      "id": "bug-423",
+      "timestamp": "2026-09-17T05:54:07.552Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 10→25 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T05:54:07.552Z"
+    },
+    {
+      "id": "bug-424",
+      "timestamp": "2026-09-17T05:55:54.327Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/stations/page.tsx",
+      "root_cause": "No early return/throw for edge case: !w.is_available || w.temporarily_unavailable",
+      "fix": "Added guard clause: if (!w.is_available || w.temporarily_unavail)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T05:55:54.327Z"
+    },
+    {
+      "id": "bug-425",
+      "timestamp": "2026-09-17T05:59:47.303Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "7 lines replaced/restructured",
+      "fix": "Rewrote 16→18 lines (7 removed) | Also: const ws = parseInt(w.rim_size); const vrs = vehicleInfo?.rim_size ? parseInt(vehic",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-17T06:00:05.377Z"
+    },
+    {
+      "id": "bug-426",
+      "timestamp": "2026-09-17T06:00:33.054Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Had 's available, not oversized, and\n  // (when there'",
+      "fix": "Changed to 's available, and (when there'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T06:00:33.054Z"
+    },
+    {
+      "id": "bug-427",
+      "timestamp": "2026-09-17T06:01:15.658Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/app/operator/page.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: <div style={{fontSize: '0.75rem', marginTop: '4px', color: r; {rimFit === 'smaller' ? 'קוטר קטן מהנדרש'",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-17T06:01:26.681Z"
+    },
+    {
+      "id": "bug-428",
+      "timestamp": "2026-09-17T06:02:30.834Z",
+      "error_message": "CSS fix: color, background, border",
+      "file": "src/components/TireDiameterCalculatorModal.tsx",
+      "root_cause": "color: withinThreshold ? '#15803d' : '#dc2626' → zone === 'clean' ? '#15803d' : zone === 'risky' ? '#b45309' : '#dc2626'; background: withinThreshold ? '#f0fdf4' : '#fef2f2', → zone === 'clean' ? '#f0fdf4' : zone === 'risky' ? '#fffbeb' : '#fef2f2',; border: withinThreshold ? '1px solid #bbf7d0' : '1px solid #fecaca', → zone === 'clean' ? '1px solid #bbf7d0' : zone === 'risky' ? '1px solid #fde68a' : '1px solid #fecaca',",
+      "fix": "Changed color: withinThreshold ? '#15803d' : '#dc2626' → zone === 'clean' ? '#15803d' : zone === 'risky' ? '#b45309' : '#dc2626'; background: withinThreshold ? '#f0fdf4' : '#fef2f2', → zone === 'clean' ? '#f0fdf4' : zone === 'risky' ? '#fffbeb' : '#fef2f2',; border: withinThreshold ? '1px solid #bbf7d0' : '1px solid #fecaca', → zone === 'clean' ? '1px solid #bbf7d0' : zone === 'risky' ? '1px solid #fde68a' : '1px solid #fecaca',",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T06:02:30.834Z"
+    },
+    {
+      "id": "bug-429",
+      "timestamp": "2026-09-17T09:05:00.000Z",
+      "error_message": "חיפוש לרכב עם גאנט 17 הציג גם גלגל בגאנט 15 (הפרש 2 מידות) כתוצאה סבירה; והודעת 'קוטר לא תואם' לא ציינה כיוון (קטן/גדול)",
+      "file": "src/app/operator/page.tsx, src/lib/vehicle-mappings.ts, src/app/search/page.tsx, src/app/stations/page.tsx, src/components/TireDiameterCalculatorModal.tsx",
+      "root_cause": "שני מימושים נפרדים ולא מסונכרנים ללוגיקת התאמת קוטר גאנט: (1) src/lib/vehicle-mappings.ts's checkRimFit/compareRimAndDiameter כבר אכף חלון ±1 מידה + סף 3% על קוטר גלגול כולל, בשימוש ב-search/stations pages — אבל even שם גלגל 'לא תואם' רק סומן בעיצוב אדום, עדיין הוצג ברשימה. (2) operator/page.tsx (העמוד שמוקדנים אמיתיים משתמשים בו) לא קרא ל-checkRimFit בכלל — getRawWheelTier סימן כל גאנט קטן יותר כ-'maybe' בלי הגבלת מידה (מקור הבאג 17→15), ו-isAvailableMatch/visibleWheels פסלו כל גאנט גדול יותר לגמרי וללא תנאי, בלי שום ניסיון לאמת קוטר גלגול.",
+      "fix": "1) vehicle-mappings.ts: RimFitStatus הורחב מ-'match'|'needs_tire_data'|'mismatch' ל-גם 'smaller'|'larger'|'larger_risky', עם סף כפול לגאנט גדול (DIAMETER_MISMATCH_THRESHOLD=3% נקי, DIAMETER_EXCLUDE_THRESHOLD=6% חדש - מעליו לא מוצג). 2) search/stations pages: גלגלי 'mismatch' מסוננים לגמרי מהרשימה (לא רק מסומנים), והודעות עודכנו לכיוון מפורש. 3) operator/page.tsx: getRawWheelTier עודכן לקרוא ל-checkRimFit (עם wheel.tire_size שנוסף לטיפוס), הוסרו שתי הבלטות חוסמות-גורף לכל גאנט גדול (isAvailableMatch שורה ~1148, visibleWheels filter שורה ~1833), והרינדור עודכן להודעות מפורשות לפי כיוון. 4) TireDiameterCalculatorModal.tsx עודכן לשלוש רמות צבע (נקי/סיכון/חסום). כל 75 הבדיקות ב-vehicle-mappings.test.ts עברו (5 ציפיות עודכנו בכוונה), tsc --noEmit נקי.",
+      "tags": [
+        "rim-fit",
+        "diameter-mismatch",
+        "operator-page",
+        "duplicate-logic",
+        "vehicle-mappings"
+      ],
+      "related_bugs": [
+        "bug-109"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-17T09:05:00.000Z"
+    },
+    {
+      "id": "bug-412",
+      "timestamp": "2026-09-27T00:00:00.000Z",
+      "error_message": "חיפוש רכב 60037403 מחזיר 'הרכב לא נמצא במאגרים' למרות שהוא קיים ב-data.gov.il",
+      "file": "src/app/api/vehicle/lookup/route.ts",
+      "root_cause": "קריאה ל-data.gov.il מ-Vercel נכשלה (non-OK/exception) והקוד הישן התייחס לכל כישלון כאל 'לא נמצא', ואז נפל גם ב-find-car.co.il שחוסם את Vercel (403)",
+      "fix": "PR #17 (a575886/d1c6145, מוזג ב-a8c8522): fetchGovData() עם ניסיון חוזר אחד + לוגים, מחזיר 502 שגיאת חיבור למאגר הממשלתי במקום 404 כשהמאגר נכשל, נוסף צרי/צ׳רי->chery ל-MAKE_TRANSLATIONS. אומת חי מול production (wheel-stations.vercel.app/api/vehicle/lookup?plate=60037403 -> 200, success:true, source:regular, FX EV 2024)",
+      "tags": [
+        "vehicle-lookup",
+        "data.gov.il",
+        "find-car",
+        "production-verified"
+      ],
+      "related_bugs": [
+        "bug-411"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T00:00:00.000Z"
+    },
+    {
+      "id": "bug-431",
+      "timestamp": "2026-09-27T12:00:41.360Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/db255345-845a-447f-81e2-fed09914a04e/scratchpad/version-bump-wt/src/lib/version.ts",
+      "root_cause": "Had '19.3.8'",
+      "fix": "Changed to '19.3.9'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T12:00:41.360Z"
     }
   ]
 }

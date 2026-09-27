@@ -56,5 +56,8 @@
     "additionalDirectories": [
       "c:\\Users\\יאיר קדוש\\WHEELS_APP\\src\\app\\[stationId]"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }
