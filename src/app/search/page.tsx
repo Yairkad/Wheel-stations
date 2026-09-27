@@ -69,6 +69,14 @@ function SearchPageContent() {
   const [showOcrResultModal, setShowOcrResultModal] = useState(false)
   // TEMP DEBUG — remove once the share-target logout issue is diagnosed (bug-441 follow-up)
   const [shareDebugInfo, setShareDebugInfo] = useState<string | null>(null)
+  // Visible confirmation that a share-target landing actually reached the client JS
+  // at all — set synchronously from the very first render (not an effect) so it
+  // shows even before the auth check resolves. bug-448 follow-up: sharing was
+  // silently doing nothing with no way to tell whether the page was even reached.
+  const [shareOverlay, setShareOverlay] = useState<{ status: 'processing' | 'empty' | 'error' | 'no_file' } | null>(() => {
+    if (typeof window === 'undefined') return null
+    return new URLSearchParams(window.location.search).get('share') === '1' ? { status: 'processing' } : null
+  })
   const [ocrResultData, setOcrResultData] = useState<import('@/lib/ocr').OcrVehicleData | null>(null)
   const [ocrAutoSearch, setOcrAutoSearch] = useState(false)
   const ocrInputRef = useRef<HTMLInputElement>(null)
@@ -262,18 +270,21 @@ function SearchPageContent() {
 
     const checkForShareResult = () => {
       const params = new URLSearchParams(window.location.search)
+      if (params.get('share') === '1' && !shareOverlay) setShareOverlay({ status: 'processing' })
+
       let ocrParam = params.get('ocr')
       let ocrEmpty = params.get('ocr_empty')
       let ocrError = params.get('ocr_error')
+      let cookieValue: string | null = null
 
       if (!ocrParam && !ocrEmpty && !ocrError) {
         const match = document.cookie.match(/(?:^|; )share_ocr_result=([^;]*)/)
         if (match) {
-          const value = decodeURIComponent(match[1])
+          cookieValue = decodeURIComponent(match[1])
           document.cookie = 'share_ocr_result=; Max-Age=0; path=/'
-          if (value === 'ocr_empty') ocrEmpty = '1'
-          else if (value === 'ocr_error') ocrError = '1'
-          else ocrParam = value
+          if (cookieValue === 'ocr_empty') ocrEmpty = '1'
+          else if (cookieValue === 'ocr_error' || cookieValue === 'no_file') ocrError = '1'
+          else ocrParam = cookieValue
         }
       }
 
@@ -282,13 +293,17 @@ function SearchPageContent() {
       if (ocrParam) {
         try {
           applyOcrResult(JSON.parse(ocrParam))
+          setShareOverlay(null)
         } catch {
           toast.error('שגיאה בקריאת התמונה')
+          setShareOverlay({ status: 'error' })
         }
       } else if (ocrError) {
         toast.error('שגיאה בקריאת התמונה')
+        setShareOverlay({ status: cookieValue === 'no_file' ? 'no_file' : 'error' })
       } else {
         toast.error('לא זוהה מידע מהתמונה')
+        setShareOverlay({ status: 'empty' })
       }
     }
 
@@ -1191,6 +1206,34 @@ function SearchPageContent() {
     } finally {
       setAddModelLoading(false)
     }
+  }
+
+  // Shown as soon as we detect a share-target landing (?share=1), before even the
+  // auth check — proves the page was actually reached, and shows the real outcome
+  // instead of silently doing nothing (bug-448 follow-up).
+  if (shareOverlay) {
+    const messages: Record<typeof shareOverlay.status, string> = {
+      processing: 'מזהה את התמונה ששיתפת...',
+      empty: 'לא זוהה מידע ברישיון בתמונה ששותפה',
+      no_file: 'התמונה לא התקבלה מהשיתוף — נסה לשתף שוב',
+      error: 'שגיאה בזיהוי התמונה ששותפה',
+    }
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#f8fafc', direction: 'rtl', textAlign: 'center', padding: '20px', flexDirection: 'column', gap: '18px',
+      }}>
+        {shareOverlay.status === 'processing' ? (
+          <svg className="spinning-wheel" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        ) : null}
+        <p style={{ color: '#334155', fontSize: '0.95rem', maxWidth: 300 }}>{messages[shareOverlay.status]}</p>
+        {shareOverlay.status !== 'processing' && (
+          <button onClick={() => setShareOverlay(null)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' }}>
+            סגור
+          </button>
+        )}
+      </div>
+    )
   }
 
   // Block rendering until auth check completes (prevents bfcache bypass)

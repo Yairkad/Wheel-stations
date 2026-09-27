@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T19:11:59.295Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T19:17:00.591Z
 > Files: 7 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
@@ -296,7 +296,7 @@
 
 ## src/app/api/share-target/
 
-- `route.ts` — Web Share Target endpoint (public/manifest.json's share_target.action). (~588 tok)
+- `route.ts` — Web Share Target endpoint (public/manifest.json's share_target.action). (~833 tok)
 
 ## src/app/api/signed-forms/[formId]/
 
@@ -450,7 +450,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~52415 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~53153 tok)
 
 ## src/app/sign/[stationId]/
 

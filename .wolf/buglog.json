@@ -7377,6 +7377,92 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T19:20:00.000Z"
+    },
+    {
+      "id": "bug-449",
+      "timestamp": "2026-09-27T19:15:36.146Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 34→50 lines (10 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:15:36.146Z"
+    },
+    {
+      "id": "bug-450",
+      "timestamp": "2026-09-27T19:16:25.339Z",
+      "error_message": "Missing guard clause",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "No early return/throw for edge case: typeof window === 'undefined'",
+      "fix": "Added guard clause: if (typeof window === 'undefined')",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:16:25.339Z"
+    },
+    {
+      "id": "bug-451",
+      "timestamp": "2026-09-27T19:16:39.148Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 31→38 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:16:39.148Z"
+    },
+    {
+      "id": "bug-452",
+      "timestamp": "2026-09-27T19:17:00.618Z",
+      "error_message": "Wrong condition in logic",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Condition was: if (!isAuthenticated)",
+      "fix": "Changed to: if (shareOverlay)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:17:00.618Z"
+    },
+    {
+      "id": "bug-453",
+      "timestamp": "2026-09-27T19:25:00.000Z",
+      "error_message": "המשתמש הציע: הוסף מסך טעינה גלוי אחרי שיתוף כדי לראות אם בכלל מגיעים למסך חיפוש או נתקעים",
+      "file": "src/app/api/share-target/route.ts, src/app/search/page.tsx",
+      "root_cause": "בזמן מימוש האבחון התגלה קונקרטית: הנתיב \"אין קובץ\" ב-/api/share-target (כשformData.get(\"image\") מחזיר null) ביצע redirect גולמי בלי שום cookie/פרמטר בכלל - בדיוק תואם לזמני תגובה מהירים מאוד (12-44ms, בלי קריאת Gemini) שנראו בלוגים האמיתיים של המשתמש, לעומת קריאה תקינה ל-OCR שלוקחת 4+ שניות. זה מסביר למה כלום לא קרה: יתכן שהשיתוף האמיתי מאנדרואיד לא שולח קובץ תחת השם \"image\" כמצופה, וקוד השרת פשוט ויתר בלי סימן.",
+      "fix": "1) /api/share-target: fallback שסורק את כל שדות ה-formData לכל File שאינו image (למקרה ששם השדה שונה בפועל), ורישום console.error של מפתחות ה-formData כשאין קובץ בכלל, לאבחון עתידי. 2) כל נתיבי ה-redirect (כולל \"אין קובץ\") מסמנים תמיד ?share=1 בנוסף לפרמטר הספציפי, כך שהלקוח תמיד יודע שהגיע משיתוף. 3) search/page.tsx: state חדש shareOverlay שנקבע סינכרונית מה-render הראשון (לפני אפילו בדיקת האימות) אם share=1 קיים - מציג מסך מלא \"מזהה את התמונה...\" ואז את התוצאה בפועל (הצלחה/ריק/שגיאה/לא-התקבל-קובץ) עם כפתור סגירה - כך שרואים ויזואלית אם בכלל מגיעים לעמוד או נתקעים איפשהו קודם.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "pwa",
+        "diagnostics",
+        "formdata"
+      ],
+      "related_bugs": [
+        "bug-441",
+        "bug-444",
+        "bug-446"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:25:00.000Z"
     }
   ]
 }
