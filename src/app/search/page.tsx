@@ -299,11 +299,27 @@ function SearchPageContent() {
 
   useEffect(() => {
     // Check if user is authenticated (station manager, operator, or district manager)
-    const hasStationSession = Object.keys(localStorage).some(key => key.startsWith('station_session_'))
-    const hasOperatorSession = localStorage.getItem('operator_session')
-    const hasSuperManagerSession = localStorage.getItem('super_manager_session')
+    const hasSession = () =>
+      Object.keys(localStorage).some(key => key.startsWith('station_session_')) ||
+      !!localStorage.getItem('operator_session') ||
+      !!localStorage.getItem('super_manager_session')
 
-    if (!hasStationSession && !hasOperatorSession && !hasSuperManagerSession) {
+    // bug-446 follow-up: on Android, sharing to an already-open PWA task can resume a
+    // frozen bfcached instance of this very page instead of a fresh load. If THAT
+    // instance's one-time mount check happened to see "not logged in" (e.g. it was
+    // frozen from before this browser tab's session existed) and already redirected
+    // to /login, opening the app "normally" right after can just resume that same
+    // now-on-/login task — it looks like a fresh logout but the real session in
+    // localStorage was likely never touched. Re-check on 'pageshow' too, matching the
+    // existing pattern in AppHeader.tsx/operator/page.tsx, so a restored instance
+    // re-validates against the CURRENT localStorage instead of trusting a stale
+    // in-memory decision.
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && !hasSession()) window.location.href = '/login'
+    }
+    window.addEventListener('pageshow', handlePageShow)
+
+    if (!hasSession()) {
       // TEMP DEBUG — remove once the share-target logout issue is diagnosed (bug-441
       // follow-up): users report being logged out specifically after a share-target
       // launch. alert() turned out to be silently blocked here (no user-gesture in
@@ -367,6 +383,7 @@ function SearchPageContent() {
         // Invalid session, ignore
       }
     }
+    return () => window.removeEventListener('pageshow', handlePageShow)
   }, [])
 
   // Close modals on Escape key

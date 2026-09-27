@@ -7341,6 +7341,42 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T19:10:00.000Z"
+    },
+    {
+      "id": "bug-447",
+      "timestamp": "2026-09-27T19:11:37.511Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 25→41 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:11:37.511Z"
+    },
+    {
+      "id": "bug-448",
+      "timestamp": "2026-09-27T19:20:00.000Z",
+      "error_message": "המשתמש שאל: למה שיתוף תמונה גורם לדרישת התחברות מחדש כשפותחים את האפליקציה אחר כך",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "אותה בעיית bfcache שתוקנה עבור בדיקת ה-OCR (bug-446) קיימת גם בבדיקת ה-isAuthenticated עצמה: useEffect עם deps ריקים רץ פעם אחת בלבד ב-mount. אם אנדרואיד מחזיר לחיים instance קפוא שכבר קבע פעם \"לא מחובר\" והפנה בעצמו ל-/login (ניווט אמיתי, לא רק רינדור זמני), פתיחת האפליקציה שוב מיד אחר כך יכולה לחזור לאותו טאב/instance שכבר נמצא בפועל על /login - נראה כמו ניתוק טרי, אבל ה-session האמיתי ב-localStorage כנראה לא נמחק בפועל. זה בדיוק התבנית שכבר קיימת ומטופלת ב-AppHeader.tsx/operator/page.tsx/call-center/page.tsx דרך pageshow+e.persisted - אבל לא הוחלה על בדיקת ה-auth הפנימית של search/page.tsx עצמה.",
+      "fix": "הוספת מאזין pageshow לבדיקת ה-auth ב-search/page.tsx (בדיוק כמו בדפים האחרים): על שחזור מ-bfcache (e.persisted) בודקים מחדש אם יש session אמיתי ב-localStorage, ורק אם באמת אין - מפנים ל-login. זה מוודא שהעמוד תמיד מסתמך על המצב העדכני בפועל, לא על החלטה קפואה מהעבר.",
+      "tags": [
+        "auth",
+        "bfcache",
+        "pageshow",
+        "share-target",
+        "session"
+      ],
+      "related_bugs": [
+        "bug-446"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:20:00.000Z"
     }
   ]
 }
