@@ -7502,6 +7502,44 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T19:45:00.000Z"
+    },
+    {
+      "id": "bug-456",
+      "timestamp": "2026-09-27T19:48:51.479Z",
+      "error_message": "Type error",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:48:51.480Z"
+    },
+    {
+      "id": "bug-457",
+      "timestamp": "2026-09-27T19:50:00.000Z",
+      "error_message": "Edge runtime לא פתר את בעיית 413, ולוג production אמיתי הראה formData ריק לגמרי (keys: []) - לא רק שדה חסר",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "קיבלתי גישה ל-Vercel logs דרך ה-CLI (npx vercel logs). בדיקה חוזרת עם קובץ 6MB על Edge runtime עדיין החזירה 413 FUNCTION_PAYLOAD_TOO_LARGE - המגבלה נאכפת ברמת ה-routing של Vercel, לא תלויה ב-runtime. יותר חשוב: לוג אמיתי משיתוף אמיתי בזמן שה-Edge runtime היה פעיל הראה \"[share-target] no file in formData, keys: []\" - FormData ריקה לגמרי, לא רק חסר שדה \"image\". יתכן ש-Edge runtime לא פירש נכון את גוף ה-multipart שאנדרואיד שולח.",
+      "fix": "הוחזר ל-Node.js runtime הרגיל (הוסר export const runtime=\"edge\"). הורחב הלוג במקרה \"אין קובץ\" לכלול גם content-type ו-content-length של הבקשה, לאבחון מדויק יותר בניסיון הבא. tsc --noEmit נקי.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "vercel",
+        "edge-runtime",
+        "formdata",
+        "revert"
+      ],
+      "related_bugs": [
+        "bug-453",
+        "bug-455"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T19:50:00.000Z"
     }
   ]
 }

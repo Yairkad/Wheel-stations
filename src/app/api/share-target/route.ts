@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runGeminiOcr } from '@/lib/ocr-gemini'
 
-// Edge runtime: the default Node.js serverless runtime hard-caps request bodies at
-// ~4.5MB, which a real phone camera photo shared via the OS share sheet routinely
-// exceeds (confirmed via a direct 413 FUNCTION_PAYLOAD_TOO_LARGE from Vercel on a
-// 5MB test upload — bug-453 follow-up). Edge functions stream the body instead of
-// buffering it whole, so they aren't subject to that same limit.
-export const runtime = 'edge'
+// bug-455 follow-up: tried `export const runtime = 'edge'` here to dodge Vercel's
+// ~4.5MB request body limit (confirmed via direct 413 FUNCTION_PAYLOAD_TOO_LARGE
+// tests). Turned out the limit is enforced at Vercel's routing layer regardless of
+// runtime (a 6MB test still 413'd on edge) — AND a real Android share attempt on the
+// edge deployment came back with `request.formData()` completely empty (zero keys,
+// not just a missing "image" field), logged as "[share-target] no file in formData,
+// keys: []". Reverted to the default Node.js runtime since edge bought nothing and
+// may have broken multipart parsing for whatever shape Android's share intent sends.
 
 // Web Share Target endpoint (public/manifest.json's share_target.action).
 // The OS share sheet POSTs the shared image directly here — a real server route,
@@ -53,7 +55,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!file) {
-      console.error('[share-target] no file in formData, keys:', [...formData.keys()])
+      console.error(
+        '[share-target] no file in formData. keys:', [...formData.keys()],
+        '| content-type:', request.headers.get('content-type'),
+        '| content-length:', request.headers.get('content-length')
+      )
       return withResult(searchUrl, 'no_file', 'ocr_error')
     }
 
