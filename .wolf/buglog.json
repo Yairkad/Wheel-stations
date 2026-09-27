@@ -7540,6 +7540,39 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-27T19:50:00.000Z"
+    },
+    {
+      "id": "bug-458",
+      "timestamp": "2026-09-27T20:23:34.309Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Was returning: 'done'",
+      "fix": "Now returns: 'not-found'",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T20:23:34.309Z"
+    },
+    {
+      "id": "bug-459",
+      "timestamp": "2026-09-27T20:15:00.000Z",
+      "error_message": "אחרי אישור זיהוי תמונה (רכב טויוטה קורולה, לוחית 66409702, זוהה גם דגם וגם מספר רכב), חלון החיפוש נסגר לגמרי בלי הודעת שגיאה במקום להציג תוצאות",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "אומת ישירות מול production: /api/vehicle-models?make=TOYOTA&model=COROLLA TS HSD&year=2021 מחזיר תוצאה ריקה (המאגר המקומי לא מזהה את קוד הדגם הטכני \"TS HSD\" שג'מיני קרא מהרישיון), בעוד ש-/api/vehicle/lookup?plate=66409702 מחזיר בהצלחה wheel_fitment מלא (5x114.3) דרך המאגר הממשלתי + wheelfitment.eu. מכיוון ש-handleOcrSearch מעדיף חיפוש לפי דגם כשגם יצרן וגם דגם זוהו (אפילו כשגם לוחית זוהתה), המשתמש נתקע במסלול שנכשל במקום במסלול שהיה מצליח. לא אותר קוד קונקרטי שסוגר את כל החלון (הקוד אמור להציג כרטיס \"לא נמצא מידע\" עם קישורים וכפתור הוספת דגם) - ייתכן שהמשתמש תפס את מצב \"לא נמצא\" כ\"חזרה למסך הראשי\", אבל בכל מקרה זו הייתה תוצאה שגויה בפועל (אין תוצאות כשהיו אמורות להיות).",
+      "fix": "handleModelSearch מחזיר כעת ערך \"not-found\" ייעודי (לא רק \"done\") כשלא נמצאו מידות גלגל בדגם. handleOcrSearch, כשמקבל \"not-found\" וגם יש מספר רכב (לוחית) שזוהה, נופל אוטומטית לחיפוש לפי לוחית (handleVehicleLookup) במקום להשאיר את המשתמש עם כרטיס \"לא נמצא\". אומת עם curl ישירות מול production ששני ה-endpoints מתנהגים בדיוק כמתואר. tsc --noEmit נקי.",
+      "tags": [
+        "ocr",
+        "vehicle-search",
+        "model-fallback",
+        "plate-lookup"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-27T20:15:00.000Z"
     }
   ]
 }

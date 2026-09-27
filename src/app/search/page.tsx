@@ -131,12 +131,23 @@ function SearchPageContent() {
       setModelSearchYear(ocr.year ?? '')
       if (ocr.rimSize) setSearchFilters(prev => ({ ...prev, rim_size: String(ocr.rimSize) }))
       setVehicleSearchTab('model')
-      const result = await handleModelSearch({
+      let result = await handleModelSearch({
         make: ocr.manufacturer!,
         model: ocr.model!,
         year: ocr.year ?? '',
         allowMissingYear: !ocr.year,
       })
+      // The local model DB doesn't recognize every OCR'd model string (e.g. Gemini
+      // reads out a trim/technical code like "COROLLA TS HSD" that isn't how the DB
+      // stores it) — if we also have a plate, the government-registry-based plate
+      // lookup is a more reliable fallback than leaving the user with a bare
+      // "not found" card.
+      if (result === 'not-found' && ocr.plate) {
+        setVehiclePlate(ocr.plate)
+        setVehicleSearchTab('plate')
+        await handleVehicleLookup(ocr.plate)
+        result = 'done'
+      }
       setOcrAutoSearch(false)
       // When ambiguous, the Model Selection Modal is already visible on its own —
       // handleVehicleModelSelect reopens the vehicle modal once the user picks a spec.
@@ -669,7 +680,7 @@ function SearchPageContent() {
   }, [sharedPlate, isAuthenticated])
 
   // Search by make/model/year using wheel-size.com scraper
-  const handleModelSearch = async (overrides?: { make?: string; model?: string; year?: string; allowMissingYear?: boolean }): Promise<'done' | 'ambiguous' | 'validation-error' | 'error'> => {
+  const handleModelSearch = async (overrides?: { make?: string; model?: string; year?: string; allowMissingYear?: boolean }): Promise<'done' | 'ambiguous' | 'validation-error' | 'error' | 'not-found'> => {
     const make = overrides?.make ?? modelSearchMake
     const model = overrides?.model ?? modelSearchModel
     const year = overrides?.year ?? modelSearchYear
@@ -776,6 +787,7 @@ function SearchPageContent() {
         }
       } else if (seq === vehicleSearchSeqRef.current) {
         setVehicleError('לא נמצאו מידות גלגל לדגם זה. נסה לחפש באתר wheel-size.com')
+        return 'not-found'
       }
       return 'done'
     } catch {
