@@ -205,6 +205,8 @@ const MAKE_TRANSLATIONS: Record<string, string> = {
   'ניאו': 'nio',
   'גאק': 'gac',
   'פאו': 'faw',
+  'צ\'רי': 'chery',
+  'צרי': 'chery',
 }
 
 function normalizeMakeForWheelfitment(make: string): string {
@@ -597,6 +599,8 @@ export async function GET(request: NextRequest) {
           pcd_found: !!pcdData
         })
       }
+    } else {
+      console.error('data.gov.il regular API error:', regularResponse.status, regularResponse.statusText)
     }
 
     // Step 2: Vehicle not found in regular database, try personal import database

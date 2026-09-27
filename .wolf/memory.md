@@ -2581,3 +2581,4 @@
 | 22:40 | פיצ'ר דוחות מפורטים: wheel_search_log + דוח חיפושים (מנהל+אדמין), סינון תאריכים למנהל, סינון תחנה/סוג דוח לאדמין, ייצוא אקסל מעוצב לכל דוח | search route, operator/search pages, [stationId]/page.tsx, admin/analytics, reports/* | next build passes | ~60k |
 | 23:30 | עיצוב מחדש לדוחות: ExportDialog יחיד, סרגל תקופות, לשוניות חסר/מושאל, חיפושי עבר לפי מידה | reports/*, [stationId]/page.tsx, admin/analytics | user approved screenshots | ~30k |
 | 06:23 | Investigated why plate 60037403 not found; data.gov.il blocked by sandbox egress (403), explained lookup only checks regular+personal-import resources then find-car | src/app/api/vehicle/lookup/route.ts | answered, awaiting user info | ~15k |
+| 06:37 | find-car 403 from Vercel confirmed; added regular gov.il error log + Chery make translation | src/app/api/vehicle/lookup/route.ts | pushed | ~20k |
