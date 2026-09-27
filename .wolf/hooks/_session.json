@@ -8,7 +8,7 @@
       "first_read": "2026-09-27T11:55:37.539Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/version.ts": {
-      "count": 1,
+      "count": 2,
       "tokens": 74,
       "first_read": "2026-09-27T11:58:04.924Z"
     },
@@ -16,6 +16,31 @@
       "count": 1,
       "tokens": 74,
       "first_read": "2026-09-27T12:00:36.810Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/manifest.json": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-09-27T12:20:52.234Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/public/sw.js": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-09-27T12:20:52.629Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/ServiceWorkerRegistration.tsx": {
+      "count": 1,
+      "tokens": 141,
+      "first_read": "2026-09-27T12:20:53.103Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx": {
+      "count": 5,
+      "tokens": 50916,
+      "first_read": "2026-09-27T12:21:01.249Z"
+    },
+    "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/ocr/route.ts": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-09-27T12:22:09.913Z"
     }
   },
   "files_written": [
@@ -24,14 +49,21 @@
       "action": "edit",
       "tokens": 9,
       "at": "2026-09-27T12:00:41.342Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 289,
+      "at": "2026-09-27T12:23:35.091Z"
     }
   ],
   "edit_counts": {
-    "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/db255345-845a-447f-81e2-fed09914a04e/scratchpad/version-bump-wt/src/lib/version.ts": 1
+    "../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/db255345-845a-447f-81e2-fed09914a04e/scratchpad/version-bump-wt/src/lib/version.ts": 1,
+    "src/app/search/page.tsx": 1
   },
-  "anatomy_hits": 2,
-  "anatomy_misses": 1,
-  "repeated_reads_warned": 0,
+  "anatomy_hits": 4,
+  "anatomy_misses": 4,
+  "repeated_reads_warned": 5,
   "cerebrum_warnings": 0,
-  "stop_count": 4
+  "stop_count": 5
 }

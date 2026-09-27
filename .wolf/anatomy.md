@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T12:00:41.312Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T12:23:35.011Z
 > Files: 43 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
@@ -467,7 +467,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~50916 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~51004 tok)
 
 ## src/app/sign/[stationId]/
 
