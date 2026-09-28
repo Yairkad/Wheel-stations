@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-27T21:09:08.787Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-28T07:41:12.853Z
 > Files: 8 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
@@ -86,12 +86,12 @@
 
 ## public/
 
-- `manifest.json` (~240 tok)
+- `manifest.json` (~250 tok)
 - `sw.js` — Service Worker for Web Push Notifications (~589 tok)
 
 ## scripts/
 
-- `tmp-add-bug.js` — Declares fs (~472 tok)
+- `tmp-add-bug.js` — Declares fs (~651 tok)
 
 ## src/
 
