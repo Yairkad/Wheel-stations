@@ -13,8 +13,8 @@
       "first_read": "2026-09-27T18:18:47.686Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx": {
-      "count": 25,
-      "tokens": 53532,
+      "count": 29,
+      "tokens": 53594,
       "first_read": "2026-09-27T18:19:19.848Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/share-target/route.ts": {
@@ -254,18 +254,67 @@
       "action": "create",
       "tokens": 471,
       "at": "2026-09-28T11:50:12.692Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/lib/client-diag.ts",
+      "action": "create",
+      "tokens": 462,
+      "at": "2026-09-28T11:55:05.695Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 34,
+      "at": "2026-09-28T11:55:13.936Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 154,
+      "at": "2026-09-28T11:55:21.523Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 348,
+      "at": "2026-09-28T11:55:35.854Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 87,
+      "at": "2026-09-28T11:55:40.939Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 133,
+      "at": "2026-09-28T11:55:48.812Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 539,
+      "at": "2026-09-28T11:56:07.014Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/scripts/tmp-add-bug.js",
+      "action": "create",
+      "tokens": 490,
+      "at": "2026-09-28T11:56:45.223Z"
     }
   ],
   "edit_counts": {
-    "src/app/search/page.tsx": 21,
+    "src/app/search/page.tsx": 27,
     "src/app/api/share-target/route.ts": 6,
-    "scripts/tmp-add-bug.js": 5,
+    "scripts/tmp-add-bug.js": 6,
     "public/sw.js": 2,
-    "public/manifest.json": 2
+    "public/manifest.json": 2,
+    "src/lib/client-diag.ts": 1
   },
   "anatomy_hits": 4,
   "anatomy_misses": 3,
-  "repeated_reads_warned": 30,
+  "repeated_reads_warned": 34,
   "cerebrum_warnings": 0,
-  "stop_count": 20
+  "stop_count": 21
 }

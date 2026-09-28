@@ -14,6 +14,7 @@ import LoadingSpin from '@/components/LoadingSpin'
 import StationFilterCombobox, { filterByStation } from '@/components/StationFilterCombobox'
 import { useRoleSwitch } from '@/hooks/useRoleSwitch'
 import { appendSearchLogParams } from '@/lib/search-log'
+import { logDiag, downloadDiagLog } from '@/lib/client-diag'
 
 const MAX_HISTORY_ITEMS = 30
 
@@ -75,6 +76,13 @@ function SearchPageContent() {
   // silently doing nothing with no way to tell whether the page was even reached.
   const [shareOverlay, setShareOverlay] = useState<{ status: 'processing' | 'empty' | 'error' | 'no_file' } | null>(() => {
     if (typeof window === 'undefined') return null
+    logDiag('page-init', {
+      href: window.location.href,
+      referrer: document.referrer,
+      userAgent: navigator.userAgent,
+      standalone: window.matchMedia('(display-mode: standalone)').matches,
+      cookie: document.cookie,
+    })
     return new URLSearchParams(window.location.search).get('share') === '1' ? { status: 'processing' } : null
   })
   const [ocrResultData, setOcrResultData] = useState<import('@/lib/ocr').OcrVehicleData | null>(null)
@@ -279,8 +287,9 @@ function SearchPageContent() {
   useEffect(() => {
     if (!isAuthenticated) return
 
-    const checkForShareResult = () => {
+    const checkForShareResult = (source: string) => {
       const params = new URLSearchParams(window.location.search)
+      logDiag('checkForShareResult:start', { source, href: window.location.href, cookie: document.cookie })
       if (params.get('share') === '1' && !shareOverlay) setShareOverlay({ status: 'processing' })
 
       let ocrParam = params.get('ocr')
@@ -299,6 +308,7 @@ function SearchPageContent() {
         }
       }
 
+      logDiag('checkForShareResult:found', { ocrParam: ocrParam ? ocrParam.slice(0, 200) : null, ocrEmpty, ocrError, cookieValue })
       if (!ocrParam && !ocrEmpty && !ocrError) return
       window.history.replaceState({}, '', '/search')
       if (ocrParam) {
@@ -318,9 +328,10 @@ function SearchPageContent() {
       }
     }
 
-    checkForShareResult()
-    window.addEventListener('pageshow', checkForShareResult)
-    return () => window.removeEventListener('pageshow', checkForShareResult)
+    checkForShareResult('mount')
+    const onPageShow = (e: PageTransitionEvent) => checkForShareResult(e.persisted ? 'pageshow-persisted' : 'pageshow-fresh')
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
   }, [isAuthenticated])
 
   useEffect(() => {
@@ -341,10 +352,12 @@ function SearchPageContent() {
     // re-validates against the CURRENT localStorage instead of trusting a stale
     // in-memory decision.
     const handlePageShow = (e: PageTransitionEvent) => {
+      logDiag('auth:pageshow', { persisted: e.persisted, hasSession: hasSession(), href: window.location.href })
       if (e.persisted && !hasSession()) window.location.href = '/login'
     }
     window.addEventListener('pageshow', handlePageShow)
 
+    logDiag('auth:mount-check', { hasSession: hasSession(), href: window.location.href, localStorageKeys: Object.keys(localStorage) })
     if (!hasSession()) {
       // TEMP DEBUG — remove once the share-target logout issue is diagnosed (bug-441
       // follow-up): users report being logged out specifically after a share-target
@@ -1240,10 +1253,34 @@ function SearchPageContent() {
         ) : null}
         <p style={{ color: '#334155', fontSize: '0.95rem', maxWidth: 300 }}>{messages[shareOverlay.status]}</p>
         {shareOverlay.status !== 'processing' && (
-          <button onClick={() => setShareOverlay(null)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' }}>
-            סגור
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button onClick={() => setShareOverlay(null)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' }}>
+              סגור
+            </button>
+            <button onClick={() => downloadDiagLog()} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', color: '#334155', fontSize: '0.85rem', cursor: 'pointer' }}>
+              הורד יומן אבחון (JSON)
+            </button>
+          </div>
         )}
+      </div>
+    )
+  }
+
+  // Manual escape hatch (works with or without a share attempt): visiting
+  // /search?diag=1 always shows an export button for the diagnostic log,
+  // regardless of auth state, in case something goes wrong before the overlay
+  // above ever renders.
+  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('diag') === '1') {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#f8fafc', direction: 'rtl', textAlign: 'center', padding: '20px', flexDirection: 'column', gap: '18px',
+      }}>
+        <p style={{ color: '#334155', fontSize: '0.95rem' }}>יומן אבחון שיתוף</p>
+        <button onClick={() => downloadDiagLog()} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' }}>
+          הורד יומן אבחון (JSON)
+        </button>
+        <a href="/search" style={{ color: '#64748b', fontSize: '0.85rem' }}>חזרה לחיפוש</a>
       </div>
     )
   }

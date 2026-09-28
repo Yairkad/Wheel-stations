@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-28T11:50:12.671Z
-> Files: 8 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-28T11:56:45.207Z
+> Files: 9 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
 
@@ -91,7 +91,7 @@
 
 ## scripts/
 
-- `tmp-add-bug.js` — Declares fs (~471 tok)
+- `tmp-add-bug.js` — Declares fs (~490 tok)
 
 ## src/
 
@@ -451,7 +451,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~53326 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~54014 tok)
 
 ## src/app/sign/[stationId]/
 
@@ -480,6 +480,7 @@
 
 ## src/lib/
 
+- `client-diag.ts` — TEMP DIAGNOSTIC (share-target investigation): records client-side lifecycle (~462 tok)
 - `ocr-gemini.ts` — Server-only: calls Gemini to extract vehicle fields from a רישיון רכב photo. (~1235 tok)
 
 ## src/stories/mocks/

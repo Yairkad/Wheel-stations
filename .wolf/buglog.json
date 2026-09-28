@@ -7755,6 +7755,61 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-28T07:30:00.000Z"
+    },
+    {
+      "id": "bug-470",
+      "timestamp": "2026-09-28T11:55:40.947Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Was returning: () => window.removeEventListener('pageshow', check",
+      "fix": "Now returns: () => window.removeEventListener('pageshow', onPag",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T11:55:40.947Z"
+    },
+    {
+      "id": "bug-471",
+      "timestamp": "2026-09-28T11:56:07.024Z",
+      "error_message": "CSS fix: color",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "color: '#334155', fontSize: '0.95rem', maxWidth: 300 → '#64748b', fontSize: '0.85rem'",
+      "fix": "Changed color: '#334155', fontSize: '0.95rem', maxWidth: 300 → '#64748b', fontSize: '0.85rem'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T11:56:07.024Z"
+    },
+    {
+      "id": "bug-472",
+      "timestamp": "2026-09-28T08:00:00.000Z",
+      "error_message": "המשתמש ביקש כלי שיקליט את כל הפעולות שקורות בצד הלקוח (לא רק מה שמגיע לשרת) ויאפשר ייצוא כ-JSON, כי אין לו כרגע גישה ל-USB debugging",
+      "file": "src/lib/client-diag.ts, src/app/search/page.tsx",
+      "root_cause": "לוגי השרת (bug-469) מראים רק מה שהגיע בפועל לשרת, לא מה שקרה בצד הלקוח (טעינת עמוד, pageshow/bfcache, מה נמצא ב-URL/cookie). כדי לבדוק תיאוריות כמו bfcache (bug-446/bug-448) או timing בלי חיבור פיזי, צריך תיעוד מהדפדפן עצמו.",
+      "fix": "נוצר src/lib/client-diag.ts: logDiag(name, data) שומר אירועים מתויגי-זמן ל-localStorage (מוגבל ל-300 רשומות), downloadDiagLog() מוריד קובץ JSON. חובר לנקודות מפתח ב-search/page.tsx: אתחול עמוד (href/referrer/UA/standalone/cookie), כל הרצה של checkForShareResult (מקור: mount/pageshow-fresh/pageshow-persisted, מה נמצא ב-URL/cookie), ובדיקת האימות (hasSession בכל pageshow ובעליה). כפתור הורדה נוסף למסך ה-shareOverlay, ובנוסף מסך גישה עצמאי ב-/search?diag=1 שעובד גם בלי חיבור לשיתוף ובלי תלות באימות. tsc --noEmit נקי.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "diagnostics",
+        "client-side-logging",
+        "temporary"
+      ],
+      "related_bugs": [
+        "bug-462",
+        "bug-466",
+        "bug-467",
+        "bug-469"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T08:00:00.000Z"
     }
   ]
 }
