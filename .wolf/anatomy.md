@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-28T11:56:45.207Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-28T12:14:44.194Z
 > Files: 9 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
@@ -91,7 +91,7 @@
 
 ## scripts/
 
-- `tmp-add-bug.js` — Declares fs (~490 tok)
+- `tmp-add-bug.js` — Declares fs (~644 tok)
 
 ## src/
 
@@ -297,7 +297,7 @@
 
 ## src/app/api/share-target/
 
-- `route.ts` — bug-455 follow-up: tried `export const runtime = 'edge'` here to dodge Vercel's (~1318 tok)
+- `route.ts` — Stay on the default Node.js runtime — `edge` was tried and reverted (bug-455): (~1150 tok)
 
 ## src/app/api/signed-forms/[formId]/
 
@@ -451,7 +451,7 @@
 
 ## src/app/search/
 
-- `page.tsx` — MAX_HISTORY_ITEMS (~54014 tok)
+- `page.tsx` — MAX_HISTORY_ITEMS (~52867 tok)
 
 ## src/app/sign/[stationId]/
 

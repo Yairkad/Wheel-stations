@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runGeminiOcr } from '@/lib/ocr-gemini'
 
-// bug-455 follow-up: tried `export const runtime = 'edge'` here to dodge Vercel's
-// ~4.5MB request body limit (confirmed via direct 413 FUNCTION_PAYLOAD_TOO_LARGE
-// tests). Turned out the limit is enforced at Vercel's routing layer regardless of
-// runtime (a 6MB test still 413'd on edge) — AND a real Android share attempt on the
-// edge deployment came back with `request.formData()` completely empty (zero keys,
-// not just a missing "image" field), logged as "[share-target] no file in formData,
-// keys: []". Reverted to the default Node.js runtime since edge bought nothing and
-// may have broken multipart parsing for whatever shape Android's share intent sends.
+// Stay on the default Node.js runtime — `edge` was tried and reverted (bug-455):
+// it didn't dodge Vercel's ~4.5MB body limit (still 413s) and didn't change the
+// empty-formData outcome below.
+//
+// Known unresolved issue (bug-441/453/462/466/467/469/472): on at least one real
+// device, formData() here comes back completely empty (no "image" field, no keys
+// at all) for every share attempt, regardless of file size, source app (WhatsApp/
+// Gallery), manifest.json's accept list, icon correctness, or a fresh reinstall.
+// Confirmed via a temporary SW probe that the Service Worker never even gets a
+// chance to intercept the request either, so this isn't fixable by moving share
+// handling back into a SW. This looks like Chrome/Android not attaching the
+// shared file's bytes to the share_target POST at all on that device — outside
+// what this app's code can work around. The manual upload button (/api/ocr)
+// works correctly and is the fallback.
 
 // Web Share Target endpoint (public/manifest.json's share_target.action).
 // The OS share sheet POSTs the shared image directly here — a real server route,
@@ -39,24 +45,6 @@ function withResult(searchUrl: URL, cookieValue: string, marker: string) {
 
 export async function POST(request: NextRequest) {
   const searchUrl = new URL('/search', request.url)
-
-  // TEMP DIAGNOSTIC (bug-467 follow-up): the user can't do USB/chrome://inspect
-  // right now, so log everything we can about the raw request server-side instead
-  // — full headers plus the actual raw body bytes (not just what formData() thinks
-  // it found), so a Vercel logs pull gives a complete picture without needing the
-  // device connected to anything. Remove once diagnosed.
-  try {
-    const headersObj: Record<string, string> = {}
-    request.headers.forEach((v, k) => { headersObj[k] = v })
-    const rawText = await request.clone().text()
-    console.error('[share-target] RAW REQUEST', JSON.stringify({
-      headers: headersObj,
-      bodyLength: rawText.length,
-      bodyPreview: rawText.slice(0, 500),
-    }))
-  } catch (diagErr) {
-    console.error('[share-target] RAW REQUEST diag failed', diagErr instanceof Error ? diagErr.message : diagErr)
-  }
 
   try {
     const formData = await request.formData()

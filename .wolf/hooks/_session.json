@@ -13,13 +13,13 @@
       "first_read": "2026-09-27T18:18:47.686Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx": {
-      "count": 29,
-      "tokens": 53594,
+      "count": 34,
+      "tokens": 53480,
       "first_read": "2026-09-27T18:19:19.848Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/share-target/route.ts": {
-      "count": 5,
-      "tokens": 1068,
+      "count": 6,
+      "tokens": 1318,
       "first_read": "2026-09-27T18:52:28.053Z"
     },
     "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/components/AppHeader.tsx": {
@@ -302,19 +302,73 @@
       "action": "create",
       "tokens": 490,
       "at": "2026-09-28T11:56:45.223Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 16,
+      "at": "2026-09-28T12:12:23.501Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 195,
+      "at": "2026-09-28T12:12:32.974Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 275,
+      "at": "2026-09-28T12:12:44.310Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 54,
+      "at": "2026-09-28T12:12:49.047Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 91,
+      "at": "2026-09-28T12:12:59.979Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/search/page.tsx",
+      "action": "edit",
+      "tokens": 259,
+      "at": "2026-09-28T12:13:18.984Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/share-target/route.ts",
+      "action": "edit",
+      "tokens": 32,
+      "at": "2026-09-28T12:13:29.131Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/src/app/api/share-target/route.ts",
+      "action": "edit",
+      "tokens": 275,
+      "at": "2026-09-28T12:13:38.782Z"
+    },
+    {
+      "file": "C:/Users/יאיר קדוש/Desktop/projects/WHEELS_APP/scripts/tmp-add-bug.js",
+      "action": "create",
+      "tokens": 644,
+      "at": "2026-09-28T12:14:44.218Z"
     }
   ],
   "edit_counts": {
-    "src/app/search/page.tsx": 27,
-    "src/app/api/share-target/route.ts": 6,
-    "scripts/tmp-add-bug.js": 6,
+    "src/app/search/page.tsx": 33,
+    "src/app/api/share-target/route.ts": 8,
+    "scripts/tmp-add-bug.js": 7,
     "public/sw.js": 2,
     "public/manifest.json": 2,
     "src/lib/client-diag.ts": 1
   },
   "anatomy_hits": 4,
   "anatomy_misses": 3,
-  "repeated_reads_warned": 34,
+  "repeated_reads_warned": 40,
   "cerebrum_warnings": 0,
-  "stop_count": 21
+  "stop_count": 24
 }

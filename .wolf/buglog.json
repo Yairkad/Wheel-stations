@@ -7810,6 +7810,95 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-28T08:00:00.000Z"
+    },
+    {
+      "id": "bug-473",
+      "timestamp": "2026-09-28T12:12:32.997Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "9 lines replaced/restructured",
+      "fix": "Rewrote 17→8 lines (9 removed) | Also: logDiag('auth:pageshow', { persisted: e.persisted,; logDiag('auth:mount-check', { hasSession: hasSessi",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-28T12:12:59.991Z"
+    },
+    {
+      "id": "bug-474",
+      "timestamp": "2026-09-28T12:12:49.056Z",
+      "error_message": "Wrong return value",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "Was returning: () => window.removeEventListener('pageshow', onPag",
+      "fix": "Now returns: () => window.removeEventListener('pageshow', check",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T12:12:49.056Z"
+    },
+    {
+      "id": "bug-475",
+      "timestamp": "2026-09-28T12:13:19.059Z",
+      "error_message": "CSS fix: padding",
+      "file": "src/app/search/page.tsx",
+      "root_cause": "padding: '10px 16px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' → '10px 20px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer'",
+      "fix": "Changed padding: '10px 16px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer' → '10px 20px', borderRadius: '8px', border: 'none', background: '#334155', color: '#fff', fontSize: '0.9rem', cursor: 'pointer'",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T12:13:19.059Z"
+    },
+    {
+      "id": "bug-476",
+      "timestamp": "2026-09-28T12:13:29.140Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "16 lines replaced/restructured",
+      "fix": "Rewrote 22→4 lines (16 removed) | Also: // bug-455 follow-up: tried `export const runtime ; // ~4.5MB request body limit (confirmed via direct",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-09-28T12:13:38.793Z"
+    },
+    {
+      "id": "bug-477",
+      "timestamp": "2026-09-28T09:00:00.000Z",
+      "error_message": "ניקוי אחרי מיצוי חקירת share-target: החקירה הגיעה למסקנה סופית (bug-472) - צריך להחליט מה מהתוספות הזמניות נשאר ומה מוסר",
+      "file": "src/app/api/share-target/route.ts, src/app/search/page.tsx, src/lib/client-diag.ts",
+      "root_cause": "לאורך החקירה נוספו כמה שכבות דיבוג זמניות שסיימו את תפקידן: (1) src/lib/client-diag.ts + כל הקריאות ל-logDiag/downloadDiagLog + מסך /search?diag=1 - כלי אבחון חד-פעמי. (2) לוג מורחב ב-/api/share-target שרשם את כל ה-headers כולל טוקנים פנימיים של Vercel (x-vercel-oidc-token וכו) + preview של הגוף הגולמי - חשיפה מיותרת בפרודקשן. (3) מנגנון shareDebugInfo (פאנל סגול, השהיית 20 שניות) שנועד לאבחן את bug-441 - התברר שזו לא הייתה הבעיה האמיתית (רק רינדור זמני רגיל), וה-fix האמיתי (pageshow לאימות, bug-448) כבר קיים בלעדיו.",
+      "fix": "הוסר src/lib/client-diag.ts לגמרי ושכל השימושים בו (page-init, checkForShareResult start/found, auth:pageshow/mount-check logs, כפתורי הורדה, מסך diag=1). הוחזר /api/share-target ללוג הפשוט (no file in formData + content-type/length בלבד, בלי headers/body מלאים). הוסר shareDebugInfo וכל המנגנון סביבו, הוחזר redirect פשוט ל-login. נשאר: הארכיטקטורה עצמה (/api/share-target, ocr-gemini.ts), תיקוני pageshow/bfcache (אמיתיים, תואמים דפוס קיים), cookie fallback, shareOverlay (UX אמיתי), fallback לחיפוש לפי לוחית (לא קשור לשיתוף בכלל), ותיקוני manifest (אייקונים/accept - נכונים מבחינת תקן גם אם לא פתרו את הבעיה). תיעוד מסכם נוסף לראש /api/share-target/route.ts שמסביר את המסקנה הסופית לקוראים עתידיים. tsc --noEmit נקי.",
+      "tags": [
+        "ocr",
+        "share-target",
+        "cleanup",
+        "diagnostics-removal"
+      ],
+      "related_bugs": [
+        "bug-441",
+        "bug-448",
+        "bug-462",
+        "bug-466",
+        "bug-467",
+        "bug-469",
+        "bug-472"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T09:00:00.000Z"
     }
   ]
 }
