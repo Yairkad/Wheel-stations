@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-09-28T07:41:12.853Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-09-28T11:50:12.671Z
 > Files: 8 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../../../../0411~1/AppData/Local/Temp/claude/c--Users-----------Desktop-projects-WHEELS-APP/1111ee61-0d85-40c3-a4bb-8df79abcd579/scratchpad/
@@ -91,7 +91,7 @@
 
 ## scripts/
 
-- `tmp-add-bug.js` — Declares fs (~651 tok)
+- `tmp-add-bug.js` — Declares fs (~471 tok)
 
 ## src/
 
@@ -297,7 +297,7 @@
 
 ## src/app/api/share-target/
 
-- `route.ts` — bug-455 follow-up: tried `export const runtime = 'edge'` here to dodge Vercel's (~1068 tok)
+- `route.ts` — bug-455 follow-up: tried `export const runtime = 'edge'` here to dodge Vercel's (~1318 tok)
 
 ## src/app/api/signed-forms/[formId]/
 

@@ -40,6 +40,24 @@ function withResult(searchUrl: URL, cookieValue: string, marker: string) {
 export async function POST(request: NextRequest) {
   const searchUrl = new URL('/search', request.url)
 
+  // TEMP DIAGNOSTIC (bug-467 follow-up): the user can't do USB/chrome://inspect
+  // right now, so log everything we can about the raw request server-side instead
+  // — full headers plus the actual raw body bytes (not just what formData() thinks
+  // it found), so a Vercel logs pull gives a complete picture without needing the
+  // device connected to anything. Remove once diagnosed.
+  try {
+    const headersObj: Record<string, string> = {}
+    request.headers.forEach((v, k) => { headersObj[k] = v })
+    const rawText = await request.clone().text()
+    console.error('[share-target] RAW REQUEST', JSON.stringify({
+      headers: headersObj,
+      bodyLength: rawText.length,
+      bodyPreview: rawText.slice(0, 500),
+    }))
+  } catch (diagErr) {
+    console.error('[share-target] RAW REQUEST diag failed', diagErr instanceof Error ? diagErr.message : diagErr)
+  }
+
   try {
     const formData = await request.formData()
     let file = formData.get('image') as File | null

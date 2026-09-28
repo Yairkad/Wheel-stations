@@ -7717,6 +7717,44 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-09-28T07:00:00.000Z"
+    },
+    {
+      "id": "bug-468",
+      "timestamp": "2026-09-28T11:49:13.992Z",
+      "error_message": "Missing error handling in function",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T11:49:13.992Z"
+    },
+    {
+      "id": "bug-469",
+      "timestamp": "2026-09-28T07:30:00.000Z",
+      "error_message": "תיקוני manifest.json (accept extensions + אייקונים נכונים, bug-467) לא שינו כלום - עדיין 75 בייט ריק, גם אחרי התקנה מחדש. אין למשתמש כרגע אפשרות לחבר USB ל-chrome://inspect",
+      "file": "src/app/api/share-target/route.ts",
+      "root_cause": "מוצו כל התיקונים האפשריים מהצד שלנו (גודל קובץ, אפליקציית מקור, runtime, accept, אייקונים, SW) - כולם נבדקו ישירות ולא שינו את התוצאה. הדרך היחידה שנשארה לאבחון אמיתי היא USB debugging + chrome://inspect לראות את הבקשה האמיתית שכרום בונה - אבל למשתמש אין גישה לזה כרגע.",
+      "fix": "הורחב הלוג ב-/api/share-target: עכשיו כל בקשה (לא רק כשאין קובץ) רושמת את כל ה-headers המלאים + תוכן הגוף הגולמי (עד 500 תווים, דרך request.clone().text()) ל-console.error לפני כל עיבוד. זה נותן תמונה מלאה יותר מ-Vercel logs (שיש לי גישה אליהם דרך vercel CLI) בלי צורך בחיבור פיזי למכשיר. tsc --noEmit נקי, אומת מקומית שזה לא שובר את הזרימה הרגילה (curl עם קובץ אמיתי עדיין מחזיר ocr_empty כצפוי).",
+      "tags": [
+        "ocr",
+        "share-target",
+        "diagnostics",
+        "remote-logging",
+        "temporary"
+      ],
+      "related_bugs": [
+        "bug-462",
+        "bug-466",
+        "bug-467"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-09-28T07:30:00.000Z"
     }
   ]
 }
